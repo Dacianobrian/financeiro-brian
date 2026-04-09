@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Brian · Controle Financeiro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#080c14;
+  --surface:#0f1623;
+  --surface2:#161e2e;
+  --border:#1e2d45;
+  --border2:#253550;
+  --text:#e2e8f0;
+  --muted:#64748b;
+  --muted2:#94a3b8;
+  --blue:#6366f1;
+  --blue2:#818cf8;
+  --green:#10b981;
+  --red:#ef4444;
+  --purple:#8b5cf6;
+  --yellow:#f59e0b;
+  --orange:#f97316;
+  --cyan:#06b6d4;
+  --pink:#ec4899;
+  --font:'Inter',sans-serif;
+  --nu:#820ad1;
+  --bradesco:#cc092f;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13.5px;padding-bottom:100px;min-height:100vh}
+::selection{background:rgba(99,102,241,.35)}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+
+/* ── Header ── */
+.header{
+  position:sticky;top:0;z-index:200;
+  background:rgba(8,12,20,.85);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;height:58px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{
+  width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;box-shadow:0 0 16px rgba(99,102,241,.4);
+}
+.logo-text{font-size:16px;font-weight:700;letter-spacing:-.3px}
+.logo-text span{color:var(--blue2)}
+.header-center{display:flex;align-items:center;gap:4px}
+.tab-btn{
+  background:transparent;border:none;border-bottom:2px solid transparent;
+  color:var(--muted);padding:6px 16px;
+  font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;
+  transition:.15s;height:58px;display:flex;align-items:center;gap:6px;
+  border-radius:0;
+}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--blue2);border-bottom-color:var(--blue);font-weight:600}
+.header-right{display:flex;align-items:center;gap:8px}
+.date-chip{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:5px 12px;font-size:12px;color:var(--muted);
+}
+.btn{
+  border:none;cursor:pointer;border-radius:9px;
+  padding:7px 14px;font-family:var(--font);font-size:12px;font-weight:600;
+  transition:.15s;letter-spacing:.2px;display:flex;align-items:center;gap:5px;
+}
+.btn:hover{opacity:.85}
+.btn-primary{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;box-shadow:0 2px 12px rgba(99,102,241,.35)}
+.btn-ghost{background:var(--surface2);border:1px solid var(--border);color:var(--muted2)}
+
+/* ── Layout ── */
+.page{max-width:1440px;margin:0 auto;padding:20px 24px}
+.section{margin-top:20px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-title{font-size:13px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;gap:8px}
+.section-title::before{content:'';width:3px;height:14px;background:var(--blue);border-radius:2px;display:inline-block}
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:1fr 1fr}
+.g21{grid-template-columns:2fr 1fr}
+.g12{grid-template-columns:1fr 2fr}
+@media(max-width:1200px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr 1fr}.g21,.g12{grid-template-columns:1fr}}
+@media(max-width:700px){.g4,.g2,.g3{grid-template-columns:1fr}}
+
+/* ── Cards ── */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:18px;position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:transparent;transition:.2s;
+}
+.card:hover::before{background:linear-gradient(90deg,var(--blue),var(--purple))}
+.card:hover{border-color:var(--border2)}
+
+/* KPI Card */
+.kpi-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.kpi-label .kpi-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.kpi-value{font-size:24px;font-weight:800;letter-spacing:-1px;line-height:1}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:5px;display:flex;align-items:center;gap:4px}
+.trend{font-size:10px;font-weight:600;padding:2px 6px;border-radius:5px}
+.trend.up{background:rgba(16,185,129,.15);color:var(--green)}
+.trend.dn{background:rgba(239,68,68,.15);color:var(--red)}
+
+/* Bank badges */
+.bank{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:.3px}
+.bank-nu{background:rgba(130,10,209,.2);color:#c084fc;border:1px solid rgba(130,10,209,.3)}
+.bank-br{background:rgba(204,9,47,.2);color:#fca5a5;border:1px solid rgba(204,9,47,.3)}
+.bank-dot{width:6px;height:6px;border-radius:50%}
+.bank-nu .bank-dot{background:#820ad1}
+.bank-br .bank-dot{background:#cc092f}
+
+/* Category badge */
+.cat{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap}
+
+/* Type badge */
+.type-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px}
+.type-entrada{background:rgba(16,185,129,.15);color:var(--green)}
+.type-saida{background:rgba(239,68,68,.15);color:var(--red)}
+.type-investido{background:rgba(139,92,246,.15);color:var(--purple)}
+
+/* Amount colors */
+.amt-green{color:var(--green);font-weight:700}
+.amt-red{color:var(--red);font-weight:700}
+.amt-purple{color:var(--purple);font-weight:700}
+.amt-yellow{color:var(--yellow);font-weight:700}
+
+/* ── Table ── */
+.table-wrap{overflow-x:auto;border-radius:10px;margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{
+  background:var(--surface2);color:var(--muted);font-size:10.5px;
+  font-weight:600;text-transform:uppercase;letter-spacing:.7px;
+  padding:9px 14px;text-align:left;white-space:nowrap;
+  border-bottom:1px solid var(--border);
+}
+tbody tr{border-bottom:1px solid rgba(30,45,69,.6);transition:.1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(99,102,241,.05)}
+tbody td{padding:9px 14px;vertical-align:middle}
+tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);background:var(--surface2)}
+
+/* ── Chart ── */
+.chart-wrap{position:relative;height:240px}
+.chart-sm{height:200px}
+
+/* ── FII fund-type badges ── */
+.ftag{display:inline-block;border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;letter-spacing:.3px}
+.ftag-papel{background:rgba(99,102,241,.15);color:var(--blue2)}
+.ftag-tijolo{background:rgba(245,158,11,.15);color:var(--yellow)}
+.ftag-hib{background:rgba(16,185,129,.15);color:var(--green)}
+
+/* ── Progress ── */
+.progress{background:var(--surface2);border-radius:99px;height:6px;overflow:hidden;margin-top:8px}
+.progress-fill{height:100%;border-radius:99px;transition:width .6s ease}
+
+/* ── Due day badge ── */
+.due{
+  width:28px;height:28px;border-radius:8px;background:var(--surface2);
+  border:1px solid var(--border);display:inline-flex;align-items:center;
+  justify-content:center;font-size:10px;font-weight:700;color:var(--muted2);
+  flex-shrink:0;
+}
+
+/* ── Empty state ── */
+.empty{color:var(--muted);text-align:center;padding:32px;font-size:12px}
+
+/* ── Divider ── */
+.divider{height:1px;background:var(--border);margin:6px 0}
+
+/* ── Modal ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:18px;padding:28px;width:100%;max-width:480px;
+  box-shadow:0 24px 80px rgba(0,0,0,.6);
+  animation:modalIn .18s ease;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:none}}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.modal-close{margin-left:auto;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px;line-height:1}
+.modal-close:hover{color:var(--text)}
+
+/* Tipo selector */
+.tipo-row{display:flex;gap:8px;margin-bottom:18px}
+.tipo-opt{
+  flex:1;border:2px solid var(--border);border-radius:10px;
+  padding:10px 8px;text-align:center;cursor:pointer;transition:.15s;
+  font-size:12px;font-weight:600;color:var(--muted2);
+  background:var(--surface2);user-select:none;
+}
+.tipo-opt:hover{border-color:var(--border2);color:var(--text)}
+.tipo-opt.sel-saida{border-color:var(--red);background:rgba(239,68,68,.1);color:var(--red)}
+.tipo-opt.sel-entrada{border-color:var(--green);background:rgba(16,185,129,.1);color:var(--green)}
+.tipo-opt.sel-investido{border-color:var(--purple);background:rgba(139,92,246,.1);color:var(--purple)}
+
+/* Form fields */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.field input,.field select{
+  width:100%;background:var(--surface2);border:1px solid var(--border2);
+  border-radius:9px;color:var(--text);font-family:var(--font);font-size:13px;
+  padding:9px 12px;outline:none;transition:.15s;
+}
+.field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+.field select option{background:var(--surface2);color:var(--text)}
+.field-row{display:flex;gap:10px}
+.field-row .field{flex:1}
+
+.modal-preview{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:10px 12px;margin-bottom:16px;
+  font-family:monospace;font-size:11.5px;color:var(--muted2);
+  word-break:break-all;
+}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.btn-green{background:linear-gradient(135deg,#059669,#10b981);color:#fff;box-shadow:0 2px 10px rgba(16,185,129,.3)}
+
+/* ── Terminal ── */
+.terminal{
+  position:fixed;bottom:0;left:0;right:0;z-index:300;
+  background:rgba(8,12,20,.96);backdrop-filter:blur(20px);
+  border-top:1px solid var(--border2);
+  padding:10px 24px 12px;
+}
+.terminal-form{display:flex;align-items:center;gap:8px}
+.term-prompt{
+  font-size:14px;font-weight:800;color:var(--blue2);
+  font-family:monospace;flex-shrink:0;user-select:none;
+}
+.term-input{
+  flex:1;background:var(--surface2);border:1px solid var(--border2);
+  border-radius:9px;color:var(--text);font-family:monospace;font-size:13px;
+  padding:8px 14px;outline:none;transition:.15s;
+}
+.term-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+.term-input::placeholder{color:var(--muted)}
+.term-resp{
+  margin-top:5px;font-family:monospace;font-size:12px;min-height:18px;
+  transition:.2s;padding-left:24px;
+}
+.term-resp.ok{color:var(--green)}
+.term-resp.err{color:var(--red)}
+.term-resp.info{color:var(--muted)}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-icon">💰</div>
+    <div class="logo-text">Brian <span>Finanças</span></div>
+  </div>
+
+  <div class="header-center">
+    <button class="tab-btn active" id="tabBtnGeral" onclick="switchTab('geral')">📊 Visão Geral</button>
+    <button class="tab-btn" id="tabBtnAno" onclick="switchTab('ano')">📅 Dashboard Anual</button>
+  </div>
+
+  <div class="header-right">
+    <div class="date-chip" id="headerDate"></div>
+    <button class="btn btn-ghost" onclick="refreshDashboard()">↻</button>
+    <button class="btn btn-green" onclick="openModal()" style="background:linear-gradient(135deg,#059669,#10b981);color:#fff;box-shadow:0 2px 10px rgba(16,185,129,.3)">＋ Lançamento</button>
+    <button class="btn btn-primary" onclick="exportExcel()">⬇ Excel</button>
+  </div>
+</header>
+
+<!-- ── MODAL LANÇAMENTO ── -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-title">
+      ＋ Novo Lançamento
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <!-- Tipo -->
+    <div class="tipo-row">
+      <div class="tipo-opt sel-saida" id="tipoSaida"   onclick="setTipo('saida')">📤 Saída</div>
+      <div class="tipo-opt"          id="tipoEntrada"  onclick="setTipo('entrada')">💵 Entrada</div>
+      <div class="tipo-opt"          id="tipoInvestido" onclick="setTipo('investido')">📈 Investido</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field" style="flex:1.2">
+        <label>Data</label>
+        <input type="date" id="mData"/>
+      </div>
+      <div class="field" style="flex:1">
+        <label>Valor (R$)</label>
+        <input type="text" id="mValor" placeholder="0,00" inputmode="decimal"/>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Conta / Cartão</label>
+      <select id="mConta">
+        <option value="corrente nubank">Nubank — Conta Corrente</option>
+        <option value="corrente bradesco">Bradesco — Conta Corrente</option>
+        <option value="cartão bradesco">Bradesco — Cartão de Crédito</option>
+        <option value="caixinha nubank">Nubank — Caixinha (RDB)</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Descrição</label>
+      <input type="text" id="mDesc" placeholder="Ex: compra no mercado, almoço, posto..." list="descSugest"/>
+      <datalist id="descSugest">
+        <option value="compra no mercado"/>
+        <option value="supermercado"/>
+        <option value="almoço restaurante"/>
+        <option value="jantar"/>
+        <option value="combustível posto"/>
+        <option value="farmácia"/>
+        <option value="uber"/>
+        <option value="conta de água"/>
+        <option value="conta de luz"/>
+        <option value="internet"/>
+        <option value="comissão imobiliária"/>
+        <option value="aporte FII"/>
+      </datalist>
+    </div>
+
+    <div class="modal-preview" id="mPreview">—</div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-green" id="mSubmitBtn" onclick="submitModal()">✓ Registrar</button>
+    </div>
+    <div class="term-resp" id="mResp" style="margin-top:10px;padding-left:0;min-height:16px"></div>
+  </div>
+</div>
+
+<!-- ── PAGE ── -->
+<div class="page">
+
+<!-- ════ TAB: VISÃO GERAL ════ -->
+<div id="tabGeral">
+
+  <!-- KPIs Row 1 -->
+  <div class="section">
+    <div class="grid g4" id="kpiGrid">
+      <div class="card" id="cardSaldo">
+        <div class="kpi-label"><span class="kpi-icon" style="background:rgba(99,102,241,.15)">🏦</span>Saldo em Conta</div>
+        <div class="kpi-value" id="kpiSaldo">—</div>
+        <div class="kpi-sub" id="kpiSaldoSub">Nubank + Bradesco</div>
+      </div>
+      <div class="card">
+        <div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Entradas</div>
+        <div class="kpi-value amt-green" id="kpiEntradas">—</div>
+        <div class="kpi-sub" id="kpiEntradasSub">mês atual</div>
+      </div>
+      <div class="card">
+        <div class="kpi-label"><span class="kpi-icon" style="background:rgba(239,68,68,.15)">📤</span>Saídas</div>
+        <div class="kpi-value amt-red" id="kpiSaidas">—</div>
+        <div class="kpi-sub" id="kpiSaidasSub">mês atual</div>
+      </div>
+      <div class="card">
+        <div class="kpi-label"><span class="kpi-icon" style="background:rgba(139,92,246,.15)">📈</span>Investido</div>
+        <div class="kpi-value amt-purple" id="kpiInvestido">—</div>
+        <div class="kpi-sub">mês atual</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs Row 2 -->
+  <div class="grid g4" style="margin-top:14px">
+    <div class="card">
+      <div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🏢</span>Portfolio FII</div>
+      <div class="kpi-value amt-yellow" id="kpiFii">—</div>
+      <div class="kpi-sub" id="kpiFiiSub">valor de mercado</div>
+    </div>
+    <div class="card">
+      <div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💸</span>Dividendos / Mês</div>
+      <div class="kpi-value amt-green" id="kpiDiv">—</div>
+      <div class="kpi-sub">renda passiva estimada</div>
+    </div>
+    <div class="card">
+      <div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Total Investido</div>
+      <div class="kpi-value" style="color:var(--cyan)" id="kpiInv">—</div>
+      <div class="kpi-sub" id="kpiRate">Caixinha + FIIs</div>
+    </div>
+    <div class="card">
+      <div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🎯</span>Meta Reserva · Dez/2027</div>
+      <div class="kpi-value amt-yellow" id="kpiMeta">—</div>
+      <div class="progress"><div class="progress-fill" id="kpiMetaBar" style="width:0%;background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div>
+      <div class="kpi-sub" id="kpiMetaSub">de R$ 60.000</div>
+    </div>
+  </div>
+
+  <!-- Accounts Row -->
+  <div class="section" style="margin-top:14px">
+    <div class="section-header" style="margin-bottom:12px">
+      <div class="section-title">💼 Contas &amp; Patrimônio</div>
+    </div>
+    <div class="grid g4" id="accountsGrid">
+      <div class="card" style="opacity:.4">carregando...</div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Análise 2026</div>
+    </div>
+    <div class="grid g3">
+      <div class="card" style="grid-column:span 2">
+        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:12px">📊 Fluxo Mensal — Entradas vs Saídas</div>
+        <div class="chart-wrap"><canvas id="chartFluxo"></canvas></div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:12px">📊 Despesas por Categoria</div>
+        <div class="chart-wrap" style="height:280px"><canvas id="chartCat"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transactions + FII -->
+  <div class="section">
+    <div class="grid g2">
+
+      <!-- Transactions -->
+      <div class="card">
+        <div class="section-header" style="margin-bottom:10px">
+          <div class="section-title">Últimas Transações</div>
+          <div style="display:flex;gap:6px">
+            <span class="bank bank-nu"><span class="bank-dot"></span>Nubank</span>
+            <span class="bank bank-br"><span class="bank-dot"></span>Bradesco</span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th style="text-align:right">Valor</th></tr></thead>
+            <tbody id="tblTransactions"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- FII Portfolio -->
+      <div class="card">
+        <div class="section-header" style="margin-bottom:10px">
+          <div class="section-title">🏢 Portfolio FII</div>
+          <button class="btn btn-ghost" style="font-size:11px" onclick="cmdQuick('atualizar fiis')">↻ Cotas ao vivo</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Ticker</th><th>Cotas</th><th>Preço</th><th>Total</th><th>DY%</th><th>Tipo</th></tr></thead>
+            <tbody id="tblFii"><tr><td colspan="6" class="empty">Carregando...</td></tr></tbody>
+            <tfoot><tr id="tblFiiFoot"></tr></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEI + DAS -->
+  <div class="section">
+    <div class="grid g2">
+      <div class="card">
+        <div class="section-header" style="margin-bottom:10px">
+          <div class="section-title">📄 Notas Fiscais MEI</div>
+          <span style="font-size:11px;color:var(--muted)">CNPJ 57.318.991</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Referência</th><th>Emissão</th><th style="text-align:right">Valor</th><th>Ano</th></tr></thead>
+            <tbody id="tblMei"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
+            <tfoot><tr id="tblMeiFoot"></tr></tfoot>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-header" style="margin-bottom:10px">
+          <div class="section-title">🏛️ Pagamentos DAS MEI</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Mês</th><th>Ano</th><th style="text-align:right">Valor</th><th>Data Pgto</th></tr></thead>
+            <tbody id="tblDas"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custos Fixos -->
+  <div class="section">
+    <div class="card">
+      <div class="section-header" style="margin-bottom:10px">
+        <div class="section-title">📋 Custos Fixos Mensais</div>
+        <div id="totalFixo" style="font-size:13px;font-weight:700;color:var(--red)"></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Dia</th><th>Descrição</th><th style="text-align:right">Valor</th><th>Categoria</th></tr></thead>
+          <tbody id="tblCustos"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tabGeral -->
+
+<!-- ════ TAB: DASHBOARD ANUAL ════ -->
+<div id="tabAno" style="display:none">
+
+  <!-- KPIs Anuais -->
+  <div class="section">
+    <div class="grid g4">
+      <div class="card">
+        <div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Entradas 2026</div>
+        <div class="kpi-value amt-green" id="anoEntradas">—</div>
+        <div class="kpi-sub" id="anoEntradasSub">acumulado</div>
+      </div>
+      <div class="card">
+        <div class="kpi-label"><span class="kpi-icon" style="background:rgba(239,68,68,.15)">📤</span>Saídas 2026</div>
+        <div class="kpi-value amt-red" id="anoSaidas">—</div>
+        <div class="kpi-sub" id="anoSaidasSub">acumulado</div>
+      </div>
+      <div class="card">
+        <div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Investido 2026</div>
+        <div class="kpi-value" style="color:var(--cyan)" id="anoInvestido">—</div>
+        <div class="kpi-sub" id="anoInvestidoSub">acumulado</div>
+      </div>
+      <div class="card">
+        <div class="kpi-label"><span class="kpi-icon" style="background:rgba(139,92,246,.15)">📊</span>Taxa de Poupança</div>
+        <div class="kpi-value amt-purple" id="anoRate">—</div>
+        <div class="kpi-sub">do total de entradas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráfico Fluxo Anual -->
+  <div class="section">
+    <div class="card">
+      <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:14px">📊 Fluxo Mensal 2026 — Entradas vs Saídas vs Investido</div>
+      <div class="chart-wrap" style="height:280px"><canvas id="chartFluxoAno"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Tabela Mensal + Donut -->
+  <div class="section">
+    <div class="grid g3">
+      <div class="card" style="grid-column:span 2">
+        <div class="section-header" style="margin-bottom:10px">
+          <div class="section-title">📋 Resumo por Mês</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Mês</th>
+              <th style="text-align:right">Entradas</th>
+              <th style="text-align:right">Saídas</th>
+              <th style="text-align:right">Investido</th>
+              <th style="text-align:right">Saldo</th>
+            </tr></thead>
+            <tbody id="tblMeses"><tr><td colspan="5" class="empty">—</td></tr></tbody>
+            <tfoot><tr id="tblMesesFoot"></tr></tfoot>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:12px">🍩 Despesas por Categoria 2026</div>
+        <div class="chart-wrap" style="height:320px"><canvas id="chartCatAno"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tabAno -->
+
+</div><!-- /page -->
+
+<!-- ── TERMINAL ── -->
+<div class="terminal">
+  <form class="terminal-form" id="termForm" onsubmit="sendCmd(event)">
+    <span class="term-prompt">›</span>
+    <input class="term-input" id="termInput" type="text" autocomplete="off"
+      placeholder="08/04/2026 - 5,00 corrente - compra no mercado  ·  entrada 08/04/2026 - 3500,00 nubank - comissão  ·  ajuda"/>
+    <button class="btn btn-primary" type="submit">Enviar</button>
+    <button class="btn btn-ghost" type="button" onclick="document.getElementById('termInput').value=''">✕</button>
+  </form>
+  <div class="term-resp info" id="termResp">Digite um comando. Use <b>ajuda</b> para ver todos os comandos.</div>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+const CAT_ICON = {
+  'Alimentação':'🍽️','Supermercado':'🛒','Combustível':'⛽','Moradia':'🏠',
+  'Saúde':'🏥','Educação':'📚','Transporte':'🚗','Lazer':'🎉','Streaming':'🎵',
+  'Investimentos':'📈','Cartão Bradesco':'💳','Parcelas':'🔄','Anuidade':'📋',
+  'Impostos / MEI':'🏛️','Outros':'📌','Comissão Imobiliária':'🏢',
+  'Dividendos FII':'📊','Rendimento RDB/CDB':'💰','Gerenciamento':'📋',
+  'Aluguel':'🏠','Salário':'💵',
+};
+const CAT_COLOR = {
+  'Alimentação':'#f97316','Supermercado':'#84cc16','Combustível':'#64748b',
+  'Moradia':'#8b5cf6','Saúde':'#ec4899','Educação':'#06b6d4','Transporte':'#f59e0b',
+  'Lazer':'#a855f7','Streaming':'#6366f1','Investimentos':'#10b981',
+  'Cartão Bradesco':'#3b82f6','Parcelas':'#ef4444','Anuidade':'#78716c',
+  'Impostos / MEI':'#dc2626','Outros':'#475569',
+};
+
+function catIcon(c){return CAT_ICON[c]||'📌'}
+function catColor(c){return CAT_COLOR[c]||'#64748b'}
+function catBadge(c){
+  const ico=catIcon(c), col=catColor(c);
+  return `<span class="cat" style="background:${col}22;color:${col};border:1px solid ${col}44">${ico} ${c||'—'}</span>`;
+}
+
+// ── Formatting ────────────────────────────────────────────────────────────────
+function brl(v,plus=false){
+  if(v==null||v==='')return'—';
+  const n=parseFloat(v);
+  const s='R$ '+Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return (plus&&n>0?'+':'')+s;
+}
+function shortBrl(v){
+  const n=parseFloat(v);
+  if(isNaN(n))return'—';
+  if(Math.abs(n)>=1e6)return'R$ '+(n/1e6).toLocaleString('pt-BR',{maximumFractionDigits:1})+'M';
+  if(Math.abs(n)>=1e3)return'R$ '+(n/1e3).toLocaleString('pt-BR',{maximumFractionDigits:1})+'k';
+  return brl(n);
+}
+function pct(v){return(+v).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%'}
+function fmtDate(d){
+  if(!d)return'—';
+  const [y,m,day]=d.split('-');
+  return`${day}/${m}/${y}`;
+}
+
+// ── Bank detection ────────────────────────────────────────────────────────────
+function bankBadge(desc){
+  if(!desc)return'';
+  const d=desc.toLowerCase();
+  if(d.includes('bradesco'))return`<span class="bank bank-br"><span class="bank-dot"></span>Bradesco</span>`;
+  return`<span class="bank bank-nu"><span class="bank-dot"></span>Nubank</span>`;
+}
+
+// ── Fund type badge ───────────────────────────────────────────────────────────
+function ftypeBadge(t){
+  if(!t)return'—';
+  const tl=t.toLowerCase();
+  if(tl.includes('papel'))return`<span class="ftag ftag-papel">📄 Papel</span>`;
+  if(tl.includes('tijolo'))return`<span class="ftag ftag-tijolo">🧱 Tijolo</span>`;
+  return`<span class="ftag ftag-hib">🔀 Híbrido</span>`;
+}
+
+// ── Charts ────────────────────────────────────────────────────────────────────
+let chartFluxo,chartCat;
+Chart.defaults.font={family:'Inter',size:11};
+Chart.defaults.color='#64748b';
+
+function buildCharts(data){
+  const months=data.monthly_2026.map(m=>m.month);
+  const entrada=data.monthly_2026.map(m=>m.entradas);
+  const saida=data.monthly_2026.map(m=>m.saidas);
+  const inv=data.monthly_2026.map(m=>m.investido);
+
+  if(chartFluxo)chartFluxo.destroy();
+  chartFluxo=new Chart(document.getElementById('chartFluxo'),{
+    type:'bar',
+    data:{labels:months,datasets:[
+      {label:'Entradas',data:entrada,backgroundColor:'rgba(16,185,129,.7)',borderRadius:5,borderSkipped:false},
+      {label:'Saídas',data:saida,backgroundColor:'rgba(239,68,68,.7)',borderRadius:5,borderSkipped:false},
+      {label:'Investido',data:inv,backgroundColor:'rgba(139,92,246,.6)',borderRadius:5,borderSkipped:false},
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12}},
+        tooltip:{callbacks:{label:c=>' '+brl(c.raw)}}},
+      scales:{
+        x:{grid:{color:'rgba(30,45,69,.6)'},ticks:{font:{size:10}}},
+        y:{grid:{color:'rgba(30,45,69,.6)'},ticks:{callback:v=>shortBrl(v)}},
+      }
+    }
+  });
+
+  // Horizontal bar - expenses by category
+  const cats=data.expense_by_cat||{};
+  const sortedCats=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const catLabels=sortedCats.map(([l])=>catIcon(l)+' '+l);
+  const catVals=sortedCats.map(([,v])=>v);
+  const catColors=sortedCats.map(([l])=>catColor(l));
+  if(chartCat)chartCat.destroy();
+  chartCat=new Chart(document.getElementById('chartCat'),{
+    type:'bar',
+    data:{labels:catLabels,datasets:[{
+      data:catVals,
+      backgroundColor:catColors.map(c=>c+'bb'),
+      borderColor:catColors,
+      borderWidth:1,
+      borderRadius:5,
+    }]},
+    options:{
+      indexAxis:'y',
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>' '+brl(c.raw)}},
+      },
+      scales:{
+        x:{grid:{color:'rgba(30,45,69,.5)'},ticks:{callback:v=>shortBrl(v),font:{size:10}}},
+        y:{grid:{display:false},ticks:{font:{size:10.5}}},
+      }
+    }
+  });
+}
+
+// ── Fill KPIs ─────────────────────────────────────────────────────────────────
+function fillKpis(data){
+  const cm=data.current_month;
+
+  // Saldo em conta = Nubank corrente + Bradesco corrente
+  const saldoConta=data.saldo_contas||0;
+  const el=document.getElementById('kpiSaldo');
+  el.textContent=brl(saldoConta);
+  el.style.color=saldoConta>=0?'var(--green)':'var(--red)';
+
+  document.getElementById('kpiEntradas').textContent=brl(cm.entradas);
+  document.getElementById('kpiSaidas').textContent=brl(cm.saidas);
+  document.getElementById('kpiInvestido').textContent=brl(cm.investido);
+  document.getElementById('kpiFii').textContent=brl(data.fii_total);
+  document.getElementById('kpiFiiSub').textContent=`${(data.fii||[]).length} fundos`;
+  document.getElementById('kpiDiv').textContent=brl(data.fii_monthly_dividends);
+
+  // Total investido real = Caixinha + FIIs
+  const totInv=data.total_investido_real||0;
+  document.getElementById('kpiInv').textContent=brl(totInv);
+
+  // Meta R$60.000 dez/2027
+  const meta=data.meta_reserva||60000;
+  document.getElementById('kpiMeta').textContent=brl(totInv);
+  const pv=Math.min(100,(totInv/meta)*100);
+  document.getElementById('kpiMetaBar').style.width=pv+'%';
+  document.getElementById('kpiMetaSub').textContent=`${pv.toFixed(1)}% de R$ 60.000`;
+}
+
+// ── Fill Transactions ─────────────────────────────────────────────────────────
+function fillTx(rows){
+  const tb=document.getElementById('tblTransactions');
+  if(!rows||!rows.length){tb.innerHTML=`<tr><td colspan="4" class="empty">Nenhuma transação.</td></tr>`;return}
+  tb.innerHTML=rows.map(t=>{
+    const amtCls=t.type==='entrada'?'amt-green':t.type==='investido'?'amt-purple':'amt-red';
+    const typeBadge=`<span class="type-badge type-${t.type}">${t.type==='entrada'?'↓ entrada':t.type==='investido'?'↑ invest':'↑ saída'}</span>`;
+    const bank=bankBadge(t.description);
+    return`<tr>
+      <td style="white-space:nowrap;color:var(--muted)">${fmtDate(t.date)}</td>
+      <td>
+        <div style="font-size:12px;font-weight:500;line-height:1.3">${t.description||'—'}</div>
+        <div style="margin-top:2px;display:flex;gap:4px;align-items:center">${typeBadge}${bank}</div>
+      </td>
+      <td>${catBadge(t.category)}</td>
+      <td style="text-align:right" class="${amtCls}">${brl(t.amount)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Fill FII ──────────────────────────────────────────────────────────────────
+function fillFii(rows){
+  const tb=document.getElementById('tblFii');
+  const ft=document.getElementById('tblFiiFoot');
+  if(!rows||!rows.length){tb.innerHTML=`<tr><td colspan="6" class="empty">—</td></tr>`;return}
+  let totalVal=0;
+  tb.innerHTML=rows.map(f=>{
+    const total=(f.shares||0)*(f.price||0);
+    totalVal+=total;
+    const varCls=(f.variation_12m||0)>=0?'amt-green':'amt-red';
+    const dyPct=f.dy?pct(f.dy):'—';
+    return`<tr>
+      <td><span style="font-weight:700;color:var(--blue2);letter-spacing:.5px">${f.ticker}</span></td>
+      <td style="color:var(--muted2)">${f.shares||0}</td>
+      <td style="color:var(--muted2)">${brl(f.price)}</td>
+      <td class="amt-yellow">${brl(total)}</td>
+      <td class="${varCls}">${dyPct}</td>
+      <td>${ftypeBadge(f.fund_type)}</td>
+    </tr>`;
+  }).join('');
+  ft.innerHTML=`<td colspan="3" style="color:var(--muted)">TOTAL</td><td class="amt-yellow">${brl(totalVal)}</td><td colspan="2"></td>`;
+}
+
+// ── Fill MEI ──────────────────────────────────────────────────────────────────
+function fillMei(rows){
+  const tb=document.getElementById('tblMei');
+  const ft=document.getElementById('tblMeiFoot');
+  if(!rows||!rows.length){tb.innerHTML=`<tr><td colspan="4" class="empty">—</td></tr>`;return}
+  let total=0;
+  tb.innerHTML=rows.map(n=>{
+    total+=n.amount||0;
+    return`<tr>
+      <td style="font-weight:500">${n.ref}</td>
+      <td style="color:var(--muted)">${fmtDate(n.issue_date)}</td>
+      <td class="amt-green" style="text-align:right">${brl(n.amount)}</td>
+      <td><span style="background:rgba(99,102,241,.15);color:var(--blue2);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700">${n.year}</span></td>
+    </tr>`;
+  }).join('');
+  ft.innerHTML=`<td colspan="2" style="color:var(--muted)">TOTAL</td><td class="amt-green" style="text-align:right">${brl(total)}</td><td></td>`;
+}
+
+// ── Fill DAS ──────────────────────────────────────────────────────────────────
+function fillDas(rows){
+  const tb=document.getElementById('tblDas');
+  if(!rows||!rows.length){tb.innerHTML=`<tr><td colspan="4" class="empty">—</td></tr>`;return}
+  tb.innerHTML=rows.slice(0,12).map(d=>`<tr>
+    <td style="font-weight:500">${d.month_name}</td>
+    <td><span style="background:rgba(99,102,241,.15);color:var(--blue2);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700">${d.year}</span></td>
+    <td style="text-align:right;font-weight:600">${brl(d.amount)}</td>
+    <td style="color:var(--muted)">${fmtDate(d.payment_date)}</td>
+  </tr>`).join('');
+}
+
+// ── Fill Custos Fixos ─────────────────────────────────────────────────────────
+function fillCustos(rows){
+  const tb=document.getElementById('tblCustos');
+  if(!rows||!rows.length){tb.innerHTML=`<tr><td colspan="4" class="empty">—</td></tr>`;return}
+  let total=0;
+  tb.innerHTML=rows.map(c=>{
+    total+=c.amount||0;
+    const desc=c.description||'';
+    // Map description to category
+    let cat='Outros';
+    if(/internet|astanet/i.test(desc))cat='Moradia';
+    else if(/celular|claro/i.test(desc))cat='Streaming';
+    else if(/unimed|saude|health|metlife|caixa assist/i.test(desc))cat='Saúde';
+    else if(/financiamento|votorantim|casa line|line|aluguel|locabens|capitaliz/i.test(desc))cat='Moradia';
+    else if(/das mei/i.test(desc))cat='Impostos / MEI';
+    else if(/cartao|bradesco/i.test(desc))cat='Cartão Bradesco';
+    else if(/spotify/i.test(desc))cat='Streaming';
+    else if(/apple/i.test(desc))cat='Streaming';
+    else if(/cpfl|energia/i.test(desc))cat='Moradia';
+    else if(/semae|agua/i.test(desc))cat='Moradia';
+    const due=c.due_day?`<span class="due">${c.due_day}</span>`:`<span class="due" style="color:var(--muted)">?</span>`;
+    return`<tr>
+      <td>${due}</td>
+      <td style="font-weight:500">${desc}</td>
+      <td style="text-align:right" class="${c.amount>0?'amt-red':''}">${c.amount>0?brl(c.amount):'—'}</td>
+      <td>${catBadge(cat)}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('totalFixo').textContent=`Total: ${brl(total)}/mês`;
+}
+
+// ── Accounts ──────────────────────────────────────────────────────────────────
+function fillAccounts(accounts, patrimonio){
+  const grid=document.getElementById('accountsGrid');
+  if(!accounts||!accounts.length){grid.innerHTML='<div class="card" style="opacity:.4">sem dados</div>';return;}
+
+  const bankStyle={
+    'nubank':  {bg:'rgba(130,10,209,.12)', border:'rgba(130,10,209,.3)', color:'var(--nu)',  label:'Nubank',   dot:'#820ad1'},
+    'bradesco':{bg:'rgba(204,9,47,.12)',   border:'rgba(204,9,47,.3)',   color:'var(--bradesco)', label:'Bradesco', dot:'#cc092f'},
+  };
+
+  const typeIcon={'corrente':'💳','caixinha':'🐷','rdb':'🐷','poupança':'🏦'};
+
+  let html=accounts.map(a=>{
+    const key=a.bank.toLowerCase();
+    const st=bankStyle[key]||{bg:'rgba(99,102,241,.12)',border:'rgba(99,102,241,.3)',color:'#6366f1',label:a.bank,dot:'#6366f1'};
+    const ico=typeIcon[a.type.toLowerCase()]||'🏦';
+    const upd=a.updated_at?a.updated_at.slice(0,10):'—';
+    return`<div class="card" style="border:1px solid ${st.border};background:${st.bg}">
+      <div class="kpi-label" style="margin-bottom:8px">
+        <span class="kpi-icon" style="background:${st.bg}">${ico}</span>
+        <span style="color:${st.color};font-weight:600;font-size:11px">${st.label}</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted2);font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">${a.type}</div>
+      <div class="kpi-value" style="color:${st.color};font-size:22px">${brl(a.balance)}</div>
+      <div class="kpi-sub" style="margin-top:4px">atualizado ${upd}</div>
+    </div>`;
+  }).join('');
+
+  // Patrimônio total card
+  if(patrimonio){
+    html+=`<div class="card" style="border:1px solid rgba(99,102,241,.35);background:rgba(99,102,241,.1)">
+      <div class="kpi-label" style="margin-bottom:8px">
+        <span class="kpi-icon" style="background:rgba(99,102,241,.15)">⚖️</span>
+        <span style="color:#a78bfa;font-weight:600;font-size:11px">PATRIMÔNIO TOTAL</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted2);font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">contas + FIIs</div>
+      <div class="kpi-value" style="color:#a78bfa;font-size:22px">${brl(patrimonio.total)}</div>
+      <div class="kpi-sub" style="margin-top:4px">
+        <span style="color:var(--muted2)">contas: ${brl(patrimonio.accounts)}</span> ·
+        <span style="color:var(--muted2)">fiis: ${brl(patrimonio.fii)}</span>
+      </div>
+    </div>`;
+  }
+  grid.innerHTML=html;
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+const MONTHS_PT=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+function switchTab(tab){
+  document.getElementById('tabGeral').style.display=tab==='geral'?'':'none';
+  document.getElementById('tabAno').style.display=tab==='ano'?'':'none';
+  document.getElementById('tabBtnGeral').classList.toggle('active',tab==='geral');
+  document.getElementById('tabBtnAno').classList.toggle('active',tab==='ano');
+}
+
+// ── Yearly dashboard ──────────────────────────────────────────────────────────
+let chartFluxoAno,chartCatAno;
+function fillAnoTab(data){
+  const m=data.monthly_2026||[];
+  // KPIs
+  const totE=m.reduce((s,r)=>s+(r.entradas||0),0);
+  const totS=m.reduce((s,r)=>s+(r.saidas||0),0);
+  const totI=m.reduce((s,r)=>s+(r.investido||0),0);
+  document.getElementById('anoEntradas').textContent=brl(totE);
+  document.getElementById('anoEntradasSub').textContent=`${m.filter(r=>r.entradas>0).length} meses`;
+  document.getElementById('anoSaidas').textContent=brl(totS);
+  document.getElementById('anoSaidasSub').textContent=`${m.filter(r=>r.saidas>0).length} meses`;
+  document.getElementById('anoInvestido').textContent=brl(totI);
+  document.getElementById('anoInvestidoSub').textContent=brl(data.total_investido_2026||totI);
+  const rate=totE>0?((totI/totE)*100).toFixed(1):0;
+  document.getElementById('anoRate').textContent=rate+'%';
+
+  // Bar chart
+  const labels=m.map(r=>r.month);
+  const entrada=m.map(r=>r.entradas||0);
+  const saida=m.map(r=>r.saidas||0);
+  const inv=m.map(r=>r.investido||0);
+  if(chartFluxoAno)chartFluxoAno.destroy();
+  chartFluxoAno=new Chart(document.getElementById('chartFluxoAno'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Entradas',data:entrada,backgroundColor:'rgba(16,185,129,.75)',borderRadius:6,borderSkipped:false},
+      {label:'Saídas',data:saida,backgroundColor:'rgba(239,68,68,.75)',borderRadius:6,borderSkipped:false},
+      {label:'Investido',data:inv,backgroundColor:'rgba(139,92,246,.65)',borderRadius:6,borderSkipped:false},
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:14}},
+        tooltip:{callbacks:{label:c=>' '+brl(c.raw)}}},
+      scales:{
+        x:{grid:{color:'rgba(30,45,69,.6)'},ticks:{font:{size:11}}},
+        y:{grid:{color:'rgba(30,45,69,.6)'},ticks:{callback:v=>shortBrl(v)}},
+      }
+    }
+  });
+
+  // Monthly table
+  const tb=document.getElementById('tblMeses');
+  const ft=document.getElementById('tblMesesFoot');
+  if(!m.length){tb.innerHTML=`<tr><td colspan="5" class="empty">—</td></tr>`;return}
+  tb.innerHTML=m.map(r=>{
+    const saldo=(r.entradas||0)-(r.saidas||0)-(r.investido||0);
+    const sc=saldo>=0?'amt-green':'amt-red';
+    return`<tr>
+      <td style="font-weight:600;color:var(--blue2)">${r.month}</td>
+      <td style="text-align:right" class="amt-green">${brl(r.entradas||0)}</td>
+      <td style="text-align:right" class="amt-red">${brl(r.saidas||0)}</td>
+      <td style="text-align:right" class="amt-purple">${brl(r.investido||0)}</td>
+      <td style="text-align:right" class="${sc}">${brl(saldo)}</td>
+    </tr>`;
+  }).join('');
+  const totSaldo=totE-totS-totI;
+  const totSc=totSaldo>=0?'amt-green':'amt-red';
+  ft.innerHTML=`
+    <td style="color:var(--muted)">TOTAL</td>
+    <td style="text-align:right" class="amt-green">${brl(totE)}</td>
+    <td style="text-align:right" class="amt-red">${brl(totS)}</td>
+    <td style="text-align:right" class="amt-purple">${brl(totI)}</td>
+    <td style="text-align:right" class="${totSc}">${brl(totSaldo)}</td>`;
+
+  // Horizontal bar - category (aba anual)
+  const cats=data.expense_by_cat||{};
+  const sortedCatsAno=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const catLabelsAno=sortedCatsAno.map(([l])=>catIcon(l)+' '+l);
+  const catValsAno=sortedCatsAno.map(([,v])=>v);
+  const catColorsAno=sortedCatsAno.map(([l])=>catColor(l));
+  if(chartCatAno)chartCatAno.destroy();
+  chartCatAno=new Chart(document.getElementById('chartCatAno'),{
+    type:'bar',
+    data:{labels:catLabelsAno,datasets:[{
+      data:catValsAno,
+      backgroundColor:catColorsAno.map(c=>c+'bb'),
+      borderColor:catColorsAno,
+      borderWidth:1,
+      borderRadius:5,
+    }]},
+    options:{
+      indexAxis:'y',
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>' '+brl(c.raw)}},
+      },
+      scales:{
+        x:{grid:{color:'rgba(30,45,69,.5)'},ticks:{callback:v=>shortBrl(v),font:{size:10}}},
+        y:{grid:{display:false},ticks:{font:{size:10.5}}},
+      }
+    }
+  });
+}
+
+// ── Dashboard load ────────────────────────────────────────────────────────────
+async function refreshDashboard(){
+  try{
+    const res=await fetch('/api/dashboard');
+    const data=await res.json();
+    fillKpis(data);
+    buildCharts(data);
+    fillAccounts(data.accounts, data.patrimonio);
+    fillTx(data.transactions_recent);
+    fillFii(data.fii);
+    fillMei(data.mei_invoices);
+    fillDas(data.das_payments);
+    fillCustos(data.fixed_costs);
+    fillAnoTab(data);
+  }catch(e){console.error(e)}
+}
+
+// ── Terminal ──────────────────────────────────────────────────────────────────
+async function sendCmd(e){
+  e.preventDefault();
+  const inp=document.getElementById('termInput');
+  const cmd=inp.value.trim();
+  if(!cmd)return;
+  const resp=document.getElementById('termResp');
+  resp.className='term-resp info';
+  resp.innerHTML='⟳ Executando...';
+  try{
+    const r=await fetch('/api/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({command:cmd})});
+    const d=await r.json();
+    resp.className='term-resp '+(d.success?'ok':'err');
+    resp.innerHTML=(d.success?'✓ ':'✗ ')+d.message.replace(/\n/g,'<br>');
+    if(d.success){inp.value='';refreshDashboard()}
+  }catch(err){
+    resp.className='term-resp err';
+    resp.innerHTML='✗ Erro: '+err.message;
+  }
+}
+
+async function cmdQuick(c){
+  const resp=document.getElementById('termResp');
+  resp.className='term-resp info';
+  resp.innerHTML='⟳ '+c+'...';
+  try{
+    const r=await fetch('/api/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({command:c})});
+    const d=await r.json();
+    resp.className='term-resp '+(d.success?'ok':'err');
+    resp.innerHTML=(d.success?'✓ ':'✗ ')+d.message.replace(/\n/g,'<br>');
+    if(d.success)refreshDashboard();
+  }catch(err){resp.className='term-resp err';resp.innerHTML='✗ '+err.message}
+}
+
+function exportExcel(){window.location.href='/api/export'}
+
+// ── Modal Lançamento ──────────────────────────────────────────────────────────
+let _mTipo='saida';
+
+function openModal(){
+  // Data padrão = hoje
+  const now=new Date();
+  const dd=String(now.getDate()).padStart(2,'0');
+  const mm=String(now.getMonth()+1).padStart(2,'0');
+  const yyyy=now.getFullYear();
+  document.getElementById('mData').value=`${yyyy}-${mm}-${dd}`;
+  document.getElementById('mValor').value='';
+  document.getElementById('mDesc').value='';
+  document.getElementById('mResp').textContent='';
+  document.getElementById('mResp').className='term-resp';
+  setTipo('saida');
+  updatePreview();
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('mValor').focus(),80);
+}
+
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function closeModalOutside(e){
+  if(e.target===document.getElementById('modalOverlay'))closeModal();
+}
+
+function setTipo(t){
+  _mTipo=t;
+  ['saida','entrada','investido'].forEach(x=>{
+    const el=document.getElementById('tipo'+x.charAt(0).toUpperCase()+x.slice(1));
+    el.className='tipo-opt'+(t===x?' sel-'+x:'');
+  });
+  updatePreview();
+}
+
+function updatePreview(){
+  const dateVal=document.getElementById('mData').value;   // YYYY-MM-DD
+  const valor=document.getElementById('mValor').value||'0,00';
+  const conta=document.getElementById('mConta').value;
+  const desc=document.getElementById('mDesc').value||'...';
+  let dateDisp='DD/MM/AAAA';
+  if(dateVal){
+    const [y,m,d]=dateVal.split('-');
+    dateDisp=`${d}/${m}/${y}`;
+  }
+  const prefix=_mTipo==='saida'?'':_mTipo+' ';
+  document.getElementById('mPreview').textContent=
+    `${prefix}${dateDisp} - ${valor} ${conta} - ${desc}`;
+}
+
+// (event listeners registrados no DOMContentLoaded abaixo)
+
+async function submitModal(){
+  const dateVal=document.getElementById('mData').value;
+  const valorRaw=document.getElementById('mValor').value.trim();
+  const conta=document.getElementById('mConta').value;
+  const desc=document.getElementById('mDesc').value.trim();
+  const resp=document.getElementById('mResp');
+
+  if(!dateVal||!valorRaw||!desc){
+    resp.className='term-resp err';
+    resp.textContent='✗ Preencha data, valor e descrição.';
+    return;
+  }
+
+  // Formata data YYYY-MM-DD → DD/MM/YYYY
+  const [y,m,d]=dateVal.split('-');
+  const dateDisp=`${d}/${m}/${y}`;
+
+  // Monta comando no formato padrão
+  const prefix=_mTipo==='saida'?'':_mTipo+' ';
+  const cmd=`${prefix}${dateDisp} - ${valorRaw} ${conta} - ${desc}`;
+
+  const btn=document.getElementById('mSubmitBtn');
+  btn.disabled=true;
+  resp.className='term-resp info';
+  resp.textContent='⟳ Registrando...';
+
+  try{
+    const r=await fetch('/api/command',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({command:cmd})
+    });
+    const data=await r.json();
+    if(data.success){
+      resp.className='term-resp ok';
+      resp.innerHTML='✓ '+data.message.replace(/\n/g,'<br>');
+      refreshDashboard();
+      setTimeout(()=>closeModal(),1400);
+    } else {
+      resp.className='term-resp err';
+      resp.textContent='✗ '+data.message;
+    }
+  }catch(e){
+    resp.className='term-resp err';
+    resp.textContent='✗ Erro: '+e.message;
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+// Fechar com Escape
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeModal();
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('headerDate').textContent=
+    new Date().toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  refreshDashboard();
+  document.getElementById('termInput').focus();
+  // Modal — preview em tempo real
+  ['mData','mValor','mConta','mDesc'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.addEventListener('input',updatePreview);el.addEventListener('change',updatePreview);}
+  });
+});
+</script>
+</body>
+</html>

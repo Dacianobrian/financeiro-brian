@@ -1,0 +1,21 @@
+# Banco de dados local (dados sensíveis — não vai para o GitHub)
+financeiro.db
+*.db
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.venv
+pip-wheel-metadata/
+
+# Sistema
+.DS_Store
+*.log
+*.tmp
