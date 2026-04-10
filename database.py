@@ -1,73 +1,66 @@
 import os
 
-# ── Conexão: PostgreSQL (Supabase) em produção, SQLite local ─────────────────
-DATABASE_URL = os.environ.get('DATABASE_URL')  # postgres://user:pass@host:5432/db
+# ── Conexão: Supabase REST API em produção, SQLite local ─────────────────────
+SUPABASE_URL = os.environ.get('SUPABASE_URL')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
 
-if DATABASE_URL:
-    import psycopg2
-    import psycopg2.extras
+if SUPABASE_URL and SUPABASE_KEY:
+    import requests as _req
 
-    def get_conn():
-        conn = psycopg2.connect(DATABASE_URL)
-        return conn
+    _REST = f"{SUPABASE_URL}/rest/v1"
+    _HDR = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+    }
 
-    def _fetch(cursor):
-        cols = [d[0] for d in cursor.description]
-        return [dict(zip(cols, row)) for row in cursor.fetchall()]
+    def _get(table, params=None):
+        r = _req.get(f"{_REST}/{table}", headers=_HDR, params=params)
+        r.raise_for_status()
+        return r.json()
 
-    def _fetchone(cursor):
-        cols = [d[0] for d in cursor.description]
-        row = cursor.fetchone()
-        return dict(zip(cols, row)) if row else None
+    def _post(table, data, returning=False):
+        h = dict(_HDR)
+        if returning:
+            h["Prefer"] = "return=representation"
+        r = _req.post(f"{_REST}/{table}", headers=h, json=data)
+        r.raise_for_status()
+        return r.json() if returning else None
 
-    def _q(sql):
-        """Convert ? placeholders to %s for psycopg2."""
-        return sql.replace('?', '%s')
+    def _patch(table, params, data):
+        r = _req.patch(f"{_REST}/{table}", headers=_HDR, params=params, json=data)
+        r.raise_for_status()
 
-    def _strftime_year(col, val):
-        return f"to_char({col}, 'YYYY') = %s", (val,)
+    def _delete(table, params):
+        r = _req.delete(f"{_REST}/{table}", headers=_HDR, params=params)
+        r.raise_for_status()
 
-    def _strftime_ym(col, val):
-        return f"to_char({col}::date, 'YYYY-MM') = %s", (val,)
+    def _rpc(func, params=None):
+        r = _req.post(f"{_REST}/rpc/{func}", headers=_HDR, json=params or {})
+        r.raise_for_status()
+        return r.json()
 
-    def _now():
-        return "to_char(now(), 'YYYY-MM-DD HH24:MI:SS')"
+    USE_SUPABASE = True
 
 else:
     import sqlite3
     DB_PATH = os.environ.get('DB_PATH', os.path.join(os.path.dirname(__file__), 'financeiro.db'))
 
-    def get_conn():
+    def _sqlite():
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
         return conn
 
-    def _fetch(cursor):
-        return [dict(r) for r in cursor.fetchall()]
+    USE_SUPABASE = False
 
-    def _fetchone(cursor):
-        r = cursor.fetchone()
-        return dict(r) if r else None
 
-    def _q(sql):
-        return sql
-
-    def _strftime_year(col, val):
-        return f"strftime('%Y', {col}) = ?", (str(val),)
-
-    def _strftime_ym(col, val):
-        return f"strftime('%Y-%m', {col}) = ?", (val,)
-
-    def _now():
-        return "datetime('now','localtime')"
-
+# ── Init (SQLite local only) ──────────────────────────────────────────────────
 
 def init_db():
-    """Only needed for SQLite local dev. Supabase schema is pre-created."""
-    if DATABASE_URL:
-        return  # Supabase already has all tables
+    if USE_SUPABASE:
+        return
 
-    conn = get_conn()
+    conn = _sqlite()
     c = conn.cursor()
     c.executescript("""
         CREATE TABLE IF NOT EXISTS transactions (
@@ -122,14 +115,13 @@ def init_db():
         conn.close()
         return
 
-    # Seed default data
     c.executemany("INSERT INTO fixed_costs (description, amount, due_day, type) VALUES (?,?,?,?)", [
         ("Internet", 80.00, 5, "saida"), ("Celular Claro", 60.00, 15, "saida"),
         ("Saúde Unimed", 220.00, 15, "saida"), ("Financiamento", 2899.00, 17, "saida"),
         ("DAS MEI", 0.00, 20, "saida"), ("Cartão Bradesco", 4000.00, 25, "saida"),
         ("Capitalização", 100.00, 26, "saida"), ("Casa Line", 2090.00, 20, "saida"),
     ])
-    c.executemany("""INSERT INTO accounts (name, bank, type, balance, color, icon) VALUES (?,?,?,?,?,?)""", [
+    c.executemany("INSERT INTO accounts (name, bank, type, balance, color, icon) VALUES (?,?,?,?,?,?)", [
         ("Nubank Conta Corrente", "nubank", "corrente", 0, "#820ad1", "💜"),
         ("Nubank Caixinha (RDB)", "nubank", "investimento", 0, "#a855f7", "📦"),
         ("Bradesco Conta Corrente", "bradesco", "corrente", 0, "#cc092f", "❤️"),
@@ -140,402 +132,327 @@ def init_db():
     conn.close()
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── Write functions ───────────────────────────────────────────────────────────
 
 def add_transaction(date, ttype, amount, description, category=None, account=None):
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute(
-            "INSERT INTO transactions (date, type, amount, description, category, account) VALUES (%s,%s,%s,%s,%s,%s)",
-            (date, ttype, amount, description, category, account)
-        )
+    if USE_SUPABASE:
+        _post('transactions', {
+            'date': date, 'type': ttype, 'amount': amount,
+            'description': description, 'category': category, 'account': account
+        })
     else:
-        c.execute(
-            "INSERT INTO transactions (date, type, amount, description, category, account) VALUES (?,?,?,?,?,?)",
+        conn = _sqlite()
+        conn.execute(
+            "INSERT INTO transactions (date,type,amount,description,category,account) VALUES (?,?,?,?,?,?)",
             (date, ttype, amount, description, category, account)
         )
-    conn.commit()
-    conn.close()
+        conn.commit(); conn.close()
 
 
 def add_mei_invoice(ref, amount, year, issue_date=None):
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("INSERT INTO mei_invoices (ref, issue_date, amount, year) VALUES (%s,%s,%s,%s)",
-                  (ref, issue_date, amount, year))
+    if USE_SUPABASE:
+        _post('mei_invoices', {'ref': ref, 'issue_date': issue_date, 'amount': amount, 'year': year})
     else:
-        c.execute("INSERT INTO mei_invoices (ref, issue_date, amount, year) VALUES (?,?,?,?)",
-                  (ref, issue_date, amount, year))
-    conn.commit()
-    conn.close()
+        conn = _sqlite()
+        conn.execute("INSERT INTO mei_invoices (ref,issue_date,amount,year) VALUES (?,?,?,?)",
+                     (ref, issue_date, amount, year))
+        conn.commit(); conn.close()
 
 
 def add_das_payment(month_name, year, amount, payment_date=None):
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("SELECT id FROM das_payments WHERE month_name=%s AND year=%s", (month_name, year))
-        existing = c.fetchone()
+    if USE_SUPABASE:
+        existing = _get('das_payments', {'month_name': f'eq.{month_name}', 'year': f'eq.{year}', 'select': 'id'})
         if existing:
-            c.execute("UPDATE das_payments SET amount=%s, payment_date=%s WHERE id=%s",
-                      (amount, payment_date, existing[0]))
+            _patch('das_payments', {'id': f'eq.{existing[0]["id"]}'}, {'amount': amount, 'payment_date': payment_date})
         else:
-            c.execute("INSERT INTO das_payments (month_name, year, amount, payment_date) VALUES (%s,%s,%s,%s)",
-                      (month_name, year, amount, payment_date))
+            _post('das_payments', {'month_name': month_name, 'year': year, 'amount': amount, 'payment_date': payment_date})
     else:
-        existing = c.execute("SELECT id FROM das_payments WHERE month_name=? AND year=?",
-                             (month_name, year)).fetchone()
-        if existing:
-            c.execute("UPDATE das_payments SET amount=?, payment_date=? WHERE id=?",
-                      (amount, payment_date, existing[0]))
+        conn = _sqlite()
+        c = conn.cursor()
+        row = c.execute("SELECT id FROM das_payments WHERE month_name=? AND year=?", (month_name, year)).fetchone()
+        if row:
+            c.execute("UPDATE das_payments SET amount=?, payment_date=? WHERE id=?", (amount, payment_date, row[0]))
         else:
-            c.execute("INSERT INTO das_payments (month_name, year, amount, payment_date) VALUES (?,?,?,?)",
+            c.execute("INSERT INTO das_payments (month_name,year,amount,payment_date) VALUES (?,?,?,?)",
                       (month_name, year, amount, payment_date))
-    conn.commit()
-    conn.close()
+        conn.commit(); conn.close()
 
 
 def upsert_fii(ticker, shares, price):
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("SELECT id FROM fii_portfolio WHERE ticker=%s", (ticker,))
-        existing = c.fetchone()
+    if USE_SUPABASE:
+        existing = _get('fii_portfolio', {'ticker': f'eq.{ticker}', 'select': 'id'})
         if existing:
-            c.execute("UPDATE fii_portfolio SET shares=%s, price=%s WHERE ticker=%s", (shares, price, ticker))
+            _patch('fii_portfolio', {'ticker': f'eq.{ticker}'}, {'shares': shares, 'price': price})
         else:
-            c.execute("INSERT INTO fii_portfolio (ticker, shares, price) VALUES (%s,%s,%s)", (ticker, shares, price))
+            _post('fii_portfolio', {'ticker': ticker, 'shares': shares, 'price': price})
     else:
-        existing = c.execute("SELECT id FROM fii_portfolio WHERE ticker=?", (ticker,)).fetchone()
-        if existing:
-            c.execute("UPDATE fii_portfolio SET shares=?, price=? WHERE ticker=?", (shares, price, ticker))
+        conn = _sqlite()
+        c = conn.cursor()
+        row = c.execute("SELECT id FROM fii_portfolio WHERE ticker=?", (ticker,)).fetchone()
+        if row:
+            c.execute("UPDATE fii_portfolio SET shares=?,price=? WHERE ticker=?", (shares, price, ticker))
         else:
-            c.execute("INSERT INTO fii_portfolio (ticker, shares, price) VALUES (?,?,?)", (ticker, shares, price))
-    conn.commit()
-    conn.close()
+            c.execute("INSERT INTO fii_portfolio (ticker,shares,price) VALUES (?,?,?)", (ticker, shares, price))
+        conn.commit(); conn.close()
 
 
 def update_fii_price(ticker, price):
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("UPDATE fii_portfolio SET price=%s WHERE ticker=%s", (price, ticker))
+    if USE_SUPABASE:
+        _patch('fii_portfolio', {'ticker': f'eq.{ticker}'}, {'price': price})
     else:
-        c.execute("UPDATE fii_portfolio SET price=? WHERE ticker=?", (price, ticker))
-    conn.commit()
-    conn.close()
+        conn = _sqlite()
+        conn.execute("UPDATE fii_portfolio SET price=? WHERE ticker=?", (price, ticker))
+        conn.commit(); conn.close()
 
 
 def add_fii_shares(ticker, extra_shares, price):
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("SELECT shares FROM fii_portfolio WHERE ticker=%s", (ticker,))
-        row = c.fetchone()
-        if row:
-            c.execute("UPDATE fii_portfolio SET shares=%s, price=%s WHERE ticker=%s",
-                      (row[0] + extra_shares, price, ticker))
-        else:
-            c.execute("INSERT INTO fii_portfolio (ticker, shares, price) VALUES (%s,%s,%s)",
-                      (ticker, extra_shares, price))
-    else:
-        existing = c.execute("SELECT shares FROM fii_portfolio WHERE ticker=?", (ticker,)).fetchone()
+    if USE_SUPABASE:
+        existing = _get('fii_portfolio', {'ticker': f'eq.{ticker}', 'select': 'shares'})
         if existing:
-            c.execute("UPDATE fii_portfolio SET shares=?, price=? WHERE ticker=?",
-                      (existing['shares'] + extra_shares, price, ticker))
+            _patch('fii_portfolio', {'ticker': f'eq.{ticker}'},
+                   {'shares': existing[0]['shares'] + extra_shares, 'price': price})
         else:
-            c.execute("INSERT INTO fii_portfolio (ticker, shares, price) VALUES (?,?,?)",
-                      (ticker, extra_shares, price))
-    conn.commit()
-    conn.close()
+            _post('fii_portfolio', {'ticker': ticker, 'shares': extra_shares, 'price': price})
+    else:
+        conn = _sqlite()
+        c = conn.cursor()
+        row = c.execute("SELECT shares FROM fii_portfolio WHERE ticker=?", (ticker,)).fetchone()
+        if row:
+            c.execute("UPDATE fii_portfolio SET shares=?,price=? WHERE ticker=?",
+                      (dict(row)['shares'] + extra_shares, price, ticker))
+        else:
+            c.execute("INSERT INTO fii_portfolio (ticker,shares,price) VALUES (?,?,?)", (ticker, extra_shares, price))
+        conn.commit(); conn.close()
 
+
+def add_fixed_cost(description, amount, due_day):
+    if USE_SUPABASE:
+        rows = _post('fixed_costs',
+                     {'description': description, 'amount': amount, 'due_day': due_day, 'type': 'saida'},
+                     returning=True)
+        return rows[0]['id'] if rows else None
+    else:
+        conn = _sqlite()
+        c = conn.cursor()
+        c.execute("INSERT INTO fixed_costs (description,amount,due_day,type) VALUES (?,?,?,'saida')",
+                  (description, amount, due_day))
+        row_id = c.lastrowid
+        conn.commit(); conn.close()
+        return row_id
+
+
+def update_fixed_cost(cost_id, description, amount, due_day):
+    if USE_SUPABASE:
+        _patch('fixed_costs', {'id': f'eq.{cost_id}'}, {'description': description, 'amount': amount, 'due_day': due_day})
+    else:
+        conn = _sqlite()
+        conn.execute("UPDATE fixed_costs SET description=?,amount=?,due_day=? WHERE id=?",
+                     (description, amount, due_day, cost_id))
+        conn.commit(); conn.close()
+
+
+def delete_fixed_cost(cost_id):
+    if USE_SUPABASE:
+        _delete('fixed_costs', {'id': f'eq.{cost_id}'})
+    else:
+        conn = _sqlite()
+        conn.execute("DELETE FROM fixed_costs WHERE id=?", (cost_id,))
+        conn.commit(); conn.close()
+
+
+def update_account(name: str, balance: float):
+    if USE_SUPABASE:
+        rows = _get('accounts', {'name': f'ilike.*{name}*', 'select': 'id'})
+        if rows:
+            _patch('accounts', {'id': f'eq.{rows[0]["id"]}'}, {'balance': balance})
+            return True
+        return False
+    else:
+        conn = _sqlite()
+        c = conn.cursor()
+        row = c.execute("SELECT id FROM accounts WHERE LOWER(name) LIKE ?", (f"%{name.lower()}%",)).fetchone()
+        if row:
+            c.execute("UPDATE accounts SET balance=?,updated_at=datetime('now','localtime') WHERE id=?",
+                      (balance, row[0]))
+            conn.commit(); conn.close()
+            return True
+        conn.close()
+        return False
+
+
+# ── Read functions ────────────────────────────────────────────────────────────
 
 def get_recent_transactions(limit=10):
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("SELECT * FROM transactions ORDER BY date DESC, id DESC LIMIT %s", (limit,))
-        rows = _fetch(c)
+    if USE_SUPABASE:
+        return _get('transactions', {'select': '*', 'order': 'date.desc,id.desc', 'limit': limit})
     else:
-        rows = _fetch(c.execute("SELECT * FROM transactions ORDER BY date DESC, id DESC LIMIT ?", (limit,)))
-    conn.close()
-    return rows
+        conn = _sqlite()
+        rows = [dict(r) for r in conn.execute(
+            "SELECT * FROM transactions ORDER BY date DESC, id DESC LIMIT ?", (limit,)
+        ).fetchall()]
+        conn.close()
+        return rows
 
+
+def get_all_transactions():
+    if USE_SUPABASE:
+        return _get('transactions', {'select': '*', 'order': 'date.desc,id.desc', 'limit': 2000})
+    else:
+        conn = _sqlite()
+        rows = [dict(r) for r in conn.execute(
+            "SELECT * FROM transactions ORDER BY date DESC, id DESC"
+        ).fetchall()]
+        conn.close()
+        return rows
+
+
+def get_fii_portfolio():
+    if USE_SUPABASE:
+        return _get('fii_portfolio', {'select': '*', 'order': 'ticker.asc'})
+    else:
+        conn = _sqlite()
+        rows = [dict(r) for r in conn.execute("SELECT * FROM fii_portfolio ORDER BY ticker").fetchall()]
+        conn.close()
+        return rows
+
+
+def get_mei_invoices(limit=10):
+    if USE_SUPABASE:
+        return _get('mei_invoices', {'select': '*', 'order': 'id.desc', 'limit': limit})
+    else:
+        conn = _sqlite()
+        rows = [dict(r) for r in conn.execute(
+            "SELECT * FROM mei_invoices ORDER BY id DESC LIMIT ?", (limit,)
+        ).fetchall()]
+        conn.close()
+        return rows
+
+
+def get_das_payments():
+    if USE_SUPABASE:
+        return _get('das_payments', {'select': '*', 'order': 'year.desc,id.desc'})
+    else:
+        conn = _sqlite()
+        rows = [dict(r) for r in conn.execute(
+            "SELECT * FROM das_payments ORDER BY year DESC, id DESC"
+        ).fetchall()]
+        conn.close()
+        return rows
+
+
+def get_fixed_costs():
+    if USE_SUPABASE:
+        return _get('fixed_costs', {'select': '*', 'order': 'due_day.asc.nullslast,id.asc'})
+    else:
+        conn = _sqlite()
+        rows = [dict(r) for r in conn.execute(
+            "SELECT * FROM fixed_costs ORDER BY due_day, id"
+        ).fetchall()]
+        conn.close()
+        return rows
+
+
+def get_accounts():
+    if USE_SUPABASE:
+        return _get('accounts', {'select': '*', 'order': 'bank.asc,type.asc'})
+    else:
+        conn = _sqlite()
+        rows = [dict(r) for r in conn.execute("SELECT * FROM accounts ORDER BY bank, type").fetchall()]
+        conn.close()
+        return rows
+
+
+def get_patrimonio_total():
+    if USE_SUPABASE:
+        fiis = _get('fii_portfolio', {'select': 'shares,price'})
+        return sum(f['shares'] * f['price'] for f in fiis)
+    else:
+        conn = _sqlite()
+        row = conn.execute("SELECT COALESCE(SUM(shares*price),0) FROM fii_portfolio").fetchone()
+        conn.close()
+        return row[0]
+
+
+# ── Aggregate functions (use RPC in Supabase) ─────────────────────────────────
 
 def get_monthly_summary(year: int = 2026):
-    conn = get_conn()
-    c = conn.cursor()
-    months = [
-        ("Jan", f"{year}-01"), ("Fev", f"{year}-02"), ("Mar", f"{year}-03"),
-        ("Abr", f"{year}-04"), ("Mai", f"{year}-05"), ("Jun", f"{year}-06"),
-        ("Jul", f"{year}-07"), ("Ago", f"{year}-08"), ("Set", f"{year}-09"),
-        ("Out", f"{year}-10"), ("Nov", f"{year}-11"), ("Dez", f"{year}-12"),
-    ]
-    result = []
-    for label, ym in months:
-        if DATABASE_URL:
-            c.execute("""
-                SELECT
-                    COALESCE(SUM(CASE WHEN type='entrada'   THEN amount ELSE 0 END),0) AS entradas,
-                    COALESCE(SUM(CASE WHEN type='saida'     THEN amount ELSE 0 END),0) AS saidas,
-                    COALESCE(SUM(CASE WHEN type='investido' THEN amount ELSE 0 END),0) AS investido
-                FROM transactions WHERE to_char(date::date, 'YYYY-MM') = %s
-            """, (ym,))
-            row = _fetchone(c)
-        else:
-            row = _fetchone(c.execute("""
+    if USE_SUPABASE:
+        rows = _rpc('get_monthly_summary', {'year_val': year})
+        # Translate month names from English to PT-BR
+        _en_pt = {'Jan':'Jan','Feb':'Fev','Mar':'Mar','Apr':'Abr','May':'Mai','Jun':'Jun',
+                  'Jul':'Jul','Aug':'Ago','Sep':'Set','Oct':'Out','Nov':'Nov','Dec':'Dez'}
+        result = []
+        for r in rows:
+            m = r.get('month', '')
+            result.append({
+                'month': _en_pt.get(m, m),
+                'entradas': float(r['entradas']),
+                'saidas': float(r['saidas']),
+                'investido': float(r['investido']),
+            })
+        return result
+    else:
+        conn = _sqlite()
+        months = [
+            ("Jan", f"{year}-01"), ("Fev", f"{year}-02"), ("Mar", f"{year}-03"),
+            ("Abr", f"{year}-04"), ("Mai", f"{year}-05"), ("Jun", f"{year}-06"),
+            ("Jul", f"{year}-07"), ("Ago", f"{year}-08"), ("Set", f"{year}-09"),
+            ("Out", f"{year}-10"), ("Nov", f"{year}-11"), ("Dez", f"{year}-12"),
+        ]
+        result = []
+        for label, ym in months:
+            row = conn.execute("""
                 SELECT
                     COALESCE(SUM(CASE WHEN type='entrada'   THEN amount ELSE 0 END),0) AS entradas,
                     COALESCE(SUM(CASE WHEN type='saida'     THEN amount ELSE 0 END),0) AS saidas,
                     COALESCE(SUM(CASE WHEN type='investido' THEN amount ELSE 0 END),0) AS investido
                 FROM transactions WHERE strftime('%Y-%m', date) = ?
-            """, (ym,)))
-        result.append({"month": label, "entradas": row["entradas"],
-                       "saidas": row["saidas"], "investido": row["investido"]})
-    conn.close()
-    return result
-
-
-def get_expense_by_category(year: int = 2026):
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("""
-            SELECT COALESCE(category,'Outros') AS cat, SUM(amount) AS total
-            FROM transactions
-            WHERE type='saida' AND to_char(date::date, 'YYYY') = %s
-            GROUP BY cat ORDER BY total DESC
-        """, (str(year),))
-        rows = _fetch(c)
-    else:
-        rows = _fetch(c.execute("""
-            SELECT COALESCE(category,'Outros') AS cat, SUM(amount) AS total
-            FROM transactions
-            WHERE type='saida' AND strftime('%Y', date) = ?
-            GROUP BY cat ORDER BY total DESC
-        """, (str(year),)))
-    conn.close()
-    return {r["cat"]: round(r["total"], 2) for r in rows}
-
-
-def get_savings_rate(year: int = 2026):
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("""
-            SELECT
-                COALESCE(SUM(CASE WHEN type='entrada'   THEN amount ELSE 0 END),0) AS e,
-                COALESCE(SUM(CASE WHEN type='investido' THEN amount ELSE 0 END),0) AS i
-            FROM transactions WHERE to_char(date::date, 'YYYY') = %s
-        """, (str(year),))
-        row = _fetchone(c)
-    else:
-        row = _fetchone(c.execute("""
-            SELECT
-                COALESCE(SUM(CASE WHEN type='entrada'   THEN amount ELSE 0 END),0) AS e,
-                COALESCE(SUM(CASE WHEN type='investido' THEN amount ELSE 0 END),0) AS i
-            FROM transactions WHERE strftime('%Y', date) = ?
-        """, (str(year),)))
-    conn.close()
-    if row and row["e"] > 0:
-        return round(row["i"] / row["e"] * 100, 1), round(row["i"], 2)
-    return 0.0, 0.0
+            """, (ym,)).fetchone()
+            result.append({'month': label, 'entradas': row[0], 'saidas': row[1], 'investido': row[2]})
+        conn.close()
+        return result
 
 
 def get_monthly_summary_2025():
     return get_monthly_summary(2025)
 
 
-def get_current_month_data():
-    from datetime import date
-    today = date.today()
-    ym = today.strftime("%Y-%m")
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("""
+def get_expense_by_category(year: int = 2026):
+    if USE_SUPABASE:
+        rows = _rpc('get_expense_by_category', {'year_val': year})
+        return {r['cat']: round(float(r['total']), 2) for r in rows}
+    else:
+        conn = _sqlite()
+        rows = conn.execute("""
+            SELECT COALESCE(category,'Outros') AS cat, SUM(amount) AS total
+            FROM transactions WHERE type='saida' AND strftime('%Y', date) = ?
+            GROUP BY cat ORDER BY total DESC
+        """, (str(year),)).fetchall()
+        conn.close()
+        return {r[0]: round(r[1], 2) for r in rows}
+
+
+def get_savings_rate(year: int = 2026):
+    if USE_SUPABASE:
+        rows = _rpc('get_savings_rate_agg', {'year_val': year})
+        if rows:
+            e, i = float(rows[0]['entradas']), float(rows[0]['investido'])
+            if e > 0:
+                return round(i / e * 100, 1), round(i, 2)
+        return 0.0, 0.0
+    else:
+        conn = _sqlite()
+        row = conn.execute("""
             SELECT
-                COALESCE(SUM(CASE WHEN type='entrada'   THEN amount ELSE 0 END), 0) AS entradas,
-                COALESCE(SUM(CASE WHEN type='saida'     THEN amount ELSE 0 END), 0) AS saidas,
-                COALESCE(SUM(CASE WHEN type='investido' THEN amount ELSE 0 END), 0) AS investido
-            FROM transactions WHERE to_char(date::date, 'YYYY-MM') = %s
-        """, (ym,))
-        row = _fetchone(c)
-        c.execute("SELECT * FROM goals ORDER BY id DESC LIMIT 1")
-        goal = _fetchone(c)
-    else:
-        row = _fetchone(c.execute("""
-            SELECT
-                COALESCE(SUM(CASE WHEN type='entrada'   THEN amount ELSE 0 END), 0) AS entradas,
-                COALESCE(SUM(CASE WHEN type='saida'     THEN amount ELSE 0 END), 0) AS saidas,
-                COALESCE(SUM(CASE WHEN type='investido' THEN amount ELSE 0 END), 0) AS investido
-            FROM transactions WHERE strftime('%Y-%m', date) = ?
-        """, (ym,)))
-        goal = _fetchone(c.execute("SELECT * FROM goals ORDER BY id DESC LIMIT 1"))
-    conn.close()
-    return {
-        "entradas": row["entradas"], "saidas": row["saidas"], "investido": row["investido"],
-        "saldo": row["entradas"] - row["saidas"] - row["investido"],
-        "meta_diario": goal["meta_diario"] if goal else 70,
-        "meta_reserva": goal["meta_reserva"] if goal else 10000,
-        "meta_mensal": goal["meta_mensal"] if goal else 10000,
-    }
-
-
-def get_fii_portfolio():
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("SELECT * FROM fii_portfolio ORDER BY ticker")
-        rows = _fetch(c)
-    else:
-        rows = _fetch(c.execute("SELECT * FROM fii_portfolio ORDER BY ticker"))
-    conn.close()
-    return rows
-
-
-def get_mei_invoices(limit=10):
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("SELECT * FROM mei_invoices ORDER BY id DESC LIMIT %s", (limit,))
-        rows = _fetch(c)
-    else:
-        rows = _fetch(c.execute("SELECT * FROM mei_invoices ORDER BY id DESC LIMIT ?", (limit,)))
-    conn.close()
-    return rows
-
-
-def get_das_payments():
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("SELECT * FROM das_payments ORDER BY year DESC, id DESC")
-        rows = _fetch(c)
-    else:
-        rows = _fetch(c.execute("SELECT * FROM das_payments ORDER BY year DESC, id DESC"))
-    conn.close()
-    return rows
-
-
-def get_fixed_costs():
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("SELECT * FROM fixed_costs ORDER BY due_day NULLS LAST, id")
-        rows = _fetch(c)
-    else:
-        rows = _fetch(c.execute("SELECT * FROM fixed_costs ORDER BY due_day, id"))
-    conn.close()
-    return rows
-
-
-def add_fixed_cost(description, amount, due_day):
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute(
-            "INSERT INTO fixed_costs (description, amount, due_day, type) VALUES (%s,%s,%s,'saida') RETURNING id",
-            (description, amount, due_day)
-        )
-        row_id = c.fetchone()[0]
-    else:
-        c.execute("INSERT INTO fixed_costs (description, amount, due_day, type) VALUES (?,?,?,'saida')",
-                  (description, amount, due_day))
-        row_id = c.lastrowid
-    conn.commit()
-    conn.close()
-    return row_id
-
-
-def update_fixed_cost(cost_id, description, amount, due_day):
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("UPDATE fixed_costs SET description=%s, amount=%s, due_day=%s WHERE id=%s",
-                  (description, amount, due_day, cost_id))
-    else:
-        c.execute("UPDATE fixed_costs SET description=?, amount=?, due_day=? WHERE id=?",
-                  (description, amount, due_day, cost_id))
-    conn.commit()
-    conn.close()
-
-
-def delete_fixed_cost(cost_id):
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("DELETE FROM fixed_costs WHERE id=%s", (cost_id,))
-    else:
-        c.execute("DELETE FROM fixed_costs WHERE id=?", (cost_id,))
-    conn.commit()
-    conn.close()
-
-
-def get_patrimonio_total():
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("SELECT COALESCE(SUM(shares * price), 0) AS total FROM fii_portfolio")
-        row = _fetchone(c)
-    else:
-        row = _fetchone(c.execute("SELECT COALESCE(SUM(shares * price), 0) AS total FROM fii_portfolio"))
-    conn.close()
-    return row["total"]
-
-
-def get_accounts():
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("SELECT * FROM accounts ORDER BY bank, type")
-        rows = _fetch(c)
-    else:
-        rows = _fetch(c.execute("SELECT * FROM accounts ORDER BY bank, type"))
-    conn.close()
-    return rows
-
-
-def update_account(name: str, balance: float):
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("SELECT id FROM accounts WHERE LOWER(name) LIKE %s", (f"%{name.lower()}%",))
-        existing = c.fetchone()
-        if existing:
-            c.execute("UPDATE accounts SET balance=%s, updated_at=to_char(now(),'YYYY-MM-DD HH24:MI:SS') WHERE id=%s",
-                      (balance, existing[0]))
-            conn.commit()
-            conn.close()
-            return True
-    else:
-        existing = c.execute("SELECT id FROM accounts WHERE LOWER(name) LIKE ?",
-                             (f"%{name.lower()}%",)).fetchone()
-        if existing:
-            c.execute("UPDATE accounts SET balance=?, updated_at=datetime('now','localtime') WHERE id=?",
-                      (balance, existing["id"]))
-            conn.commit()
-            conn.close()
-            return True
-    conn.close()
-    return False
-
-
-def get_patrimonio_breakdown():
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("SELECT COALESCE(SUM(balance),0) AS total FROM accounts")
-        accounts = c.fetchone()[0]
-        c.execute("SELECT COALESCE(SUM(shares*price),0) AS total FROM fii_portfolio")
-        fii_total = c.fetchone()[0]
-    else:
-        accounts = c.execute("SELECT SUM(balance) FROM accounts").fetchone()[0] or 0
-        fii_total = c.execute("SELECT SUM(shares*price) FROM fii_portfolio").fetchone()[0] or 0
-    conn.close()
-    return {"accounts": float(accounts), "fii": float(fii_total), "total": float(accounts) + float(fii_total)}
+                COALESCE(SUM(CASE WHEN type='entrada'   THEN amount ELSE 0 END),0),
+                COALESCE(SUM(CASE WHEN type='investido' THEN amount ELSE 0 END),0)
+            FROM transactions WHERE strftime('%Y', date) = ?
+        """, (str(year),)).fetchone()
+        conn.close()
+        e, i = row[0], row[1]
+        if e > 0:
+            return round(i / e * 100, 1), round(i, 2)
+        return 0.0, 0.0
 
 
 def get_savings_rate_2025():
@@ -543,13 +460,54 @@ def get_savings_rate_2025():
     return rate
 
 
-def get_all_transactions():
-    conn = get_conn()
-    c = conn.cursor()
-    if DATABASE_URL:
-        c.execute("SELECT * FROM transactions ORDER BY date DESC, id DESC")
-        rows = _fetch(c)
+def get_current_month_data():
+    if USE_SUPABASE:
+        rows = _rpc('get_current_month_data')
+        if rows:
+            r = rows[0]
+            e, s, i = float(r['entradas']), float(r['saidas']), float(r['investido'])
+            return {
+                'entradas': e, 'saidas': s, 'investido': i,
+                'saldo': e - s - i,
+                'meta_diario': float(r['meta_diario']),
+                'meta_reserva': float(r['meta_reserva']),
+                'meta_mensal': float(r['meta_mensal']),
+            }
+        return {'entradas': 0, 'saidas': 0, 'investido': 0, 'saldo': 0,
+                'meta_diario': 70, 'meta_reserva': 10000, 'meta_mensal': 10000}
     else:
-        rows = _fetch(c.execute("SELECT * FROM transactions ORDER BY date DESC, id DESC"))
-    conn.close()
-    return rows
+        from datetime import date
+        ym = date.today().strftime("%Y-%m")
+        conn = _sqlite()
+        row = conn.execute("""
+            SELECT
+                COALESCE(SUM(CASE WHEN type='entrada'   THEN amount ELSE 0 END),0),
+                COALESCE(SUM(CASE WHEN type='saida'     THEN amount ELSE 0 END),0),
+                COALESCE(SUM(CASE WHEN type='investido' THEN amount ELSE 0 END),0)
+            FROM transactions WHERE strftime('%Y-%m', date) = ?
+        """, (ym,)).fetchone()
+        goal = conn.execute("SELECT * FROM goals ORDER BY id DESC LIMIT 1").fetchone()
+        conn.close()
+        e, s, i = row[0], row[1], row[2]
+        g = dict(goal) if goal else {}
+        return {
+            'entradas': e, 'saidas': s, 'investido': i, 'saldo': e - s - i,
+            'meta_diario': g.get('meta_diario', 70),
+            'meta_reserva': g.get('meta_reserva', 10000),
+            'meta_mensal': g.get('meta_mensal', 10000),
+        }
+
+
+def get_patrimonio_breakdown():
+    if USE_SUPABASE:
+        rows = _rpc('get_patrimonio_breakdown')
+        if rows:
+            r = rows[0]
+            return {'accounts': float(r['accounts']), 'fii': float(r['fii']), 'total': float(r['total'])}
+        return {'accounts': 0, 'fii': 0, 'total': 0}
+    else:
+        conn = _sqlite()
+        acc = conn.execute("SELECT SUM(balance) FROM accounts").fetchone()[0] or 0
+        fii = conn.execute("SELECT SUM(shares*price) FROM fii_portfolio").fetchone()[0] or 0
+        conn.close()
+        return {'accounts': float(acc), 'fii': float(fii), 'total': float(acc) + float(fii)}

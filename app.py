@@ -738,26 +738,6 @@ def api_export():
     )
 
 
-@app.route('/admin/restore-sql', methods=['POST'])
-def restore_sql():
-    """Endpoint temporário para restaurar backup SQL. Protegido por senha."""
-    secret = request.headers.get('X-Restore-Secret', '')
-    if secret != APP_PASSWORD:
-        return jsonify({"error": "Unauthorized"}), 401
-    sql_content = request.data.decode('utf-8')
-    if not sql_content:
-        return jsonify({"error": "No SQL content"}), 400
-    import sqlite3 as _sqlite3
-    conn = _sqlite3.connect(db.DB_PATH)
-    try:
-        conn.executescript(sql_content)
-        conn.close()
-        return jsonify({"ok": True, "message": "Dados restaurados com sucesso!"})
-    except Exception as e:
-        conn.close()
-        return jsonify({"error": str(e)}), 500
-
-
 # Inicializa DB ao carregar o módulo (necessário para gunicorn em produção)
 db.init_db()
 
