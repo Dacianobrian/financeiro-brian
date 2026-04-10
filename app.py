@@ -1,12 +1,43 @@
 import re
 import io
 import os
+import hashlib
 import urllib.request
 from datetime import date, datetime
-from flask import Flask, render_template, request, jsonify, send_file
+from functools import wraps
+from flask import Flask, render_template, request, jsonify, send_file, session, redirect, url_for
 
 import database as db
 
+app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'brian-financeiro-2026-local')
+
+# ── Autenticação simples ──────────────────────────────────────────────────────
+APP_PASSWORD = os.environ.get('APP_PASSWORD', 'brian2026')
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get('logged_in'):
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        senha = request.form.get('senha', '')
+        if senha == APP_PASSWORD:
+            session['logged_in'] = True
+            return redirect(url_for('index'))
+        error = 'Senha incorreta.'
+    return render_template('login.html', error=error)
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
 
 # ── Investidor 10 scraper ──────────────────────────────────────────────────────
 
@@ -118,8 +149,6 @@ def atualizar_fiis_investidor10() -> tuple[bool, str]:
     if erros:
         summary += f"\n  ⚠ Erros: {', '.join(erros)}"
     return True, summary
-
-app = Flask(__name__)
 
 # ── Utility ───────────────────────────────────────────────────────────────────
 
@@ -464,11 +493,13 @@ def parse_command(cmd: str):
 # ── Routes ────────────────────────────────────────────────────────────────────
 
 @app.route('/')
+@login_required
 def index():
     return render_template('index.html')
 
 
 @app.route('/api/command', methods=['POST'])
+@login_required
 def api_command():
     body = request.get_json(silent=True) or {}
     cmd = body.get('command', '').strip()
@@ -477,6 +508,7 @@ def api_command():
 
 
 @app.route('/api/dashboard')
+@login_required
 def api_dashboard():
     monthly_2026 = db.get_monthly_summary(2026)
     monthly_2025 = db.get_monthly_summary_2025()
@@ -533,6 +565,7 @@ def api_dashboard():
 
 
 @app.route('/api/export')
+@login_required
 def api_export():
     import openpyxl
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side

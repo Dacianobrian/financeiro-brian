@@ -3,6 +3,9 @@ financeiro.db
 *.db
 *.sqlite3
 
+# Backup SQL (dados sensíveis)
+backup_*.sql
+
 # Python
 __pycache__/
 *.py[cod]
