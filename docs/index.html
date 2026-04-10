@@ -575,10 +575,11 @@ function fillKpis(cm, fii, accounts, patrimonio){
   const monthlyDiv=fii.reduce((s,f)=>s+(+(f.shares||0))*(+(f.dividends_per_share||0)),0);
   document.getElementById('kpiDiv').textContent=brl(monthlyDiv);
   const caixinha=accounts.find(a=>/caixinha|rdb/i.test(a.type+''+a.name));
-  const totInv=fiiTotal+(caixinha?+(caixinha.balance||0):0);
+  const caixinhaVal=caixinha?+(caixinha.balance||0):0;
+  const totInv=fiiTotal+caixinhaVal;
   document.getElementById('kpiInv').textContent=brl(totInv);
-  document.getElementById('kpiMeta').textContent=brl(totInv);
-  const pv=Math.min(100,(totInv/60000)*100);
+  document.getElementById('kpiMeta').textContent=brl(caixinhaVal);
+  const pv=Math.min(100,(caixinhaVal/60000)*100);
   document.getElementById('kpiMetaBar').style.width=pv+'%';
   document.getElementById('kpiMetaSub').textContent=`${pv.toFixed(1)}% de R$ 60.000`;
 }
