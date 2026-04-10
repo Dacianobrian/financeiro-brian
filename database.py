@@ -404,6 +404,38 @@ def get_fixed_costs():
     return [dict(r) for r in rows]
 
 
+def add_fixed_cost(description, amount, due_day):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO fixed_costs (description, amount, due_day, type) VALUES (?,?,?,'saida')",
+        (description, amount, due_day)
+    )
+    row_id = c.lastrowid
+    conn.commit()
+    conn.close()
+    return row_id
+
+
+def update_fixed_cost(cost_id, description, amount, due_day):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute(
+        "UPDATE fixed_costs SET description=?, amount=?, due_day=? WHERE id=?",
+        (description, amount, due_day, cost_id)
+    )
+    conn.commit()
+    conn.close()
+
+
+def delete_fixed_cost(cost_id):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("DELETE FROM fixed_costs WHERE id=?", (cost_id,))
+    conn.commit()
+    conn.close()
+
+
 def get_patrimonio_total():
     conn = get_conn()
     c = conn.cursor()

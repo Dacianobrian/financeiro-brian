@@ -498,6 +498,53 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/api/fixed-costs', methods=['POST'])
+@login_required
+def api_add_fixed_cost():
+    body = request.get_json(silent=True) or {}
+    desc = (body.get('description') or '').strip()
+    if not desc:
+        return jsonify({"error": "Descrição obrigatória"}), 400
+    try:
+        amount = float(str(body.get('amount', 0)).replace(',', '.'))
+    except ValueError:
+        amount = 0.0
+    due_day = body.get('due_day')
+    try:
+        due_day = int(due_day) if due_day else None
+    except (ValueError, TypeError):
+        due_day = None
+    row_id = db.add_fixed_cost(desc, amount, due_day)
+    return jsonify({"ok": True, "id": row_id})
+
+
+@app.route('/api/fixed-costs/<int:cost_id>', methods=['PUT'])
+@login_required
+def api_update_fixed_cost(cost_id):
+    body = request.get_json(silent=True) or {}
+    desc = (body.get('description') or '').strip()
+    if not desc:
+        return jsonify({"error": "Descrição obrigatória"}), 400
+    try:
+        amount = float(str(body.get('amount', 0)).replace(',', '.'))
+    except ValueError:
+        amount = 0.0
+    due_day = body.get('due_day')
+    try:
+        due_day = int(due_day) if due_day else None
+    except (ValueError, TypeError):
+        due_day = None
+    db.update_fixed_cost(cost_id, desc, amount, due_day)
+    return jsonify({"ok": True})
+
+
+@app.route('/api/fixed-costs/<int:cost_id>', methods=['DELETE'])
+@login_required
+def api_delete_fixed_cost(cost_id):
+    db.delete_fixed_cost(cost_id)
+    return jsonify({"ok": True})
+
+
 @app.route('/api/command', methods=['POST'])
 @login_required
 def api_command():
