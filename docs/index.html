@@ -200,12 +200,25 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
       <div class="field" style="flex:1"><label>Valor (R$)</label><input type="text" id="mValor" placeholder="0,00" inputmode="decimal"/></div>
     </div>
     <div class="field">
-      <label>Conta / Cartão</label>
+      <label>Conta / Origem</label>
       <select id="mConta">
-        <option value="corrente nubank">Nubank — Conta Corrente</option>
-        <option value="corrente bradesco">Bradesco — Conta Corrente</option>
-        <option value="cartão bradesco">Bradesco — Cartão de Crédito</option>
-        <option value="caixinha nubank">Nubank — Caixinha (RDB)</option>
+        <optgroup label="💳 Bradesco">
+          <option value="corrente bradesco">Bradesco — Conta Corrente</option>
+          <option value="cartão bradesco">Bradesco — Cartão de Crédito</option>
+        </optgroup>
+        <optgroup label="💜 Nubank">
+          <option value="corrente nubank">Nubank — Conta Corrente</option>
+          <option value="caixinha nubank">Nubank — Caixinha (RDB)</option>
+        </optgroup>
+        <optgroup label="📈 Investimentos">
+          <option value="venda fiis">FII — Venda de Cotas</option>
+          <option value="dividendos fiis">FII — Dividendos</option>
+          <option value="rendimento rdb">Rendimento RDB/CDB</option>
+        </optgroup>
+        <optgroup label="🏢 Outros">
+          <option value="pix">Pix / Transferência</option>
+          <option value="dinheiro">Dinheiro / Espécie</option>
+        </optgroup>
       </select>
     </div>
     <div class="field">
