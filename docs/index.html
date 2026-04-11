@@ -691,6 +691,9 @@ async function refreshDashboard(){
     const patRow = pat[0]||{accounts:0,fii:0,total:0};
     const catsObj = {};
     (cats||[]).forEach(r=>catsObj[r.cat]=+r.total);
+    // Traduz meses inglês → português
+    const _enPt={'Jan':'Jan','Feb':'Fev','Mar':'Mar','Apr':'Abr','May':'Mai','Jun':'Jun','Jul':'Jul','Aug':'Ago','Sep':'Set','Oct':'Out','Nov':'Nov','Dec':'Dez'};
+    monthly.forEach(r=>{ r.month=_enPt[r.month]||r.month; });
 
     fillKpis(cmRow, fii, accounts, patRow);
     fillAccounts(accounts, patRow);
