@@ -403,22 +403,6 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
     <div class="grid g4" id="accountsGrid"><div class="card" style="opacity:.4">carregando...</div></div>
   </div>
 
-  <div class="section">
-    <div class="card">
-      <div class="section-header" style="margin-bottom:10px">
-        <div class="section-title">Últimas Transações</div>
-        <div style="display:flex;gap:6px">
-          <span class="bank bank-nu"><span class="bank-dot"></span>Nubank</span>
-          <span class="bank bank-br"><span class="bank-dot"></span>Bradesco</span>
-        </div>
-      </div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th style="text-align:right">Valor</th></tr></thead>
-        <tbody id="tblTransactions"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
-      </table></div>
-    </div>
-  </div>
-
   <!-- Previsões -->
   <div class="section">
     <div class="grid g2">
@@ -456,19 +440,35 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
     </div>
   </div>
 
+  <!-- Transações + Custos Fixos -->
   <div class="section">
-    <div class="card">
-      <div class="section-header" style="margin-bottom:10px">
-        <div class="section-title">📋 Custos Fixos Mensais</div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <div id="totalFixo" style="font-size:13px;font-weight:700;color:var(--red)"></div>
-          <button onclick="openFixedCostModal()" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;">✏️ Editar</button>
+    <div class="grid g2">
+      <div class="card">
+        <div class="section-header" style="margin-bottom:10px">
+          <div class="section-title">Últimas Transações</div>
+          <div style="display:flex;gap:6px">
+            <span class="bank bank-nu"><span class="bank-dot"></span>Nubank</span>
+            <span class="bank bank-br"><span class="bank-dot"></span>Bradesco</span>
+          </div>
         </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th style="text-align:right">Valor</th></tr></thead>
+          <tbody id="tblTransactions"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
+        </table></div>
       </div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Dia</th><th>Descrição</th><th style="text-align:right">Valor</th><th>Categoria</th></tr></thead>
-        <tbody id="tblCustos"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
-      </table></div>
+      <div class="card">
+        <div class="section-header" style="margin-bottom:10px">
+          <div class="section-title">📋 Custos Fixos Mensais</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div id="totalFixo" style="font-size:13px;font-weight:700;color:var(--red)"></div>
+            <button onclick="openFixedCostModal()" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;">✏️ Editar</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Dia</th><th>Descrição</th><th style="text-align:right">Valor</th><th>Categoria</th></tr></thead>
+          <tbody id="tblCustos"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
+        </table></div>
+      </div>
     </div>
   </div>
 </div><!-- /tabGeral -->
@@ -509,6 +509,36 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
 
 <!-- TAB: INVESTIMENTOS -->
 <div id="tabInv" style="display:none">
+
+  <!-- Performance Banner -->
+  <div class="section">
+    <div style="background:linear-gradient(135deg,rgba(99,102,241,.12) 0%,rgba(139,92,246,.12) 50%,rgba(16,185,129,.08) 100%);border:1px solid rgba(99,102,241,.25);border-radius:var(--r);padding:20px 22px;margin-bottom:4px">
+      <div style="font-size:10px;font-weight:700;color:var(--blue2);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">⚡ Desempenho da Carteira</div>
+      <div class="grid g4" style="gap:10px">
+        <div>
+          <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">💎 Patrimônio Total</div>
+          <div style="font-size:22px;font-weight:800;letter-spacing:-1px;color:#e2e8f0" id="perfKpiPatTotal">—</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px">FIIs + Caixinha</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">💰 Dividendos Recebidos 2026</div>
+          <div style="font-size:22px;font-weight:800;letter-spacing:-1px;color:var(--green)" id="perfKpiDivAno">—</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px" id="perfKpiDivSub">acumulado no ano</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">📊 Média Mensal de Dividendos</div>
+          <div style="font-size:22px;font-weight:800;letter-spacing:-1px;color:var(--cyan)" id="perfKpiRendaMed">—</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px" id="perfKpiRendaSub">dos meses com recebimento</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">💹 Total Aportado 2026</div>
+          <div style="font-size:22px;font-weight:800;letter-spacing:-1px;color:var(--purple)" id="perfKpiAporte">—</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px">em investimentos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- KPIs -->
   <div class="section">
     <div class="grid g4">
@@ -941,7 +971,7 @@ async function refreshFiiQuotes(fiiRows){
   return quotes;
 }
 
-function fillInvFii(rows, quotes, accounts){
+function fillInvFii(rows, quotes, accounts, monthly, divTxs){
   const tb=document.getElementById('invTblFii');
   const ft=document.getElementById('invTblFiiFoot');
   if(!rows||!rows.length){
@@ -984,6 +1014,34 @@ function fillInvFii(rows, quotes, accounts){
   const elRfTot=document.getElementById('invRfTotal');
   if(elRfBal) elRfBal.textContent=brl(caixVal);
   if(elRfTot) elRfTot.textContent=brl(caixVal);
+
+  // ── Performance Banner ──────────────────────────────────────────────────────
+  // Patrimônio total = FIIs + Caixinha
+  const patrimTotal = totalVal + caixVal;
+  const elPat = document.getElementById('perfKpiPatTotal');
+  if(elPat) elPat.textContent = brl(patrimTotal);
+
+  // Dividendos recebidos 2026
+  const divArr = divTxs || _divTxs || [];
+  const divTotal = divArr.reduce((s,r)=>s+(+(r.amount||0)),0);
+  const divMeses = new Set(divArr.map(r=>(r.date||'').substring(0,7))).size;
+  const elDiv = document.getElementById('perfKpiDivAno');
+  const elDivSub = document.getElementById('perfKpiDivSub');
+  if(elDiv) elDiv.textContent = brl(divTotal);
+  if(elDivSub) elDivSub.textContent = divArr.length ? `${divArr.length} recebimento(s) em ${divMeses} mês(es)` : 'acumulado no ano';
+
+  // Média mensal de dividendos
+  const divMed = divMeses > 0 ? divTotal / divMeses : 0;
+  const elMed = document.getElementById('perfKpiRendaMed');
+  const elMedSub = document.getElementById('perfKpiRendaSub');
+  if(elMed) elMed.textContent = brl(divMed);
+  if(elMedSub) elMedSub.textContent = divMeses > 0 ? `média dos ${divMeses} mês(es) com recebimento` : 'dos meses com recebimento';
+
+  // Total aportado 2026 (soma do campo investido do resumo mensal)
+  const mon = monthly || _monthly || [];
+  const aporteAno = mon.reduce((s,r)=>s+(+(r.investido||0)),0);
+  const elAporte = document.getElementById('perfKpiAporte');
+  if(elAporte) elAporte.textContent = brl(aporteAno);
 
   // last updated
   const lu=document.getElementById('invFiiUpdated');
@@ -1088,19 +1146,20 @@ function fillAnoTab(monthly, cats){
 
 // ══ DASHBOARD LOAD ════════════════════════════════════════════════════════════
 let _allTxs = [];
-let _invFiiRows = [], _invQuotes = null, _invAccounts = [];
+let _invFiiRows = [], _invQuotes = null, _invAccounts = [], _monthly = [], _divTxs = [];
 
 async function refreshDashboard(){
   try{
-    const [cm, monthly, cats, txs, fii, fc, accounts, pat] = await Promise.all([
+    const [cm, monthly, cats, txs, fii, fc, accounts, pat, divTxs] = await Promise.all([
       sbRpc('get_current_month_data'),
       sbRpc('get_monthly_summary', {year_val: 2026}),
       sbRpc('get_expense_by_category', {year_val: 2026}),
-      sbGet('transactions', {select:'*', order:'date.desc,id.desc', limit:20}),
+      sbGet('transactions', {select:'*', order:'date.desc,id.desc', limit:15}),
       sbGet('fii_portfolio', {select:'*', order:'ticker.asc'}),
       sbGet('fixed_costs', {select:'*', order:'due_day.asc.nullslast,id.asc'}),
       sbGet('accounts', {select:'*', order:'bank.asc,type.asc'}),
       sbRpc('get_patrimonio_breakdown'),
+      sbGet('transactions', {select:'amount,date,description', category:'ilike.*Dividend*', date:'gte.2026-01-01', type:'eq.entrada'}),
     ]);
     const cmRow = cm[0]||{entradas:0,saidas:0,investido:0,meta_diario:70,meta_reserva:10000,meta_mensal:10000};
     const patRow = pat[0]||{accounts:0,fii:0,total:0};
@@ -1120,12 +1179,14 @@ async function refreshDashboard(){
     _allTxs = txs;
     _invFiiRows = fii;
     _invAccounts = accounts;
-    fillInvFii(fii, null, accounts); // render imediato com preços do banco
+    _monthly = monthly;
+    _divTxs = divTxs || [];
+    fillInvFii(fii, null, accounts, monthly, divTxs);
     // Buscar cotações live em paralelo (não bloqueia o render)
     refreshFiiQuotes(fii).then(quotes=>{
       if(quotes){
         _invQuotes = quotes;
-        fillInvFii(fii, quotes, accounts);
+        fillInvFii(fii, quotes, accounts, monthly, divTxs);
         buildInvCharts(fii, quotes);
       }
     }).catch(()=>{});
@@ -1139,7 +1200,7 @@ async function manualRefreshFii(){
   const quotes = await refreshFiiQuotes(fii);
   if(quotes){
     _invQuotes = quotes;
-    fillInvFii(fii, quotes, _invAccounts);
+    fillInvFii(fii, quotes, _invAccounts, _monthly, _divTxs);
     buildInvCharts(fii, quotes);
     loadPlanned();
   }
