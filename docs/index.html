@@ -434,6 +434,10 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
       <div class="card">
         <div class="section-header" style="margin-bottom:10px">
           <div class="section-title">🏢 Portfolio FII</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span id="fiiLastUpdated" style="font-size:10px;color:var(--muted)"></span>
+            <button id="btnRefreshFii" class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="manualRefreshFii()">⟳ Atualizar</button>
+          </div>
         </div>
         <div class="table-wrap"><table>
           <thead><tr><th>Ticker</th><th>Cotas</th><th>Preço</th><th>Total</th><th>DY%</th><th>Tipo</th></tr></thead>
@@ -555,6 +559,7 @@ const SUPA_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIs
 const REST      = SUPA_URL + '/rest/v1';
 const HDR       = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' };
 const PWD_HASH  = '6747df63076be4c16930139e0240d612fe17724f06153f83d495d959e78e78ab';
+const BRAPI_TOKEN = ''; // opcional: token gratuito em brapi.dev para mais requisições
 
 // ══ AUTH ══════════════════════════════════════════════════════════════════════
 async function sha256(msg){
@@ -733,12 +738,147 @@ function fillTx(rows){
   }).join('');
 }
 
-function fillFii(rows){
-  const tb=document.getElementById('tblFii');const ft=document.getElementById('tblFiiFoot');
+// ══ FII COTAÇÕES LIVE ════════════════════════════════════════════════════════
+const FII_CACHE_KEY = 'fii_quotes_v2';
+const FII_CACHE_TTL = 4 * 60 * 60 * 1000; // 4 horas
+
+async function fetchFiiQuotes(tickers){
+  // Verificar cache
+  try{
+    const raw = localStorage.getItem(FII_CACHE_KEY);
+    if(raw){
+      const {data, ts} = JSON.parse(raw);
+      if(Date.now() - ts < FII_CACHE_TTL) return data;
+    }
+  }catch(e){}
+
+  const tickerList = tickers.join(',');
+  const tokenParam = BRAPI_TOKEN ? `&token=${BRAPI_TOKEN}` : '';
+  try{
+    const resp = await fetch(`https://brapi.dev/api/quote/${tickerList}?dividends=true${tokenParam}`);
+    if(!resp.ok) return null;
+    const json = await resp.json();
+    if(!json.results) return null;
+
+    const data = {};
+    json.results.forEach(r=>{
+      const ticker = r.symbol.replace('.SA','');
+      data[ticker] = {
+        price: r.regularMarketPrice || 0,
+        change: r.regularMarketChangePercent || 0,
+        dy: r.dividendYield || 0,
+        dividends: (r.dividendsData?.cashDividends || [])
+          .filter(d => d.paymentDate && new Date(d.paymentDate) >= new Date())
+          .sort((a,b) => new Date(a.paymentDate)-new Date(b.paymentDate))
+          .slice(0,3)
+      };
+    });
+    localStorage.setItem(FII_CACHE_KEY, JSON.stringify({data, ts: Date.now()}));
+    return data;
+  }catch(e){ console.warn('brapi.dev error:', e); return null; }
+}
+
+async function autoCreateDividendEntries(fiiRows, quotes){
+  if(!quotes) return;
+  const today = todayStr();
+  for(const f of fiiRows){
+    const q = quotes[f.ticker];
+    if(!q || !q.dividends.length) continue;
+    const shares = +(f.shares||0);
+    for(const div of q.dividends){
+      const payDate = div.paymentDate ? div.paymentDate.substring(0,10) : null;
+      if(!payDate || payDate < today) continue;
+      const amount = (+(div.rate||0)) * shares;
+      if(amount <= 0) continue;
+      const desc = `Dividendo ${f.ticker} - ${fmtDate(payDate)}`;
+      // Verificar se já existe
+      const existing = await sbGet('planned_entries', {
+        type: 'eq.entrada',
+        description: `eq.${desc}`,
+        select: 'id'
+      });
+      if(existing.length) continue;
+      // Criar planned_entry
+      await sbPost('planned_entries', {
+        type: 'entrada',
+        description: desc,
+        amount,
+        category: 'Dividendos FII',
+        account: 'Nubank',
+        due_date: payDate,
+        confirmed: false
+      });
+    }
+  }
+}
+
+async function refreshFiiQuotes(fiiRows){
+  if(!fiiRows || !fiiRows.length) return null;
+  const tickers = fiiRows.map(f=>f.ticker);
+  const quotes = await fetchFiiQuotes(tickers);
+  // Atualizar preços no banco em background
+  if(quotes){
+    for(const f of fiiRows){
+      const q = quotes[f.ticker];
+      if(q && q.price > 0 && Math.abs(q.price - +(f.price||0)) > 0.005){
+        sbPatch('fii_portfolio', {ticker:`eq.${f.ticker}`}, {price: q.price}).catch(()=>{});
+      }
+    }
+    await autoCreateDividendEntries(fiiRows, quotes);
+  }
+  return quotes;
+}
+
+function fillFii(rows, quotes){
+  const tb=document.getElementById('tblFii');
+  const ft=document.getElementById('tblFiiFoot');
   if(!rows||!rows.length){tb.innerHTML=`<tr><td colspan="6" class="empty">—</td></tr>`;return}
-  let totalVal=0;
-  tb.innerHTML=rows.map(f=>{const total=(+(f.shares||0))*(+(f.price||0));totalVal+=total;return`<tr><td><span style="font-weight:700;color:var(--blue2);letter-spacing:.5px">${f.ticker}</span></td><td style="color:var(--muted2)">${f.shares||0}</td><td style="color:var(--muted2)">${brl(f.price)}</td><td class="amt-yellow">${brl(total)}</td><td class="${(f.dy||0)>=0?'amt-green':'amt-red'}">${f.dy?pct(f.dy):'—'}</td><td>${ftypeBadge(f.fund_type)}</td></tr>`}).join('');
-  ft.innerHTML=`<td colspan="3" style="color:var(--muted)">TOTAL</td><td class="amt-yellow">${brl(totalVal)}</td><td colspan="2"></td>`;
+
+  let totalVal=0, totalCotas=0, dySum=0, dyCount=0;
+
+  tb.innerHTML=rows.map(f=>{
+    const q = quotes && quotes[f.ticker];
+    const livePrice = q ? q.price : +(f.price||0);
+    const change = q ? q.change : null;
+    const liveDy = q ? q.dy : +(f.dy||0);
+    const total = (+(f.shares||0)) * livePrice;
+    totalVal += total;
+    totalCotas += +(f.shares||0);
+    if(liveDy > 0){ dySum += liveDy; dyCount++; }
+
+    const changeHtml = change !== null
+      ? `<span style="font-size:9px;font-weight:600;margin-left:3px;color:${change>=0?'var(--green)':'var(--red)'}">${change>=0?'▲':'▼'}${Math.abs(change).toFixed(1)}%</span>`
+      : '';
+    const nextDiv = q && q.dividends.length
+      ? `<span title="Próx. dividendo: ${brl(q.dividends[0].rate)}/cota em ${fmtDate(q.dividends[0].paymentDate)}" style="cursor:help;font-size:10px;margin-left:4px">💰</span>`
+      : '';
+
+    return`<tr>
+      <td><span style="font-weight:700;color:var(--blue2);letter-spacing:.5px">${f.ticker}</span>${nextDiv}</td>
+      <td style="color:var(--muted2)">${f.shares||0}</td>
+      <td style="color:var(--muted2)">${brl(livePrice)}${changeHtml}</td>
+      <td class="amt-yellow">${brl(total)}</td>
+      <td class="${liveDy>=0?'amt-green':'amt-red'}">${liveDy?pct(liveDy):'—'}</td>
+      <td>${ftypeBadge(f.fund_type)}</td>
+    </tr>`;
+  }).join('');
+
+  const avgDy = dyCount > 0 ? dySum/dyCount : 0;
+  const lastUpdEl = document.getElementById('fiiLastUpdated');
+  if(lastUpdEl && quotes){
+    try{
+      const cached = JSON.parse(localStorage.getItem(FII_CACHE_KEY));
+      if(cached) lastUpdEl.textContent = '• atualizado '+new Date(cached.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    }catch(e){}
+  }
+
+  ft.innerHTML=`
+    <td style="color:var(--muted);font-size:11px">TOTAL</td>
+    <td style="color:var(--muted2);font-weight:700">${totalCotas} cotas</td>
+    <td></td>
+    <td class="amt-yellow">${brl(totalVal)}</td>
+    <td class="amt-green" style="font-weight:700">Ø ${pct(avgDy)}</td>
+    <td></td>`;
 }
 
 
@@ -805,12 +945,26 @@ async function refreshDashboard(){
     fillAccounts(accounts, patRow);
     buildCharts(monthly, catsObj);
     fillTx(txs);
-    fillFii(fii);
+    fillFii(fii, null); // render imediato com preços do banco
     fillCustos(fc);
     loadPlanned();
     fillAnoTab(monthly, catsObj);
     _allTxs = txs;
+    // Buscar cotações live em paralelo (não bloqueia o render)
+    refreshFiiQuotes(fii).then(quotes=>{
+      if(quotes) fillFii(fii, quotes);
+    }).catch(()=>{});
   }catch(e){console.error('Dashboard error:', e)}
+}
+
+async function manualRefreshFii(){
+  localStorage.removeItem(FII_CACHE_KEY);
+  const fii = await sbGet('fii_portfolio', {select:'*', order:'ticker.asc'});
+  const btn = document.getElementById('btnRefreshFii');
+  if(btn){ btn.textContent='⟳'; btn.disabled=true; }
+  const quotes = await refreshFiiQuotes(fii);
+  if(quotes){ fillFii(fii, quotes); loadPlanned(); }
+  if(btn){ btn.textContent='⟳ Atualizar'; btn.disabled=false; }
 }
 
 let _allTxs = [];
