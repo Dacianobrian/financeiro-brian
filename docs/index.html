@@ -176,6 +176,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
   <div class="header-center">
     <button class="tab-btn active" id="tabBtnGeral" onclick="switchTab('geral')">📊 Visão Geral</button>
     <button class="tab-btn" id="tabBtnAno" onclick="switchTab('ano')">📅 Dashboard Anual</button>
+    <button class="tab-btn" id="tabBtnInv" onclick="switchTab('inv')">📈 Investimentos</button>
   </div>
   <div class="header-right">
     <div class="date-chip" id="headerDate"></div>
@@ -403,48 +404,18 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
   </div>
 
   <div class="section">
-    <div class="section-header"><div class="section-title">Análise 2026</div></div>
-    <div class="grid g3">
-      <div class="card" style="grid-column:span 2">
-        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:12px">📊 Fluxo Mensal — Entradas vs Saídas</div>
-        <div class="chart-wrap"><canvas id="chartFluxo"></canvas></div>
-      </div>
-      <div class="card">
-        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:12px">📊 Despesas por Categoria</div>
-        <div class="chart-wrap" style="height:280px"><canvas id="chartCat"></canvas></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="grid g2">
-      <div class="card">
-        <div class="section-header" style="margin-bottom:10px">
-          <div class="section-title">Últimas Transações</div>
-          <div style="display:flex;gap:6px">
-            <span class="bank bank-nu"><span class="bank-dot"></span>Nubank</span>
-            <span class="bank bank-br"><span class="bank-dot"></span>Bradesco</span>
-          </div>
+    <div class="card">
+      <div class="section-header" style="margin-bottom:10px">
+        <div class="section-title">Últimas Transações</div>
+        <div style="display:flex;gap:6px">
+          <span class="bank bank-nu"><span class="bank-dot"></span>Nubank</span>
+          <span class="bank bank-br"><span class="bank-dot"></span>Bradesco</span>
         </div>
-        <div class="table-wrap"><table>
-          <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th style="text-align:right">Valor</th></tr></thead>
-          <tbody id="tblTransactions"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
-        </table></div>
       </div>
-      <div class="card">
-        <div class="section-header" style="margin-bottom:10px">
-          <div class="section-title">🏢 Portfolio FII</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span id="fiiLastUpdated" style="font-size:10px;color:var(--muted)"></span>
-            <button id="btnRefreshFii" class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="manualRefreshFii()">⟳ Atualizar</button>
-          </div>
-        </div>
-        <div class="table-wrap"><table>
-          <thead><tr><th>Ticker</th><th>Cotas</th><th>Preço</th><th>Total</th><th>DY%</th><th>Tipo</th></tr></thead>
-          <tbody id="tblFii"><tr><td colspan="6" class="empty">Carregando...</td></tr></tbody>
-          <tfoot><tr id="tblFiiFoot"></tr></tfoot>
-        </table></div>
-      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th style="text-align:right">Valor</th></tr></thead>
+        <tbody id="tblTransactions"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
+      </table></div>
     </div>
   </div>
 
@@ -535,6 +506,109 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
     </div>
   </div>
 </div><!-- /tabAno -->
+
+<!-- TAB: INVESTIMENTOS -->
+<div id="tabInv" style="display:none">
+  <!-- KPIs -->
+  <div class="section">
+    <div class="grid g4">
+      <div class="card">
+        <div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🏢</span>Patrimônio FII</div>
+        <div class="kpi-value amt-yellow" id="invKpiTotal">—</div>
+        <div class="kpi-sub">valor de mercado atual</div>
+      </div>
+      <div class="card">
+        <div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Renda Mensal</div>
+        <div class="kpi-value amt-green" id="invKpiRenda">—</div>
+        <div class="kpi-sub">dividendos estimados/mês</div>
+      </div>
+      <div class="card">
+        <div class="kpi-label"><span class="kpi-icon" style="background:rgba(99,102,241,.15)">📈</span>DY Médio a.a.</div>
+        <div class="kpi-value" style="color:var(--blue2)" id="invKpiDy">—</div>
+        <div class="kpi-sub">ponderado pelo valor</div>
+      </div>
+      <div class="card">
+        <div class="kpi-label"><span class="kpi-icon" style="background:rgba(130,10,209,.15)">💜</span>Caixinha Nubank</div>
+        <div class="kpi-value" style="color:#c084fc" id="invKpiCaixinha">—</div>
+        <div class="kpi-sub">reserva · 100% CDI</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="section">
+    <div class="grid g2">
+      <div class="card">
+        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:14px">🍩 Alocação por Ativo</div>
+        <div style="height:240px;display:flex;align-items:center;justify-content:center">
+          <canvas id="chartInvAlloc"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:14px">🍩 Alocação por Segmento</div>
+        <div style="height:240px;display:flex;align-items:center;justify-content:center">
+          <canvas id="chartInvType"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full FII Table -->
+  <div class="section">
+    <div class="card">
+      <div class="section-header" style="margin-bottom:12px">
+        <div class="section-title">🏢 Portfolio de FIIs</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="invFiiUpdated" style="font-size:10px;color:var(--muted)"></span>
+          <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="manualRefreshFii()">⟳ Atualizar Cotações</button>
+        </div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th>Ativo</th>
+          <th>Segmento</th>
+          <th>Cotas</th>
+          <th>Cotação</th>
+          <th>Total</th>
+          <th>DY% a.a.</th>
+          <th>Renda/Mês</th>
+          <th>% Carteira</th>
+        </tr></thead>
+        <tbody id="invTblFii"><tr><td colspan="8" class="empty">Carregando...</td></tr></tbody>
+        <tfoot><tr id="invTblFiiFoot"></tr></tfoot>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- Renda Fixa -->
+  <div class="section">
+    <div class="card">
+      <div class="section-header" style="margin-bottom:14px">
+        <div class="section-title">🏦 Renda Fixa</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(130,10,209,.08);border:1px solid rgba(130,10,209,.2);border-radius:10px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#820ad1,#a855f7);display:flex;align-items:center;justify-content:center;font-size:20px">💜</div>
+          <div>
+            <div style="font-weight:700;font-size:14px">Caixinha Nubank</div>
+            <div style="display:flex;gap:6px;margin-top:4px">
+              <span style="background:rgba(130,10,209,.2);color:#c084fc;border:1px solid rgba(130,10,209,.3);border-radius:5px;padding:1px 8px;font-size:10px;font-weight:700">100% CDI</span>
+              <span style="background:rgba(16,185,129,.1);color:var(--green);border-radius:5px;padding:1px 8px;font-size:10px;font-weight:700">Liquidez Diária</span>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:22px;font-weight:800;color:#c084fc" id="invRfBalance">—</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">saldo atualizado</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:var(--muted)">Total Renda Fixa</span>
+        <span id="invRfTotal" style="font-size:16px;font-weight:800;color:#c084fc">—</span>
+      </div>
+    </div>
+  </div>
+</div><!-- /tabInv -->
 
 </div><!-- /page -->
 
@@ -648,7 +722,8 @@ function bankBadge(desc){if(!desc)return'';const d=desc.toLowerCase();if(d.inclu
 function ftypeBadge(t){if(!t)return'—';const tl=t.toLowerCase();if(tl.includes('papel'))return`<span class="ftag ftag-papel">📄 Papel</span>`;if(tl.includes('tijolo'))return`<span class="ftag ftag-tijolo">🧱 Tijolo</span>`;return`<span class="ftag ftag-hib">🔀 Híbrido</span>`}
 
 // ══ CHARTS ════════════════════════════════════════════════════════════════════
-let chartFluxo,chartCat,chartFluxoAno,chartCatAno;
+let chartFluxoAno,chartCatAno;
+let _chartInvAlloc=null,_chartInvType=null;
 Chart.defaults.font={family:'Inter',size:11};
 Chart.defaults.color='#64748b';
 
@@ -657,19 +732,6 @@ function buildCharts(monthly, cats){
   const entrada=monthly.map(m=>+(m.entradas||0));
   const saida=monthly.map(m=>+(m.saidas||0));
   const inv=monthly.map(m=>+(m.investido||0));
-  if(chartFluxo)chartFluxo.destroy();
-  chartFluxo=new Chart(document.getElementById('chartFluxo'),{type:'bar',data:{labels:months,datasets:[
-    {label:'Entradas',data:entrada,backgroundColor:'rgba(16,185,129,.7)',borderRadius:5,borderSkipped:false},
-    {label:'Saídas',data:saida,backgroundColor:'rgba(239,68,68,.7)',borderRadius:5,borderSkipped:false},
-    {label:'Investido',data:inv,backgroundColor:'rgba(139,92,246,.6)',borderRadius:5,borderSkipped:false},
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12}},tooltip:{callbacks:{label:c=>' '+brl(c.raw)}}},scales:{x:{grid:{color:'rgba(30,45,69,.6)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(30,45,69,.6)'},ticks:{callback:v=>shortBrl(v)}}}}});
-
-  const sortedCats=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  const catLabels=sortedCats.map(([l])=>catIcon(l)+' '+l);
-  const catVals=sortedCats.map(([,v])=>v);
-  const catColors=sortedCats.map(([l])=>catColor(l));
-  if(chartCat)chartCat.destroy();
-  chartCat=new Chart(document.getElementById('chartCat'),{type:'bar',data:{labels:catLabels,datasets:[{data:catVals,backgroundColor:catColors.map(c=>c+'bb'),borderColor:catColors,borderWidth:1,borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+brl(c.raw)}}},scales:{x:{grid:{color:'rgba(30,45,69,.5)'},ticks:{callback:v=>shortBrl(v),font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10.5}}}}}});
 
   if(chartFluxoAno)chartFluxoAno.destroy();
   chartFluxoAno=new Chart(document.getElementById('chartFluxoAno'),{type:'bar',data:{labels:months,datasets:[
@@ -684,6 +746,56 @@ function buildCharts(monthly, cats){
   const catColorsAno=sortedCatsAno.map(([l])=>catColor(l));
   if(chartCatAno)chartCatAno.destroy();
   chartCatAno=new Chart(document.getElementById('chartCatAno'),{type:'bar',data:{labels:catLabelsAno,datasets:[{data:catValsAno,backgroundColor:catColorsAno.map(c=>c+'bb'),borderColor:catColorsAno,borderWidth:1,borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+brl(c.raw)}}},scales:{x:{grid:{color:'rgba(30,45,69,.5)'},ticks:{callback:v=>shortBrl(v),font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10.5}}}}}});
+}
+
+function buildInvCharts(rows, quotes){
+  if(!rows||!rows.length) return;
+
+  const palette=['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#f97316','#84cc16','#14b8a6'];
+  const typeColors={'Tijolo':'#f97316','Papel':'#6366f1','Híbrido':'#8b5cf6','FOF':'#10b981','Outros':'#94a3b8'};
+
+  const labels1=rows.map(f=>f.ticker);
+  const data1=rows.map(f=>{
+    const q=quotes&&quotes[f.ticker];
+    const price=q?q.price:+(f.price||0);
+    return(+(f.shares||0))*price;
+  });
+
+  const typeMap={};
+  rows.forEach(f=>{
+    const q=quotes&&quotes[f.ticker];
+    const price=q?q.price:+(f.price||0);
+    const val=(+(f.shares||0))*price;
+    const type=f.fund_type||'Outros';
+    typeMap[type]=(typeMap[type]||0)+val;
+  });
+  const labels2=Object.keys(typeMap);
+  const data2=Object.values(typeMap);
+
+  const chartOpts={
+    responsive:true,maintainAspectRatio:true,
+    plugins:{
+      legend:{position:'right',labels:{color:'#94a3b8',font:{size:11},boxWidth:12,padding:8}},
+      tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${brl(ctx.parsed)}`}}
+    },
+    cutout:'65%'
+  };
+
+  const ctx1=document.getElementById('chartInvAlloc');
+  if(_chartInvAlloc)_chartInvAlloc.destroy();
+  _chartInvAlloc=new Chart(ctx1,{
+    type:'doughnut',
+    data:{labels:labels1,datasets:[{data:data1,backgroundColor:palette.slice(0,labels1.length),borderColor:'#0f1623',borderWidth:2}]},
+    options:chartOpts
+  });
+
+  const ctx2=document.getElementById('chartInvType');
+  if(_chartInvType)_chartInvType.destroy();
+  _chartInvType=new Chart(ctx2,{
+    type:'doughnut',
+    data:{labels:labels2,datasets:[{data:data2,backgroundColor:labels2.map(t=>typeColors[t]||'#94a3b8'),borderColor:'#0f1623',borderWidth:2}]},
+    options:chartOpts
+  });
 }
 
 // ══ FILL FUNCTIONS ════════════════════════════════════════════════════════════
@@ -829,56 +941,110 @@ async function refreshFiiQuotes(fiiRows){
   return quotes;
 }
 
-function fillFii(rows, quotes){
-  const tb=document.getElementById('tblFii');
-  const ft=document.getElementById('tblFiiFoot');
-  if(!rows||!rows.length){tb.innerHTML=`<tr><td colspan="6" class="empty">—</td></tr>`;return}
+function fillInvFii(rows, quotes, accounts){
+  const tb=document.getElementById('invTblFii');
+  const ft=document.getElementById('invTblFiiFoot');
+  if(!rows||!rows.length){
+    if(tb) tb.innerHTML=`<tr><td colspan="8" class="empty">—</td></tr>`;
+    return;
+  }
 
-  let totalVal=0, totalCotas=0, dySum=0, dyCount=0;
+  // calc totals for % carteira
+  let totalVal=0, totalCotas=0, totalRenda=0, dyWeighted=0;
+  rows.forEach(f=>{
+    const q=quotes&&quotes[f.ticker];
+    const price=q?q.price:+(f.price||0);
+    const shares=+(f.shares||0);
+    const val=shares*price;
+    const dy=q?q.dy:+(f.dy||0);
+    const renda=val*dy/100/12;
+    totalVal+=val;
+    totalCotas+=shares;
+    totalRenda+=renda;
+    dyWeighted+=val*dy;
+  });
+  const avgDy=totalVal>0?dyWeighted/totalVal:0;
 
-  tb.innerHTML=rows.map(f=>{
-    const q = quotes && quotes[f.ticker];
-    const livePrice = q ? q.price : +(f.price||0);
-    const change = q ? q.change : null;
-    const liveDy = q ? q.dy : +(f.dy||0);
-    const total = (+(f.shares||0)) * livePrice;
-    totalVal += total;
-    totalCotas += +(f.shares||0);
-    if(liveDy > 0){ dySum += liveDy; dyCount++; }
+  // update KPI cards
+  const elTotal=document.getElementById('invKpiTotal');
+  const elRenda=document.getElementById('invKpiRenda');
+  const elDy=document.getElementById('invKpiDy');
+  if(elTotal) elTotal.textContent=brl(totalVal);
+  if(elRenda) elRenda.textContent=brl(totalRenda);
+  if(elDy) elDy.textContent=pct(avgDy);
 
-    const changeHtml = change !== null
-      ? `<span style="font-size:9px;font-weight:600;margin-left:3px;color:${change>=0?'var(--green)':'var(--red)'}">${change>=0?'▲':'▼'}${Math.abs(change).toFixed(1)}%</span>`
-      : '';
-    const nextDiv = q && q.dividends.length
-      ? `<span title="Próx. dividendo: ${brl(q.dividends[0].rate)}/cota em ${fmtDate(q.dividends[0].paymentDate)}" style="cursor:help;font-size:10px;margin-left:4px">💰</span>`
-      : '';
+  // Caixinha
+  const caixinha=(accounts||[]).find(a=>/caixinha/i.test(a.name||''));
+  const caixVal=caixinha?+(caixinha.balance||0):0;
+  const elCaix=document.getElementById('invKpiCaixinha');
+  if(elCaix) elCaix.textContent=brl(caixVal);
 
-    return`<tr>
-      <td><span style="font-weight:700;color:var(--blue2);letter-spacing:.5px">${f.ticker}</span>${nextDiv}</td>
-      <td style="color:var(--muted2)">${f.shares||0}</td>
-      <td style="color:var(--muted2)">${brl(livePrice)}${changeHtml}</td>
-      <td class="amt-yellow">${brl(total)}</td>
-      <td class="${liveDy>=0?'amt-green':'amt-red'}">${liveDy?pct(liveDy):'—'}</td>
-      <td>${ftypeBadge(f.fund_type)}</td>
-    </tr>`;
-  }).join('');
+  // Renda Fixa card
+  const elRfBal=document.getElementById('invRfBalance');
+  const elRfTot=document.getElementById('invRfTotal');
+  if(elRfBal) elRfBal.textContent=brl(caixVal);
+  if(elRfTot) elRfTot.textContent=brl(caixVal);
 
-  const avgDy = dyCount > 0 ? dySum/dyCount : 0;
-  const lastUpdEl = document.getElementById('fiiLastUpdated');
-  if(lastUpdEl && quotes){
+  // last updated
+  const lu=document.getElementById('invFiiUpdated');
+  if(lu&&quotes){
     try{
-      const cached = JSON.parse(localStorage.getItem(FII_CACHE_KEY));
-      if(cached) lastUpdEl.textContent = '• atualizado '+new Date(cached.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      const cached=JSON.parse(localStorage.getItem(FII_CACHE_KEY));
+      if(cached) lu.textContent='• atualizado '+new Date(cached.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     }catch(e){}
   }
 
-  ft.innerHTML=`
-    <td style="color:var(--muted);font-size:11px">TOTAL</td>
-    <td style="color:var(--muted2);font-weight:700">${totalCotas} cotas</td>
+  tb.innerHTML=rows.map(f=>{
+    const q=quotes&&quotes[f.ticker];
+    const price=q?q.price:+(f.price||0);
+    const change=q?q.change:null;
+    const dy=q?q.dy:+(f.dy||0);
+    const shares=+(f.shares||0);
+    const val=shares*price;
+    const renda=val*dy/100/12;
+    const cartPct=totalVal>0?val/totalVal*100:0;
+
+    const changeHtml=change!==null
+      ?`<span style="font-size:9px;margin-left:3px;color:${change>=0?'var(--green)':'var(--red)'}">${change>=0?'▲':'▼'}${Math.abs(change).toFixed(1)}%</span>`
+      :'';
+
+    const nextDiv=q&&q.dividends&&q.dividends.length
+      ?`<span title="Próx: ${brl(q.dividends[0].rate)}/cota em ${fmtDate(q.dividends[0].paymentDate)}" style="cursor:help;margin-left:4px">💰</span>`
+      :'';
+
+    const pctBar=`<div style="display:flex;align-items:center;gap:6px">
+      <div style="flex:1;height:4px;background:var(--border);border-radius:2px;min-width:40px">
+        <div style="width:${Math.min(cartPct,100).toFixed(1)}%;height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:2px"></div>
+      </div>
+      <span style="font-size:11px;color:var(--muted2);white-space:nowrap">${cartPct.toFixed(1)}%</span>
+    </div>`;
+
+    return`<tr>
+      <td><span style="font-weight:700;color:var(--blue2);letter-spacing:.5px">${f.ticker}</span>${nextDiv}</td>
+      <td>${ftypeBadge(f.fund_type)}</td>
+      <td style="color:var(--muted2)">${shares}</td>
+      <td style="color:var(--muted2)">${brl(price)}${changeHtml}</td>
+      <td class="amt-yellow">${brl(val)}</td>
+      <td class="${dy>=0?'amt-green':'amt-red'}">${dy?pct(dy):'—'}</td>
+      <td class="amt-green">${brl(renda)}</td>
+      <td>${pctBar}</td>
+    </tr>`;
+  }).join('');
+
+  if(ft) ft.innerHTML=`
+    <td style="color:var(--muted)">TOTAL</td>
+    <td></td>
+    <td style="font-weight:700;color:var(--muted2)">${totalCotas}</td>
     <td></td>
     <td class="amt-yellow">${brl(totalVal)}</td>
-    <td class="amt-green" style="font-weight:700">Ø ${pct(avgDy)}</td>
-    <td></td>`;
+    <td class="amt-green">${pct(avgDy)}</td>
+    <td class="amt-green">${brl(totalRenda)}</td>
+    <td style="color:var(--muted2);font-size:11px">100%</td>`;
+}
+
+function loadInvTab(rows, quotes, accounts){
+  fillInvFii(rows, quotes, accounts);
+  buildInvCharts(rows, quotes);
 }
 
 
@@ -921,6 +1087,9 @@ function fillAnoTab(monthly, cats){
 }
 
 // ══ DASHBOARD LOAD ════════════════════════════════════════════════════════════
+let _allTxs = [];
+let _invFiiRows = [], _invQuotes = null, _invAccounts = [];
+
 async function refreshDashboard(){
   try{
     const [cm, monthly, cats, txs, fii, fc, accounts, pat] = await Promise.all([
@@ -945,14 +1114,20 @@ async function refreshDashboard(){
     fillAccounts(accounts, patRow);
     buildCharts(monthly, catsObj);
     fillTx(txs);
-    fillFii(fii, null); // render imediato com preços do banco
     fillCustos(fc);
     loadPlanned();
     fillAnoTab(monthly, catsObj);
     _allTxs = txs;
+    _invFiiRows = fii;
+    _invAccounts = accounts;
+    fillInvFii(fii, null, accounts); // render imediato com preços do banco
     // Buscar cotações live em paralelo (não bloqueia o render)
     refreshFiiQuotes(fii).then(quotes=>{
-      if(quotes) fillFii(fii, quotes);
+      if(quotes){
+        _invQuotes = quotes;
+        fillInvFii(fii, quotes, accounts);
+        buildInvCharts(fii, quotes);
+      }
     }).catch(()=>{});
   }catch(e){console.error('Dashboard error:', e)}
 }
@@ -960,21 +1135,25 @@ async function refreshDashboard(){
 async function manualRefreshFii(){
   localStorage.removeItem(FII_CACHE_KEY);
   const fii = await sbGet('fii_portfolio', {select:'*', order:'ticker.asc'});
-  const btn = document.getElementById('btnRefreshFii');
-  if(btn){ btn.textContent='⟳'; btn.disabled=true; }
+  _invFiiRows = fii;
   const quotes = await refreshFiiQuotes(fii);
-  if(quotes){ fillFii(fii, quotes); loadPlanned(); }
-  if(btn){ btn.textContent='⟳ Atualizar'; btn.disabled=false; }
+  if(quotes){
+    _invQuotes = quotes;
+    fillInvFii(fii, quotes, _invAccounts);
+    buildInvCharts(fii, quotes);
+    loadPlanned();
+  }
 }
-
-let _allTxs = [];
 
 // ══ TAB SWITCHING ═════════════════════════════════════════════════════════════
 function switchTab(tab){
   document.getElementById('tabGeral').style.display=tab==='geral'?'':'none';
   document.getElementById('tabAno').style.display=tab==='ano'?'':'none';
+  document.getElementById('tabInv').style.display=tab==='inv'?'':'none';
   document.getElementById('tabBtnGeral').classList.toggle('active',tab==='geral');
   document.getElementById('tabBtnAno').classList.toggle('active',tab==='ano');
+  document.getElementById('tabBtnInv').classList.toggle('active',tab==='inv');
+  if(tab==='inv') buildInvCharts(_invFiiRows, _invQuotes);
 }
 
 // ══ COMMAND PARSER ════════════════════════════════════════════════════════════
