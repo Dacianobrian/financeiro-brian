@@ -142,6 +142,27 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
 .term-resp.ok{color:var(--green)}
 .term-resp.err{color:var(--red)}
 .term-resp.info{color:var(--muted)}
+
+/* ── Investidor10-style KPI cards ── */
+.inv10-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px 20px}
+.inv10-card:hover{border-color:var(--border2)}
+.inv10-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:12px;color:var(--muted);font-weight:500}
+.inv10-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.inv10-main{font-size:28px;font-weight:800;letter-spacing:-1px;line-height:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.inv10-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.2px}
+.inv10-badge-up{background:rgba(16,185,129,.15);color:var(--green)}
+.inv10-badge-dn{background:rgba(239,68,68,.15);color:var(--red)}
+.inv10-subs{margin-top:10px;display:flex;flex-direction:column;gap:5px;border-top:1px solid var(--border);padding-top:10px}
+.inv10-sub{display:flex;justify-content:space-between;align-items:center;font-size:11.5px}
+.inv10-sub-label{color:var(--muted)}
+.inv10-sub-val{font-weight:600}
+.inv10-split{display:flex;gap:0}
+.inv10-split-half{flex:1;padding:22px 20px}
+.inv10-split-half:first-child{border-right:1px solid var(--border)}
+.inv10-split-label{font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:500}
+.inv10-split-val{font-size:22px;font-weight:800;letter-spacing:-.8px}
+.inv10-chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.inv10-chart-title{font-size:13px;font-weight:700;color:var(--text)}
 </style>
 </head>
 <body>
@@ -510,88 +531,126 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
 <!-- TAB: INVESTIMENTOS -->
 <div id="tabInv" style="display:none">
 
-  <!-- Performance Banner -->
-  <div class="section">
-    <div style="background:linear-gradient(135deg,rgba(99,102,241,.12) 0%,rgba(139,92,246,.12) 50%,rgba(16,185,129,.08) 100%);border:1px solid rgba(99,102,241,.25);border-radius:var(--r);padding:20px 22px;margin-bottom:4px">
-      <div style="font-size:10px;font-weight:700;color:var(--blue2);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">⚡ Desempenho da Carteira</div>
-      <div class="grid g4" style="gap:10px">
-        <div>
-          <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">💎 Patrimônio Total</div>
-          <div style="font-size:22px;font-weight:800;letter-spacing:-1px;color:#e2e8f0" id="perfKpiPatTotal">—</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:3px">FIIs + Caixinha</div>
-        </div>
-        <div>
-          <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">💰 Dividendos Recebidos 2026</div>
-          <div style="font-size:22px;font-weight:800;letter-spacing:-1px;color:var(--green)" id="perfKpiDivAno">—</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:3px" id="perfKpiDivSub">acumulado no ano</div>
-        </div>
-        <div>
-          <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">📊 Média Mensal de Dividendos</div>
-          <div style="font-size:22px;font-weight:800;letter-spacing:-1px;color:var(--cyan)" id="perfKpiRendaMed">—</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:3px" id="perfKpiRendaSub">dos meses com recebimento</div>
-        </div>
-        <div>
-          <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">💹 Total Aportado 2026</div>
-          <div style="font-size:22px;font-weight:800;letter-spacing:-1px;color:var(--purple)" id="perfKpiAporte">—</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:3px">em investimentos</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- KPIs -->
+  <!-- Row 1: 4 KPI cards -->
   <div class="section">
     <div class="grid g4">
-      <div class="card">
-        <div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🏢</span>Patrimônio FII</div>
-        <div class="kpi-value amt-yellow" id="invKpiTotal">—</div>
-        <div class="kpi-sub">valor de mercado atual</div>
+
+      <!-- Card 1: Patrimônio Total -->
+      <div class="inv10-card">
+        <div class="inv10-header">
+          <div class="inv10-icon" style="background:rgba(99,102,241,.15)">💎</div>
+          Patrimônio total
+        </div>
+        <div class="inv10-main">
+          <span id="inv10PatTotal">—</span>
+          <span class="inv10-badge inv10-badge-dn" id="inv10VarBadge">—</span>
+        </div>
+        <div class="inv10-subs">
+          <div class="inv10-sub">
+            <span class="inv10-sub-label">Valor investido</span>
+            <span class="inv10-sub-val" id="inv10ValorInv">—</span>
+          </div>
+        </div>
       </div>
-      <div class="card">
-        <div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Renda Mensal</div>
-        <div class="kpi-value amt-green" id="invKpiRenda">—</div>
-        <div class="kpi-sub">dividendos estimados/mês</div>
+
+      <!-- Card 2: Lucro Total -->
+      <div class="inv10-card">
+        <div class="inv10-header">
+          <div class="inv10-icon" style="background:rgba(16,185,129,.15)">📈</div>
+          Lucro total
+        </div>
+        <div class="inv10-main">
+          <span class="amt-green" id="inv10LucroTotal">—</span>
+        </div>
+        <div class="inv10-subs">
+          <div class="inv10-sub">
+            <span class="inv10-sub-label">Ganho de Capital</span>
+            <span class="inv10-sub-val" id="inv10GanhoCapital">—</span>
+          </div>
+          <div class="inv10-sub">
+            <span class="inv10-sub-label">Dividendos Recebidos</span>
+            <span class="inv10-sub-val amt-green" id="inv10DivRecebidos">—</span>
+          </div>
+        </div>
       </div>
-      <div class="card">
-        <div class="kpi-label"><span class="kpi-icon" style="background:rgba(99,102,241,.15)">📈</span>DY Médio a.a.</div>
-        <div class="kpi-value" style="color:var(--blue2)" id="invKpiDy">—</div>
-        <div class="kpi-sub">ponderado pelo valor</div>
+
+      <!-- Card 3: Proventos 12M -->
+      <div class="inv10-card">
+        <div class="inv10-header">
+          <div class="inv10-icon" style="background:rgba(245,158,11,.15)">💰</div>
+          Proventos Recebidos (12M)
+        </div>
+        <div class="inv10-main">
+          <span class="amt-green" id="inv10Proventos">—</span>
+        </div>
+        <div class="inv10-subs">
+          <div class="inv10-sub">
+            <span class="inv10-sub-label">Total</span>
+            <span class="inv10-sub-val amt-green" id="inv10ProvTotal">—</span>
+          </div>
+          <div class="inv10-sub">
+            <span class="inv10-sub-label">Média mensal</span>
+            <span class="inv10-sub-val" id="inv10ProvMedia">—</span>
+          </div>
+        </div>
       </div>
-      <div class="card">
-        <div class="kpi-label"><span class="kpi-icon" style="background:rgba(130,10,209,.15)">💜</span>Caixinha Nubank</div>
-        <div class="kpi-value" style="color:#c084fc" id="invKpiCaixinha">—</div>
-        <div class="kpi-sub">reserva · 100% CDI</div>
+
+      <!-- Card 4: Variação + Rentabilidade (split) -->
+      <div class="inv10-card" style="padding:0;overflow:hidden">
+        <div class="inv10-split">
+          <div class="inv10-split-half">
+            <div class="inv10-split-label">Variação</div>
+            <div class="inv10-split-val" id="inv10VarPct">—</div>
+            <div style="margin-top:6px" id="inv10VarAbs"></div>
+          </div>
+          <div class="inv10-split-half">
+            <div class="inv10-split-label">Rentabilidade</div>
+            <div class="inv10-split-val amt-green" id="inv10Rentab">—</div>
+            <div style="margin-top:6px;font-size:11px;color:var(--muted)">total</div>
+          </div>
+        </div>
+        <!-- DY Médio below split -->
+        <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:11px;color:var(--muted)">DY Médio Ponderado</span>
+          <span style="font-weight:700;color:var(--blue2)" id="inv10DyMedio">—</span>
+        </div>
       </div>
+
     </div>
   </div>
 
-  <!-- Charts -->
+  <!-- Row 2: Charts -->
   <div class="section">
-    <div class="grid g2">
+    <div class="grid" style="grid-template-columns:3fr 2fr;gap:14px">
+
+      <!-- Evolução dos Aportes -->
       <div class="card">
-        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:14px">🍩 Alocação por Ativo</div>
+        <div class="inv10-chart-header">
+          <div class="inv10-chart-title">Evolução dos Aportes 2026</div>
+          <span id="invFiiUpdated" style="font-size:10px;color:var(--muted)"></span>
+        </div>
+        <div class="chart-wrap" style="height:240px"><canvas id="chartInvEvol"></canvas></div>
+      </div>
+
+      <!-- Ativos na Carteira -->
+      <div class="card">
+        <div class="inv10-chart-header">
+          <div class="inv10-chart-title">Ativos na Carteira</div>
+        </div>
         <div style="height:240px;display:flex;align-items:center;justify-content:center">
-          <canvas id="chartInvAlloc"></canvas>
+          <canvas id="chartInvAtivos"></canvas>
         </div>
       </div>
-      <div class="card">
-        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:14px">🍩 Alocação por Segmento</div>
-        <div style="height:240px;display:flex;align-items:center;justify-content:center">
-          <canvas id="chartInvType"></canvas>
-        </div>
-      </div>
+
     </div>
   </div>
 
-  <!-- Full FII Table -->
+  <!-- Row 3: Meus Ativos table -->
   <div class="section">
     <div class="card">
       <div class="section-header" style="margin-bottom:12px">
-        <div class="section-title">🏢 Portfolio de FIIs</div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span id="invFiiUpdated" style="font-size:10px;color:var(--muted)"></span>
-          <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="manualRefreshFii()">⟳ Atualizar Cotações</button>
-        </div>
+        <div class="section-title">Meus Ativos <span id="invAtivoCount" style="color:var(--muted);font-weight:400;font-size:12px"></span></div>
+        <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="manualRefreshFii()">⟳ Atualizar Cotações</button>
       </div>
       <div class="table-wrap"><table>
         <thead><tr>
@@ -610,7 +669,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
     </div>
   </div>
 
-  <!-- Renda Fixa -->
+  <!-- Row 4: Renda Fixa -->
   <div class="section">
     <div class="card">
       <div class="section-header" style="margin-bottom:14px">
@@ -753,7 +812,7 @@ function ftypeBadge(t){if(!t)return'—';const tl=t.toLowerCase();if(tl.includes
 
 // ══ CHARTS ════════════════════════════════════════════════════════════════════
 let chartFluxoAno,chartCatAno;
-let _chartInvAlloc=null,_chartInvType=null;
+let _chartInvEvol=null,_chartInvAtivos=null;
 Chart.defaults.font={family:'Inter',size:11};
 Chart.defaults.color='#64748b';
 
@@ -781,51 +840,81 @@ function buildCharts(monthly, cats){
 function buildInvCharts(rows, quotes){
   if(!rows||!rows.length) return;
 
-  const palette=['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#f97316','#84cc16','#14b8a6'];
-  const typeColors={'Tijolo':'#f97316','Papel':'#6366f1','Híbrido':'#8b5cf6','FOF':'#10b981','Outros':'#94a3b8'};
+  // ── Chart 1: Evolução dos Aportes (bar chart from monthly data) ───────────
+  const mon=_monthly||[];
+  const evolLabels=mon.map(r=>r.month);
+  const evolData=mon.map(r=>+(r.investido||0));
 
-  const labels1=rows.map(f=>f.ticker);
-  const data1=rows.map(f=>{
-    const q=quotes&&quotes[f.ticker];
-    const price=q?q.price:+(f.price||0);
-    return(+(f.shares||0))*price;
-  });
+  const ctx1=document.getElementById('chartInvEvol');
+  if(ctx1){
+    if(_chartInvEvol) _chartInvEvol.destroy();
+    _chartInvEvol=new Chart(ctx1,{
+      type:'bar',
+      data:{
+        labels:evolLabels,
+        datasets:[{
+          label:'Aporte',
+          data:evolData,
+          backgroundColor:'rgba(99,102,241,.7)',
+          borderColor:'#6366f1',
+          borderWidth:1,
+          borderRadius:5
+        }]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{label:ctx=>`Aporte: ${brl(ctx.parsed.y)}`}}
+        },
+        scales:{
+          x:{grid:{color:'rgba(30,45,69,.5)'},ticks:{color:'#64748b',font:{size:11}}},
+          y:{grid:{color:'rgba(30,45,69,.5)'},ticks:{color:'#64748b',font:{size:11},callback:v=>'R$'+v.toLocaleString('pt-BR',{maximumFractionDigits:0})}}
+        }
+      }
+    });
+  }
 
-  const typeMap={};
-  rows.forEach(f=>{
-    const q=quotes&&quotes[f.ticker];
-    const price=q?q.price:+(f.price||0);
-    const val=(+(f.shares||0))*price;
-    const type=f.fund_type||'Outros';
-    typeMap[type]=(typeMap[type]||0)+val;
-  });
-  const labels2=Object.keys(typeMap);
-  const data2=Object.values(typeMap);
+  // ── Chart 2: Ativos na Carteira (donut FIIs vs Renda Fixa) ────────────────
+  const fiiTotalVal=rows.reduce((s,f)=>{
+    const q=_invQuotes&&_invQuotes[f.ticker];
+    const p=q?q.price:+(f.price||0);
+    return s+(+(f.shares||0))*p;
+  },0);
+  const caixinha=(_invAccounts||[]).find(a=>/caixinha/i.test(a.name||''));
+  const caixVal=caixinha?+(caixinha.balance||0):0;
 
-  const chartOpts={
-    responsive:true,maintainAspectRatio:true,
-    plugins:{
-      legend:{position:'right',labels:{color:'#94a3b8',font:{size:11},boxWidth:12,padding:8}},
-      tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${brl(ctx.parsed)}`}}
-    },
-    cutout:'65%'
-  };
+  const ctx2=document.getElementById('chartInvAtivos');
+  if(ctx2){
+    if(_chartInvAtivos) _chartInvAtivos.destroy();
 
-  const ctx1=document.getElementById('chartInvAlloc');
-  if(_chartInvAlloc)_chartInvAlloc.destroy();
-  _chartInvAlloc=new Chart(ctx1,{
-    type:'doughnut',
-    data:{labels:labels1,datasets:[{data:data1,backgroundColor:palette.slice(0,labels1.length),borderColor:'#0f1623',borderWidth:2}]},
-    options:chartOpts
-  });
+    const total=fiiTotalVal+caixVal;
+    const fiiPct=total>0?(fiiTotalVal/total*100).toFixed(1):0;
+    const rfPct=total>0?(caixVal/total*100).toFixed(1):0;
 
-  const ctx2=document.getElementById('chartInvType');
-  if(_chartInvType)_chartInvType.destroy();
-  _chartInvType=new Chart(ctx2,{
-    type:'doughnut',
-    data:{labels:labels2,datasets:[{data:data2,backgroundColor:labels2.map(t=>typeColors[t]||'#94a3b8'),borderColor:'#0f1623',borderWidth:2}]},
-    options:chartOpts
-  });
+    _chartInvAtivos=new Chart(ctx2,{
+      type:'doughnut',
+      data:{
+        labels:[`FIIs ${fiiPct}%`,`Renda Fixa ${rfPct}%`],
+        datasets:[{
+          data:[fiiTotalVal,caixVal],
+          backgroundColor:['#f59e0b','#6366f1'],
+          borderColor:'#0f1623',borderWidth:3
+        }]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:true,
+        cutout:'65%',
+        plugins:{
+          legend:{
+            position:'bottom',
+            labels:{color:'#94a3b8',font:{size:12},boxWidth:14,padding:16}
+          },
+          tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${brl(ctx.parsed)}`}}
+        }
+      }
+    });
+  }
 }
 
 // ══ FILL FUNCTIONS ════════════════════════════════════════════════════════════
@@ -974,84 +1063,93 @@ async function refreshFiiQuotes(fiiRows){
 function fillInvFii(rows, quotes, accounts, monthly, divTxs){
   const tb=document.getElementById('invTblFii');
   const ft=document.getElementById('invTblFiiFoot');
-  if(!rows||!rows.length){
-    if(tb) tb.innerHTML=`<tr><td colspan="8" class="empty">—</td></tr>`;
-    return;
-  }
+  if(!rows||!rows.length){ if(tb) tb.innerHTML=`<tr><td colspan="8" class="empty">—</td></tr>`; return; }
 
-  // calc totals for % carteira
-  let totalVal=0, totalCotas=0, totalRenda=0, dyWeighted=0;
+  // ── Calculations ─────────────────────────────────────────────────────────
+  let fiiMarket=0, fiiBasis=0, totalCotas=0, totalRenda=0, dyWeighted=0;
   rows.forEach(f=>{
     const q=quotes&&quotes[f.ticker];
-    const price=q?q.price:+(f.price||0);
-    const shares=+(f.shares||0);
-    const val=shares*price;
+    const liveP=q?q.price:+(f.price||0);
+    const dbP=+(f.price||0);   // cost basis (stored price)
+    const sh=+(f.shares||0);
+    const marketVal=sh*liveP;
+    const basisVal=sh*dbP;
     const dy=q?q.dy:+(f.dy||0);
-    const renda=val*dy/100/12;
-    totalVal+=val;
-    totalCotas+=shares;
-    totalRenda+=renda;
-    dyWeighted+=val*dy;
+    fiiMarket+=marketVal;
+    fiiBasis+=basisVal;
+    totalCotas+=sh;
+    totalRenda+=marketVal*dy/100/12;
+    dyWeighted+=marketVal*dy;
   });
-  const avgDy=totalVal>0?dyWeighted/totalVal:0;
+  const avgDy=fiiMarket>0?dyWeighted/fiiMarket:0;
+  const ganhoCapital=fiiMarket-fiiBasis;
 
-  // update KPI cards
-  const elTotal=document.getElementById('invKpiTotal');
-  const elRenda=document.getElementById('invKpiRenda');
-  const elDy=document.getElementById('invKpiDy');
-  if(elTotal) elTotal.textContent=brl(totalVal);
-  if(elRenda) elRenda.textContent=brl(totalRenda);
-  if(elDy) elDy.textContent=pct(avgDy);
-
-  // Caixinha
   const caixinha=(accounts||[]).find(a=>/caixinha/i.test(a.name||''));
   const caixVal=caixinha?+(caixinha.balance||0):0;
-  const elCaix=document.getElementById('invKpiCaixinha');
-  if(elCaix) elCaix.textContent=brl(caixVal);
 
-  // Renda Fixa card
+  const patrimTotal=fiiMarket+caixVal;
+  const valorInvTotal=fiiBasis+caixVal;
+
+  const divArr=divTxs||_divTxs||[];
+  const provTotal=divArr.reduce((s,r)=>s+(+(r.amount||0)),0);
+  const divMeses=new Set(divArr.map(r=>(r.date||'').substring(0,7))).size;
+  const provMedia=divMeses>0?provTotal/divMeses:0;
+
+  const lucroTotal=ganhoCapital+provTotal;
+  const varPct=fiiBasis>0?ganhoCapital/fiiBasis*100:0;
+  const rentabPct=valorInvTotal>0?lucroTotal/valorInvTotal*100:0;
+
+  // ── Populate new Investidor10 KPIs ───────────────────────────────────────
+  const set=(id,val)=>{ const el=document.getElementById(id); if(el) el.textContent=val; };
+
+  set('inv10PatTotal', brl(patrimTotal));
+  set('inv10ValorInv', brl(valorInvTotal));
+
+  // Variation badge
+  const varBadge=document.getElementById('inv10VarBadge');
+  if(varBadge){
+    varBadge.className='inv10-badge '+(varPct>=0?'inv10-badge-up':'inv10-badge-dn');
+    varBadge.textContent=(varPct>=0?'▲':'▼')+Math.abs(varPct).toFixed(2)+'%';
+  }
+
+  // Lucro card
+  const lucroEl=document.getElementById('inv10LucroTotal');
+  if(lucroEl){ lucroEl.textContent=brl(lucroTotal); lucroEl.className=lucroTotal>=0?'amt-green':'amt-red'; }
+  const gcEl=document.getElementById('inv10GanhoCapital');
+  if(gcEl){ gcEl.textContent=brl(ganhoCapital); gcEl.className='inv10-sub-val '+(ganhoCapital>=0?'amt-green':'amt-red'); }
+  set('inv10DivRecebidos', brl(provTotal));
+
+  // Proventos card
+  set('inv10Proventos', brl(provTotal));
+  set('inv10ProvTotal', brl(provTotal));
+  set('inv10ProvMedia', brl(provMedia));
+
+  // Variação + Rentabilidade card
+  const varPctEl=document.getElementById('inv10VarPct');
+  if(varPctEl){ varPctEl.textContent=pct(varPct); varPctEl.className='inv10-split-val '+(varPct>=0?'amt-green':'amt-red'); }
+  const varAbsEl=document.getElementById('inv10VarAbs');
+  if(varAbsEl){ varAbsEl.innerHTML=`<span style="font-size:11px;color:var(--muted)">${brl(ganhoCapital)}</span>`; }
+  set('inv10Rentab', pct(rentabPct));
+  set('inv10DyMedio', pct(avgDy));
+
+  // Count badge
+  set('invAtivoCount', `(${rows.length})`);
+
+  // Caixinha
   const elRfBal=document.getElementById('invRfBalance');
   const elRfTot=document.getElementById('invRfTotal');
   if(elRfBal) elRfBal.textContent=brl(caixVal);
   if(elRfTot) elRfTot.textContent=brl(caixVal);
 
-  // ── Performance Banner ──────────────────────────────────────────────────────
-  // Patrimônio total = FIIs + Caixinha
-  const patrimTotal = totalVal + caixVal;
-  const elPat = document.getElementById('perfKpiPatTotal');
-  if(elPat) elPat.textContent = brl(patrimTotal);
-
-  // Dividendos recebidos 2026
-  const divArr = divTxs || _divTxs || [];
-  const divTotal = divArr.reduce((s,r)=>s+(+(r.amount||0)),0);
-  const divMeses = new Set(divArr.map(r=>(r.date||'').substring(0,7))).size;
-  const elDiv = document.getElementById('perfKpiDivAno');
-  const elDivSub = document.getElementById('perfKpiDivSub');
-  if(elDiv) elDiv.textContent = brl(divTotal);
-  if(elDivSub) elDivSub.textContent = divArr.length ? `${divArr.length} recebimento(s) em ${divMeses} mês(es)` : 'acumulado no ano';
-
-  // Média mensal de dividendos
-  const divMed = divMeses > 0 ? divTotal / divMeses : 0;
-  const elMed = document.getElementById('perfKpiRendaMed');
-  const elMedSub = document.getElementById('perfKpiRendaSub');
-  if(elMed) elMed.textContent = brl(divMed);
-  if(elMedSub) elMedSub.textContent = divMeses > 0 ? `média dos ${divMeses} mês(es) com recebimento` : 'dos meses com recebimento';
-
-  // Total aportado 2026 (soma do campo investido do resumo mensal)
-  const mon = monthly || _monthly || [];
-  const aporteAno = mon.reduce((s,r)=>s+(+(r.investido||0)),0);
-  const elAporte = document.getElementById('perfKpiAporte');
-  if(elAporte) elAporte.textContent = brl(aporteAno);
-
-  // last updated
+  // Last updated
   const lu=document.getElementById('invFiiUpdated');
   if(lu&&quotes){
-    try{
-      const cached=JSON.parse(localStorage.getItem(FII_CACHE_KEY));
-      if(cached) lu.textContent='• atualizado '+new Date(cached.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    try{ const c=JSON.parse(localStorage.getItem('fii_quotes_v2'));
+      if(c) lu.textContent='• atualizado '+new Date(c.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     }catch(e){}
   }
 
+  // ── FII Table ─────────────────────────────────────────────────────────────
   tb.innerHTML=rows.map(f=>{
     const q=quotes&&quotes[f.ticker];
     const price=q?q.price:+(f.price||0);
@@ -1060,15 +1158,13 @@ function fillInvFii(rows, quotes, accounts, monthly, divTxs){
     const shares=+(f.shares||0);
     const val=shares*price;
     const renda=val*dy/100/12;
-    const cartPct=totalVal>0?val/totalVal*100:0;
+    const cartPct=fiiMarket>0?val/fiiMarket*100:0;
 
     const changeHtml=change!==null
-      ?`<span style="font-size:9px;margin-left:3px;color:${change>=0?'var(--green)':'var(--red)'}">${change>=0?'▲':'▼'}${Math.abs(change).toFixed(1)}%</span>`
-      :'';
+      ?`<span style="font-size:9px;margin-left:3px;color:${change>=0?'var(--green)':'var(--red)'}">${change>=0?'▲':'▼'}${Math.abs(change).toFixed(1)}%</span>`:'';
 
     const nextDiv=q&&q.dividends&&q.dividends.length
-      ?`<span title="Próx: ${brl(q.dividends[0].rate)}/cota em ${fmtDate(q.dividends[0].paymentDate)}" style="cursor:help;margin-left:4px">💰</span>`
-      :'';
+      ?`<span title="Próx: ${brl(q.dividends[0].rate)}/cota em ${fmtDate(q.dividends[0].paymentDate)}" style="cursor:help;margin-left:4px">💰</span>`:'';
 
     const pctBar=`<div style="display:flex;align-items:center;gap:6px">
       <div style="flex:1;height:4px;background:var(--border);border-radius:2px;min-width:40px">
@@ -1090,11 +1186,9 @@ function fillInvFii(rows, quotes, accounts, monthly, divTxs){
   }).join('');
 
   if(ft) ft.innerHTML=`
-    <td style="color:var(--muted)">TOTAL</td>
-    <td></td>
-    <td style="font-weight:700;color:var(--muted2)">${totalCotas}</td>
-    <td></td>
-    <td class="amt-yellow">${brl(totalVal)}</td>
+    <td style="color:var(--muted)">TOTAL</td><td></td>
+    <td style="font-weight:700;color:var(--muted2)">${totalCotas}</td><td></td>
+    <td class="amt-yellow">${brl(fiiMarket)}</td>
     <td class="amt-green">${pct(avgDy)}</td>
     <td class="amt-green">${brl(totalRenda)}</td>
     <td style="color:var(--muted2);font-size:11px">100%</td>`;
