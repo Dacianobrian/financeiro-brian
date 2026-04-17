@@ -8,6 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(typeof pdfjsLib!=='undefined') pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 <style>
 :root{
   --bg:#080c14;--surface:#0f1623;--surface2:#161e2e;--border:#1e2d45;--border2:#253550;
@@ -163,6 +165,45 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
 .inv10-split-val{font-size:22px;font-weight:800;letter-spacing:-.8px}
 .inv10-chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .inv10-chart-title{font-size:13px;font-weight:700;color:var(--text)}
+
+/* ── Import Modal ── */
+.imp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.imp-modal{background:var(--surface);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:780px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+.imp-header{padding:22px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.imp-title{font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px}
+.imp-steps{display:flex;gap:6px;align-items:center;font-size:11px;color:var(--muted)}
+.imp-step{padding:3px 10px;border-radius:20px;font-weight:600}
+.imp-step.active{background:var(--blue);color:#fff}
+.imp-step.done{background:rgba(16,185,129,.2);color:var(--green)}
+.imp-body{padding:24px;overflow-y:auto;flex:1}
+.imp-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0}
+.drop-zone{border:2px dashed var(--border2);border-radius:14px;padding:40px 20px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface2)}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--blue);background:rgba(99,102,241,.06)}
+.drop-zone-icon{font-size:36px;margin-bottom:10px}
+.drop-zone-text{font-size:14px;font-weight:600;margin-bottom:4px}
+.drop-zone-sub{font-size:12px;color:var(--muted)}
+.imp-selects{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+.imp-select-group label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.imp-select-group select{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none}
+.imp-select-group select:focus{border-color:var(--blue)}
+.imp-preview-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.imp-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.imp-badge-new{background:rgba(16,185,129,.15);color:var(--green)}
+.imp-badge-dup{background:rgba(245,158,11,.15);color:var(--yellow)}
+.imp-badge-err{background:rgba(239,68,68,.15);color:var(--red)}
+.imp-table{width:100%;border-collapse:collapse;font-size:12px}
+.imp-table th{background:var(--surface2);color:var(--muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;padding:8px 10px;text-align:left;position:sticky;top:0}
+.imp-table td{padding:7px 10px;border-bottom:1px solid rgba(30,45,69,.5)}
+.imp-table tr.dup-row td{opacity:.45}
+.imp-table tr.dup-row td:first-child::before{content:'⚠ ';font-size:10px}
+.imp-cat-sel{background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:11px;padding:2px 6px;font-family:var(--font)}
+.imp-report{text-align:center;padding:20px 0}
+.imp-report-icon{font-size:48px;margin-bottom:12px}
+.imp-report-title{font-size:20px;font-weight:800;margin-bottom:6px}
+.imp-report-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
+.imp-report-stat{background:var(--surface2);border-radius:10px;padding:14px;text-align:center}
+.imp-report-stat-val{font-size:18px;font-weight:800;margin-bottom:4px}
+.imp-report-stat-lbl{font-size:11px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -203,6 +244,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
     <div class="date-chip" id="headerDate"></div>
     <button class="btn btn-ghost" onclick="refreshDashboard()">↻</button>
     <button class="btn btn-green" onclick="openModal()">＋ Lançamento</button>
+    <button class="btn btn-ghost" onclick="openImportModal()" style="border-color:rgba(99,102,241,.4);color:var(--blue2)">📥 Extrato</button>
     <button class="btn btn-primary" onclick="exportExcel()">⬇ Excel</button>
     <button class="btn btn-ghost" onclick="doLogout()">⏻</button>
   </div>
@@ -711,6 +753,144 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
     <button class="btn btn-ghost" type="button" onclick="document.getElementById('termInput').value=''">✕</button>
   </form>
   <div class="term-resp info" id="termResp">Digite um comando. Use <b>ajuda</b> para ver todos os comandos.</div>
+</div>
+
+<!-- ══ IMPORT MODAL ══ -->
+<div class="imp-overlay" id="impOverlay" style="display:none" onclick="if(event.target===this)closeImportModal()">
+  <div class="imp-modal">
+    <div class="imp-header">
+      <div class="imp-title">📥 Importar Extrato Bancário</div>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div class="imp-steps">
+          <span class="imp-step active" id="impStep1">1 Upload</span>
+          <span style="color:var(--border2)">›</span>
+          <span class="imp-step" id="impStep2">2 Preview</span>
+          <span style="color:var(--border2)">›</span>
+          <span class="imp-step" id="impStep3">3 Resultado</span>
+        </div>
+        <button onclick="closeImportModal()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1">✕</button>
+      </div>
+    </div>
+
+    <!-- Step 1: Upload -->
+    <div class="imp-body" id="impBody1">
+      <div class="drop-zone" id="dropZone"
+        onclick="document.getElementById('impFileInput').click()"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="event.preventDefault();this.classList.remove('drag-over');handleImportDrop(event)">
+        <div class="drop-zone-icon">📂</div>
+        <div class="drop-zone-text" id="dropZoneText">Arraste o arquivo aqui ou clique para selecionar</div>
+        <div class="drop-zone-sub">Suporta: CSV (Nubank), Excel (.xlsx), PDF · Conta corrente e cartão</div>
+      </div>
+      <input type="file" id="impFileInput" style="display:none" accept=".csv,.xlsx,.xls,.pdf"
+        onchange="handleImportFile(this.files[0])"/>
+
+      <div class="imp-selects">
+        <div class="imp-select-group">
+          <label>Banco</label>
+          <select id="impBank">
+            <option value="nubank">Nubank</option>
+            <option value="bradesco">Bradesco</option>
+            <option value="generic">Genérico (CSV)</option>
+          </select>
+        </div>
+        <div class="imp-select-group">
+          <label>Tipo de Conta</label>
+          <select id="impAccType">
+            <option value="corrente">Conta Corrente</option>
+            <option value="cartao">Cartão de Crédito</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="impFileInfo" style="margin-top:14px;display:none">
+        <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;font-weight:600" id="impFileName">arquivo.csv</span>
+          <span class="imp-badge imp-badge-new" id="impFileParsed">— linhas</span>
+        </div>
+      </div>
+      <div id="impParseErr" style="margin-top:10px;color:var(--red);font-size:12px;display:none"></div>
+    </div>
+
+    <!-- Step 2: Preview -->
+    <div class="imp-body" id="impBody2" style="display:none">
+      <div class="imp-preview-header">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span style="font-size:14px;font-weight:700" id="impPreviewTitle">Pré-visualização</span>
+          <span class="imp-badge imp-badge-new" id="impBadgeNew">0 novas</span>
+          <span class="imp-badge imp-badge-dup" id="impBadgeDup" style="display:none">0 duplicatas</span>
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer">
+          <input type="checkbox" id="impSelectAll" checked onchange="toggleSelectAll(this.checked)"/>
+          Selecionar tudo
+        </label>
+      </div>
+      <div style="overflow-x:auto;max-height:380px;border-radius:8px;border:1px solid var(--border)">
+        <table class="imp-table">
+          <thead><tr>
+            <th style="width:30px"><input type="checkbox" id="impHeaderChk" checked onchange="toggleSelectAll(this.checked)"/></th>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th>Categoria</th>
+            <th>Conta</th>
+            <th style="text-align:right">Valor</th>
+            <th>Tipo</th>
+          </tr></thead>
+          <tbody id="impPreviewBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Step 3: Result -->
+    <div class="imp-body" id="impBody3" style="display:none">
+      <div class="imp-report">
+        <div class="imp-report-icon" id="impResIcon">✅</div>
+        <div class="imp-report-title" id="impResTitle">Importação concluída!</div>
+        <div style="font-size:13px;color:var(--muted)" id="impResSubtitle"></div>
+        <div class="imp-report-stats">
+          <div class="imp-report-stat">
+            <div class="imp-report-stat-val amt-green" id="impResImported">0</div>
+            <div class="imp-report-stat-lbl">Importadas</div>
+          </div>
+          <div class="imp-report-stat">
+            <div class="imp-report-stat-val amt-yellow" id="impResSkipped">0</div>
+            <div class="imp-report-stat-lbl">Ignoradas (duplicatas)</div>
+          </div>
+          <div class="imp-report-stat">
+            <div class="imp-report-stat-val" id="impResBalance" style="color:var(--cyan)">—</div>
+            <div class="imp-report-stat-lbl">Saldo do período</div>
+          </div>
+        </div>
+        <div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:360px;margin-left:auto;margin-right:auto">
+          <div style="background:rgba(16,185,129,.08);border-radius:8px;padding:12px">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Total Entradas</div>
+            <div class="amt-green" style="font-size:16px;font-weight:700" id="impResEntradas">—</div>
+          </div>
+          <div style="background:rgba(239,68,68,.08);border-radius:8px;padding:12px">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Total Saídas</div>
+            <div class="amt-red" style="font-size:16px;font-weight:700" id="impResSaidas">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer (buttons change per step) -->
+    <div class="imp-footer" id="impFooter1">
+      <button class="btn btn-ghost" onclick="closeImportModal()">Cancelar</button>
+      <button class="btn btn-primary" id="impBtnProcess" onclick="processImport()" disabled>Processar →</button>
+    </div>
+    <div class="imp-footer" id="impFooter2" style="display:none;justify-content:space-between">
+      <button class="btn btn-ghost" onclick="impGoStep(1)">← Voltar</button>
+      <div style="display:flex;gap:8px">
+        <span style="display:flex;align-items:center;font-size:12px;color:var(--muted)" id="impImportCount"></span>
+        <button class="btn btn-green" id="impBtnImport" onclick="doImport()">Importar →</button>
+      </div>
+    </div>
+    <div class="imp-footer" id="impFooter3" style="display:none">
+      <button class="btn btn-primary" onclick="closeImportModal();refreshDashboard()">✓ Ver Dashboard</button>
+    </div>
+  </div>
 </div>
 
 </div><!-- /appWrap -->
@@ -1767,6 +1947,440 @@ async function exportExcel(){
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Transações');
   XLSX.writeFile(wb,'financeiro-brian.xlsx');
+}
+
+// ══ IMPORT EXTRATO ════════════════════════════════════════════════════════════
+
+let _impParsed = [];   // [{date, description, amount, type, category, account, isDup}]
+let _impFile = null;
+
+const IMP_CATS_SAIDA = [
+  [/mercado|supermercado|atacado|carrefour|extra|pão de açúcar|hortifruti|hiper|feira/i,'Alimentação'],
+  [/ifood|rappi|uber.?eats|james.?delivery|delivery/i,'Alimentação'],
+  [/restaurante|lanchonete|pizza|hamburguer|burger|sushi|padaria|cafeteria|café|bar |bolos/i,'Alimentação'],
+  [/uber|99app|taxi|ônibus|metro|bilhete único|passagem|combustível|gasolina|posto |shell|ipiranga|petrobras/i,'Transporte'],
+  [/netflix|spotify|amazon prime|prime video|disney|hbo|globoplay|apple.tv|youtube premium|deezer/i,'Streaming'],
+  [/claro|vivo|tim |oi |net |wifi|internet|astanet/i,'Moradia'],
+  [/farmácia|drogaria|droga raia|ultrafarma|panvel|remédio|medicamento|unimed|amil|sulamerica|bradesco saude|metlife|plano de saúde|odonto/i,'Saúde'],
+  [/academia|smart fit|crossfit|gym|fitness/i,'Saúde'],
+  [/aluguel|condomínio|condominio|iptu|água |copasa|sabesp|sanepar|energia|cemig|copel|light|enel|eletropaulo|gás |comgas|gas encanado/i,'Moradia'],
+  [/financiamento|votorantim|caixa eco|casa|imóvel|capitaliz/i,'Moradia'],
+  [/das mei|carnê das|simples nacional|receita federal|nota fiscal|nf-e/i,'Impostos / MEI'],
+  [/cartão|fatura bradesco|pagto cartao/i,'Cartão Bradesco'],
+  [/cinema|teatro|show |ingresso|sympla|eventbrite|bilheteria/i,'Lazer'],
+  [/roupa|vestuário|calçado|sapato|tênis|zara|hm |renner|riachuelo|c&a/i,'Vestuário'],
+  [/educação|escola|faculdade|curso|mensalidade|livro|papelaria/i,'Educação'],
+  [/pix |transferência|ted |doc |pagamento efetuado/i,'Transferência'],
+];
+
+const IMP_CATS_ENTRADA = [
+  [/salário|salario|pagamento|vencimento|folha/i,'Salário'],
+  [/dividendo|rendimento|provento|fii|fundo imob/i,'Dividendos FII'],
+  [/comissão|comissao|honorário|freelance/i,'Comissão'],
+  [/pix recebido|transferência recebida|ted recebido|depósito/i,'Transferência'],
+  [/rendimento|juros|cdb|lci|lca|selic/i,'Rendimentos'],
+];
+
+const IMP_ALL_CATS = ['Alimentação','Transporte','Moradia','Saúde','Streaming','Impostos / MEI',
+  'Cartão Bradesco','Lazer','Vestuário','Educação','Salário','Dividendos FII','Comissão',
+  'Transferência','Rendimentos','Investimentos','Outros'];
+
+function impAutoCategory(desc, type){
+  const list = type==='entrada' ? IMP_CATS_ENTRADA : IMP_CATS_SAIDA;
+  for(const [re,cat] of list){ if(re.test(desc)) return cat; }
+  return 'Outros';
+}
+
+function impCatOptions(selected){
+  return IMP_ALL_CATS.map(c=>`<option value="${c}"${c===selected?' selected':''}>${c}</option>`).join('');
+}
+
+function openImportModal(){
+  _impParsed=[];_impFile=null;
+  document.getElementById('impOverlay').style.display='flex';
+  document.getElementById('dropZoneText').textContent='Arraste o arquivo aqui ou clique para selecionar';
+  document.getElementById('impFileInfo').style.display='none';
+  document.getElementById('impParseErr').style.display='none';
+  document.getElementById('impBtnProcess').disabled=true;
+  document.getElementById('impFileInput').value='';
+  impGoStep(1);
+}
+
+function closeImportModal(){
+  document.getElementById('impOverlay').style.display='none';
+}
+
+function impGoStep(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('impBody'+i).style.display=i===n?'':'none';
+    document.getElementById('impFooter'+i).style.display=i===n?'flex':'none';
+    const s=document.getElementById('impStep'+i);
+    s.className='imp-step'+(i===n?' active':i<n?' done':'');
+  });
+}
+
+function handleImportDrop(e){
+  const f=e.dataTransfer.files[0];
+  if(f) handleImportFile(f);
+}
+
+async function handleImportFile(file){
+  if(!file) return;
+  _impFile=file;
+  document.getElementById('dropZoneText').textContent='📎 '+file.name;
+  document.getElementById('impFileName').textContent=file.name;
+  document.getElementById('impParseErr').style.display='none';
+
+  // Auto-detect bank from filename
+  const fn=file.name.toLowerCase();
+  if(/nubank|nu_/.test(fn)) document.getElementById('impBank').value='nubank';
+  else if(/bradesco/.test(fn)) document.getElementById('impBank').value='bradesco';
+
+  try{
+    const rows = await parseImportFile(file);
+    _impParsed=rows;
+    document.getElementById('impFileInfo').style.display='';
+    document.getElementById('impFileParsed').textContent=rows.length+' transações encontradas';
+    document.getElementById('impBtnProcess').disabled=rows.length===0;
+  }catch(e){
+    document.getElementById('impParseErr').textContent='✗ '+e.message;
+    document.getElementById('impParseErr').style.display='';
+    document.getElementById('impBtnProcess').disabled=true;
+  }
+}
+
+async function parseImportFile(file){
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='pdf') return parsePDF(file);
+  if(ext==='xlsx'||ext==='xls') return parseExcelFile(file);
+  return parseCSVFile(file);
+}
+
+async function parseCSVFile(file){
+  const text=await file.text();
+  const bank=document.getElementById('impBank').value;
+  const accType=document.getElementById('impAccType').value;
+  if(bank==='nubank') return parseNubankCSV(text, accType);
+  return parseGenericCSV(text, accType);
+}
+
+function parseNubankCSV(text, accType){
+  const lines=text.trim().split('\n').map(l=>l.trim()).filter(Boolean);
+  if(!lines.length) throw new Error('Arquivo vazio');
+  const header=lines[0].toLowerCase();
+  const rows=[];
+
+  // Cartão: date,category,title,amount  OR  Data,Categoria,Título,Valor
+  if(header.includes('category')||header.includes('categoria')||header.includes('title')||header.includes('título')){
+    for(let i=1;i<lines.length;i++){
+      const cols=parseCSVLine(lines[i]);
+      if(cols.length<4) continue;
+      const date=normalizeDate(cols[0]);
+      const desc=(cols[2]||cols[1]||'').replace(/"/g,'').trim();
+      const amount=parseFloat((cols[3]||'0').replace(/"/g,'').replace(',','.'));
+      if(!date||isNaN(amount)) continue;
+      const type=amount<0?'saida':'entrada';
+      rows.push({date,description:desc,amount:Math.abs(amount),type,
+        category:impAutoCategory(desc,type),
+        account:accType==='cartao'?'cartão nubank':'nubank'});
+    }
+    return rows;
+  }
+
+  // Conta corrente: Data,Descrição,Valor
+  for(let i=1;i<lines.length;i++){
+    const cols=parseCSVLine(lines[i]);
+    if(cols.length<3) continue;
+    const date=normalizeDate(cols[0]);
+    const desc=(cols[1]||'').replace(/"/g,'').trim();
+    const amount=parseFloat((cols[2]||'0').replace(/"/g,'').replace(',','.'));
+    if(!date||isNaN(amount)) continue;
+    const type=amount<0?'saida':'entrada';
+    rows.push({date,description:desc,amount:Math.abs(amount),type,
+      category:impAutoCategory(desc,type),account:'nubank'});
+  }
+  return rows;
+}
+
+function parseGenericCSV(text, accType){
+  const lines=text.trim().split('\n').map(l=>l.trim()).filter(Boolean);
+  if(!lines.length) throw new Error('Arquivo vazio');
+  const rows=[];
+  const header=lines[0].toLowerCase();
+  // try to find date, description, amount columns
+  const cols0=parseCSVLine(lines[0]);
+  let dateCol=-1,descCol=-1,amtCol=-1,debitCol=-1,creditCol=-1;
+  cols0.forEach((c,i)=>{
+    const cl=c.toLowerCase().replace(/"/g,'');
+    if(/data|date/.test(cl)&&dateCol<0) dateCol=i;
+    if(/descri|histór|memo|lançamento/.test(cl)&&descCol<0) descCol=i;
+    if(/valor(?!\s*cr)/.test(cl)&&amtCol<0) amtCol=i;
+    if(/débito|debit/.test(cl)&&debitCol<0) debitCol=i;
+    if(/crédito|credit/.test(cl)&&creditCol<0) creditCol=i;
+  });
+  if(dateCol<0) dateCol=0;
+  if(descCol<0) descCol=1;
+  for(let i=1;i<lines.length;i++){
+    const cols=parseCSVLine(lines[i]);
+    const date=normalizeDate(cols[dateCol]||'');
+    const desc=(cols[descCol]||'').replace(/"/g,'').trim();
+    if(!date||!desc) continue;
+    let amount=0,type='saida';
+    if(debitCol>=0||creditCol>=0){
+      const deb=parseFloat((cols[debitCol]||'0').replace(/"/g,'').replace(',','.').replace(/[^\d.-]/g,''))||0;
+      const cred=parseFloat((cols[creditCol]||'0').replace(/"/g,'').replace(',','.').replace(/[^\d.-]/g,''))||0;
+      if(cred>0){amount=cred;type='entrada';}
+      else{amount=deb;type='saida';}
+    } else {
+      const raw=parseFloat((cols[amtCol]||'0').replace(/"/g,'').replace(',','.').replace(/[^\d.-]/g,''))||0;
+      type=raw>=0?'entrada':'saida';
+      amount=Math.abs(raw);
+    }
+    if(amount===0) continue;
+    rows.push({date,description:desc,amount,type,
+      category:impAutoCategory(desc,type),
+      account:accType==='cartao'?'cartão bradesco':'bradesco'});
+  }
+  return rows;
+}
+
+async function parseExcelFile(file){
+  const accType=document.getElementById('impAccType').value;
+  const bank=document.getElementById('impBank').value;
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      try{
+        const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        const rows=[];
+        // Find header row
+        let headerRow=-1;
+        for(let i=0;i<Math.min(10,data.length);i++){
+          const r=data[i].map(c=>String(c).toLowerCase());
+          if(r.some(c=>/data|date/.test(c))&&r.some(c=>/descri|histór|lançamento|memo/.test(c))){
+            headerRow=i;break;
+          }
+        }
+        if(headerRow<0) headerRow=0;
+        const headers=data[headerRow].map(c=>String(c).toLowerCase().trim());
+        let dateCol=headers.findIndex(c=>/data|date/.test(c));
+        let descCol=headers.findIndex(c=>/descri|histór|lançamento|memo|histórico/.test(c));
+        let amtCol=headers.findIndex(c=>/^valor$/.test(c));
+        let debitCol=headers.findIndex(c=>/débito|debit/.test(c));
+        let creditCol=headers.findIndex(c=>/crédito|credit/.test(c));
+        if(dateCol<0) dateCol=0;
+        if(descCol<0) descCol=1;
+        for(let i=headerRow+1;i<data.length;i++){
+          const row=data[i];
+          const rawDate=row[dateCol];
+          let date='';
+          if(rawDate instanceof Date){
+            date=rawDate.toISOString().substring(0,10);
+          } else {
+            date=normalizeDate(String(rawDate||''));
+          }
+          const desc=String(row[descCol]||'').trim();
+          if(!date||!desc) continue;
+          let amount=0,type='saida';
+          if(debitCol>=0||creditCol>=0){
+            const deb=parseFloat(String(row[debitCol]||'0').replace(',','.'))||0;
+            const cred=parseFloat(String(row[creditCol]||'0').replace(',','.'))||0;
+            if(cred>0){amount=cred;type='entrada';}
+            else{amount=Math.abs(deb);type='saida';}
+          } else {
+            const raw=parseFloat(String(row[amtCol]||'0').replace(',','.'))||0;
+            type=raw>=0?'entrada':'saida';amount=Math.abs(raw);
+          }
+          if(amount===0) continue;
+          rows.push({date,description:desc,amount,type,
+            category:impAutoCategory(desc,type),
+            account:accType==='cartao'?(bank==='bradesco'?'cartão bradesco':'cartão nubank'):(bank==='bradesco'?'bradesco':'nubank')});
+        }
+        resolve(rows);
+      }catch(e){reject(new Error('Erro ao ler Excel: '+e.message));}
+    };
+    reader.onerror=()=>reject(new Error('Erro ao ler arquivo'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+async function parsePDF(file){
+  if(typeof pdfjsLib==='undefined') throw new Error('PDF.js não carregado. Use CSV ou Excel.');
+  const bank=document.getElementById('impBank').value;
+  const accType=document.getElementById('impAccType').value;
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let fullText='';
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const content=await page.getTextContent();
+    fullText+=content.items.map(i=>i.str).join(' ')+'\n';
+  }
+  // Parse lines from PDF text
+  const rows=[];
+  const lines=fullText.split('\n').map(l=>l.trim()).filter(Boolean);
+  // Pattern: DD/MM/YYYY or DD/MM/YY followed by description and amount
+  const dateRe=/(\d{2}\/\d{2}\/(?:\d{4}|\d{2}))/;
+  const amtRe=/(-?\d{1,3}(?:\.\d{3})*,\d{2}|-?\d+,\d{2})/g;
+  for(const line of lines){
+    const dateMatch=line.match(dateRe);
+    if(!dateMatch) continue;
+    const date=normalizeDate(dateMatch[1]);
+    if(!date) continue;
+    const afterDate=line.slice(line.indexOf(dateMatch[1])+dateMatch[1].length).trim();
+    const amounts=[...afterDate.matchAll(amtRe)];
+    if(!amounts.length) continue;
+    const lastAmt=amounts[amounts.length-1][1];
+    const amount=parseFloat(lastAmt.replace(/\./g,'').replace(',','.'));
+    if(isNaN(amount)||amount===0) continue;
+    const desc=afterDate.replace(lastAmt,'').replace(/\s+/g,' ').trim().substring(0,80);
+    const type=amount<0?'saida':'entrada';
+    rows.push({date,description:desc,amount:Math.abs(amount),type,
+      category:impAutoCategory(desc,type),
+      account:accType==='cartao'?(bank==='bradesco'?'cartão bradesco':'cartão nubank'):'bradesco'});
+  }
+  if(!rows.length) throw new Error('Não foi possível extrair transações do PDF. Tente exportar como CSV.');
+  return rows;
+}
+
+function parseCSVLine(line){
+  // Handle quoted CSV properly
+  const result=[];let cur='';let inQ=false;
+  for(let i=0;i<line.length;i++){
+    if(line[i]==='"'){inQ=!inQ;}
+    else if(line[i]===','&&!inQ){result.push(cur);cur='';}
+    else cur+=line[i];
+  }
+  result.push(cur);
+  return result;
+}
+
+function normalizeDate(raw){
+  raw=String(raw||'').trim().replace(/"/g,'');
+  // YYYY-MM-DD
+  if(/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.substring(0,10);
+  // DD/MM/YYYY
+  const m1=raw.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m1) return `${m1[3]}-${m1[2]}-${m1[1]}`;
+  // DD/MM/YY
+  const m2=raw.match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+  if(m2){ const y=parseInt(m2[3])<50?'20'+m2[3]:'19'+m2[3]; return `${y}-${m2[2]}-${m2[1]}`; }
+  return '';
+}
+
+async function processImport(){
+  if(!_impParsed.length) return;
+  // Check duplicates against existing transactions
+  const dates=_impParsed.map(r=>r.date).sort();
+  const minDate=dates[0];const maxDate=dates[dates.length-1];
+  let existing=[];
+  try{
+    existing=await sbGet('transactions',{select:'date,amount,type',
+      date:`gte.${minDate}`,limit:500});
+    // Also fetch up to maxDate
+    existing=existing.filter(t=>t.date<=maxDate);
+  }catch(e){}
+
+  // Mark duplicates: same date + same amount (within 0.01)
+  const existSet=new Set(existing.map(t=>`${t.date}_${(+(t.amount||0)).toFixed(2)}`));
+  _impParsed.forEach(r=>{
+    r.isDup=existSet.has(`${r.date}_${r.amount.toFixed(2)}`);
+  });
+
+  renderImportPreview();
+  impGoStep(2);
+}
+
+function renderImportPreview(){
+  const newCount=_impParsed.filter(r=>!r.isDup).length;
+  const dupCount=_impParsed.filter(r=>r.isDup).length;
+
+  document.getElementById('impPreviewTitle').textContent=
+    `Pré-visualização — ${_impParsed.length} transações`;
+  document.getElementById('impBadgeNew').textContent=`${newCount} nova${newCount!==1?'s':''}`;
+  document.getElementById('impBadgeDup').textContent=`${dupCount} duplicata${dupCount!==1?'s':''}`;
+  document.getElementById('impBadgeDup').style.display=dupCount?'':'none';
+  updateImportCount();
+
+  const tbody=document.getElementById('impPreviewBody');
+  tbody.innerHTML=_impParsed.map((r,i)=>`
+    <tr class="${r.isDup?'dup-row':''}">
+      <td><input type="checkbox" class="imp-row-chk" data-i="${i}" ${!r.isDup?'checked':''}
+        onchange="updateImportCount()"/></td>
+      <td style="white-space:nowrap;color:var(--muted2)">${fmtDate(r.date)}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.description}">${r.description}</td>
+      <td><select class="imp-cat-sel" data-i="${i}" onchange="_impParsed[this.dataset.i].category=this.value">
+        ${impCatOptions(r.category)}
+      </select></td>
+      <td style="font-size:11px;color:var(--muted)">${r.account}</td>
+      <td style="text-align:right;font-weight:700" class="${r.type==='entrada'?'amt-green':'amt-red'}">
+        ${r.type==='entrada'?'+':'-'}${brl(r.amount)}
+      </td>
+      <td><span class="type-badge type-${r.type}">${r.type==='entrada'?'↑ Entrada':'↓ Saída'}</span></td>
+    </tr>`).join('');
+}
+
+function updateImportCount(){
+  const chks=document.querySelectorAll('.imp-row-chk:checked');
+  document.getElementById('impImportCount').textContent=
+    `${chks.length} selecionada${chks.length!==1?'s':''}`;
+  document.getElementById('impBtnImport').disabled=chks.length===0;
+}
+
+function toggleSelectAll(checked){
+  document.querySelectorAll('.imp-row-chk').forEach(c=>{c.checked=checked;});
+  document.getElementById('impSelectAll').checked=checked;
+  document.getElementById('impHeaderChk').checked=checked;
+  updateImportCount();
+}
+
+async function doImport(){
+  const btn=document.getElementById('impBtnImport');
+  btn.disabled=true;btn.textContent='Importando...';
+
+  const selected=[];
+  document.querySelectorAll('.imp-row-chk:checked').forEach(c=>{
+    selected.push(_impParsed[parseInt(c.dataset.i)]);
+  });
+
+  let imported=0,skipped=_impParsed.filter(r=>r.isDup).length;
+  let totalEntradas=0,totalSaidas=0;
+
+  // Map account names to DB account names
+  const accMap={'nubank':'Nubank Corrente','cartão nubank':'Nubank Cartão',
+    'bradesco':'Bradesco Corrente','cartão bradesco':'Bradesco Cartão'};
+
+  for(const r of selected){
+    try{
+      await sbPost('transactions',{
+        date: r.date,
+        description: r.description,
+        amount: r.amount,
+        type: r.type,
+        category: r.category,
+        account: accMap[r.account]||r.account
+      });
+      imported++;
+      if(r.type==='entrada') totalEntradas+=r.amount;
+      else totalSaidas+=r.amount;
+    }catch(e){ skipped++; }
+  }
+
+  const balance=totalEntradas-totalSaidas;
+  document.getElementById('impResIcon').textContent=imported>0?'✅':'⚠️';
+  document.getElementById('impResTitle').textContent=imported>0?'Importação concluída!':'Nenhuma transação importada';
+  document.getElementById('impResSubtitle').textContent=
+    `Arquivo: ${_impFile?_impFile.name:'—'}`;
+  document.getElementById('impResImported').textContent=imported;
+  document.getElementById('impResSkipped').textContent=skipped;
+  document.getElementById('impResBalance').textContent=brl(balance);
+  document.getElementById('impResBalance').className='imp-report-stat-val '+(balance>=0?'amt-green':'amt-red');
+  document.getElementById('impResEntradas').textContent=brl(totalEntradas);
+  document.getElementById('impResSaidas').textContent=brl(totalSaidas);
+
+  impGoStep(3);
 }
 
 // ══ KEYBOARD SHORTCUTS ════════════════════════════════════════════════════════
