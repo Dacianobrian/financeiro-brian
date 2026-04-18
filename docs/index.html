@@ -1954,39 +1954,127 @@ async function exportExcel(){
 let _impParsed = [];   // [{date, description, amount, type, category, account, isDup}]
 let _impFile = null;
 
+// ── Categorias de SAÍDA — 60+ padrões ─────────────────────────────────────
 const IMP_CATS_SAIDA = [
-  [/mercado|supermercado|atacado|carrefour|extra|pão de açúcar|hortifruti|hiper|feira/i,'Alimentação'],
-  [/ifood|rappi|uber.?eats|james.?delivery|delivery/i,'Alimentação'],
-  [/restaurante|lanchonete|pizza|hamburguer|burger|sushi|padaria|cafeteria|café|bar |bolos/i,'Alimentação'],
-  [/uber|99app|taxi|ônibus|metro|bilhete único|passagem|combustível|gasolina|posto |shell|ipiranga|petrobras/i,'Transporte'],
-  [/netflix|spotify|amazon prime|prime video|disney|hbo|globoplay|apple.tv|youtube premium|deezer/i,'Streaming'],
-  [/claro|vivo|tim |oi |net |wifi|internet|astanet/i,'Moradia'],
-  [/farmácia|drogaria|droga raia|ultrafarma|panvel|remédio|medicamento|unimed|amil|sulamerica|bradesco saude|metlife|plano de saúde|odonto/i,'Saúde'],
-  [/academia|smart fit|crossfit|gym|fitness/i,'Saúde'],
-  [/aluguel|condomínio|condominio|iptu|água |copasa|sabesp|sanepar|energia|cemig|copel|light|enel|eletropaulo|gás |comgas|gas encanado/i,'Moradia'],
-  [/financiamento|votorantim|caixa eco|casa|imóvel|capitaliz/i,'Moradia'],
-  [/das mei|carnê das|simples nacional|receita federal|nota fiscal|nf-e/i,'Impostos / MEI'],
-  [/cartão|fatura bradesco|pagto cartao/i,'Cartão Bradesco'],
-  [/cinema|teatro|show |ingresso|sympla|eventbrite|bilheteria/i,'Lazer'],
-  [/roupa|vestuário|calçado|sapato|tênis|zara|hm |renner|riachuelo|c&a/i,'Vestuário'],
-  [/educação|escola|faculdade|curso|mensalidade|livro|papelaria/i,'Educação'],
-  [/pix |transferência|ted |doc |pagamento efetuado/i,'Transferência'],
+  // Alimentação — mercados
+  [/mercado|supermercado|hipermercado|atacado|atacadão|carrefour|extra |pão de açúcar|hortifruti|hiper |feira|verdurão|quitanda|sacolão|oba hortifruti|st marche|prezunic|assaí|makro|coop |bretas|fort atacadista/i,'Alimentação'],
+  // Alimentação — delivery
+  [/ifood|rappi|uber.?eats|james.?delivery|delivery|loggi|99food/i,'Alimentação'],
+  // Alimentação — estabelecimentos
+  [/restaurante|lanchonete|lanch|pizza|hamburguer|burger|burguer|sushi|temaki|churrasco|pasteis|pastelaria|padaria|confeitaria|cafeteria|café|coffee|bar |bolos|sorveteria|gelato|açaí|tapioca|espetinho|grelhados|sanduíche|subway|mc donald|mcdonalds|bob'?s|giraffas|habib'?s|coxinha|frango|fraldinha|bodega|bistrô|peixe|frutos do mar/i,'Alimentação'],
+  // Transporte — apps
+  [/\buber\b|99app|99 taxi|cabify|indriver|blablacar|ladydriver/i,'Transporte'],
+  // Transporte — combustível
+  [/combustível|gasolina|etanol|diesel|posto |shell|ipiranga|petrobras|br distribuidora|ale combustíveis|raízen|autoposto|bandeirante.?posto|distribuidora.?combust/i,'Combustível'],
+  // Transporte — público e outros
+  [/ônibus|metro|metrô|bilhete único|bilheteauto|spt trans|passagem|van escolar|argo|bom|cartão.?transporte|estacionamento|parking|park|pedágio|sem parar|veloe|conectcar|autoban/i,'Transporte'],
+  // Streaming e assinaturas digitais
+  [/netflix|spotify|amazon prime|amazon.?br|prime video|disney\+|disney plus|hbo|max\b|globoplay|apple\.tv|youtube premium|deezer|paramount|telecine|mubi|crunchyroll|twitch|adobe|microsoft 365|office 365|dropbox|icloud|google one|canva|figma/i,'Streaming'],
+  // Telefone e internet
+  [/claro\b|vivo\b|tim\b|oi\b|net\b|nextel|wifi|internet|astanet|sky |oi fibra|claro net|vivo fibra|starlink|algar|brisanet|copel telecom/i,'Moradia'],
+  // Saúde — farmácias
+  [/farmácia|drogaria|droga raia|ultrafarma|panvel|drogasil|pacheco|drogão|droguinha|pague menos|extrafarma|farmais|dimofar|nissei/i,'Saúde'],
+  // Saúde — planos e consultas
+  [/remédio|medicamento|unimed|amil|sulamerica|bradesco saude|metlife|plano de saúde|hapvida|notredame|gndi|med sen|laboratorio|exame|raio.?x|ultrassom|tomografia|dentista|odonto|ortodont|psicólogo|psiquiatra|terapeuta|hospital|clínica|ubs|pronto|emergência|medico|dr\.|dra\./i,'Saúde'],
+  // Saúde — academia
+  [/academia|smart fit|bluefit|bio ritmo|crossfit|gym|fitness|pilates|yoga|natação|muay thai|jiu.?jitsu|karate|esporte clube/i,'Saúde'],
+  // Moradia — contas
+  [/aluguel|condomínio|condominio|iptu|água |sabesp|copasa|sanepar|corsan|cedae|embasa|caema|casal|compesa|aguasde|cemig|copel|light|enel|eletropaulo|coelba|ceal|celpe|cosern|energisa|celpa|gás |comgas|gas encanado|gas natural|gasmig|scgás/i,'Moradia'],
+  // Moradia — financiamento
+  [/financiamento|votorantim|caixa eco|cef habitacional|imóvel|capitaliz|bradesco imob|itaú imob|bmp imob|quinto andar/i,'Moradia'],
+  // Impostos e MEI
+  [/das mei|carnê das|simples nacional|receita federal|nota fiscal|nf-e|sefaz|detran|multa|ipva|dpvat|licenciamento|taxa\b|tributo|prefeitura|municipio|municipio/i,'Impostos / MEI'],
+  // Cartão de crédito
+  [/fatura.?cartão|fatura.?nubank|fatura.?bradesco|fatura.?itau|fatura.?santander|fatura.?inter|pagto.?cartao|pagamento.?cartao|cartão.?credito/i,'Cartão Bradesco'],
+  // Lazer e entretenimento
+  [/cinema|cinemark|cinepolis|teatro|show\b|ingresso|sympla|eventbrite|bilheteria|bar |pub |balada|boliche|bowling|parque|zoológico|aquário|museu|exposição|viagem|hotel|pousada|airbnb|booking|decolar|latam|gol\b|azul\b|tam\b|rodoviária|passagem.?aérea/i,'Lazer'],
+  // Vestuário
+  [/roupa|vestuário|calçado|sapato|tênis|sapatilha|bota|sandalia|zara|hm\b|renner|riachuelo|c&a|cea\b|marisa|lebes|leader|besni|puket|reserva|farm\b|arezzo|anacapri|vizzano|passarela|ortopé|havaianas|academia.?sport/i,'Vestuário'],
+  // Educação
+  [/escola|faculdade|universidade|curso|mensalidade.?edu|livro|papelaria|livraria|saraiva|cultura\b|fnac|submarino|amazon.?livro|pearson|descomplica|coursera|udemy|alura|dio\b|digitalhouse/i,'Educação'],
+  // Pets
+  [/petshop|pet shop|ração|veterinário|veterinaria|banho.?tosa|canil|aquários|petz|petlove|cobasi/i,'Pet'],
+  // PIX/TED enviado para pessoa (nome próprio)
+  [/pix (?:enviado|transf|para)|transferência (?:enviada?|pix)|ted enviado|doc enviado/i,'Transferência'],
 ];
 
+// ── Categorias de ENTRADA — 15+ padrões ───────────────────────────────────
 const IMP_CATS_ENTRADA = [
-  [/salário|salario|pagamento|vencimento|folha/i,'Salário'],
-  [/dividendo|rendimento|provento|fii|fundo imob/i,'Dividendos FII'],
-  [/comissão|comissao|honorário|freelance/i,'Comissão'],
-  [/pix recebido|transferência recebida|ted recebido|depósito/i,'Transferência'],
-  [/rendimento|juros|cdb|lci|lca|selic/i,'Rendimentos'],
+  [/salário|salario|pagamento.?(?:empresa|func|empregador)|vencimento|folha.?pagamento|holerite|prolabore|pro.?labore/i,'Salário'],
+  [/dividendo|rendimento.?(?:fii|fundo)|provento|fii\b|fundo.?imob/i,'Dividendos FII'],
+  [/rendimento|juros|cdb|lci|lca|selic|poupança|renda.?fixa|tesouro|investimento/i,'Rendimentos'],
+  [/comissão|comissao|honorário|honorario|freelance|serviço.?prestado|nota.?fiscal.?rec/i,'Comissão'],
+  [/reembolso|estorno|devolução|cancelamento|chargeback|ressarcimento/i,'Reembolso'],
+  [/aluguel.?rec|recebimento.?aluguel|locação.?rec/i,'Aluguel Recebido'],
+  [/venda|marketplace|mercado.?livre|shopee|magalu|americanas|amazon.?venda/i,'Venda'],
+  [/pix recebido|pix de |ted recebido|transferência recebida|depósito/i,'Transferência'],
+  [/benefício|auxílio|bpc|bolsa.?família|fgts|seguro.?desemprego|inss/i,'Benefício'],
 ];
 
-const IMP_ALL_CATS = ['Alimentação','Transporte','Moradia','Saúde','Streaming','Impostos / MEI',
-  'Cartão Bradesco','Lazer','Vestuário','Educação','Salário','Dividendos FII','Comissão',
-  'Transferência','Rendimentos','Investimentos','Outros'];
+const IMP_ALL_CATS = ['Alimentação','Transporte','Combustível','Moradia','Saúde','Streaming',
+  'Impostos / MEI','Cartão Bradesco','Lazer','Vestuário','Educação','Pet',
+  'Salário','Dividendos FII','Comissão','Transferência','Rendimentos',
+  'Reembolso','Aluguel Recebido','Venda','Benefício','Investimentos','Outros'];
 
-function impAutoCategory(desc, type){
-  const list = type==='entrada' ? IMP_CATS_ENTRADA : IMP_CATS_SAIDA;
+// Mapa categorias Nubank → sistema
+const NUBANK_CAT_MAP = {
+  'alimentação':'Alimentação','supermercado':'Alimentação','restaurante':'Alimentação',
+  'delivery':'Alimentação','padaria':'Alimentação','café':'Alimentação',
+  'transporte':'Transporte','combustível':'Combustível','uber':'Transporte',
+  'saúde':'Saúde','farmácia':'Saúde','academia':'Saúde',
+  'casa':'Moradia','moradia':'Moradia','contas':'Moradia',
+  'lazer':'Lazer','viagem':'Lazer','entretenimento':'Lazer',
+  'assinatura':'Streaming','streaming':'Streaming','serviços digitais':'Streaming',
+  'vestuário':'Vestuário','roupas':'Vestuário',
+  'educação':'Educação','serviços':'Outros','eletrônicos':'Outros',
+  'investimentos':'Investimentos','outros':'Outros',
+};
+
+// Limpa e enriquece descrição extraindo nomes, removendo ruído
+function enrichDescription(raw){
+  if(!raw) return raw;
+  // PIX recebido de [Nome] — extrai o nome
+  let m=raw.match(/pix recebido de (.{3,50?)(?:\s*[-·]\s*|\s+via\s|\s*$)/i);
+  if(m) return 'PIX de '+toTitleCase(m[1].trim());
+  // PIX enviado para [Nome]
+  m=raw.match(/pix (?:enviado|transf\.?)(?:\s+para)?\s+(.{3,50?)(?:\s*[-·]\s*|\s*$)/i);
+  if(m) return 'PIX → '+toTitleCase(m[1].trim());
+  // Transferência recebida de [Nome]
+  m=raw.match(/transferência recebida de (.{3,50?)(?:\s*[-·]\s*|\s*$)/i);
+  if(m) return 'TED de '+toTitleCase(m[1].trim());
+  // TED enviado para [Nome]
+  m=raw.match(/ted enviado para (.{3,50?)(?:\s*[-·]\s*|\s*$)/i);
+  if(m) return 'TED → '+toTitleCase(m[1].trim());
+  // Remove sufixos jurídicos e limpa caps
+  let clean=raw
+    .replace(/\s+S\.?\/?\s*A\.?\s*$/i,'')
+    .replace(/\s+LTDA\.?\s*$/i,'')
+    .replace(/\s+ME\.?\s*$/i,'')
+    .replace(/\s+EIRELI\.?\s*$/i,'')
+    .replace(/\s+EPP\.?\s*$/i,'')
+    .replace(/\*+/g,' ')
+    .replace(/\s{2,}/g,' ')
+    .trim();
+  // Se estiver em CAPS e > 4 chars, converte para Title Case
+  if(clean===clean.toUpperCase()&&clean.replace(/\s/g,'').length>4)
+    clean=toTitleCase(clean);
+  return clean;
+}
+
+function toTitleCase(str){
+  const skip=['de','da','do','das','dos','e','a','o','as','os','em','no','na','por','com','para','&'];
+  return str.toLowerCase().split(' ')
+    .map((w,i)=>i===0||!skip.includes(w)?w.charAt(0).toUpperCase()+w.slice(1):w)
+    .join(' ');
+}
+
+function impAutoCategory(desc, type, nubankCat){
+  // Usa categoria do próprio Nubank se disponível
+  if(nubankCat){
+    const mapped=NUBANK_CAT_MAP[nubankCat.toLowerCase().trim()];
+    if(mapped) return mapped;
+  }
+  const list=type==='entrada'?IMP_CATS_ENTRADA:IMP_CATS_SAIDA;
   for(const [re,cat] of list){ if(re.test(desc)) return cat; }
   return 'Outros';
 }
@@ -2069,35 +2157,55 @@ function parseNubankCSV(text, accType){
   if(!lines.length) throw new Error('Arquivo vazio');
   const header=lines[0].toLowerCase();
   const rows=[];
+  const account=accType==='cartao'?'cartão nubank':'nubank';
 
-  // Cartão: date,category,title,amount  OR  Data,Categoria,Título,Valor
-  if(header.includes('category')||header.includes('categoria')||header.includes('title')||header.includes('título')){
+  // ── Cartão Nubank: date,category,title,amount ────────────────────────────
+  // Também aceita: Data,Categoria,Título,Valor (PT)
+  if(header.includes('category')||header.includes('categoria')||
+     header.includes('title')||header.includes('título')){
+    // Detectar posição das colunas no header
+    const hcols=parseCSVLine(lines[0]).map(c=>c.replace(/"/g,'').toLowerCase().trim());
+    const iDate=hcols.findIndex(c=>/^date|^data/.test(c));
+    const iCat=hcols.findIndex(c=>/category|categoria/.test(c));
+    const iTitle=hcols.findIndex(c=>/title|título|descri/.test(c));
+    const iAmt=hcols.findIndex(c=>/amount|valor/.test(c));
+
     for(let i=1;i<lines.length;i++){
       const cols=parseCSVLine(lines[i]);
-      if(cols.length<4) continue;
-      const date=normalizeDate(cols[0]);
-      const desc=(cols[2]||cols[1]||'').replace(/"/g,'').trim();
-      const amount=parseFloat((cols[3]||'0').replace(/"/g,'').replace(',','.'));
-      if(!date||isNaN(amount)) continue;
+      if(cols.length<3) continue;
+      const date=normalizeDate(cols[iDate>=0?iDate:0]);
+      const rawDesc=(cols[iTitle>=0?iTitle:2]||cols[1]||'').replace(/"/g,'').trim();
+      const nubankCat=(cols[iCat>=0?iCat:1]||'').replace(/"/g,'').trim();
+      const rawAmt=(cols[iAmt>=0?iAmt:3]||'0').replace(/"/g,'');
+      const amount=parseFloat(rawAmt.replace(',','.'));
+      if(!date||isNaN(amount)||amount===0) continue;
       const type=amount<0?'saida':'entrada';
+      const desc=enrichDescription(rawDesc)||rawDesc;
       rows.push({date,description:desc,amount:Math.abs(amount),type,
-        category:impAutoCategory(desc,type),
-        account:accType==='cartao'?'cartão nubank':'nubank'});
+        category:impAutoCategory(desc,type,nubankCat),account});
     }
     return rows;
   }
 
-  // Conta corrente: Data,Descrição,Valor
+  // ── Conta Corrente Nubank: Data,Descrição,Valor ──────────────────────────
+  // Também: "Data","Transação","Descrição","Valor"
+  const hcols=parseCSVLine(lines[0]).map(c=>c.replace(/"/g,'').toLowerCase().trim());
+  const iDate=hcols.findIndex(c=>/^date|^data/.test(c));
+  const iDesc=hcols.findIndex(c=>/descrição|descricao|transação|transacao|memo|historico/.test(c));
+  const iAmt=hcols.findIndex(c=>/amount|valor/.test(c));
+
   for(let i=1;i<lines.length;i++){
     const cols=parseCSVLine(lines[i]);
-    if(cols.length<3) continue;
-    const date=normalizeDate(cols[0]);
-    const desc=(cols[1]||'').replace(/"/g,'').trim();
-    const amount=parseFloat((cols[2]||'0').replace(/"/g,'').replace(',','.'));
-    if(!date||isNaN(amount)) continue;
+    if(cols.length<2) continue;
+    const date=normalizeDate(cols[iDate>=0?iDate:0]);
+    const rawDesc=(cols[iDesc>=0?iDesc:1]||'').replace(/"/g,'').trim();
+    const rawAmt=(cols[iAmt>=0?iAmt:cols.length-1]||'0').replace(/"/g,'');
+    const amount=parseFloat(rawAmt.replace(',','.'));
+    if(!date||isNaN(amount)||amount===0) continue;
     const type=amount<0?'saida':'entrada';
+    const desc=enrichDescription(rawDesc)||rawDesc;
     rows.push({date,description:desc,amount:Math.abs(amount),type,
-      category:impAutoCategory(desc,type),account:'nubank'});
+      category:impAutoCategory(desc,type,null),account:'nubank'});
   }
   return rows;
 }
@@ -2137,8 +2245,9 @@ function parseGenericCSV(text, accType){
       amount=Math.abs(raw);
     }
     if(amount===0) continue;
-    rows.push({date,description:desc,amount,type,
-      category:impAutoCategory(desc,type),
+    const rdesc=enrichDescription(desc)||desc;
+    rows.push({date,description:rdesc,amount,type,
+      category:impAutoCategory(rdesc,type,null),
       account:accType==='cartao'?'cartão bradesco':'bradesco'});
   }
   return rows;
@@ -2194,8 +2303,9 @@ async function parseExcelFile(file){
             type=raw>=0?'entrada':'saida';amount=Math.abs(raw);
           }
           if(amount===0) continue;
-          rows.push({date,description:desc,amount,type,
-            category:impAutoCategory(desc,type),
+          const rdesc2=enrichDescription(desc)||desc;
+          rows.push({date,description:rdesc2,amount,type,
+            category:impAutoCategory(rdesc2,type,null),
             account:accType==='cartao'?(bank==='bradesco'?'cartão bradesco':'cartão nubank'):(bank==='bradesco'?'bradesco':'nubank')});
         }
         resolve(rows);
@@ -2212,36 +2322,110 @@ async function parsePDF(file){
   const accType=document.getElementById('impAccType').value;
   const buf=await file.arrayBuffer();
   const pdf=await pdfjsLib.getDocument({data:buf}).promise;
-  let fullText='';
+
+  // ── Reconstrução linha a linha por posição Y ───────────────────────────
+  // PDF.js retorna itens com coordenadas X,Y. Agrupa por Y (tolerância 3pt)
+  // para reconstruir as linhas reais do documento.
+  const pageLines=[];
   for(let p=1;p<=pdf.numPages;p++){
     const page=await pdf.getPage(p);
     const content=await page.getTextContent();
-    fullText+=content.items.map(i=>i.str).join(' ')+'\n';
+    const vp=page.getViewport({scale:1});
+    const items=content.items.map(it=>({
+      text:it.str,
+      x:Math.round(it.transform[4]),
+      y:Math.round(vp.height-it.transform[5]) // flip Y (PDF origin = bottom-left)
+    })).filter(it=>it.text.trim());
+
+    // Agrupa por Y com tolerância de 4pt
+    const yGroups={};
+    items.forEach(it=>{
+      const yKey=Math.round(it.y/4)*4;
+      if(!yGroups[yKey]) yGroups[yKey]=[];
+      yGroups[yKey].push(it);
+    });
+    // Ordena grupos por Y e dentro de cada grupo por X
+    Object.keys(yGroups).sort((a,b)=>+a-+b).forEach(y=>{
+      const line=yGroups[y].sort((a,b)=>a.x-b.x).map(it=>it.text).join(' ').trim();
+      if(line) pageLines.push(line);
+    });
   }
-  // Parse lines from PDF text
+
+  // ── Estratégia 1: Nubank Conta Corrente PDF ───────────────────────────
+  // Formato: "DD MMM · Descrição · ±R$ X,XX"  ou  "DD/MM/AAAA  Descrição  valor"
   const rows=[];
-  const lines=fullText.split('\n').map(l=>l.trim()).filter(Boolean);
-  // Pattern: DD/MM/YYYY or DD/MM/YY followed by description and amount
-  const dateRe=/(\d{2}\/\d{2}\/(?:\d{4}|\d{2}))/;
-  const amtRe=/(-?\d{1,3}(?:\.\d{3})*,\d{2}|-?\d+,\d{2})/g;
-  for(const line of lines){
-    const dateMatch=line.match(dateRe);
-    if(!dateMatch) continue;
-    const date=normalizeDate(dateMatch[1]);
-    if(!date) continue;
-    const afterDate=line.slice(line.indexOf(dateMatch[1])+dateMatch[1].length).trim();
-    const amounts=[...afterDate.matchAll(amtRe)];
-    if(!amounts.length) continue;
-    const lastAmt=amounts[amounts.length-1][1];
-    const amount=parseFloat(lastAmt.replace(/\./g,'').replace(',','.'));
-    if(isNaN(amount)||amount===0) continue;
-    const desc=afterDate.replace(lastAmt,'').replace(/\s+/g,' ').trim().substring(0,80);
-    const type=amount<0?'saida':'entrada';
-    rows.push({date,description:desc,amount:Math.abs(amount),type,
-      category:impAutoCategory(desc,type),
-      account:accType==='cartao'?(bank==='bradesco'?'cartão bradesco':'cartão nubank'):'bradesco'});
+  const amtRe=/([+-]?\s*R\$\s*[\d.,]+|[+-]?\s*[\d]{1,3}(?:\.[\d]{3})*,\d{2})/g;
+  const dateRe=/\b(\d{2}\/\d{2}\/(?:\d{4}|\d{2}))|\b(\d{2}\s+(?:jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)[a-z]*\.?\s+\d{2,4})\b/i;
+  const brMonths={jan:'01',fev:'02',mar:'03',abr:'04',mai:'05',jun:'06',jul:'07',ago:'08',set:'09',out:'10',nov:'11',dez:'12'};
+
+  function parseBrDate(raw){
+    // DD/MM/YYYY ou DD/MM/YY
+    const m1=raw.match(/(\d{2})\/(\d{2})\/(\d{2,4})/);
+    if(m1){ const y=m1[3].length===2?(+m1[3]<50?'20'+m1[3]:'19'+m1[3]):m1[3]; return `${y}-${m1[2]}-${m1[1]}`; }
+    // DD MMM AAAA (ex: 15 abr 2026)
+    const m2=raw.match(/(\d{2})\s+(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)[a-z]*\.?\s+(\d{2,4})/i);
+    if(m2){ const mon=brMonths[m2[2].toLowerCase().substring(0,3)];const y=m2[3].length===2?'20'+m2[3]:m2[3];return `${y}-${mon}-${m2[1]}`; }
+    return null;
   }
-  if(!rows.length) throw new Error('Não foi possível extrair transações do PDF. Tente exportar como CSV.');
+
+  // Tenta detectar formato Nubank: cada transação pode ocupar 1-3 linhas
+  // Linha começa com data → é cabeçalho de transação
+  let currentDate=null, currentDesc='', expectAmt=false;
+  for(let li=0;li<pageLines.length;li++){
+    const line=pageLines[li];
+    const dm=line.match(dateRe);
+    const date=dm ? parseBrDate(dm[1]||dm[2]||'') : null;
+
+    // Linha com data e valor (formato compacto: tudo na mesma linha)
+    if(date){
+      const amts=[...line.matchAll(amtRe)];
+      if(amts.length){
+        // Extrai valor (último match é o valor)
+        const rawAmt=amts[amts.length-1][1].replace(/\s/g,'').replace('R$','');
+        const amount=parseFloat(rawAmt.replace(/\./g,'').replace(',','.'));
+        const afterDate=line.slice((dm.index||0)+(dm[0]||'').length).trim();
+        const rawDesc=afterDate.replace(amtRe,'').replace(/[+-]/g,'').trim();
+        const type=rawAmt.includes('-')||amount<0?'saida':'entrada';
+        if(!isNaN(amount)&&Math.abs(amount)>0){
+          const desc=enrichDescription(rawDesc)||rawDesc;
+          rows.push({date,description:desc,amount:Math.abs(amount),type,
+            category:impAutoCategory(desc,type,null),
+            account:accType==='cartao'?(bank==='nubank'?'cartão nubank':'cartão bradesco'):bank==='nubank'?'nubank':'bradesco'});
+          currentDate=null;currentDesc='';continue;
+        }
+      }
+      // Linha só com data → guarda para combinar com próxima linha
+      currentDate=date;
+      currentDesc=line.slice((dm.index||0)+(dm[0]||'').length).replace(amtRe,'').trim();
+      expectAmt=true;continue;
+    }
+
+    if(expectAmt&&currentDate){
+      const amts=[...line.matchAll(amtRe)];
+      if(amts.length){
+        const rawAmt=amts[amts.length-1][1].replace(/\s/g,'').replace('R$','');
+        const amount=parseFloat(rawAmt.replace(/\./g,'').replace(',','.'));
+        const addDesc=line.replace(amtRe,'').replace(/[+-]/g,'').trim();
+        const rawDesc=(currentDesc+' '+addDesc).trim();
+        const type=rawAmt.includes('-')||amount<0?'saida':'entrada';
+        if(!isNaN(amount)&&Math.abs(amount)>0){
+          const desc=enrichDescription(rawDesc)||rawDesc;
+          rows.push({date:currentDate,description:desc,amount:Math.abs(amount),type,
+            category:impAutoCategory(desc,type,null),
+            account:accType==='cartao'?(bank==='nubank'?'cartão nubank':'cartão bradesco'):bank==='nubank'?'nubank':'bradesco'});
+        }
+        currentDate=null;currentDesc='';expectAmt=false;
+      } else {
+        // Descrição continua na próxima linha
+        currentDesc+=' '+line;
+      }
+    }
+  }
+
+  if(!rows.length) throw new Error(
+    'Não foi possível extrair transações deste PDF.\n'+
+    'Dica: No app Nubank → Extrato → "Exportar CSV" funciona muito melhor.'
+  );
   return rows;
 }
 
