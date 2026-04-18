@@ -2477,19 +2477,10 @@ function normalizeDate(raw){
 
 async function processImport(){
   if(!_impParsed.length) return;
-  // Check duplicates against existing transactions
+  // Check duplicates (apenas aviso visual — usuário decide se importa ou não)
   const dates=_impParsed.map(r=>r.date).sort();
   const minDate=dates[0];const maxDate=dates[dates.length-1];
   let existing=[];
-  try{
-    existing=await sbGet('transactions',{select:'date,amount,type',
-      date:`gte.${minDate}`,limit:500});
-    // Also fetch up to maxDate
-    existing=existing.filter(t=>t.date<=maxDate);
-  }catch(e){}
-
-  // Mark duplicates: same date + same amount + same type + similar description
-  // (antes só conferia data+valor, causava falsos positivos demais)
   try{
     existing=await sbGet('transactions',{select:'date,amount,type,description',
       date:`gte.${minDate}`,limit:1000});
@@ -2519,7 +2510,7 @@ function renderImportPreview(){
   const tbody=document.getElementById('impPreviewBody');
   tbody.innerHTML=_impParsed.map((r,i)=>`
     <tr class="${r.isDup?'dup-row':''}">
-      <td><input type="checkbox" class="imp-row-chk" data-i="${i}" ${!r.isDup?'checked':''}
+      <td><input type="checkbox" class="imp-row-chk" data-i="${i}" checked
         onchange="updateImportCount()"/></td>
       <td style="white-space:nowrap;color:var(--muted2)">${fmtDate(r.date)}</td>
       <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.description}">${r.description}</td>
@@ -2557,7 +2548,7 @@ async function doImport(){
     selected.push(_impParsed[parseInt(c.dataset.i)]);
   });
 
-  let imported=0,skipped=_impParsed.filter(r=>r.isDup).length;
+  let imported=0,skipped=_impParsed.length-selected.length;
   let totalEntradas=0,totalSaidas=0;
 
   // Map account names to DB account names
