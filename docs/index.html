@@ -2371,13 +2371,19 @@ async function parsePDF(file){
   }
 
   function detectType(blockText, rawAmt, amount){
+    // 0) Bradesco: marcador " D " (débito) ou " C " (crédito) ao lado do valor
+    //    Também detecta "(D)" "(C)" e sufixo junto ao valor tipo "100,00D"
+    if(/(\d[\d.,]*)\s*[D]\b|\bD\b\s*$|\bDEBITO\b|\bDÉBITO\b/i.test(blockText) &&
+       !/\bC\b\s*$|\bCR[ÉE]DITO\b/i.test(blockText)) return 'saida';
+    if(/(\d[\d.,]*)\s*[C]\b|\bC\b\s*$|\bCR[ÉE]DITO\b/i.test(blockText) &&
+       !/\bD\b\s*$|\bDEBITO\b|\bDÉBITO\b/i.test(blockText)) return 'entrada';
     // 1) Keywords são o sinal mais forte
     if(ENTRADA_KW.test(blockText) && !SAIDA_KW.test(blockText)) return 'entrada';
     if(SAIDA_KW.test(blockText) && !ENTRADA_KW.test(blockText)) return 'saida';
     // 2) Se ambos ou nenhum, usa sinal
     if(rawAmt.includes('-') || amount<0) return 'saida';
     if(rawAmt.includes('+')) return 'entrada';
-    // 3) Se keyword de saída aparece (mesmo que entrada também), prioriza saída (mais comum em extratos)
+    // 3) Se keyword de saída aparece (mesmo que entrada também), prioriza saída
     if(SAIDA_KW.test(blockText)) return 'saida';
     if(ENTRADA_KW.test(blockText)) return 'entrada';
     // 4) Default: saída (maioria das linhas de extrato)
@@ -2410,8 +2416,11 @@ async function parsePDF(file){
     const amts=[...fullText.matchAll(amtRe)];
     if(!amts.length) continue;
 
-    // Pega o último valor como montante da transação
-    const rawAmt=amts[amts.length-1][1].replace(/\s/g,'').replace('R$','');
+    // Bradesco: linha tem [VALOR, SALDO] — pegar penúltimo (não o saldo)
+    // Nubank: geralmente só tem 1 valor — pegar último
+    let pickIdx=amts.length-1;
+    if(bank==='bradesco' && amts.length>=2) pickIdx=amts.length-2;
+    const rawAmt=amts[pickIdx][1].replace(/\s/g,'').replace('R$','');
     const amount=parseFloat(rawAmt.replace(/\./g,'').replace(',','.'));
     if(isNaN(amount) || Math.abs(amount)===0) continue;
 
@@ -2479,10 +2488,17 @@ async function processImport(){
     existing=existing.filter(t=>t.date<=maxDate);
   }catch(e){}
 
-  // Mark duplicates: same date + same amount (within 0.01)
-  const existSet=new Set(existing.map(t=>`${t.date}_${(+(t.amount||0)).toFixed(2)}`));
+  // Mark duplicates: same date + same amount + same type + similar description
+  // (antes só conferia data+valor, causava falsos positivos demais)
+  try{
+    existing=await sbGet('transactions',{select:'date,amount,type,description',
+      date:`gte.${minDate}`,limit:1000});
+    existing=existing.filter(t=>t.date<=maxDate);
+  }catch(e){}
+  const normDesc=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'').substring(0,15);
+  const existSet=new Set(existing.map(t=>`${t.date}_${(+(t.amount||0)).toFixed(2)}_${t.type}_${normDesc(t.description)}`));
   _impParsed.forEach(r=>{
-    r.isDup=existSet.has(`${r.date}_${r.amount.toFixed(2)}`);
+    r.isDup=existSet.has(`${r.date}_${r.amount.toFixed(2)}_${r.type}_${normDesc(r.description)}`);
   });
 
   renderImportPreview();
