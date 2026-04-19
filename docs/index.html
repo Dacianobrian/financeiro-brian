@@ -2086,6 +2086,12 @@ let _impFile = null;
 
 // ── Categorias de SAÍDA — 60+ padrões ─────────────────────────────────────
 const IMP_CATS_SAIDA = [
+  // ── BRADESCO específicos (prioridade alta) ──
+  [/rentab\.?\s*invest|facilcred|aplicação.?automática|aplic\s+auto|invest\.?\s*facil/i,'Investimentos'],
+  [/fatura.?cartão|fatura.?nubank|fatura.?bradesco|pagto.?cartao|pagamento.?cartao/i,'Cartão Bradesco'],
+  [/pix\s+qr\s+code|qr\s+code.?din[âa]mico|qr\s+code.?est[áa]tico/i,'Transferência'],
+  [/operador\s+nacional|tef\b|ted\s+eletr/i,'Transferência'],
+  [/des:?\s/i,'Outros'],
   // Alimentação — mercados
   [/mercado|supermercado|hipermercado|atacado|atacadão|carrefour|extra |pão de açúcar|hortifruti|hiper |feira|verdurão|quitanda|sacolão|oba hortifruti|st marche|prezunic|assaí|makro|coop |bretas|fort atacadista/i,'Alimentação'],
   // Alimentação — delivery
@@ -2130,6 +2136,10 @@ const IMP_CATS_SAIDA = [
 
 // ── Categorias de ENTRADA — 15+ padrões ───────────────────────────────────
 const IMP_CATS_ENTRADA = [
+  // ── BRADESCO específicos (prioridade alta) ──
+  [/^rem:?\s|remunera[çc][ãa]o/i,'Salário'],
+  [/rentab\.?\s*invest|facilcred|resgate.?aplica[çc]|resgate.?invest/i,'Rendimentos'],
+  // ── padrões gerais ──
   [/salário|salario|pagamento.?(?:empresa|func|empregador)|vencimento|folha.?pagamento|holerite|prolabore|pro.?labore/i,'Salário'],
   [/dividendo|rendimento.?(?:fii|fundo)|provento|fii\b|fundo.?imob/i,'Dividendos FII'],
   [/rendimento|juros|cdb|lci|lca|selic|poupança|renda.?fixa|tesouro|investimento/i,'Rendimentos'],
@@ -2163,20 +2173,46 @@ const NUBANK_CAT_MAP = {
 // Limpa e enriquece descrição extraindo nomes, removendo ruído
 function enrichDescription(raw){
   if(!raw) return raw;
-  // PIX recebido de [Nome] — extrai o nome
-  let m=raw.match(/pix recebido de (.{3,50?)(?:\s*[-·]\s*|\s+via\s|\s*$)/i);
+  // ── LIMPEZA BRADESCO: remove códigos de lote/documento no início ─────
+  let cleaned=raw
+    .replace(/^\s*\d{6,8}\s+/,'')              // "1101510 REM:..." → "REM:..."
+    .replace(/^\s*Cod\.\s*Lanc\.\s*\d*\s*/i,'') // "Cod. Lanc. 0 Pix..." → "Pix..."
+    .replace(/^\s*\d{4,}\s*-\s*/,'')           // "12345 - descricao"
+    .replace(/\s+\d{10,}\s*$/,'')              // remove CPF/CNPJ no final
+    .replace(/\s+\d{3}\.\d{3}\.\d{3}-?\d{2}\s*/g,' ') // CPF formatado
+    .replace(/\s+\d{2}\.\d{3}\.\d{3}\/?\d{4}-?\d{2}\s*/g,' ') // CNPJ formatado
+    .trim();
+
+  // ── PADRÕES BRADESCO ESPECÍFICOS ──────────────────────────────────────
+  // REM: Nome  → Remuneração/Salário recebido
+  let m=cleaned.match(/^REM:?\s*(.{3,60}?)(?:\s+\d|$)/i);
+  if(m) return 'Remuneração — '+toTitleCase(m[1].trim());
+  // Rem: CNPJ Empresa
+  m=cleaned.match(/^Rem:?\s*(?:[\d.\/-]+\s+)?(.{3,60}?)(?:\s+\d|$)/i);
+  if(m) return 'Transferência — '+toTitleCase(m[1].trim());
+  // RENTAB.INVEST / FACILCRED → Resgate/aplicação em investimento
+  if(/RENTAB\.?\s*INVEST/i.test(cleaned)) return 'Rentabilidade Investimento';
+  if(/FACILCRED/i.test(cleaned)) return 'FacilCred — Bradesco';
+  // DES: → Desconto
+  m=cleaned.match(/^Des:?\s*(.{3,60}?)(?:\s+\d|$)/i);
+  if(m) return 'Desconto — '+toTitleCase(m[1].trim());
+  // TED / DOC específicos do Bradesco
+  if(/Operador\s+Nacional/i.test(cleaned)) return 'TED Operador Nacional';
+  // Pix Qr Code Dinâmico / Estático
+  if(/Pix\s+Qr\s+Code/i.test(cleaned)) return 'Pagamento via PIX QR Code';
+
+  // ── PIX / TED GERAIS ──────────────────────────────────────────────────
+  m=cleaned.match(/pix recebido de (.{3,50}?)(?:\s*[-·]\s*|\s+via\s|\s*$)/i);
   if(m) return 'PIX de '+toTitleCase(m[1].trim());
-  // PIX enviado para [Nome]
-  m=raw.match(/pix (?:enviado|transf\.?)(?:\s+para)?\s+(.{3,50?)(?:\s*[-·]\s*|\s*$)/i);
+  m=cleaned.match(/pix (?:enviado|transf\.?)(?:\s+para)?\s+(.{3,50}?)(?:\s*[-·]\s*|\s*$)/i);
   if(m) return 'PIX → '+toTitleCase(m[1].trim());
-  // Transferência recebida de [Nome]
-  m=raw.match(/transferência recebida de (.{3,50?)(?:\s*[-·]\s*|\s*$)/i);
+  m=cleaned.match(/transferência recebida de (.{3,50}?)(?:\s*[-·]\s*|\s*$)/i);
   if(m) return 'TED de '+toTitleCase(m[1].trim());
-  // TED enviado para [Nome]
-  m=raw.match(/ted enviado para (.{3,50?)(?:\s*[-·]\s*|\s*$)/i);
+  m=cleaned.match(/ted enviado para (.{3,50}?)(?:\s*[-·]\s*|\s*$)/i);
   if(m) return 'TED → '+toTitleCase(m[1].trim());
-  // Remove sufixos jurídicos e limpa caps
-  let clean=raw
+
+  // ── LIMPEZA GERAL ─────────────────────────────────────────────────────
+  let clean=cleaned
     .replace(/\s+S\.?\/?\s*A\.?\s*$/i,'')
     .replace(/\s+LTDA\.?\s*$/i,'')
     .replace(/\s+ME\.?\s*$/i,'')
@@ -2185,7 +2221,6 @@ function enrichDescription(raw){
     .replace(/\*+/g,' ')
     .replace(/\s{2,}/g,' ')
     .trim();
-  // Se estiver em CAPS e > 4 chars, converte para Title Case
   if(clean===clean.toUpperCase()&&clean.replace(/\s/g,'').length>4)
     clean=toTitleCase(clean);
   return clean;
@@ -2747,6 +2782,12 @@ async function _runImport(rows, skippedByUser){
   document.getElementById('impResSaidas').textContent=brl(totalSaidas);
 
   impGoStep(3);
+
+  // ⚡ Auto-refresh: atualiza TODO o sistema (KPIs, gráficos, tabelas, contas)
+  // Roda em background — não bloqueia o modal de resultado
+  if(imported>0){
+    refreshDashboard().catch(e=>console.error('Auto-refresh erro:',e));
+  }
 }
 
 // ══ KEYBOARD SHORTCUTS ════════════════════════════════════════════════════════
