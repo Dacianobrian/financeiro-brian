@@ -2494,130 +2494,216 @@ async function parsePDF(file){
   const accType=document.getElementById('impAccType').value;
   const buf=await file.arrayBuffer();
   const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  const conta=accType==='cartao'?(bank==='nubank'?'cartão nubank':'cartão bradesco'):(bank==='nubank'?'nubank':'bradesco');
 
-  // ── Reconstrução linha a linha por posição Y ───────────────────────────
-  // PDF.js retorna itens com coordenadas X,Y. Agrupa por Y (tolerância 3pt)
-  // para reconstruir as linhas reais do documento.
+  // ── Extrai linhas de TODAS as páginas mantendo coordenadas X,Y ───────
   const pageLines=[];
   for(let p=1;p<=pdf.numPages;p++){
     const page=await pdf.getPage(p);
     const content=await page.getTextContent();
     const vp=page.getViewport({scale:1});
     const items=content.items.map(it=>({
-      text:it.str,
+      text:it.str.trim(),
       x:Math.round(it.transform[4]),
-      y:Math.round(vp.height-it.transform[5]) // flip Y (PDF origin = bottom-left)
-    })).filter(it=>it.text.trim());
-
-    // Agrupa por Y com tolerância de 4pt
-    const yGroups={};
+      y:Math.round(vp.height-it.transform[5])
+    })).filter(it=>it.text);
+    const yG={};
     items.forEach(it=>{
-      const yKey=Math.round(it.y/4)*4;
-      if(!yGroups[yKey]) yGroups[yKey]=[];
-      yGroups[yKey].push(it);
+      const k=Math.round(it.y/5)*5;
+      if(!yG[k]) yG[k]=[];
+      yG[k].push(it);
     });
-    // Ordena grupos por Y e dentro de cada grupo por X
-    Object.keys(yGroups).sort((a,b)=>+a-+b).forEach(y=>{
-      const line=yGroups[y].sort((a,b)=>a.x-b.x).map(it=>it.text).join(' ').trim();
-      if(line) pageLines.push(line);
+    Object.keys(yG).sort((a,b)=>+a-+b).forEach(y=>{
+      const sorted=yG[y].sort((a,b)=>a.x-b.x);
+      const txt=sorted.map(i=>i.text).join(' ').trim();
+      if(txt) pageLines.push({text:txt, items:sorted});
     });
   }
 
-  // ── Parser inteligente por blocos ─────────────────────────────────────
-  const rows=[];
-  const amtRe=/([+-]?\s*R\$\s*[\d.,]+|[+-]?\s*[\d]{1,3}(?:\.[\d]{3})*,\d{2})/g;
-  const dateRe=/\b(\d{2}\/\d{2}\/(?:\d{4}|\d{2}))|\b(\d{2}\s+(?:jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)[a-z]*\.?\s+\d{2,4})\b/i;
+  // ── Helpers comuns ────────────────────────────────────────────────────
   const brMonths={jan:'01',fev:'02',mar:'03',abr:'04',mai:'05',jun:'06',jul:'07',ago:'08',set:'09',out:'10',nov:'11',dez:'12'};
-
-  // Keywords para detectar tipo (SAÍDA vs ENTRADA) — mais confiável que sinal
-  const SAIDA_KW=/(compra|pagamento|pagto|pag\.|d[ée]bito|debit|envi(ad|o)|saque|tarifa|cobran|retirad|boleto|fatura|recarga|iof|pix\s+envi|pix\s+transf|ted\s+envi|doc\s+envi|transfer[eê]ncia\s+envi|transfer[eê]ncia\s+para|cart[ãa]o|anuidade|juros|multa|taxa|assinatura|investimento\s+aplicad|aplica[çc][ãa]o|compra\s+debito)/i;
-  const ENTRADA_KW=/(recebid|dep[óo]sito|cr[ée]dito|aporte|rendimento|sal[áa]rio|provento|dividendo|reembolso|devolu[çc][ãa]o|estorno|resgate|cashback|pix\s+recebid|ted\s+recebid|doc\s+recebid|transfer[eê]ncia\s+recebid|transfer[eê]ncia\s+de)/i;
-  const NOISE=/^(saldo|total|subtotal|resumo|extrato|p[áa]gina|data|descri[çc][ãa]o|valor|per[íi]odo|ag[eê]ncia|conta|cpf|cnpj|banco|nubank|bradesco)\s*[:.]?/i;
+  const curYear=new Date().getFullYear();
 
   function parseBrDate(raw){
-    const m1=raw.match(/(\d{2})\/(\d{2})\/(\d{2,4})/);
-    if(m1){ const y=m1[3].length===2?(+m1[3]<50?'20'+m1[3]:'19'+m1[3]):m1[3]; return `${y}-${m1[2]}-${m1[1]}`; }
-    const m2=raw.match(/(\d{2})\s+(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)[a-z]*\.?\s+(\d{2,4})/i);
-    if(m2){ const mon=brMonths[m2[2].toLowerCase().substring(0,3)];const y=m2[3].length===2?'20'+m2[3]:m2[3];return `${y}-${mon}-${m2[1]}`; }
+    // DD/MM/YYYY ou DD/MM/YY
+    let m=raw.match(/(\d{2})\/(\d{2})\/(\d{2,4})/);
+    if(m){const y=m[3].length===2?(+m[3]<50?'20'+m[3]:'19'+m[3]):m[3];return `${y}-${m[2]}-${m[1]}`;}
+    // DD/MM (sem ano — usa ano atual)
+    m=raw.match(/^(\d{2})\/(\d{2})$/);
+    if(m) return `${curYear}-${m[2]}-${m[1]}`;
+    // DD mmm YYYY
+    m=raw.match(/(\d{2})\s+(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)[a-z]*\.?\s+(\d{2,4})/i);
+    if(m){const mon=brMonths[m[2].toLowerCase().substring(0,3)];const y=m[3].length===2?'20'+m[3]:m[3];return `${y}-${mon}-${m[1]}`;}
     return null;
   }
 
-  function detectType(blockText, rawAmt, amount){
-    // 0) Bradesco: marcador " D " (débito) ou " C " (crédito) ao lado do valor
-    //    Também detecta "(D)" "(C)" e sufixo junto ao valor tipo "100,00D"
-    if(/(\d[\d.,]*)\s*[D]\b|\bD\b\s*$|\bDEBITO\b|\bDÉBITO\b/i.test(blockText) &&
-       !/\bC\b\s*$|\bCR[ÉE]DITO\b/i.test(blockText)) return 'saida';
-    if(/(\d[\d.,]*)\s*[C]\b|\bC\b\s*$|\bCR[ÉE]DITO\b/i.test(blockText) &&
-       !/\bD\b\s*$|\bDEBITO\b|\bDÉBITO\b/i.test(blockText)) return 'entrada';
-    // 1) Keywords são o sinal mais forte
-    if(ENTRADA_KW.test(blockText) && !SAIDA_KW.test(blockText)) return 'entrada';
-    if(SAIDA_KW.test(blockText) && !ENTRADA_KW.test(blockText)) return 'saida';
-    // 2) Se ambos ou nenhum, usa sinal
-    if(rawAmt.includes('-') || amount<0) return 'saida';
-    if(rawAmt.includes('+')) return 'entrada';
-    // 3) Se keyword de saída aparece (mesmo que entrada também), prioriza saída
-    if(SAIDA_KW.test(blockText)) return 'saida';
-    if(ENTRADA_KW.test(blockText)) return 'entrada';
-    // 4) Default: saída (maioria das linhas de extrato)
-    return 'saida';
+  // Regex para valor monetário (sem sinal — extrai número puro)
+  const VALOR_RE=/\b(\d{1,3}(?:\.\d{3})*,\d{2})\b/g;
+  // Data completa ou curta
+  const DATE_ANY=/\b(\d{2}\/\d{2}\/(?:\d{4}|\d{2})|\d{2}\s+(?:jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)[a-z]*\.?\s+\d{2,4})\b/i;
+  const DATE_SHORT=/\b(\d{2}\/\d{2})\b/;
+  // Linhas de ruído
+  const NOISE=/^\s*(saldo|total|subtotal|per[íi]odo|extrato|p[áa]gina\s*\d|data\s+hist|hist[oó]rico|documento|ag[eê]ncia|cpf|cnpj|s\.a\.|banco\s+bradesco|nubank\s+s|emiss[ãa]o)\b/i;
+
+  // Keywords de tipo
+  const ENTRADA_KW=/(receb[ie]|dep[oó]sito|cr[eé]dito|aporte|rendimento|sal[aá]rio|provento|dividendo|reembolso|devolu|estorno|resgate|cashback|pix\s+receb|ted\s+receb|transfer[eê]ncia\s+receb)/i;
+  const SAIDA_KW=/(compra|pagamento|pagto|d[eé]bito|enviado|saque|tarifa|boleto|fatura|recarga|iof|pix\s+envi|ted\s+envi|transfer[eê]ncia\s+envi|transfer[eê]ncia\s+para|anuidade|juros|multa)/i;
+
+  function tipoByKw(txt){
+    const ent=ENTRADA_KW.test(txt), sai=SAIDA_KW.test(txt);
+    if(ent&&!sai) return 'entrada';
+    if(sai&&!ent) return 'saida';
+    return null;
   }
 
-  // Agrupa linhas em BLOCOS de transação: cada bloco começa com linha que tem data
+  function limpDesc(txt){
+    return txt
+      .replace(/^\s*\d{6,10}\s+/,'')          // código de lançamento no início
+      .replace(/^\s*Cod\.?\s*Lanc\.?\s*\d*\s*/i,'') // "Cod. Lanc. 0 ..."
+      .replace(/\b\d{3}\.\d{3}\.\d{3}[\/\-]\d{2,4}[-\d]*\b/g,'') // CPF/CNPJ
+      .replace(/\s{2,}/g,' ').trim();
+  }
+
+  const rows=[];
+
+  // ══════════════════════════════════════════════════════════════════════
+  // BRADESCO — cada linha de transação tem padrão: VALOR D|C SALDO
+  // Formato: HISTORICO  [DD/MM/AAAA]  [DOC]  VALOR  D/C  SALDO
+  // ══════════════════════════════════════════════════════════════════════
+  if(bank==='bradesco'){
+    // Regex que detecta: valor D saldo OU valor C saldo (marcadores Bradesco)
+    const BR_TXN=/(\d{1,3}(?:\.\d{3})*,\d{2})\s+([DC])\s+(\d{1,3}(?:\.\d{3})*,\d{2})/;
+    let lastDate=null;
+
+    for(const ln of pageLines){
+      const t=ln.text;
+      if(NOISE.test(t)) continue;
+
+      // Detecta linha de transação Bradesco pelo padrão VALOR D/C SALDO
+      const dcMatch=t.match(BR_TXN);
+      if(!dcMatch) continue;
+
+      const valueStr=dcMatch[1];
+      const dc=dcMatch[2]; // D=débito(saída) C=crédito(entrada)
+      const amount=parseFloat(valueStr.replace(/\./g,'').replace(',','.'));
+      if(!amount||amount<=0) continue;
+
+      // Detecta data na linha — pode ser DD/MM/YYYY ou DD/MM
+      let date=null;
+      const dm=t.match(DATE_ANY);
+      if(dm) date=parseBrDate(dm[1]);
+      if(!date){
+        const dm2=t.match(DATE_SHORT);
+        if(dm2) date=parseBrDate(dm2[1]);
+      }
+      if(date) lastDate=date;
+      if(!lastDate) continue; // nunca tivemos uma data, pular
+
+      const type=dc==='D'?'saida':'entrada';
+
+      // Descrição: tudo antes do valor
+      let desc=t.substring(0, t.indexOf(valueStr)).trim();
+      // Remove data e doc number da descrição
+      desc=desc.replace(DATE_ANY,'').replace(DATE_SHORT,'').replace(/\b\d{5,}\b/g,'').replace(/\s+/g,' ').trim();
+      desc=limpDesc(desc)||'Transação Bradesco';
+
+      const enriched=enrichDescription(desc)||desc;
+      rows.push({date:lastDate,description:enriched,amount,type,
+        category:impAutoCategory(enriched,type,null),account:conta});
+    }
+
+    if(rows.length) return rows;
+    // Se não achou padrão D/C, cai no parser genérico abaixo
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  // NUBANK (e Bradesco fallback) — parser baseado em data no início da linha
+  // ══════════════════════════════════════════════════════════════════════
+  // Agrupa por data: cada nova data = novo bloco de transação
   const blocks=[];
   let cur=null;
-  for(const line of pageLines){
-    if(NOISE.test(line.trim())) continue;
-    const dm=line.match(dateRe);
+  for(const ln of pageLines){
+    const t=ln.text;
+    if(NOISE.test(t)) continue;
+    // Tenta encontrar data NO INÍCIO da linha (Nubank coloca data no começo)
+    const dmFull=t.match(/^(\d{2}\/\d{2}\/(?:\d{4}|\d{2}))\s/);
+    const dmMon=t.match(/^(\d{2}\s+(?:jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)[a-z]*\.?\s+\d{2,4})\s/i);
+    const dm=dmFull||dmMon;
     if(dm){
-      const date=parseBrDate(dm[1]||dm[2]||'');
+      const date=parseBrDate(dm[1]);
       if(date){
         if(cur) blocks.push(cur);
-        cur={date, lines:[line]};
+        cur={date,lines:[t]};
         continue;
       }
     }
-    if(cur) cur.lines.push(line);
+    // Data no início no formato DD/MM (Nubank curto)
+    const dmShort=t.match(/^(\d{2}\/\d{2})\s/);
+    if(dmShort){
+      const date=parseBrDate(dmShort[1]);
+      if(date){
+        if(cur) blocks.push(cur);
+        cur={date,lines:[t]};
+        continue;
+      }
+    }
+    if(cur) cur.lines.push(t);
+    else if(!cur){
+      // Linha sem data antes de qualquer data — busca data em qualquer posição
+      const dmAny=t.match(DATE_ANY);
+      if(dmAny){
+        const date=parseBrDate(dmAny[1]);
+        if(date){
+          cur={date,lines:[t]};
+          continue;
+        }
+      }
+    }
   }
   if(cur) blocks.push(cur);
 
-  // Processa cada bloco
   for(const blk of blocks){
     const fullText=blk.lines.join(' ');
-    if(/saldo\s+(do\s+dia|anterior|atual|final|em\s+conta|disponivel|dispon[íi]vel)/i.test(fullText)) continue;
+    // Ignora linhas de saldo
+    if(/saldo\s*(do\s*dia|anterior|atual|final|dispon)/i.test(fullText)) continue;
 
-    const amts=[...fullText.matchAll(amtRe)];
-    if(!amts.length) continue;
+    const vals=[...fullText.matchAll(VALOR_RE)];
+    if(!vals.length) continue;
 
-    // Bradesco: linha tem [VALOR, SALDO] — pegar penúltimo (não o saldo)
-    // Nubank: geralmente só tem 1 valor — pegar último
-    let pickIdx=amts.length-1;
-    if(bank==='bradesco' && amts.length>=2) pickIdx=amts.length-2;
-    const rawAmt=amts[pickIdx][1].replace(/\s/g,'').replace('R$','');
-    const amount=parseFloat(rawAmt.replace(/\./g,'').replace(',','.'));
-    if(isNaN(amount) || Math.abs(amount)===0) continue;
+    // Se linha tem sinal explícito (+/-) antes do valor, prioriza
+    let amount=0, type='saida', rawNum='';
+    const signedMatch=fullText.match(/([+\-])\s*R?\$?\s*(\d{1,3}(?:\.\d{3})*,\d{2})/);
+    if(signedMatch){
+      rawNum=signedMatch[2];
+      amount=parseFloat(rawNum.replace(/\./g,'').replace(',','.'));
+      type=signedMatch[1]==='-'?'saida':'entrada';
+    } else {
+      // Pega primeiro valor (não o saldo que fica no final)
+      rawNum=vals[0][1];
+      amount=parseFloat(rawNum.replace(/\./g,'').replace(',','.'));
+      type=tipoByKw(fullText)||'saida';
+    }
+    if(!amount||amount<=0) continue;
 
-    // Remove data e todos os valores do texto para obter descrição
-    let desc=fullText.replace(dateRe,'').replace(amtRe,'').replace(/R\$/g,'').replace(/[+\-]/g,' ').replace(/\s+/g,' ').trim();
-    // Remove lixo comum no início/fim
+    // Descrição: remove data e valores
+    let desc=fullText
+      .replace(DATE_ANY,'').replace(DATE_SHORT,'')
+      .replace(/[+\-]\s*R?\$?\s*\d{1,3}(?:\.\d{3})*,\d{2}/g,'')
+      .replace(VALOR_RE,'').replace(/R\$/g,'')
+      .replace(/\s+/g,' ').trim();
+    desc=limpDesc(desc);
     desc=desc.replace(/^[·\-•:;,.\s]+|[·\-•:;,.\s]+$/g,'').trim();
-    if(!desc || desc.length<2) desc='Transação';
+    if(!desc||desc.length<2) desc='Transação';
 
-    const type=detectType(fullText, rawAmt, amount);
     const enriched=enrichDescription(desc)||desc;
-
-    rows.push({
-      date:blk.date,
-      description:enriched,
-      amount:Math.abs(amount),
-      type,
-      category:impAutoCategory(enriched,type,null),
-      account:accType==='cartao'?(bank==='nubank'?'cartão nubank':'cartão bradesco'):bank==='nubank'?'nubank':'bradesco'
-    });
+    rows.push({date:blk.date,description:enriched,amount,type,
+      category:impAutoCategory(enriched,type,null),account:conta});
   }
 
   if(!rows.length) throw new Error(
     'Não foi possível extrair transações deste PDF.\n'+
-    'Dica: No app Nubank → Extrato → "Exportar CSV" funciona muito melhor.'
+    'Tente usar CSV: no app Nubank → Extrato → Exportar CSV.\n'+
+    'No Bradesco: Internet Banking → Extrato → CSV.'
   );
   return rows;
 }
