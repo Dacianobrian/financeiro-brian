@@ -923,7 +923,11 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
         <button class="btn btn-green" id="impBtnImport" onclick="doImport()">Importar →</button>
       </div>
     </div>
-    <div class="imp-footer" id="impFooter3" style="display:none">
+    <div class="imp-footer" id="impFooter3" style="display:none;justify-content:space-between">
+      <div>
+        <button id="impBtnForcar" onclick="_importForcar()" style="display:none;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#f87171;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;">⚡ Forçar importação mesmo assim</button>
+        <button id="impBtnForcarLoad" style="display:none;opacity:.6;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;font-size:13px;">⏳ Importando...</button>
+      </div>
       <button class="btn btn-primary" onclick="closeImportModal();refreshDashboard()">✓ Ver Dashboard</button>
     </div>
   </div>
@@ -2719,74 +2723,111 @@ async function doImport(){
   await _runImport(selected, _impParsed.length-selected.length);
 }
 
-// ⚡ Importação direta: pula preview, importa TUDO de uma vez
+// ⚡ Importação direta: SEM verificação de duplicata — importa tudo
 async function importDirect(){
   const btn=document.getElementById('impBtnDirect');
-  btn.disabled=true;btn.textContent='Importando...';
-  await _runImport(_impParsed, 0);
+  btn.disabled=true;btn.textContent='⚡ Importando...';
+  await _executarImport(_impParsed, false);
 }
 
-// Núcleo de importação — com dedup INTELIGENTE (via DB, não bloqueia)
-async function _runImport(rows, skippedByUser){
+// Importação via preview (com linhas selecionadas)
+async function doImport(){
+  const btn=document.getElementById('impBtnImport');
+  btn.disabled=true;btn.textContent='Importando...';
+  const selected=[];
+  document.querySelectorAll('.imp-row-chk:checked').forEach(c=>{
+    selected.push(_impParsed[parseInt(c.dataset.i)]);
+  });
+  await _executarImport(selected, false);
+}
+
+// Forçar importação do resultado (quando tudo foi bloqueado)
+async function _importForcar(){
+  document.getElementById('impBtnForcar').style.display='none';
+  document.getElementById('impBtnForcarLoad').style.display='';
+  await _executarImport(_impParsed, true);
+}
+
+// ══ NÚCLEO DE IMPORTAÇÃO ═══════════════════════════════════════════════════════
+// skipDup=false → dedup apenas dentro do lote (mesmo arquivo, não duplica linha igual)
+// skipDup=true  → força inserção de tudo (ignora banco)
+async function _executarImport(rows, skipDup){
   let imported=0, dupSkipped=0, errSkipped=0;
   let totalEntradas=0, totalSaidas=0;
 
   const accMap={'nubank':'Nubank Corrente','cartão nubank':'Nubank Cartão',
     'bradesco':'Bradesco Corrente','cartão bradesco':'Bradesco Cartão'};
 
-  // Buscar existentes para dedup local
-  const dates=rows.map(r=>r.date).sort();
-  const minDate=dates[0], maxDate=dates[dates.length-1];
-  let existing=[];
-  try{
-    existing=await sbGet('transactions',{select:'date,amount,type,description',
-      date:`gte.${minDate}`,limit:2000});
-    existing=existing.filter(t=>t.date<=maxDate);
-  }catch(e){}
-  const normDesc=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'').substring(0,15);
-  const existSet=new Set(existing.map(t=>`${t.date}_${(+(t.amount||0)).toFixed(2)}_${t.type}_${normDesc(t.description)}`));
+  // Dedup SOMENTE dentro do lote atual (evita linha duplicada no mesmo arquivo)
+  const loteSet=new Set();
+
+  // Se não forçando: verificar contra DB (apenas date+amount para ser tolerante)
+  let existSet=new Set();
+  if(!skipDup && rows.length>0){
+    const dates=rows.map(r=>r.date).sort();
+    const minDate=dates[0], maxDate=dates[dates.length-1];
+    try{
+      const existing=await sbGet('transactions',{select:'date,amount',
+        date:`gte.${minDate}`,limit:2000});
+      existing.filter(t=>t.date<=maxDate).forEach(t=>{
+        existSet.add(`${t.date}_${(+(t.amount||0)).toFixed(2)}`);
+      });
+    }catch(e){}
+  }
 
   for(const r of rows){
-    const key=`${r.date}_${r.amount.toFixed(2)}_${r.type}_${normDesc(r.description)}`;
-    if(existSet.has(key)){ dupSkipped++; continue; }
+    // Dedup intra-lote (garante não inserir 2x a mesma linha)
+    const loteKey=`${r.date}_${r.amount.toFixed(2)}_${r.type}`;
+    if(loteSet.has(loteKey)){ dupSkipped++; continue; }
+    // Dedup vs banco (só por date+amount — mais tolerante)
+    if(!skipDup){
+      const dbKey=`${r.date}_${r.amount.toFixed(2)}`;
+      if(existSet.has(dbKey)){ dupSkipped++; continue; }
+    }
     try{
       await sbPost('transactions',{
-        date: r.date,
-        description: r.description,
-        amount: r.amount,
-        type: r.type,
-        category: r.category,
+        date: r.date, description: r.description, amount: r.amount,
+        type: r.type, category: r.category,
         account: accMap[r.account]||r.account
       });
-      existSet.add(key); // evita duplicar dentro do próprio lote
+      loteSet.add(loteKey);
       imported++;
       if(r.type==='entrada') totalEntradas+=r.amount;
       else totalSaidas+=r.amount;
     }catch(e){ errSkipped++; }
   }
 
-  const skipped=skippedByUser+dupSkipped+errSkipped;
+  // ── Resultado ──────────────────────────────────────────────────────────────
+  const todasDup = imported===0 && dupSkipped===rows.length;
   const balance=totalEntradas-totalSaidas;
-  document.getElementById('impResIcon').textContent=imported>0?'✅':'⚠️';
-  document.getElementById('impResTitle').textContent=imported>0
-    ?`${imported} transações importadas!`
-    :(dupSkipped>0?'Todas já estavam no sistema':'Nenhuma transação importada');
-  document.getElementById('impResSubtitle').textContent=
+
+  document.getElementById('impResIcon').textContent = imported>0 ? '✅' : (todasDup?'ℹ️':'⚠️');
+  document.getElementById('impResTitle').textContent = imported>0
+    ? `${imported} transação${imported!==1?'ões':''} importada${imported!==1?'s':''}!`
+    : (todasDup
+        ? 'Transações já estão no sistema'
+        : 'Nenhuma transação importada');
+  document.getElementById('impResSubtitle').textContent =
     `Arquivo: ${_impFile?_impFile.name:'—'}`+
-    (dupSkipped>0?` · ${dupSkipped} duplicatas ignoradas automaticamente`:'');
+    (dupSkipped>0 ? ` · ${dupSkipped} já existiam (ignoradas)` : '');
   document.getElementById('impResImported').textContent=imported;
-  document.getElementById('impResSkipped').textContent=skipped;
+  document.getElementById('impResSkipped').textContent=dupSkipped+errSkipped;
   document.getElementById('impResBalance').textContent=brl(balance);
   document.getElementById('impResBalance').className='imp-report-stat-val '+(balance>=0?'amt-green':'amt-red');
   document.getElementById('impResEntradas').textContent=brl(totalEntradas);
   document.getElementById('impResSaidas').textContent=brl(totalSaidas);
 
+  // Botão "Forçar" aparece quando tudo foi bloqueado como dup
+  const btnF=document.getElementById('impBtnForcar');
+  const btnFL=document.getElementById('impBtnForcarLoad');
+  if(btnF) btnF.style.display = (todasDup && !skipDup) ? '' : 'none';
+  if(btnFL) btnFL.style.display='none';
+
   impGoStep(3);
 
-  // ⚡ Auto-refresh: atualiza TODO o sistema (KPIs, gráficos, tabelas, contas)
-  // Roda em background — não bloqueia o modal de resultado
+  // Auto-refresh do dashboard completo
   if(imported>0){
-    refreshDashboard().catch(e=>console.error('Auto-refresh erro:',e));
+    try{ await refreshDashboard(); }catch(e){}
   }
 }
 
