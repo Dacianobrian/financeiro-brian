@@ -609,7 +609,72 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
       </div>
     </div>
   </div>
+
+  <!-- Parcelamentos -->
+  <div class="section">
+    <div class="card">
+      <div class="section-header" style="margin-bottom:16px">
+        <div class="section-title">💳 Parcelamentos</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div id="instTotalLabel" style="font-size:13px;font-weight:700;color:var(--red)"></div>
+          <button onclick="openInstModal()" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;">＋ Adicionar</button>
+        </div>
+      </div>
+      <div id="instGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">
+        <div style="color:var(--muted);font-size:13px">Carregando...</div>
+      </div>
+    </div>
+  </div>
 </div><!-- /tabGeral -->
+
+<!-- Modal Parcelamento -->
+<div class="modal-overlay" id="instModalOverlay" onclick="if(event.target===this)closeInstModal()">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title"><span id="instModalTitle">＋ Novo Parcelamento</span><button class="modal-close" onclick="closeInstModal()">✕</button></div>
+    <input type="hidden" id="instEditId"/>
+    <div class="field-row">
+      <div class="field" style="flex:0 0 60px">
+        <label>Emoji</label>
+        <input type="text" id="instEmoji" value="🛒" maxlength="2" style="text-align:center;font-size:20px;padding:6px"/>
+      </div>
+      <div class="field" style="flex:1">
+        <label>Descrição</label>
+        <input type="text" id="instDesc" placeholder="Ex: iPhone, Notebook..."/>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field" style="flex:1">
+        <label>Valor da Parcela (R$)</label>
+        <input type="text" id="instAmt" placeholder="0,00" inputmode="decimal"/>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field" style="flex:1">
+        <label>Parcela Atual</label>
+        <input type="number" id="instCur" placeholder="Ex: 3" min="1"/>
+      </div>
+      <div class="field" style="flex:1">
+        <label>Total de Parcelas</label>
+        <input type="number" id="instTotal" placeholder="Ex: 12" min="1"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>Cartão</label>
+      <select id="instCard">
+        <option value="Cartão Nubank">💜 Cartão Nubank</option>
+        <option value="Cartão Bradesco" selected>❤️ Cartão Bradesco</option>
+        <option value="Nubank Conta Corrente">💜 Nubank CC</option>
+        <option value="Bradesco Conta Corrente">❤️ Bradesco CC</option>
+      </select>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-ghost" id="instDeleteBtn" style="display:none;color:#f87171;border-color:rgba(248,113,113,.3)" onclick="deleteInst()">🗑 Remover</button>
+      <button class="btn btn-ghost" onclick="closeInstModal()">Cancelar</button>
+      <button class="btn btn-green" onclick="saveInst()">✓ Salvar</button>
+    </div>
+    <div id="instResp" style="font-size:12px;margin-top:8px;min-height:14px;text-align:right"></div>
+  </div>
+</div>
 
 <!-- Modal Assinatura -->
 <div class="modal-overlay" id="subModalOverlay" onclick="if(event.target===this)closeSubModal()">
@@ -1534,6 +1599,96 @@ function loadInvTab(rows, quotes, accounts){
 }
 
 
+// ══ PARCELAMENTOS ═════════════════════════════════════════════════════════════
+function fillInstallments(rows){
+  const grid=document.getElementById('instGrid');
+  const totalEl=document.getElementById('instTotalLabel');
+  if(!rows||!rows.length){
+    grid.innerHTML=`<div style="color:var(--muted);font-size:13px;padding:8px 0">Nenhum parcelamento ativo.</div>`;
+    if(totalEl) totalEl.textContent='';
+    return;
+  }
+  const totalMes=rows.reduce((s,r)=>s+(+r.installment_amount||0),0);
+  const totalRest=rows.reduce((s,r)=>s+(+r.installment_amount||0)*((+r.total_installments||0)-(+r.current_installment||0)),0);
+  if(totalEl) totalEl.textContent=`${brl(totalMes)}/mês · Restante: ${brl(totalRest)}`;
+  const CC=SUB_CARD_COLORS||{};
+  grid.innerHTML=rows.map(r=>{
+    const pct=Math.round(((+r.current_installment)/(+r.total_installments))*100);
+    const restParcelas=(+r.total_installments)-(+r.current_installment);
+    const restValor=restParcelas*(+r.installment_amount);
+    const c=CC[r.card]||{bg:'rgba(99,102,241,.12)',border:'rgba(99,102,241,.3)',color:'#818cf8',label:r.card||'—'};
+    const barColor=pct>=80?'#34d399':pct>=50?'#818cf8':'#f87171';
+    return`<div onclick="openInstModal(${JSON.stringify(r).replace(/"/g,'&quot;')})"
+      style="cursor:pointer;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:13px 14px;transition:.15s"
+      onmouseenter="this.style.borderColor='${c.color}'" onmouseleave="this.style.borderColor='var(--border2)'">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:20px">${r.emoji||'🛒'}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.description}</div>
+          <div style="font-size:10px;color:${c.color};font-weight:600">${c.label}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:13px;font-weight:800;color:var(--red)">${brl(r.installment_amount)}<span style="font-size:10px;font-weight:400;opacity:.6">/mês</span></div>
+          <div style="font-size:10px;color:var(--muted)">${r.current_installment}/${r.total_installments} parcelas</div>
+        </div>
+      </div>
+      <div style="background:var(--surface);border-radius:4px;height:5px;overflow:hidden;margin-bottom:6px">
+        <div style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;transition:.4s"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)">
+        <span>${pct}% pago</span>
+        <span>${restParcelas>0?`Faltam ${restParcelas}x · ${brl(restValor)}`:'✅ Quitado'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let _instEditItem=null;
+function openInstModal(item=null){
+  _instEditItem=item;
+  document.getElementById('instModalTitle').textContent=item?'✏️ Editar Parcelamento':'＋ Novo Parcelamento';
+  document.getElementById('instEditId').value=item?item.id:'';
+  document.getElementById('instEmoji').value=item?(item.emoji||'🛒'):'🛒';
+  document.getElementById('instDesc').value=item?item.description:'';
+  document.getElementById('instAmt').value=item?String(item.installment_amount).replace('.',','):'';
+  document.getElementById('instCur').value=item?item.current_installment:'';
+  document.getElementById('instTotal').value=item?item.total_installments:'';
+  document.getElementById('instCard').value=item?(item.card||'Cartão Bradesco'):'Cartão Bradesco';
+  document.getElementById('instDeleteBtn').style.display=item?'':'none';
+  document.getElementById('instResp').textContent='';
+  document.getElementById('instModalOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('instDesc').focus(),80);
+}
+function closeInstModal(){document.getElementById('instModalOverlay').classList.remove('open');_instEditItem=null;}
+
+async function saveInst(){
+  const id=document.getElementById('instEditId').value;
+  const description=document.getElementById('instDesc').value.trim();
+  const installment_amount=parseFloat(document.getElementById('instAmt').value.replace(',','.'))||0;
+  const current_installment=parseInt(document.getElementById('instCur').value)||0;
+  const total_installments=parseInt(document.getElementById('instTotal').value)||0;
+  const card=document.getElementById('instCard').value;
+  const emoji=document.getElementById('instEmoji').value||'🛒';
+  const resp=document.getElementById('instResp');
+  if(!description||installment_amount<=0||!current_installment||!total_installments){
+    resp.style.color='#f87171';resp.textContent='Preencha todos os campos';return;
+  }
+  try{
+    const data={description,installment_amount,current_installment,total_installments,card,emoji,active:true};
+    if(id) await sbPatch('installments',{id:`eq.${id}`},data);
+    else await sbPost('installments',data);
+    resp.style.color='#34d399';resp.textContent='✓ Salvo!';
+    setTimeout(()=>{closeInstModal();refreshDashboard();},600);
+  }catch(e){resp.style.color='#f87171';resp.textContent='✗ '+e.message;}
+}
+
+async function deleteInst(){
+  const id=document.getElementById('instEditId').value;
+  if(!id||!confirm('Remover este parcelamento?')) return;
+  await sbDelete('installments',{id:`eq.${id}`});
+  closeInstModal();refreshDashboard();
+}
+
 // ══ ASSINATURAS ══════════════════════════════════════════════════════════════
 const SUB_CARD_COLORS = {
   'Cartão Nubank':        {bg:'rgba(130,10,209,.15)',border:'rgba(130,10,209,.35)',color:'#a855f7',label:'💜 Cartão Nubank'},
@@ -1685,7 +1840,7 @@ setInterval(()=>{ if(document.visibilityState!=='hidden') refreshDashboard(); },
 async function refreshDashboard(){
   _setRefreshLoading(true);
   try{
-    const [cm, monthly, cats, txs, fii, fc, accounts, pat, divTxs, subs] = await Promise.all([
+    const [cm, monthly, cats, txs, fii, fc, accounts, pat, divTxs, subs, insts] = await Promise.all([
       sbRpc('get_current_month_data'),
       sbRpc('get_monthly_summary', {year_val: 2026}),
       sbRpc('get_expense_by_category', {year_val: 2026}),
@@ -1696,6 +1851,7 @@ async function refreshDashboard(){
       sbRpc('get_patrimonio_breakdown'),
       sbGet('transactions', {select:'amount,date,description', category:'ilike.*Dividend*', date:'gte.2026-01-01', type:'eq.entrada'}),
       sbGet('subscriptions', {select:'*', active:'eq.true', order:'billing_day.asc.nullslast,name.asc'}),
+      sbGet('installments', {select:'*', active:'eq.true', order:'installment_amount.desc'}),
     ]);
     const cmRow = cm[0]||{entradas:0,saidas:0,investido:0,meta_diario:70,meta_reserva:10000,meta_mensal:10000};
     const patRow = pat[0]||{accounts:0,fii:0,total:0};
@@ -1711,6 +1867,7 @@ async function refreshDashboard(){
     fillTx(txs);
     fillCustos(fc);
     fillSubscriptions(subs||[]);
+    fillInstallments(insts||[]);
     loadPlanned();
     fillAnoTab(monthly, catsObj);
     _allTxs = txs;
