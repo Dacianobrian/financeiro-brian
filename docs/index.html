@@ -841,11 +841,11 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
         ondragleave="this.classList.remove('drag-over')"
         ondrop="event.preventDefault();this.classList.remove('drag-over');handleImportDrop(event)">
         <div class="drop-zone-icon">📂</div>
-        <div class="drop-zone-text" id="dropZoneText">Arraste o arquivo aqui ou clique para selecionar</div>
-        <div class="drop-zone-sub">Suporta: CSV (Nubank), Excel (.xlsx), PDF · Conta corrente e cartão</div>
+        <div class="drop-zone-text" id="dropZoneText">Arraste um ou mais arquivos aqui ou clique para selecionar</div>
+        <div class="drop-zone-sub">Suporta: CSV (Nubank), Excel (.xlsx), PDF · Múltiplos arquivos de uma vez</div>
       </div>
-      <input type="file" id="impFileInput" style="display:none" accept=".csv,.xlsx,.xls,.pdf"
-        onchange="handleImportFile(this.files[0])"/>
+      <input type="file" id="impFileInput" style="display:none" accept=".csv,.xlsx,.xls,.pdf" multiple
+        onchange="handleImportFiles(this.files)"/>
 
       <div class="imp-selects">
         <div class="imp-select-group">
@@ -1208,7 +1208,12 @@ function fillAccounts(accounts, patrimonio){
       else if(updRaw===yesterdayStr) upd='ontem';
       else{ const [y,mo,d]=updRaw.split('-'); upd=`${d}/${mo}/${y}`; }
     }
-    return`<div class="card" style="border:1px solid ${st.border};background:${st.bg}"><div class="kpi-label" style="margin-bottom:8px"><span class="kpi-icon" style="background:${st.bg}">${ico}</span><span style="color:${st.color};font-weight:600;font-size:11px">${st.label}</span></div><div style="font-size:11px;color:var(--muted2);font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">${a.type}</div><div class="kpi-value" style="color:${st.color};font-size:22px">${brl(a.balance)}</div><div class="kpi-sub" style="margin-top:4px">atualizado ${upd}</div></div>`;
+    // Alerta de saldo baixo (apenas contas correntes)
+    const LIMITE_ALERTA=500;
+    const isBaixo=a.type==='corrente'&&(+a.balance||0)<LIMITE_ALERTA;
+    const alertaBadge=isBaixo?`<span style="display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#fbbf24;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);border-radius:4px;padding:1px 6px;">⚠ SALDO BAIXO</span>`:'';
+    const borderColor=isBaixo?'rgba(251,191,36,.5)':st.border;
+    return`<div class="card" style="border:1px solid ${borderColor};background:${st.bg}${isBaixo?';box-shadow:0 0 0 1px rgba(251,191,36,.2)':''}"><div class="kpi-label" style="margin-bottom:8px"><span class="kpi-icon" style="background:${st.bg}">${ico}</span><span style="color:${st.color};font-weight:600;font-size:11px">${st.label}</span>${alertaBadge}</div><div style="font-size:11px;color:var(--muted2);font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">${a.type}</div><div class="kpi-value" style="color:${isBaixo?'#fbbf24':st.color};font-size:22px">${brl(a.balance)}</div><div class="kpi-sub" style="margin-top:4px">atualizado ${upd}</div></div>`;
   }).join('');
   if(patrimonio){
     html+=`<div class="card" style="border:1px solid rgba(99,102,241,.35);background:rgba(99,102,241,.1)"><div class="kpi-label" style="margin-bottom:8px"><span class="kpi-icon" style="background:rgba(99,102,241,.15)">⚖️</span><span style="color:#a78bfa;font-weight:600;font-size:11px">PATRIMÔNIO TOTAL</span></div><div style="font-size:11px;color:var(--muted2);font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">contas + FIIs</div><div class="kpi-value" style="color:#a78bfa;font-size:22px">${brl(patrimonio.total)}</div><div class="kpi-sub" style="margin-top:4px"><span style="color:var(--muted2)">contas: ${brl(patrimonio.accounts)}</span> · <span style="color:var(--muted2)">fiis: ${brl(patrimonio.fii)}</span></div></div>`;
@@ -2389,35 +2394,60 @@ function impGoStep(n){
 }
 
 function handleImportDrop(e){
-  const f=e.dataTransfer.files[0];
-  if(f) handleImportFile(f);
+  const files=e.dataTransfer.files;
+  if(files&&files.length) handleImportFiles(files);
 }
 
-async function handleImportFile(file){
-  if(!file) return;
-  _impFile=file;
-  document.getElementById('dropZoneText').textContent='📎 '+file.name;
-  document.getElementById('impFileName').textContent=file.name;
+function detectBankFromFile(filename){
+  const fn=filename.toLowerCase();
+  if(/nubank|nu_/.test(fn)) return 'nubank';
+  if(/bradesco/.test(fn)) return 'bradesco';
+  return null;
+}
+
+async function handleImportFiles(files){
+  if(!files||!files.length) return;
   document.getElementById('impParseErr').style.display='none';
+  const errEl=document.getElementById('impParseErr');
+  const allRows=[];
+  const erros=[];
+  const fileList=Array.from(files);
 
-  // Auto-detect bank from filename
-  const fn=file.name.toLowerCase();
-  if(/nubank|nu_/.test(fn)) document.getElementById('impBank').value='nubank';
-  else if(/bradesco/.test(fn)) document.getElementById('impBank').value='bradesco';
+  document.getElementById('dropZoneText').textContent=`⏳ Processando ${fileList.length} arquivo(s)...`;
 
-  try{
-    const rows = await parseImportFile(file);
-    _impParsed=rows;
-    document.getElementById('impFileInfo').style.display='';
-    document.getElementById('impFileParsed').textContent=rows.length+' transações encontradas';
-    document.getElementById('impBtnProcess').disabled=rows.length===0;
-    document.getElementById('impBtnDirect').disabled=rows.length===0;
-  }catch(e){
-    document.getElementById('impParseErr').textContent='✗ '+e.message;
-    document.getElementById('impParseErr').style.display='';
-    document.getElementById('impBtnProcess').disabled=true;
-    document.getElementById('impBtnDirect').disabled=true;
+  for(const file of fileList){
+    // Auto-detect e configura banco para cada arquivo
+    const bank=detectBankFromFile(file.name);
+    if(bank) document.getElementById('impBank').value=bank;
+    try{
+      const rows=await parseImportFile(file);
+      allRows.push(...rows);
+    }catch(e){
+      erros.push(`${file.name}: ${e.message}`);
+    }
   }
+
+  _impParsed=allRows;
+  _impFile=fileList[0];
+
+  const nomes=fileList.map(f=>f.name).join(', ');
+  document.getElementById('dropZoneText').textContent=`📎 ${fileList.length} arquivo(s): ${nomes.length>60?nomes.slice(0,60)+'…':nomes}`;
+  document.getElementById('impFileName').textContent=fileList.length>1?`${fileList.length} arquivos`:fileList[0].name;
+
+  if(erros.length){
+    errEl.textContent='⚠ '+erros.join(' | ');
+    errEl.style.display='';
+  }
+
+  document.getElementById('impFileInfo').style.display='';
+  document.getElementById('impFileParsed').textContent=`${allRows.length} transações encontradas em ${fileList.length} arquivo(s)`;
+  document.getElementById('impBtnProcess').disabled=allRows.length===0;
+  document.getElementById('impBtnDirect').disabled=allRows.length===0;
+}
+
+// Mantém retrocompatibilidade
+async function handleImportFile(file){
+  if(file) handleImportFiles([file]);
 }
 
 async function parseImportFile(file){
