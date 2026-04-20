@@ -2791,46 +2791,50 @@ async function parsePDF(file){
   }
 
   // ══════════════════════════════════════════════════════════════════════
-  // NUBANK (e Bradesco fallback) — parser baseado em data no início da linha
+  // NUBANK — parser baseado em data no início da linha
+  // Cada linha de transação começa com: DD/MM/YYYY  Descrição  ±Valor
+  // Linhas de resumo do Nubank: "DD/MM Total de entradas/saídas..." → IGNORAR
   // ══════════════════════════════════════════════════════════════════════
-  // Agrupa por data: cada nova data = novo bloco de transação
+
+  // Ruído: linhas de resumo/total que o Nubank coloca no PDF
+  const NOISE_NU=/total\s+de\s+(entradas|saídas|saldos?)|resumo\s+(do\s+período|mensal|di[aá]rio)|saldo\s+(do\s+dia|anterior|atual|final|disponível)|extrato\s+de\s+conta|período\s+de|nubank\s+s\.?a|ag[eê]ncia|cpf:|cnpj:|p[áa]gina\s*\d/i;
+
   const blocks=[];
   let cur=null;
+
   for(const ln of pageLines){
     const t=ln.text;
-    if(NOISE.test(t)) continue;
-    // Tenta encontrar data NO INÍCIO da linha (Nubank coloca data no começo)
-    const dmFull=t.match(/^(\d{2}\/\d{2}\/(?:\d{4}|\d{2}))\s/);
-    const dmMon=t.match(/^(\d{2}\s+(?:jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)[a-z]*\.?\s+\d{2,4})\s/i);
-    const dm=dmFull||dmMon;
+
+    // Tenta encontrar data NO INÍCIO da linha
+    const dmFull=t.match(/^(\d{2}\/\d{2}\/(?:\d{4}|\d{2}))\s+(.*)/);
+    const dmMon=t.match(/^(\d{2}\s+(?:jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)[a-z]*\.?\s+\d{2,4})\s+(.*)/i);
+    const dmShort=t.match(/^(\d{2}\/\d{2})\s+(.*)/);
+    const dm=dmFull||dmMon||dmShort;
+
     if(dm){
       const date=parseBrDate(dm[1]);
       if(date){
-        if(cur) blocks.push(cur);
-        cur={date,lines:[t]};
-        continue;
-      }
-    }
-    // Data no início no formato DD/MM (Nubank curto)
-    const dmShort=t.match(/^(\d{2}\/\d{2})\s/);
-    if(dmShort){
-      const date=parseBrDate(dmShort[1]);
-      if(date){
-        if(cur) blocks.push(cur);
-        cur={date,lines:[t]};
-        continue;
-      }
-    }
-    if(cur) cur.lines.push(t);
-    else if(!cur){
-      // Linha sem data antes de qualquer data — busca data em qualquer posição
-      const dmAny=t.match(DATE_ANY);
-      if(dmAny){
-        const date=parseBrDate(dmAny[1]);
-        if(date){
-          cur={date,lines:[t]};
+        const resto=dm[2]||'';
+        // Se o que vem após a data é linha de resumo → atualiza data mas não cria bloco
+        if(NOISE_NU.test(resto)||NOISE_NU.test(t)){
+          if(cur) blocks.push(cur); cur=null;
           continue;
         }
+        if(cur) blocks.push(cur);
+        cur={date, lines:[t]};
+        continue;
+      }
+    }
+
+    if(!t||NOISE_NU.test(t)) continue;
+
+    if(cur) cur.lines.push(t);
+    else{
+      // Linha sem data no início — busca data em qualquer posição
+      const dmAny=t.match(DATE_ANY);
+      if(dmAny&&!NOISE_NU.test(t)){
+        const date=parseBrDate(dmAny[1]);
+        if(date){ cur={date,lines:[t]}; }
       }
     }
   }
@@ -2838,40 +2842,40 @@ async function parsePDF(file){
 
   for(const blk of blocks){
     const fullText=blk.lines.join(' ');
-    // Ignora linhas de saldo
-    if(/saldo\s*(do\s*dia|anterior|atual|final|dispon)/i.test(fullText)) continue;
+    if(NOISE_NU.test(fullText)) continue;
 
     const vals=[...fullText.matchAll(VALOR_RE)];
     if(!vals.length) continue;
 
-    // Se linha tem sinal explícito (+/-) antes do valor, prioriza
-    let amount=0, type='saida', rawNum='';
+    // Sinal explícito +/- tem prioridade (formato Nubank corrente)
+    let amount=0, type='saida';
     const signedMatch=fullText.match(/([+\-])\s*R?\$?\s*(\d{1,3}(?:\.\d{3})*,\d{2})/);
     if(signedMatch){
-      rawNum=signedMatch[2];
-      amount=parseFloat(rawNum.replace(/\./g,'').replace(',','.'));
+      amount=parseFloat(signedMatch[2].replace(/\./g,'').replace(',','.'));
       type=signedMatch[1]==='-'?'saida':'entrada';
     } else {
-      // Pega primeiro valor (não o saldo que fica no final)
-      rawNum=vals[0][1];
-      amount=parseFloat(rawNum.replace(/\./g,'').replace(',','.'));
+      amount=parseFloat(vals[0][1].replace(/\./g,'').replace(',','.'));
       type=tipoByKw(fullText)||'saida';
     }
     if(!amount||amount<=0) continue;
 
-    // Descrição: remove data e valores
+    // Descrição limpa
     let desc=fullText
       .replace(DATE_ANY,'').replace(DATE_SHORT,'')
       .replace(/[+\-]\s*R?\$?\s*\d{1,3}(?:\.\d{3})*,\d{2}/g,'')
       .replace(VALOR_RE,'').replace(/R\$/g,'')
       .replace(/\s+/g,' ').trim();
-    desc=limpDesc(desc);
-    desc=desc.replace(/^[·\-•:;,.\s]+|[·\-•:;,.\s]+$/g,'').trim();
+    desc=limpDesc(desc).replace(/^[·\-•:;,.\s]+|[·\-•:;,.\s]+$/g,'').trim();
     if(!desc||desc.length<2) desc='Transação';
 
     const enriched=enrichDescription(desc)||desc;
-    rows.push({date:blk.date,description:enriched,amount,type,
-      category:impAutoCategory(enriched,type,null),account:conta});
+
+    // Detecta resgate da Caixinha → flag para auto-atualizar saldo
+    const isCaixinha=/resgate|caixinha|rdb|rendimento\s+caixinha/i.test(enriched+' '+fullText);
+
+    rows.push({date:blk.date, description:enriched, amount, type,
+      category:impAutoCategory(enriched,type,null), account:conta,
+      _caixinhaResgate: isCaixinha&&type==='entrada' ? amount : 0});
   }
 
   if(!rows.length) throw new Error(
@@ -3014,9 +3018,20 @@ async function _importForcar(){
 async function _executarImport(rows, skipDup){
   let imported=0, dupSkipped=0, errSkipped=0;
   let totalEntradas=0, totalSaidas=0;
+  let totalCaixinhaResgate=0;
 
-  const accMap={'nubank':'Nubank Corrente','cartão nubank':'Nubank Cartão',
-    'bradesco':'Bradesco Corrente','cartão bradesco':'Bradesco Cartão'};
+  // Mapeamento de nomes curtos para nomes completos do banco de dados
+  const accMap={
+    'nubank':'Nubank Conta Corrente',
+    'cartão nubank':'Cartão Nubank',
+    'bradesco':'Bradesco Conta Corrente',
+    'cartão bradesco':'Cartão Bradesco',
+    // nomes completos passam direto
+    'Nubank Conta Corrente':'Nubank Conta Corrente',
+    'Bradesco Conta Corrente':'Bradesco Conta Corrente',
+    'Cartão Nubank':'Cartão Nubank',
+    'Cartão Bradesco':'Cartão Bradesco'
+  };
 
   // Dedup SOMENTE dentro do lote atual (evita linha duplicada no mesmo arquivo)
   const loteSet=new Set();
@@ -3054,6 +3069,8 @@ async function _executarImport(rows, skipDup){
       imported++;
       if(r.type==='entrada') totalEntradas+=r.amount;
       else totalSaidas+=r.amount;
+      // Rastreia resgates da Caixinha para atualizar saldo automático
+      if(r._caixinhaResgate) totalCaixinhaResgate+=r._caixinhaResgate;
     }catch(e){ errSkipped++; }
   }
 
@@ -3088,6 +3105,21 @@ async function _executarImport(rows, skipDup){
   // Auto-refresh do dashboard completo
   if(imported>0){
     try{ await refreshDashboard(); }catch(e){}
+
+    // Auto-atualiza saldo da Caixinha se houve resgate
+    if(totalCaixinhaResgate>0){
+      try{
+        const accs=await sbGet('accounts',{select:'id,balance,name'});
+        const caixinha=accs.find(a=>/caixinha|rdb/i.test(a.name||''));
+        if(caixinha){
+          const novoSaldo=Math.max(0,(+caixinha.balance||0)-totalCaixinhaResgate);
+          await sbPatch('accounts',{id:`eq.${caixinha.id}`},{balance:novoSaldo,updated_at:new Date().toISOString()});
+          // Mostra aviso no resultado
+          const sub=document.getElementById('impResSubtitle');
+          if(sub) sub.textContent+=' · 🐷 Caixinha atualizada: -'+brl(totalCaixinhaResgate)+' → '+brl(novoSaldo);
+        }
+      }catch(e){}
+    }
   }
 }
 
