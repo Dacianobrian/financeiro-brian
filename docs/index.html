@@ -597,7 +597,81 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
       </div>
     </div>
   </div>
+
+  <!-- Assinaturas -->
+  <div class="section">
+    <div class="card">
+      <div class="section-header" style="margin-bottom:14px">
+        <div class="section-title">📱 Assinaturas</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div id="subsTotalLabel" style="font-size:13px;font-weight:700;color:var(--red)"></div>
+          <button onclick="openSubModal()" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;">＋ Adicionar</button>
+        </div>
+      </div>
+      <div id="subsGrid" style="display:flex;flex-wrap:wrap;gap:10px">
+        <div style="color:var(--muted);font-size:13px">Carregando...</div>
+      </div>
+    </div>
+  </div>
 </div><!-- /tabGeral -->
+
+<!-- Modal Assinatura -->
+<div class="modal-overlay" id="subModalOverlay" onclick="if(event.target===this)closeSubModal()">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title"><span id="subModalTitle">＋ Nova Assinatura</span><button class="modal-close" onclick="closeSubModal()">✕</button></div>
+    <input type="hidden" id="subEditId"/>
+    <div class="field-row">
+      <div class="field" style="flex:0 0 60px">
+        <label>Emoji</label>
+        <input type="text" id="subEmoji" value="📱" maxlength="2" style="text-align:center;font-size:20px;padding:6px"/>
+      </div>
+      <div class="field" style="flex:1">
+        <label>Nome do Serviço</label>
+        <input type="text" id="subName" placeholder="Ex: Netflix, Spotify..."/>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field" style="flex:1">
+        <label>Valor (R$)</label>
+        <input type="text" id="subAmount" placeholder="0,00" inputmode="decimal"/>
+      </div>
+      <div class="field" style="flex:0 0 80px">
+        <label>Dia</label>
+        <input type="number" id="subDay" placeholder="15" min="1" max="31"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>Cartão / Conta</label>
+      <select id="subCard">
+        <optgroup label="💜 Nubank">
+          <option value="Cartão Nubank">Cartão Nubank</option>
+          <option value="Nubank Conta Corrente">Nubank Conta Corrente</option>
+        </optgroup>
+        <optgroup label="❤️ Bradesco">
+          <option value="Cartão Bradesco">Cartão Bradesco</option>
+          <option value="Bradesco Conta Corrente">Bradesco Conta Corrente</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="field">
+      <label>Categoria</label>
+      <select id="subCategory">
+        <option value="Streaming">🎬 Streaming</option>
+        <option value="Software">💻 Software</option>
+        <option value="Saúde">🏥 Saúde</option>
+        <option value="Educação">📚 Educação</option>
+        <option value="Moradia">🏠 Moradia</option>
+        <option value="Outros">📦 Outros</option>
+      </select>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-ghost" id="subDeleteBtn" style="display:none;color:#f87171;border-color:rgba(248,113,113,.3)" onclick="deleteSub()">🗑 Remover</button>
+      <button class="btn btn-ghost" onclick="closeSubModal()">Cancelar</button>
+      <button class="btn btn-green" onclick="saveSub()">✓ Salvar</button>
+    </div>
+    <div id="subResp" style="font-size:12px;margin-top:8px;min-height:14px;text-align:right"></div>
+  </div>
+</div>
 
 <!-- TAB: DASHBOARD ANUAL -->
 <div id="tabAno" style="display:none">
@@ -1464,6 +1538,83 @@ function loadInvTab(rows, quotes, accounts){
 }
 
 
+// ══ ASSINATURAS ══════════════════════════════════════════════════════════════
+const SUB_CARD_COLORS = {
+  'Cartão Nubank':        {bg:'rgba(130,10,209,.15)',border:'rgba(130,10,209,.35)',color:'#a855f7',label:'💜 Cartão Nubank'},
+  'Nubank Conta Corrente':{bg:'rgba(130,10,209,.08)',border:'rgba(130,10,209,.25)',color:'#a855f7',label:'💜 Nubank CC'},
+  'Cartão Bradesco':      {bg:'rgba(204,9,47,.15)',  border:'rgba(204,9,47,.35)',  color:'#f87171',label:'❤️ Cartão Bradesco'},
+  'Bradesco Conta Corrente':{bg:'rgba(204,9,47,.08)',border:'rgba(204,9,47,.25)', color:'#f87171',label:'❤️ Bradesco CC'},
+};
+
+function fillSubscriptions(rows){
+  const grid=document.getElementById('subsGrid');
+  const totalEl=document.getElementById('subsTotalLabel');
+  if(!rows||!rows.length){
+    grid.innerHTML=`<div style="color:var(--muted);font-size:13px;padding:8px 0">Nenhuma assinatura cadastrada. Clique em ＋ Adicionar.</div>`;
+    if(totalEl) totalEl.textContent='';
+    return;
+  }
+  const total=rows.reduce((s,r)=>s+(+r.amount||0),0);
+  if(totalEl) totalEl.textContent=`Total: ${brl(total)}/mês`;
+  grid.innerHTML=rows.map(r=>{
+    const c=SUB_CARD_COLORS[r.card]||{bg:'rgba(99,102,241,.12)',border:'rgba(99,102,241,.3)',color:'#818cf8',label:r.card||'—'};
+    return`<div onclick="openSubModal(${JSON.stringify(r).replace(/"/g,'&quot;')})"
+      style="cursor:pointer;background:${c.bg};border:1px solid ${c.border};border-radius:12px;padding:12px 14px;min-width:150px;max-width:190px;flex:1;transition:.15s"
+      onmouseenter="this.style.filter='brightness(1.15)'" onmouseleave="this.style.filter=''">
+      <div style="font-size:26px;margin-bottom:6px">${r.emoji||'📱'}</div>
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px">${r.name}</div>
+      <div style="font-size:15px;font-weight:800;color:${c.color};margin-bottom:6px">${brl(r.amount)}<span style="font-size:10px;font-weight:400;opacity:.7">/mês</span></div>
+      <div style="font-size:10px;font-weight:600;background:${c.bg};border:1px solid ${c.border};color:${c.color};border-radius:5px;padding:2px 7px;display:inline-block;margin-bottom:4px">${c.label}</div>
+      ${r.billing_day?`<div style="font-size:10px;color:var(--muted);margin-top:3px">💳 dia ${r.billing_day}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+let _subEditItem=null;
+function openSubModal(item=null){
+  _subEditItem=item;
+  document.getElementById('subModalTitle').textContent=item?'✏️ Editar Assinatura':'＋ Nova Assinatura';
+  document.getElementById('subEditId').value=item?item.id:'';
+  document.getElementById('subEmoji').value=item?(item.emoji||'📱'):'📱';
+  document.getElementById('subName').value=item?item.name:'';
+  document.getElementById('subAmount').value=item?String(item.amount).replace('.',','):'';
+  document.getElementById('subDay').value=item?(item.billing_day||''):'';
+  document.getElementById('subCard').value=item?(item.card||'Cartão Nubank'):'Cartão Nubank';
+  document.getElementById('subCategory').value=item?(item.category||'Streaming'):'Streaming';
+  document.getElementById('subDeleteBtn').style.display=item?'':'none';
+  document.getElementById('subResp').textContent='';
+  document.getElementById('subModalOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('subName').focus(),80);
+}
+function closeSubModal(){document.getElementById('subModalOverlay').classList.remove('open');_subEditItem=null;}
+
+async function saveSub(){
+  const id=document.getElementById('subEditId').value;
+  const name=document.getElementById('subName').value.trim();
+  const amtRaw=document.getElementById('subAmount').value.replace(',','.');
+  const amount=parseFloat(amtRaw)||0;
+  const card=document.getElementById('subCard').value;
+  const category=document.getElementById('subCategory').value;
+  const billing_day=parseInt(document.getElementById('subDay').value)||null;
+  const emoji=document.getElementById('subEmoji').value||'📱';
+  const resp=document.getElementById('subResp');
+  if(!name||amount<=0){resp.style.color='#f87171';resp.textContent='Nome e valor obrigatórios';return;}
+  try{
+    const data={name,amount,card,category,billing_day,emoji,active:true};
+    if(id) await sbPatch('subscriptions',{id:`eq.${id}`},data);
+    else await sbPost('subscriptions',data);
+    resp.style.color='#34d399';resp.textContent='✓ Salvo!';
+    setTimeout(()=>{closeSubModal();refreshDashboard();},600);
+  }catch(e){resp.style.color='#f87171';resp.textContent='✗ '+e.message;}
+}
+
+async function deleteSub(){
+  const id=document.getElementById('subEditId').value;
+  if(!id||!confirm('Remover esta assinatura?')) return;
+  await sbDelete('subscriptions',{id:`eq.${id}`});
+  closeSubModal();refreshDashboard();
+}
+
 function fillCustos(rows){
   const tb=document.getElementById('tblCustos');
   if(!rows||!rows.length){tb.innerHTML=`<tr><td colspan="4" class="empty">—</td></tr>`;return}
@@ -1537,7 +1688,7 @@ setInterval(()=>{ if(document.visibilityState!=='hidden') refreshDashboard(); },
 async function refreshDashboard(){
   _setRefreshLoading(true);
   try{
-    const [cm, monthly, cats, txs, fii, fc, accounts, pat, divTxs] = await Promise.all([
+    const [cm, monthly, cats, txs, fii, fc, accounts, pat, divTxs, subs] = await Promise.all([
       sbRpc('get_current_month_data'),
       sbRpc('get_monthly_summary', {year_val: 2026}),
       sbRpc('get_expense_by_category', {year_val: 2026}),
@@ -1547,6 +1698,7 @@ async function refreshDashboard(){
       sbGet('accounts', {select:'*', order:'bank.asc,type.asc'}),
       sbRpc('get_patrimonio_breakdown'),
       sbGet('transactions', {select:'amount,date,description', category:'ilike.*Dividend*', date:'gte.2026-01-01', type:'eq.entrada'}),
+      sbGet('subscriptions', {select:'*', active:'eq.true', order:'billing_day.asc.nullslast,name.asc'}),
     ]);
     const cmRow = cm[0]||{entradas:0,saidas:0,investido:0,meta_diario:70,meta_reserva:10000,meta_mensal:10000};
     const patRow = pat[0]||{accounts:0,fii:0,total:0};
@@ -1561,6 +1713,7 @@ async function refreshDashboard(){
     buildCharts(monthly, catsObj);
     fillTx(txs);
     fillCustos(fc);
+    fillSubscriptions(subs||[]);
     loadPlanned();
     fillAnoTab(monthly, catsObj);
     _allTxs = txs;
