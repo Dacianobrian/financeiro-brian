@@ -119,6 +119,8 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
 .modal-overlay.open{display:flex}
 .modal{background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:28px;width:100%;max-width:480px;box-shadow:0 24px 80px rgba(0,0,0,.6);animation:modalIn .18s ease}
 @keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinning{display:inline-block;animation:spin .7s linear infinite}
 .modal-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px}
 .modal-close{margin-left:auto;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px;line-height:1}
 .modal-close:hover{color:var(--text)}
@@ -245,7 +247,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
   </div>
   <div class="header-right">
     <div class="date-chip" id="headerDate"></div>
-    <button class="btn btn-ghost" onclick="refreshDashboard()">↻</button>
+    <button class="btn btn-ghost" id="refreshBtn" onclick="refreshDashboard()" title="Atualizar tudo"><span id="refreshIcon">↻</span><span id="refreshAge" style="font-size:10px;opacity:.55;margin-left:3px"></span></button>
     <button class="btn btn-green" onclick="openModal()">＋ Lançamento</button>
     <button class="btn btn-ghost" onclick="openImportModal()" style="border-color:rgba(99,102,241,.4);color:var(--blue2)">📥 Extrato</button>
     <button class="btn btn-primary" onclick="exportExcel()">⬇ Excel</button>
@@ -1503,8 +1505,37 @@ function fillAnoTab(monthly, cats){
 // ══ DASHBOARD LOAD ════════════════════════════════════════════════════════════
 let _allTxs = [];
 let _invFiiRows = [], _invQuotes = null, _invAccounts = [], _monthly = [], _divTxs = [];
+let _lastRefreshTs = 0;
+
+function _setRefreshLoading(on){
+  const icon=document.getElementById('refreshIcon');
+  const age=document.getElementById('refreshAge');
+  if(!icon) return;
+  if(on){
+    icon.className='spinning'; icon.textContent='↻';
+    if(age) age.textContent='';
+  } else {
+    icon.className=''; icon.textContent='↻';
+    if(age){
+      const secs=Math.round((Date.now()-_lastRefreshTs)/1000);
+      age.textContent=secs<5?'agora':secs<60?secs+'s atrás':Math.floor(secs/60)+'min atrás';
+    }
+  }
+}
+
+// Atualiza o "há Xmin atrás" a cada 30s
+setInterval(()=>{
+  const age=document.getElementById('refreshAge');
+  if(!age||!_lastRefreshTs) return;
+  const secs=Math.round((Date.now()-_lastRefreshTs)/1000);
+  age.textContent=secs<10?'agora':secs<60?secs+'s atrás':Math.floor(secs/60)+'min atrás';
+}, 30000);
+
+// Auto-refresh silencioso a cada 3 minutos
+setInterval(()=>{ if(document.visibilityState!=='hidden') refreshDashboard(); }, 3*60*1000);
 
 async function refreshDashboard(){
+  _setRefreshLoading(true);
   try{
     const [cm, monthly, cats, txs, fii, fc, accounts, pat, divTxs] = await Promise.all([
       sbRpc('get_current_month_data'),
@@ -1547,7 +1578,9 @@ async function refreshDashboard(){
         buildInvCharts(fii, quotes);
       }
     }).catch(()=>{});
-  }catch(e){console.error('Dashboard error:', e)}
+    _lastRefreshTs=Date.now();
+    _setRefreshLoading(false);
+  }catch(e){console.error('Dashboard error:', e); _setRefreshLoading(false);}
 }
 
 // ══ RELATÓRIO MENSAL ══════════════════════════════════════════════════════
@@ -1717,6 +1750,8 @@ function switchTab(tab){
   document.getElementById('tabBtnAno').classList.toggle('active',tab==='ano');
   document.getElementById('tabBtnInv').classList.toggle('active',tab==='inv');
   if(tab==='inv') buildInvCharts(_invFiiRows, _invQuotes);
+  // Atualiza tudo se dados tiverem mais de 90 segundos
+  if(Date.now()-_lastRefreshTs > 90000) refreshDashboard();
 }
 
 // ══ COMMAND PARSER ════════════════════════════════════════════════════════════
@@ -2007,14 +2042,14 @@ async function savePlan(){
     else await sbPost('planned_entries', data);
     resp.style.color='#34d399';
     resp.textContent = id ? '✓ Atualizado!' : '✓ Adicionado!';
-    setTimeout(()=>{ closePlanModal(); loadPlanned(); }, 700);
+    setTimeout(()=>{ closePlanModal(); refreshDashboard(); }, 700);
   }catch(e){ resp.style.color='#f87171'; resp.textContent='✗ '+e.message; }
 }
 
 async function deletePlan(id, desc){
   if(!confirm(`Remover "${desc}"?`)) return;
   await sbDelete('planned_entries', {id:`eq.${id}`});
-  loadPlanned();
+  refreshDashboard();
 }
 
 function openConfirmModal(item){
@@ -2059,7 +2094,7 @@ async function doConfirm(){
 
 async function uncheckPlan(id){
   await sbPatch('planned_entries', {id:`eq.${id}`}, {confirmed:false, confirmed_at:null});
-  loadPlanned();
+  refreshDashboard();
 }
 
 async function loadPlanned(){
