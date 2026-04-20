@@ -1369,10 +1369,17 @@ function fillAccounts(accounts, patrimonio){
 function fillTx(rows){
   const tb=document.getElementById('tblTransactions');
   if(!rows||!rows.length){tb.innerHTML=`<tr><td colspan="4" class="empty">Nenhuma transação.</td></tr>`;return}
-  tb.innerHTML=rows.slice(0,20).map(t=>{
+  tb.innerHTML=rows.slice(0,10).map(t=>{
     const amtCls=t.type==='entrada'?'amt-green':t.type==='investido'?'amt-purple':'amt-red';
-    const typeBadge=`<span class="type-badge type-${t.type}">${t.type==='entrada'?'↓ entrada':t.type==='investido'?'↑ invest':'↑ saída'}</span>`;
-    return`<tr><td style="white-space:nowrap;color:var(--muted)">${fmtDate(t.date)}</td><td><div style="font-size:12px;font-weight:500;line-height:1.3">${t.description||'—'}</div><div style="margin-top:2px;display:flex;gap:4px;align-items:center">${typeBadge}${bankBadge(t.description)}</div></td><td>${catBadge(t.category)}</td><td style="text-align:right" class="${amtCls}">${brl(t.amount)}</td></tr>`;
+    const dot=t.type==='entrada'?'🟢':t.type==='investido'?'🟣':'🔴';
+    return`<tr style="font-size:12px">
+      <td style="white-space:nowrap;color:var(--muted);padding:5px 6px">${fmtDate(t.date)}</td>
+      <td style="padding:5px 6px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.description||''}">
+        <span style="margin-right:4px">${dot}</span>${t.description||'—'}
+      </td>
+      <td style="padding:5px 6px">${catBadge(t.category)}</td>
+      <td style="text-align:right;padding:5px 6px;font-weight:700" class="${amtCls}">${brl(t.amount)}</td>
+    </tr>`;
   }).join('');
 }
 
@@ -1852,7 +1859,7 @@ async function refreshDashboard(){
       sbRpc('get_current_month_data'),
       sbRpc('get_monthly_summary', {year_val: 2026}),
       sbRpc('get_expense_by_category', {year_val: 2026}),
-      sbGet('transactions', {select:'*', order:'date.desc,id.desc', limit:15}),
+      sbGet('transactions', {select:'*', order:'date.desc,id.desc', limit:10}),
       sbGet('fii_portfolio', {select:'*', order:'ticker.asc'}),
       sbGet('fixed_costs', {select:'*', order:'due_day.asc.nullslast,id.asc'}),
       sbGet('accounts', {select:'*', order:'bank.asc,type.asc'}),
