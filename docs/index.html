@@ -2321,6 +2321,27 @@ function enrichDescription(raw){
   // Operador Nacional → energia elétrica (CCEE)
   if(/Operador\s+Nacional/i.test(cleaned)) return 'Energia Elétrica (CCEE)';
 
+  // ── PADRÕES NUBANK CORRENTE CSV (descrições verbosas) ─────────────────
+  // "Transferência recebida pelo Pix - NOME - •••.XXX-XX - BANCO..."
+  m=cleaned.match(/Transfer[eê]ncia\s+recebida\s+pelo\s+Pix\s+-\s+(.+?)\s+-\s+[•\d]/i);
+  if(m) return 'PIX Recebido — '+toTitleCase(m[1].trim());
+  // "Transferência Recebida - NOME - •••..." (sem "pelo Pix")
+  m=cleaned.match(/Transfer[eê]ncia\s+Recebida\s+-\s+(.+?)\s+-\s+[•\d]/i);
+  if(m) return 'PIX Recebido — '+toTitleCase(m[1].trim());
+  // "Transferência enviada pelo Pix - NOME - •••..."
+  m=cleaned.match(/Transfer[eê]ncia\s+enviada\s+pelo\s+Pix\s+-\s+(.+?)\s+-\s+[•\d]/i);
+  if(m) return 'PIX Enviado — '+toTitleCase(m[1].trim());
+  // "Compra de FII - TICKER"
+  m=cleaned.match(/Compra\s+de\s+FII\s+-\s+(\w+)/i);
+  if(m) return 'Compra FII — '+m[1].toUpperCase();
+  // "Aplicação RDB"
+  if(/aplica[çc][ãa]o\s+rdb/i.test(cleaned)) return 'Aplicação Caixinha (RDB)';
+  // "Pagamento de boleto efetuado - DESTINATÁRIO"
+  m=cleaned.match(/Pagamento\s+de\s+boleto\s+efetuado\s+-\s+(.{2,60}?)(?:\s*$)/i);
+  if(m) return 'Boleto — '+toTitleCase(m[1].trim());
+  // "Crédito em conta"
+  if(/cr[eé]dito\s+em\s+conta/i.test(cleaned)) return 'Crédito em Conta';
+
   // ── PIX / TED GERAIS ──────────────────────────────────────────────────
   m=cleaned.match(/pix recebido de (.{3,50}?)(?:\s*[-·]\s*|\s+via\s|\s*$)/i);
   if(m) return 'PIX de '+toTitleCase(m[1].trim());
@@ -2354,6 +2375,8 @@ function toTitleCase(str){
 }
 
 function impAutoCategory(desc, type, nubankCat){
+  // Investimentos sempre → Investimentos
+  if(type==='investido') return 'Investimentos';
   // Usa categoria do próprio Nubank se disponível
   if(nubankCat){
     const mapped=NUBANK_CAT_MAP[nubankCat.toLowerCase().trim()];
@@ -2462,6 +2485,7 @@ async function parseCSVFile(file){
   const bank=document.getElementById('impBank').value;
   const accType=document.getElementById('impAccType').value;
   if(bank==='nubank') return parseNubankCSV(text, accType);
+  if(bank==='bradesco') return parseBradescoCSV(text, accType);
   return parseGenericCSV(text, accType);
 }
 
@@ -2511,14 +2535,61 @@ function parseNubankCSV(text, accType){
     const cols=parseCSVLine(lines[i]);
     if(cols.length<2) continue;
     const date=normalizeDate(cols[iDate>=0?iDate:0]);
-    const rawDesc=(cols[iDesc>=0?iDesc:1]||'').replace(/"/g,'').trim();
-    const rawAmt=(cols[iAmt>=0?iAmt:cols.length-1]||'0').replace(/"/g,'');
+    const rawDesc=(cols[iDesc>=0?iDesc:cols.length-1]||'').replace(/"/g,'').trim();
+    const rawAmt=(cols[iAmt>=0?iAmt:1]||'0').replace(/"/g,'');
     const amount=parseFloat(rawAmt.replace(',','.'));
     if(!date||isNaN(amount)||amount===0) continue;
-    const type=amount<0?'saida':'entrada';
+    // Determinar tipo considerando investimentos
+    let type=amount<0?'saida':'entrada';
+    let _caixinhaResgate=false;
+    if(/aplica[çc][ãa]o\s+rdb/i.test(rawDesc)){
+      type='investido';
+    } else if(/compra\s+de\s+fii/i.test(rawDesc)&&amount<0){
+      type='investido';
+    } else if(/resgate\s+rdb|resgate\s+caixinha/i.test(rawDesc)&&amount>0){
+      _caixinhaResgate=true;
+    }
     const desc=enrichDescription(rawDesc)||rawDesc;
-    rows.push({date,description:desc,amount:Math.abs(amount),type,
-      category:impAutoCategory(desc,type,null),account:'nubank'});
+    const row={date,description:desc,amount:Math.abs(amount),type,
+      category:impAutoCategory(desc,type,null),account};
+    if(_caixinhaResgate) row._caixinhaResgate=true;
+    rows.push(row);
+  }
+  return rows;
+}
+
+function parseBradescoCSV(text, accType){
+  // Extrato Bradesco delimitado por ponto-e-vírgula
+  // Colunas: Data;Histórico;Docto.;Crédito (R$);Débito (R$);Saldo (R$)
+  const NOISE=/^\s*(extrato\s+de|filtro\s+de|[úu]ltimos\s+lan|os\s+dados\s+acima|per[íi]odo\s*-|;{3,}|total\s*;)/i;
+  const parseBR=s=>{
+    const c=(s||'').replace(/\s/g,'');
+    if(!c) return 0;
+    return parseFloat(c.replace(/\./g,'').replace(',','.'))||0;
+  };
+  const lines=text.split('\n').map(l=>l.trim());
+  const rows=[];
+  const account=accType==='cartao'?'Cartão Bradesco':'Bradesco Conta Corrente';
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    if(!line||NOISE.test(line)) continue;
+    const cols=line.split(';').map(c=>c.trim());
+    if(cols.length<5) continue;
+    // Pular linhas de cabeçalho (Data;Histórico;...)
+    if(/^data$/i.test(cols[0])) continue;
+    const date=normalizeDate(cols[0]);
+    if(!date) continue;
+    const hist=(cols[1]||'').trim();
+    // Pular COD. LANC. 0
+    if(/^COD\.?\s*LANC/i.test(hist)) continue;
+    const cred=parseBR(cols[3]);
+    const deb=parseBR(cols[4]);
+    if(cred===0&&deb===0) continue;
+    const type=cred>0?'entrada':'saida';
+    const amount=cred>0?cred:deb;
+    const enriched=enrichDescription(hist)||hist;
+    rows.push({date,description:enriched,amount,type,
+      category:impAutoCategory(enriched,type,null),account});
   }
   return rows;
 }
@@ -2954,10 +3025,10 @@ function renderImportPreview(){
         ${impCatOptions(r.category)}
       </select></td>
       <td style="font-size:11px;color:var(--muted)">${r.account}</td>
-      <td style="text-align:right;font-weight:700" class="${r.type==='entrada'?'amt-green':'amt-red'}">
+      <td style="text-align:right;font-weight:700" class="${r.type==='entrada'?'amt-green':r.type==='investido'?'amt-purple':'amt-red'}">
         ${r.type==='entrada'?'+':'-'}${brl(r.amount)}
       </td>
-      <td><span class="type-badge type-${r.type}">${r.type==='entrada'?'↑ Entrada':'↓ Saída'}</span></td>
+      <td><span class="type-badge type-${r.type}">${r.type==='entrada'?'↑ Entrada':r.type==='investido'?'📈 Invest':'↓ Saída'}</span></td>
     </tr>`).join('');
 }
 
@@ -3070,7 +3141,7 @@ async function _executarImport(rows, skipDup){
       if(r.type==='entrada') totalEntradas+=r.amount;
       else totalSaidas+=r.amount;
       // Rastreia resgates da Caixinha para atualizar saldo automático
-      if(r._caixinhaResgate) totalCaixinhaResgate+=r._caixinhaResgate;
+      if(r._caixinhaResgate) totalCaixinhaResgate+=r.amount;
     }catch(e){ errSkipped++; }
   }
 
