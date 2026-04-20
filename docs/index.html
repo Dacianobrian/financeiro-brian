@@ -1070,6 +1070,14 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
             <div class="amt-red" style="font-size:16px;font-weight:700" id="impResSaidas">—</div>
           </div>
         </div>
+        <!-- Análise Inteligente -->
+        <div id="impAnalysePanel" style="display:none;margin-top:20px;text-align:left;border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--surface2)">
+          <div style="font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+            🔍 Análise Inteligente
+            <span id="impAnalyseBadge" style="font-size:11px;background:rgba(99,102,241,.25);color:#818cf8;border-radius:20px;padding:2px 8px;font-weight:600"></span>
+          </div>
+          <div id="impAnalyseBody"></div>
+        </div>
       </div>
     </div>
 
@@ -2931,7 +2939,7 @@ function parseBradescoCSV(text, accType){
     const amount=cred>0?cred:deb;
     const enriched=enrichDescription(hist)||hist;
     rows.push({date,description:enriched,amount,type,
-      category:impAutoCategory(enriched,type,null),account});
+      category:impAutoCategory(enriched,type,null),account,_rawDesc:hist});
   }
   return rows;
 }
@@ -3180,7 +3188,7 @@ async function parsePDF(file){
 
         const enriched=enrichDescription(desc)||desc;
         rows.push({date:lastDate,description:enriched,amount,type,
-          category:impAutoCategory(enriched,type,null),account:conta});
+          category:impAutoCategory(enriched,type,null),account:conta,_rawDesc:fullDesc});
         pendingDesc='';
 
       } else if(vals.length===0){
@@ -3288,7 +3296,8 @@ async function parsePDF(file){
 
     rows.push({date:blk.date, description:enriched, amount, type,
       category:impAutoCategory(enriched,type,null), account:conta,
-      _caixinhaResgate: isCaixinha&&type==='entrada' ? amount : 0});
+      _caixinhaResgate: isCaixinha&&type==='entrada' ? amount : 0,
+      _rawDesc: fullText});
   }
 
   if(!rows.length) throw new Error(
@@ -3425,6 +3434,254 @@ async function _importForcar(){
   await _executarImport(_impParsed, true);
 }
 
+// ══ ANÁLISE INTELIGENTE DE IMPORTAÇÃO ═════════════════════════════════════════
+
+const SUBSCRIPTION_PATTERNS=[
+  {re:/APPLE[.\s]*COM[.\s]*BILL|APPLECOMBILL/i,    name:'Apple',           emoji:'🍎', cat:'Software'},
+  {re:/ICLOUD/i,                                    name:'iCloud',          emoji:'☁️', cat:'Software'},
+  {re:/NETFLIX/i,                                   name:'Netflix',         emoji:'🎬', cat:'Streaming'},
+  {re:/SPOTIFY/i,                                   name:'Spotify',         emoji:'🎵', cat:'Streaming'},
+  {re:/AMAZON\s*PRIME|AMZN.*PRIME/i,               name:'Amazon Prime',    emoji:'📦', cat:'Streaming'},
+  {re:/DISNEY\s*\+|DISNEY\s*PLUS/i,                name:'Disney+',         emoji:'🏰', cat:'Streaming'},
+  {re:/HBO\s*MAX|MAX\.COM/i,                        name:'Max',             emoji:'🎭', cat:'Streaming'},
+  {re:/GLOBOPLAY/i,                                 name:'Globoplay',       emoji:'🌐', cat:'Streaming'},
+  {re:/DEEZER/i,                                    name:'Deezer',          emoji:'🎵', cat:'Streaming'},
+  {re:/YOUTUBE\s*PREMIUM|GOOGLE.*ONE|GOOGLE.*STORAGE/i, name:'Google One', emoji:'🔷', cat:'Software'},
+  {re:/MICROSOFT|OFFICE\s*365|XBOX\s*GAME/i,       name:'Microsoft',       emoji:'🪟', cat:'Software'},
+  {re:/ADOBE/i,                                     name:'Adobe',           emoji:'🎨', cat:'Software'},
+  {re:/CANVA/i,                                     name:'Canva',           emoji:'🎨', cat:'Software'},
+  {re:/CHATGPT|OPENAI/i,                            name:'ChatGPT',         emoji:'🤖', cat:'Software'},
+  {re:/ANTHROPIC|CLAUDE/i,                          name:'Claude AI',       emoji:'🤖', cat:'Software'},
+  {re:/DUOLINGO/i,                                  name:'Duolingo',        emoji:'🦜', cat:'Educação'},
+  {re:/WHATSAPP.*BUSINESS|WHATS.*BIZ/i,            name:'WhatsApp Business',emoji:'💬',cat:'Software'},
+  {re:/METLIFE/i,                                   name:'MetLife',         emoji:'🛡️', cat:'Seguro'},
+  {re:/SULAMERICA|SUL\s*AM[EÉ]RICA/i,              name:'SulAmérica',      emoji:'🛡️', cat:'Seguro'},
+  {re:/PORTO\s*SEGURO/i,                            name:'Porto Seguro',    emoji:'🛡️', cat:'Seguro'},
+  {re:/UNIMED|HAPVIDA|AMIL|NOTREDAME/i,            name:'Plano de Saúde',  emoji:'❤️‍🩹',cat:'Saúde'},
+  {re:/DROPBOX/i,                                   name:'Dropbox',         emoji:'📂', cat:'Software'},
+  {re:/GITHUB/i,                                    name:'GitHub',          emoji:'⚙️', cat:'Software'},
+  {re:/FIGMA/i,                                     name:'Figma',           emoji:'🎨', cat:'Software'},
+  {re:/NOTION/i,                                    name:'Notion',          emoji:'📝', cat:'Software'},
+  {re:/SLACK/i,                                     name:'Slack',           emoji:'💬', cat:'Software'},
+  {re:/ZOOM/i,                                      name:'Zoom',            emoji:'📹', cat:'Software'},
+];
+
+// Detecta padrão de parcela num texto bruto: "02/10" ou "E04/04"
+function extractInstallment(rawDesc){
+  if(!rawDesc) return null;
+  // Formato Bradesco fatura: E04/04 (E = parcela atual/total)
+  let m=rawDesc.match(/\bE(\d{2})\/(\d{2})\b/);
+  if(m){const cur=+m[1],tot=+m[2];if(cur>=1&&cur<=tot&&tot>=2) return{current:cur,total:tot};}
+  // Formato padrão: 02/10 (no final ou meio da descrição — evita confusão com datas)
+  // Aceita apenas quando primeiro número < segundo número (ex: 2/10, não 20/04)
+  m=rawDesc.match(/\b(\d{1,2})\/(\d{2})\b/g);
+  if(m){
+    for(const frag of m){
+      const [a,b]=frag.split('/').map(Number);
+      if(a>=1&&a<b&&b>=2&&b<=72) return{current:a,total:b};
+    }
+  }
+  return null;
+}
+
+// Analisa lote importado: detecta assinaturas e parcelamentos
+async function analyzeImport(rows, card){
+  const subCandidates=[], instCandidates=[], instUpdates=[], instCompleted=[];
+
+  // Carrega dados existentes do DB
+  const [existingSubs, existingInsts]=await Promise.all([
+    sbGet('subscriptions',{select:'id,name,amount,billing_day,card,active'}),
+    sbGet('installments',{select:'id,description,installment_amount,current_installment,total_installments,active',active:'eq.true'}),
+  ]);
+
+  const subNamesLc=new Set(existingSubs.map(s=>s.name.toLowerCase()));
+  const subCandNames=new Set();
+
+  for(const row of rows){
+    if(row.isDup) continue;  // skip duplicatas
+    const raw=((row._rawDesc||'')+' '+(row.description||'')).toUpperCase();
+
+    // ─── Assinaturas ───────────────────────────────────────────────────────
+    if(row.type==='saida'){
+      for(const pat of SUBSCRIPTION_PATTERNS){
+        if(pat.re.test(raw)){
+          if(!subNamesLc.has(pat.name.toLowerCase())&&!subCandNames.has(pat.name)){
+            subCandNames.add(pat.name);
+            // Extrai dia de vencimento do mês da data da transação
+            const billingDay=row.date?+row.date.substring(8,10):null;
+            subCandidates.push({name:pat.name,emoji:pat.emoji,cat:pat.cat,
+              amount:row.amount,card:card||'Bradesco',billing_day:billingDay});
+          }
+          break;
+        }
+      }
+
+      // ─── Parcelamentos ─────────────────────────────────────────────────
+      const inst=extractInstallment(row._rawDesc||'');
+      if(inst){
+        // Tenta bater com parcelamento existente (mesmo valor e parcela anterior)
+        const similar=existingInsts.find(ei=>
+          Math.abs((+ei.installment_amount)-(+row.amount))<0.10&&
+          +ei.current_installment===inst.current-1&&
+          +ei.total_installments===inst.total&&
+          +ei.active
+        );
+        if(similar){
+          const isLast=inst.current>=inst.total;
+          instUpdates.push({id:similar.id,desc:similar.description,
+            newCurrent:inst.current,total:inst.total,isLast});
+        } else {
+          // Verifica se esta parcela exata já existe (evita duplicata)
+          const exact=existingInsts.find(ei=>
+            Math.abs((+ei.installment_amount)-(+row.amount))<0.10&&
+            +ei.current_installment===inst.current&&
+            +ei.total_installments===inst.total
+          );
+          if(!exact){
+            // Novo parcelamento detectado
+            const descClean=row.description.replace(/\s+\d+\/\d+\s*$/,'').trim();
+            const isDup=instCandidates.some(c=>
+              Math.abs(c.installment_amount-row.amount)<0.10&&c.total_installments===inst.total);
+            if(!isDup){
+              instCandidates.push({description:descClean,installment_amount:row.amount,
+                current_installment:inst.current,total_installments:inst.total,
+                card:card||'Bradesco',emoji:'🛒',active:true});
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Auto-aplica avanços de parcelamento existentes
+  for(const upd of instUpdates){
+    try{
+      await sbPatch('installments',{id:`eq.${upd.id}`},{
+        current_installment:upd.newCurrent,
+        active:!upd.isLast,
+        updated_at:new Date().toISOString()
+      });
+      if(upd.isLast) instCompleted.push(upd);
+    }catch(e){}
+  }
+
+  return{subCandidates,instCandidates,instUpdates,instCompleted};
+}
+
+// Renderiza painel de análise inteligente no resultado
+async function renderAnalysePanel(result){
+  const panel=document.getElementById('impAnalysePanel');
+  const body=document.getElementById('impAnalyseBody');
+  const badge=document.getElementById('impAnalyseBadge');
+  if(!panel||!body||!result) return;
+
+  const{subCandidates,instCandidates,instUpdates,instCompleted}=result;
+  const total=subCandidates.length+instCandidates.length+instUpdates.length+instCompleted.length;
+  if(!total){ panel.style.display='none'; return; }
+
+  panel.style.display='';
+  badge.textContent=`${total} achado${total!==1?'s':''}`;
+
+  let html='';
+
+  // ── Parcelamentos avançados automaticamente ─────────────────────────
+  if(instUpdates.length){
+    html+=`<div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">📦 Parcelamentos Avançados</div>
+      ${instUpdates.map(u=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:rgba(16,185,129,.08);margin-bottom:6px">
+          <div style="flex:1;font-size:13px">${u.desc}</div>
+          <div style="font-size:12px;color:var(--muted)">${u.newCurrent}/${u.total}</div>
+          <div style="font-size:11px;background:rgba(16,185,129,.2);color:#34d399;border-radius:20px;padding:2px 8px">${u.isLast?'✅ Concluído':'✓ Avançado'}</div>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  // ── Novos parcelamentos detectados ──────────────────────────────────
+  if(instCandidates.length){
+    html+=`<div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">🆕 Parcelamentos Detectados</div>
+      ${instCandidates.map((c,i)=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:rgba(99,102,241,.08);margin-bottom:6px">
+          <div style="font-size:20px">${c.emoji}</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600">${c.description}</div>
+            <div style="font-size:11px;color:var(--muted)">${brl(c.installment_amount)}/mês · Parcela ${c.current_installment}/${c.total_installments} · ${c.card}</div>
+          </div>
+          <button onclick="_addInstCandidate(${i})" id="addInstBtn${i}"
+            style="font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid #818cf8;background:rgba(99,102,241,.15);color:#818cf8;cursor:pointer;font-weight:600">
+            + Adicionar
+          </button>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  // ── Assinaturas detectadas ──────────────────────────────────────────
+  if(subCandidates.length){
+    html+=`<div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">🔔 Assinaturas Detectadas</div>
+      ${subCandidates.map((c,i)=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:rgba(245,158,11,.08);margin-bottom:6px">
+          <div style="font-size:20px">${c.emoji}</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600">${c.name}</div>
+            <div style="font-size:11px;color:var(--muted)">${brl(c.amount)} · Dia ${c.billing_day||'?'} · ${c.card}</div>
+          </div>
+          <button onclick="_addSubCandidate(${i})" id="addSubBtn${i}"
+            style="font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid #f59e0b;background:rgba(245,158,11,.15);color:#f59e0b;cursor:pointer;font-weight:600">
+            + Adicionar
+          </button>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  body.innerHTML=html;
+
+  // Armazena candidates para os botões usarem
+  window._impSubCandidates=subCandidates;
+  window._impInstCandidates=instCandidates;
+}
+
+// Adiciona assinatura candidata ao DB
+async function _addSubCandidate(i){
+  const c=window._impSubCandidates[i];
+  if(!c) return;
+  const btn=document.getElementById('addSubBtn'+i);
+  if(btn){btn.disabled=true;btn.textContent='⏳';}
+  try{
+    await sbPost('subscriptions',{
+      name:c.name,emoji:c.emoji,category:c.cat,
+      amount:c.amount,card:c.card,
+      billing_day:c.billing_day||null,active:true
+    });
+    if(btn){btn.textContent='✓ Adicionada';btn.style.color='#34d399';btn.style.borderColor='#34d399';}
+    refreshDashboard();
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='Erro!';btn.style.color='#f87171';}
+  }
+}
+
+// Adiciona parcelamento candidato ao DB
+async function _addInstCandidate(i){
+  const c=window._impInstCandidates[i];
+  if(!c) return;
+  const btn=document.getElementById('addInstBtn'+i);
+  if(btn){btn.disabled=true;btn.textContent='⏳';}
+  try{
+    await sbPost('installments',{
+      description:c.description,emoji:c.emoji,
+      installment_amount:c.installment_amount,
+      current_installment:c.current_installment,
+      total_installments:c.total_installments,
+      card:c.card,active:true
+    });
+    if(btn){btn.textContent='✓ Adicionado';btn.style.color='#34d399';btn.style.borderColor='#34d399';}
+    refreshDashboard();
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='Erro!';btn.style.color='#f87171';}
+  }
+}
+
 // ══ NÚCLEO DE IMPORTAÇÃO ═══════════════════════════════════════════════════════
 // skipDup=false → dedup apenas dentro do lote (mesmo arquivo, não duplica linha igual)
 // skipDup=true  → força inserção de tudo (ignora banco)
@@ -3514,6 +3771,15 @@ async function _executarImport(rows, skipDup){
   if(btnFL) btnFL.style.display='none';
 
   impGoStep(3);
+
+  // ── Análise Inteligente (assinaturas + parcelamentos) ─────────────────────
+  try{
+    const impBank=document.getElementById('impBank')?.value||'bradesco';
+    const impAccType=document.getElementById('impAccType')?.value||'cartao';
+    const card=impAccType==='cartao'?(impBank==='bradesco'?'Bradesco':'Nubank'):null;
+    const analysis=await analyzeImport(rows, card);
+    await renderAnalysePanel(analysis);
+  }catch(e){ console.warn('analyzeImport err',e); }
 
   // Auto-refresh do dashboard completo
   if(imported>0){
