@@ -517,20 +517,48 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
           <button onclick="relMesNav(1)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;">Próximo mês →</button>
         </div>
       </div>
-      <div class="grid g4" id="relMesKpis">
-        <div class="kpi"><div class="kpi-label">Entradas</div><div class="kpi-value amt-green" id="relEnt">R$ 0,00</div><div class="kpi-var" id="relEntVar" style="font-size:11px;margin-top:4px"></div></div>
-        <div class="kpi"><div class="kpi-label">Saídas</div><div class="kpi-value amt-red" id="relSai">R$ 0,00</div><div class="kpi-var" id="relSaiVar" style="font-size:11px;margin-top:4px"></div></div>
-        <div class="kpi"><div class="kpi-label">Saldo do Mês</div><div class="kpi-value" id="relSaldo">R$ 0,00</div><div class="kpi-var" id="relSaldoVar" style="font-size:11px;margin-top:4px"></div></div>
-        <div class="kpi"><div class="kpi-label">Investido</div><div class="kpi-value" style="color:#a78bfa" id="relInv">R$ 0,00</div><div class="kpi-var" id="relInvVar" style="font-size:11px;margin-top:4px"></div></div>
+      <!-- KPIs linha 1: 5 indicadores -->
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px" id="relMesKpis">
+        <div class="card" style="padding:14px;background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.25)">
+          <div class="kpi-label" style="color:var(--muted)">💚 Entradas</div>
+          <div class="kpi-value amt-green" id="relEnt" style="font-size:20px">R$ 0,00</div>
+          <div id="relEntVar" style="font-size:11px;margin-top:4px;color:var(--muted)"></div>
+        </div>
+        <div class="card" style="padding:14px;background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.25)">
+          <div class="kpi-label" style="color:var(--muted)">🔴 Saídas</div>
+          <div class="kpi-value amt-red" id="relSai" style="font-size:20px">R$ 0,00</div>
+          <div id="relSaiVar" style="font-size:11px;margin-top:4px;color:var(--muted)"></div>
+        </div>
+        <div class="card" style="padding:14px">
+          <div class="kpi-label" style="color:var(--muted)">⚖️ Saldo</div>
+          <div class="kpi-value" id="relSaldo" style="font-size:20px">R$ 0,00</div>
+          <div id="relSaldoVar" style="font-size:11px;margin-top:4px;color:var(--muted)"></div>
+        </div>
+        <div class="card" style="padding:14px;background:rgba(139,92,246,.07);border-color:rgba(139,92,246,.25)">
+          <div class="kpi-label" style="color:var(--muted)">📈 Investido</div>
+          <div class="kpi-value" style="color:#a78bfa;font-size:20px" id="relInv">R$ 0,00</div>
+          <div id="relInvVar" style="font-size:11px;margin-top:4px;color:var(--muted)"></div>
+        </div>
+        <div class="card" style="padding:14px;background:rgba(99,102,241,.07);border-color:rgba(99,102,241,.25)">
+          <div class="kpi-label" style="color:var(--muted)">🎯 Taxa Poupança</div>
+          <div class="kpi-value" style="color:var(--blue2);font-size:20px" id="relTaxa">0%</div>
+          <div id="relTaxaVar" style="font-size:11px;margin-top:4px;color:var(--muted)"></div>
+        </div>
       </div>
-      <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+      <!-- Gráfico últimos 4 meses + detalhes -->
+      <div style="margin-top:14px;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px;align-items:start">
         <div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Top Categorias de Gasto</div>
-          <div id="relTopCats" style="display:flex;flex-direction:column;gap:6px"></div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">📊 Evolução — Últimos 4 meses</div>
+          <canvas id="relMesChart" height="160" style="width:100%"></canvas>
         </div>
         <div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Resumo por Conta</div>
-          <div id="relContas" style="display:flex;flex-direction:column;gap:6px"></div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">🔴 Top Categorias de Gasto</div>
+          <div id="relTopCats" style="display:flex;flex-direction:column;gap:5px"></div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">🏦 Resumo por Conta</div>
+          <div id="relContas" style="display:flex;flex-direction:column;gap:5px"></div>
         </div>
       </div>
     </div>
@@ -1170,7 +1198,16 @@ function fillAccounts(accounts, patrimonio){
     const key=a.bank.toLowerCase();
     const st=bankStyle[key]||{bg:'rgba(99,102,241,.12)',border:'rgba(99,102,241,.3)',color:'#6366f1',label:a.bank,dot:'#6366f1'};
     const ico=typeIcon[a.type.toLowerCase()]||'🏦';
-    const upd=a.updated_at?a.updated_at.slice(0,10):'—';
+    const updRaw=a.updated_at?a.updated_at.slice(0,10):'';
+    let upd='—';
+    if(updRaw){
+      const today=todayStr();
+      const yest=new Date();yest.setDate(yest.getDate()-1);
+      const yesterdayStr=yest.toISOString().slice(0,10);
+      if(updRaw===today) upd='hoje';
+      else if(updRaw===yesterdayStr) upd='ontem';
+      else{ const [y,mo,d]=updRaw.split('-'); upd=`${d}/${mo}/${y}`; }
+    }
     return`<div class="card" style="border:1px solid ${st.border};background:${st.bg}"><div class="kpi-label" style="margin-bottom:8px"><span class="kpi-icon" style="background:${st.bg}">${ico}</span><span style="color:${st.color};font-weight:600;font-size:11px">${st.label}</span></div><div style="font-size:11px;color:var(--muted2);font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">${a.type}</div><div class="kpi-value" style="color:${st.color};font-size:22px">${brl(a.balance)}</div><div class="kpi-sub" style="margin-top:4px">atualizado ${upd}</div></div>`;
   }).join('');
   if(patrimonio){
@@ -1517,69 +1554,119 @@ function relMesNav(delta){
   fillRelatorioMes();
 }
 
+let _relMesChartInst=null;
+
 async function fillRelatorioMes(){
   const hoje=new Date();
   const alvo=new Date(hoje.getFullYear(), hoje.getMonth()+_relMesOffset, 1);
   const ant=new Date(alvo.getFullYear(), alvo.getMonth()-1, 1);
-  const fmtMY=d=>{
-    const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-    return meses[d.getMonth()]+' '+d.getFullYear();
-  };
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const mesesFull=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const fmtMY=d=>mesesFull[d.getMonth()]+' '+d.getFullYear();
   const mesYmd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
   const ultDia=d=>new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
-  const startAlvo=`${mesYmd(alvo)}-01`;
-  const endAlvo=`${mesYmd(alvo)}-${String(ultDia(alvo)).padStart(2,'0')}`;
-  const startAnt=`${mesYmd(ant)}-01`;
-  const endAnt=`${mesYmd(ant)}-${String(ultDia(ant)).padStart(2,'0')}`;
 
   document.getElementById('relMesLabel').textContent=fmtMY(alvo);
 
+  // Gera últimos 4 meses incluindo o alvo
+  const blocos=[];
+  for(let i=3;i>=0;i--){
+    const d=new Date(alvo.getFullYear(), alvo.getMonth()-i, 1);
+    blocos.push({
+      d,
+      label:`${meses[d.getMonth()]}/${d.getFullYear().toString().slice(2)}`,
+      start:`${mesYmd(d)}-01`,
+      end:`${mesYmd(d)}-${String(ultDia(d)).padStart(2,'0')}`
+    });
+  }
+  const startGlobal=blocos[0].start;
+  const endGlobal=blocos[3].end;
+
   try{
-    const [txAlvo, txAnt] = await Promise.all([
-      sbGet('transactions',{select:'*',date:`gte.${startAlvo}`,limit:1000}).then(r=>r.filter(t=>t.date<=endAlvo)),
-      sbGet('transactions',{select:'*',date:`gte.${startAnt}`,limit:1000}).then(r=>r.filter(t=>t.date<=endAnt))
-    ]);
+    // Busca todos os 4 meses de uma vez
+    const allTx=await sbGet('transactions',{select:'*',date:`gte.${startGlobal}`,limit:2000})
+      .then(r=>r.filter(t=>t.date<=endGlobal));
 
-    const soma=(arr,tipo)=>arr.filter(t=>t.type===tipo).reduce((s,t)=>s+(+t.amount||0),0);
-    const entA=soma(txAlvo,'entrada'), saiA=soma(txAlvo,'saida'), invA=soma(txAlvo,'investimento');
-    const entP=soma(txAnt,'entrada'), saiP=soma(txAnt,'saida'), invP=soma(txAnt,'investimento');
-    const saldoA=entA-saiA-invA, saldoP=entP-saiP-invP;
+    const soma=(arr,tipo)=>arr.filter(t=>t.type===tipo||t.type===(tipo==='investido'?'investimento':'')).reduce((s,t)=>s+(+t.amount||0),0);
+    const somaInv=(arr)=>arr.filter(t=>t.type==='investido'||t.type==='investimento').reduce((s,t)=>s+(+t.amount||0),0);
 
-    document.getElementById('relEnt').textContent=brl(entA);
-    document.getElementById('relSai').textContent=brl(saiA);
-    document.getElementById('relSaldo').textContent=brl(saldoA);
-    document.getElementById('relSaldo').className='kpi-value '+(saldoA>=0?'amt-green':'amt-red');
-    document.getElementById('relInv').textContent=brl(invA);
+    // Calcula por bloco
+    const dadosBlocos=blocos.map(b=>{
+      const tx=allTx.filter(t=>t.date>=b.start&&t.date<=b.end);
+      const ent=soma(tx,'entrada'), sai=soma(tx,'saida'), inv=somaInv(tx);
+      return {label:b.label, ent, sai, inv, saldo:ent-sai-inv};
+    });
 
-    const variacao=(atual,ant,reverse=false)=>{
-      if(!ant) return '';
-      const pct=((atual-ant)/ant)*100;
+    const [b3,b2,b1,b0]=dadosBlocos; // b0=alvo, b1=anterior
+    const taxa=(b0.ent>0)?Math.max(0,((b0.ent-b0.sai)/b0.ent)*100):0;
+    const taxaP=(b1.ent>0)?Math.max(0,((b1.ent-b1.sai)/b1.ent)*100):0;
+
+    // KPIs
+    document.getElementById('relEnt').textContent=brl(b0.ent);
+    document.getElementById('relSai').textContent=brl(b0.sai);
+    document.getElementById('relSaldo').textContent=brl(b0.saldo);
+    document.getElementById('relSaldo').style.color=b0.saldo>=0?'var(--green)':'var(--red)';
+    document.getElementById('relInv').textContent=brl(b0.inv);
+    document.getElementById('relTaxa').textContent=taxa.toFixed(1)+'%';
+    document.getElementById('relTaxa').style.color=taxa>=20?'var(--green)':taxa>=10?'var(--yellow)':'var(--red)';
+
+    const var_=(cur,prv,rev=false)=>{
+      if(!prv) return '';
+      const pct=((cur-prv)/prv)*100;
       const up=pct>=0;
-      const color=reverse?(up?'var(--red)':'var(--green)'):(up?'var(--green)':'var(--red)');
-      return `<span style="color:${color}">${up?'▲':'▼'} ${Math.abs(pct).toFixed(1)}%</span> vs ${brl(ant)}`;
+      const clr=rev?(up?'var(--red)':'var(--green)'):(up?'var(--green)':'var(--red)');
+      return `<span style="color:${clr}">${up?'▲':'▼'} ${Math.abs(pct).toFixed(1)}%</span> vs ${brl(prv)}`;
     };
-    document.getElementById('relEntVar').innerHTML=variacao(entA,entP);
-    document.getElementById('relSaiVar').innerHTML=variacao(saiA,saiP,true);
-    document.getElementById('relSaldoVar').innerHTML=variacao(saldoA,saldoP);
-    document.getElementById('relInvVar').innerHTML=variacao(invA,invP);
+    document.getElementById('relEntVar').innerHTML=var_(b0.ent,b1.ent);
+    document.getElementById('relSaiVar').innerHTML=var_(b0.sai,b1.sai,true);
+    document.getElementById('relSaldoVar').innerHTML=var_(b0.saldo,b1.saldo);
+    document.getElementById('relInvVar').innerHTML=var_(b0.inv,b1.inv);
+    document.getElementById('relTaxaVar').innerHTML=taxaP>0?`<span style="color:var(--muted)">Anterior: ${taxaP.toFixed(1)}%</span>`:'';
 
-    // Top categorias de gasto
+    // ── Gráfico barras: últimos 4 meses ───────────────────────────────
+    const canvas=document.getElementById('relMesChart');
+    if(_relMesChartInst){_relMesChartInst.destroy();_relMesChartInst=null;}
+    if(canvas&&typeof Chart!=='undefined'){
+      _relMesChartInst=new Chart(canvas,{
+        type:'bar',
+        data:{
+          labels:dadosBlocos.map(b=>b.label),
+          datasets:[
+            {label:'Entradas',data:dadosBlocos.map(b=>b.ent),backgroundColor:'rgba(16,185,129,.7)',borderRadius:5},
+            {label:'Saídas',data:dadosBlocos.map(b=>b.sai),backgroundColor:'rgba(239,68,68,.65)',borderRadius:5},
+            {label:'Investido',data:dadosBlocos.map(b=>b.inv),backgroundColor:'rgba(139,92,246,.65)',borderRadius:5}
+          ]
+        },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{labels:{color:'#94a3b8',font:{size:11},boxWidth:10}},tooltip:{callbacks:{label:ctx=>' '+brl(ctx.raw)}}},
+          scales:{
+            x:{ticks:{color:'#64748b',font:{size:11}},grid:{display:false}},
+            y:{ticks:{color:'#64748b',font:{size:10},callback:v=>v>=1000?'R$'+(v/1000).toFixed(0)+'k':'R$'+v},grid:{color:'rgba(255,255,255,.04)'}}
+          }
+        }
+      });
+    }
+
+    // ── Top categorias de gasto ───────────────────────────────────────
+    const txAlvo=allTx.filter(t=>t.date>=blocos[3].start&&t.date<=blocos[3].end);
     const byCat={};
     txAlvo.filter(t=>t.type==='saida').forEach(t=>{
       const c=t.category||'Outros';
       byCat[c]=(byCat[c]||0)+(+t.amount||0);
     });
-    const topCats=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    const totalSai=saiA||1;
+    const topCats=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    const totalSai=b0.sai||1;
     document.getElementById('relTopCats').innerHTML=topCats.length?topCats.map(([c,v])=>{
       const pct=(v/totalSai)*100;
-      return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
-        <span>${c}</span>
-        <span style="font-weight:700;color:var(--red)">${brl(v)} <span style="color:var(--muted);font-weight:400;font-size:11px">(${pct.toFixed(1)}%)</span></span>
+      const bar=`<div style="height:3px;background:rgba(239,68,68,.4);border-radius:2px;margin-top:4px"><div style="width:${Math.min(pct,100)}%;height:100%;background:var(--red);border-radius:2px"></div></div>`;
+      return `<div style="font-size:12px;padding:6px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text)">${c}</span><span style="font-weight:700;color:var(--red)">${brl(v)}</span></div>
+        <div style="color:var(--muted);font-size:10px;margin-top:1px">${pct.toFixed(1)}% das saídas</div>${bar}
       </div>`;
     }).join(''):'<div style="color:var(--muted);font-size:12px">Sem gastos no mês</div>';
 
-    // Por conta
+    // ── Resumo por conta ──────────────────────────────────────────────
     const byAcc={};
     txAlvo.forEach(t=>{
       const a=t.account||'—';
@@ -1589,15 +1676,17 @@ async function fillRelatorioMes(){
     });
     const accEntries=Object.entries(byAcc).sort((a,b)=>(b[1].ent+b[1].sai)-(a[1].ent+a[1].sai));
     document.getElementById('relContas').innerHTML=accEntries.length?accEntries.map(([a,v])=>{
-      return `<div style="font-size:12px;padding:6px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
-        <div style="font-weight:700;margin-bottom:3px">${a}</div>
-        <div style="display:flex;justify-content:space-between;color:var(--muted)">
+      const liq=v.ent-v.sai;
+      return `<div style="font-size:12px;padding:7px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
+        <div style="font-weight:600;margin-bottom:4px;color:var(--muted2)">${a}</div>
+        <div style="display:flex;justify-content:space-between">
           <span class="amt-green">+${brl(v.ent)}</span>
           <span class="amt-red">-${brl(v.sai)}</span>
-          <span style="font-weight:700;color:${v.ent-v.sai>=0?'var(--green)':'var(--red)'}">= ${brl(v.ent-v.sai)}</span>
+          <span style="font-weight:700;color:${liq>=0?'var(--green)':'var(--red)'}">=${brl(liq)}</span>
         </div>
       </div>`;
     }).join(''):'<div style="color:var(--muted);font-size:12px">Sem movimentação</div>';
+
   }catch(e){console.error('Relatório mensal erro:',e)}
 }
 
@@ -1794,7 +1883,7 @@ async function parseCommand(cmd){
     else{if(parts.length<3)return{success:false,message:'Uso: conta [nubank|bradesco|caixinha] [valor]'};name=parts.slice(1,-1).join(' ');valStr=parts[parts.length-1]}
     let balance;try{balance=parseBrValue(valStr)}catch(e){return{success:false,message:e.message}}
     const rows=await sbGet('accounts',{name:`ilike.*${name}*`,select:'id'});
-    if(rows.length){await sbPatch('accounts',{id:`eq.${rows[0].id}`},{balance});return{success:true,message:`Conta '${name}' atualizada para ${brl(balance)}.`}}
+    if(rows.length){await sbPatch('accounts',{id:`eq.${rows[0].id}`},{balance,updated_at:new Date().toISOString()});return{success:true,message:`Conta '${name}' atualizada para ${brl(balance)}.`}}
     return{success:false,message:`Conta '${name}' não encontrada.`};
   }
 
