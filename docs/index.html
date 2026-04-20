@@ -2094,8 +2094,11 @@ const IMP_CATS_SAIDA = [
   [/rentab\.?\s*invest|facilcred|aplicação.?automática|aplic\s+auto|invest\.?\s*facil/i,'Investimentos'],
   [/fatura.?cartão|fatura.?nubank|fatura.?bradesco|pagto.?cartao|pagamento.?cartao/i,'Cartão Bradesco'],
   [/pix\s+qr\s+code|qr\s+code.?din[âa]mico|qr\s+code.?est[áa]tico/i,'Transferência'],
-  [/operador\s+nacional|tef\b|ted\s+eletr/i,'Transferência'],
-  [/des:?\s/i,'Outros'],
+  [/operador\s+nacional|tef\b|ted\s+eletr/i,'Utilidades'],
+  [/energia\s+el[eé]trica|ccee|aneel/i,'Moradia'],
+  [/titulo\s+de\s+capitaliz|capitaliz/i,'Poupança'],
+  [/fatura\s+cart[aã]o\s+bradesco|gastos\s+cart[aã]o/i,'Cartão Bradesco'],
+  [/des:?\s|pix\s+enviado|pix\s+→/i,'Transferência'],
   // Alimentação — mercados
   [/mercado|supermercado|hipermercado|atacado|atacadão|carrefour|extra |pão de açúcar|hortifruti|hiper |feira|verdurão|quitanda|sacolão|oba hortifruti|st marche|prezunic|assaí|makro|coop |bretas|fort atacadista/i,'Alimentação'],
   // Alimentação — delivery
@@ -2141,8 +2144,8 @@ const IMP_CATS_SAIDA = [
 // ── Categorias de ENTRADA — 15+ padrões ───────────────────────────────────
 const IMP_CATS_ENTRADA = [
   // ── BRADESCO específicos (prioridade alta) ──
-  [/^rem:?\s|remunera[çc][ãa]o/i,'Salário'],
-  [/rentab\.?\s*invest|facilcred|resgate.?aplica[çc]|resgate.?invest/i,'Rendimentos'],
+  [/pix\s+recebido|rem:?\s|remunera[çc][ãa]o/i,'Transferência'],
+  [/rentab\.?\s*invest|facilcred|resgate.?aplica[çc]|resgate.?invest|rendimento\s+facilcred/i,'Rendimentos'],
   // ── padrões gerais ──
   [/salário|salario|pagamento.?(?:empresa|func|empregador)|vencimento|folha.?pagamento|holerite|prolabore|pro.?labore/i,'Salário'],
   [/dividendo|rendimento.?(?:fii|fundo)|provento|fii\b|fundo.?imob/i,'Dividendos FII'],
@@ -2187,23 +2190,42 @@ function enrichDescription(raw){
     .replace(/\s+\d{2}\.\d{3}\.\d{3}\/?\d{4}-?\d{2}\s*/g,' ') // CNPJ formatado
     .trim();
 
-  // ── PADRÕES BRADESCO ESPECÍFICOS ──────────────────────────────────────
-  // REM: Nome  → Remuneração/Salário recebido
-  let m=cleaned.match(/^REM:?\s*(.{3,60}?)(?:\s+\d|$)/i);
-  if(m) return 'Remuneração — '+toTitleCase(m[1].trim());
-  // Rem: CNPJ Empresa
-  m=cleaned.match(/^Rem:?\s*(?:[\d.\/-]+\s+)?(.{3,60}?)(?:\s+\d|$)/i);
-  if(m) return 'Transferência — '+toTitleCase(m[1].trim());
-  // RENTAB.INVEST / FACILCRED → Resgate/aplicação em investimento
-  if(/RENTAB\.?\s*INVEST/i.test(cleaned)) return 'Rentabilidade Investimento';
-  if(/FACILCRED/i.test(cleaned)) return 'FacilCred — Bradesco';
-  // DES: → Desconto
-  m=cleaned.match(/^Des:?\s*(.{3,60}?)(?:\s+\d|$)/i);
-  if(m) return 'Desconto — '+toTitleCase(m[1].trim());
-  // TED / DOC específicos do Bradesco
-  if(/Operador\s+Nacional/i.test(cleaned)) return 'TED Operador Nacional';
-  // Pix Qr Code Dinâmico / Estático
-  if(/Pix\s+Qr\s+Code/i.test(cleaned)) return 'Pagamento via PIX QR Code';
+  // ── PADRÕES BRADESCO — TRANSFERENCIA PIX REM/DES ─────────────────────
+  // "TRANSFERENCIA PIX REM: Nome" → recebemos (entrada)
+  let m=cleaned.match(/TRANSFERENCIA\s+PIX\s+REM:?\s*(.{2,50}?)(?:\s*$)/i);
+  if(m) return 'PIX Recebido — '+toTitleCase(m[1].trim());
+  // "TRANSFERENCIA PIX DES: Nome" → enviamos (saída)
+  m=cleaned.match(/TRANSFERENCIA\s+PIX\s+DES:?\s*(.{2,50}?)(?:\s*$)/i);
+  if(m) return 'PIX Enviado — '+toTitleCase(m[1].trim());
+  // "PIX QR CODE DINAMICO DES: Estabelecimento"
+  m=cleaned.match(/PIX\s+QR\s+CODE[^D]*DES:?\s*(.{2,50}?)(?:\s*$)/i);
+  if(m) return 'PIX QR Code — '+toTitleCase(m[1].trim());
+  // PIX QR Code genérico
+  if(/PIX\s+QR\s+CODE|QR\s+CODE\s+DIN[ÂA]MICO/i.test(cleaned)) return 'Pagamento PIX QR Code';
+  // REM: isolado (sem TRANSFERENCIA PIX antes)
+  m=cleaned.match(/(?:^|\s)REM:?\s*(.{2,50}?)(?:\s*$)/i);
+  if(m) return 'PIX Recebido — '+toTitleCase(m[1].trim());
+  // DES: isolado
+  m=cleaned.match(/(?:^|\s)DES:?\s*(.{2,50}?)(?:\s*$)/i);
+  if(m) return 'PIX Enviado — '+toTitleCase(m[1].trim());
+  // RENTAB.INVEST / FACILCRED → rendimento diário
+  if(/RENTAB\.?\s*INVEST|FACILCRED/i.test(cleaned)) return 'Rendimento FacilCred Bradesco';
+  // PAGTO ELETRON COBRANCA → pagamento de boleto/conta
+  m=cleaned.match(/PAGTO\s+ELETRON\s+COBRAN[CÇ]A\s+(.{2,50}?)(?:\s*$)/i);
+  if(m) return 'Pagamento — '+toTitleCase(m[1].replace(/\bS\.?\/?\s*A\.?\s*$/i,'').trim());
+  if(/PAGTO\s+ELETRON|PAGAMENTO\s+ELETRON/i.test(cleaned)) return 'Pagamento Eletrônico';
+  // GASTOS CARTAO DE CREDITO
+  if(/GASTOS\s+CART[AÃ]O\s+DE\s+CR[EÉ]DITO/i.test(cleaned)) return 'Fatura Cartão Bradesco';
+  // TITULO DE CAPITALIZACAO
+  if(/TITULO\s+DE\s+CAPITALIZ/i.test(cleaned)) return 'Título de Capitalização';
+  // COMPRA ELO/VISA/MASTER DEBITO VISTA
+  m=cleaned.match(/COMPRA\s+(?:ELO|VISA|MASTER)\s+DEBITO\s+VISTA\s+(.{2,50}?)(?:\s*$)/i);
+  if(m) return 'Débito — '+toTitleCase(m[1].replace(/\*/g,' ').trim());
+  // CONTA DE TELEFONE
+  m=cleaned.match(/CONTA\s+DE\s+TELEFONE\s+(.{2,50}?)(?:\s*$)/i);
+  if(m) return 'Telefone — '+toTitleCase(m[1].replace(/\bMOVEL\b/i,'Móvel').replace(/-\d+/,'').trim());
+  // Operador Nacional → energia elétrica (CCEE)
+  if(/Operador\s+Nacional/i.test(cleaned)) return 'Energia Elétrica (CCEE)';
 
   // ── PIX / TED GERAIS ──────────────────────────────────────────────────
   m=cleaned.match(/pix recebido de (.{3,50}?)(?:\s*[-·]\s*|\s+via\s|\s*$)/i);
@@ -2494,7 +2516,7 @@ async function parsePDF(file){
   const accType=document.getElementById('impAccType').value;
   const buf=await file.arrayBuffer();
   const pdf=await pdfjsLib.getDocument({data:buf}).promise;
-  const conta=accType==='cartao'?(bank==='nubank'?'cartão nubank':'cartão bradesco'):(bank==='nubank'?'nubank':'bradesco');
+  const conta=accType==='cartao'?(bank==='nubank'?'Cartão Nubank':'Cartão Bradesco'):(bank==='nubank'?'Nubank Conta Corrente':'Bradesco Conta Corrente');
 
   // ── Extrai linhas de TODAS as páginas mantendo coordenadas X,Y ───────
   const pageLines=[];
@@ -2567,53 +2589,86 @@ async function parsePDF(file){
   const rows=[];
 
   // ══════════════════════════════════════════════════════════════════════
-  // BRADESCO — cada linha de transação tem padrão: VALOR D|C SALDO
-  // Formato: HISTORICO  [DD/MM/AAAA]  [DOC]  VALOR  D/C  SALDO
+  // BRADESCO CELULAR — Colunas: Data | Histórico (multi-linha) | Docto | Crédito | Débito | Saldo
+  // Sem marcadores D/C — usa REM: (remetente=entrada) e DES: (destinatário=saída)
+  // Descrições ocupam 2 linhas: linha1="TRANSFERENCIA PIX", linha2="DES: Nome DD/MM DOC VALOR SALDO"
   // ══════════════════════════════════════════════════════════════════════
   if(bank==='bradesco'){
-    // Regex que detecta: valor D saldo OU valor C saldo (marcadores Bradesco)
-    const BR_TXN=/(\d{1,3}(?:\.\d{3})*,\d{2})\s+([DC])\s+(\d{1,3}(?:\.\d{3})*,\d{2})/;
+    const NOISE_BR=/^\s*(total\s|subtotal|per[íi]odo\s|extrato\s+de|agência|cpf:|cnpj:|folha\s*:|data\s+hist|hist[oó]rico\s+docto|emiss[ãa]o|movimenta[çc]|bradesco\s+celular|nome:|data:\s*\d)/i;
+    const ENTRADA_BR=/(^|\s)REM:?\s|rentab\.?\s*invest|facilcred|estorno|reembolso|devolu[çc]/i;
+    const SAIDA_BR=/(^|\s)DES:?\s|pagto\s+eletron|pagamento\s+eletron|gastos\s+cart[aã]o|titulo\s+de\s+capital|compra\s+elo|compra\s+visa|compra\s+master|conta\s+de\s+telefone|saque\b|tarifa\b|anuidade/i;
+
     let lastDate=null;
+    let pendingDesc=''; // linha de desc sem valores (ex: "TRANSFERENCIA PIX")
 
-    for(const ln of pageLines){
+    for(let i=0;i<pageLines.length;i++){
+      const ln=pageLines[i];
       const t=ln.text;
-      if(NOISE.test(t)) continue;
+      if(NOISE_BR.test(t)){pendingDesc='';continue;}
 
-      // Detecta linha de transação Bradesco pelo padrão VALOR D/C SALDO
-      const dcMatch=t.match(BR_TXN);
-      if(!dcMatch) continue;
-
-      const valueStr=dcMatch[1];
-      const dc=dcMatch[2]; // D=débito(saída) C=crédito(entrada)
-      const amount=parseFloat(valueStr.replace(/\./g,'').replace(',','.'));
-      if(!amount||amount<=0) continue;
-
-      // Detecta data na linha — pode ser DD/MM/YYYY ou DD/MM
-      let date=null;
-      const dm=t.match(DATE_ANY);
-      if(dm) date=parseBrDate(dm[1]);
-      if(!date){
-        const dm2=t.match(DATE_SHORT);
-        if(dm2) date=parseBrDate(dm2[1]);
+      // Detecta data no início da linha (coluna Data do extrato)
+      const dateStartM=t.match(/^(\d{2}\/\d{2}\/\d{4})\s*(.*)/);
+      let lineRest=t;
+      if(dateStartM){
+        lastDate=parseBrDate(dateStartM[1]);
+        lineRest=dateStartM[2]||'';
       }
-      if(date) lastDate=date;
-      if(!lastDate) continue; // nunca tivemos uma data, pular
 
-      const type=dc==='D'?'saida':'entrada';
+      // Conta valores monetários: VALOR_RE = \d{1,3}(.\d{3})*,\d{2}
+      const vals=[...t.matchAll(VALOR_RE)].map(m=>m[1]);
 
-      // Descrição: tudo antes do valor
-      let desc=t.substring(0, t.indexOf(valueStr)).trim();
-      // Remove data e doc number da descrição
-      desc=desc.replace(DATE_ANY,'').replace(DATE_SHORT,'').replace(/\b\d{5,}\b/g,'').replace(/\s+/g,' ').trim();
-      desc=limpDesc(desc)||'Transação Bradesco';
+      if(vals.length>=2){
+        // Linha de transação: penúltimo valor = montante, último = saldo corrente
+        const amtStr=vals[vals.length-2];
+        const amount=parseFloat(amtStr.replace(/\./g,'').replace(',','.'));
+        if(!amount||amount<=0||!lastDate){pendingDesc='';continue;}
 
-      const enriched=enrichDescription(desc)||desc;
-      rows.push({date:lastDate,description:enriched,amount,type,
-        category:impAutoCategory(enriched,type,null),account:conta});
+        // Descrição completa = linha-descrição-anterior + linha-atual
+        const fullDesc=(pendingDesc?pendingDesc+' ':'')+t;
+
+        // Determina tipo: REM → entrada, DES → saída, fallback por keywords
+        let type;
+        if(ENTRADA_BR.test(fullDesc)) type='entrada';
+        else if(SAIDA_BR.test(fullDesc)) type='saida';
+        else type='saida'; // padrão conservador
+
+        // Limpa a descrição: remove data do início, datas internas DD/MM, doctos (5-8 dígitos), valores
+        let desc=fullDesc
+          .replace(/^\d{2}\/\d{2}\/\d{4}\s*/,'')   // data início
+          .replace(VALOR_RE,'')                       // valores monetários
+          .replace(/\b\d{2}\/\d{2}\b/g,'')           // datas internas DD/MM (data de orig. do pix)
+          .replace(/\b0{4,}\d{1,4}\b/g,'')           // doctos tipo 0000073
+          .replace(/\b\d{6,8}\b/g,'')                // doctos numéricos longos
+          .replace(/\b\d{2}\.\d{3}\.\d{3}\/?\d*-?\d*\b/g,'') // CNPJ parcial/completo
+          .replace(/\b\d{3}\.\d{3}\.\d{3}-?\d{0,2}\b/g,'')   // CPF
+          .replace(/\s{2,}/g,' ').trim();
+        desc=limpDesc(desc);
+        desc=desc.replace(/^[·\-•:;,.\s]+|[·\-•:;,.\s]+$/g,'').trim();
+        if(!desc||desc.length<2) desc='Transação Bradesco';
+
+        const enriched=enrichDescription(desc)||desc;
+        rows.push({date:lastDate,description:enriched,amount,type,
+          category:impAutoCategory(enriched,type,null),account:conta});
+        pendingDesc='';
+
+      } else if(vals.length===0){
+        // Linha sem valores monetários = parte da descrição (ex: "TRANSFERENCIA PIX")
+        const clean=(lineRest||t).trim();
+        if(clean&&!/^(cod\.?\s*lanc|total\b|saldo\b|folha\b|data\b|histórico\b|docto\b|crédito\b|débito\b)/i.test(clean)){
+          pendingDesc=clean;
+        } else {
+          pendingDesc='';
+        }
+      } else {
+        // 1 valor (ex: apenas saldo inicial) — incorpora na desc pendente
+        const clean=(lineRest||t).trim();
+        if(!/^cod\.?\s*lanc/i.test(clean)) pendingDesc=(pendingDesc+' '+clean).trim();
+        else pendingDesc='';
+      }
     }
 
     if(rows.length) return rows;
-    // Se não achou padrão D/C, cai no parser genérico abaixo
+    // fallback para parser genérico se não encontrou nada
   }
 
   // ══════════════════════════════════════════════════════════════════════
