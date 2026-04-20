@@ -566,9 +566,9 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
     </div>
   </div>
 
-  <!-- Transações + Custos Fixos -->
+  <!-- Transações + Custos Fixos + Assinaturas -->
   <div class="section">
-    <div class="grid g2">
+    <div class="grid g3">
       <div class="card">
         <div class="section-header" style="margin-bottom:10px">
           <div class="section-title">Últimas Transações</div>
@@ -595,21 +595,17 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
           <tbody id="tblCustos"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
         </table></div>
       </div>
-    </div>
-  </div>
-
-  <!-- Assinaturas -->
-  <div class="section">
-    <div class="card">
-      <div class="section-header" style="margin-bottom:14px">
-        <div class="section-title">📱 Assinaturas</div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <div id="subsTotalLabel" style="font-size:13px;font-weight:700;color:var(--red)"></div>
-          <button onclick="openSubModal()" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;">＋ Adicionar</button>
+      <div class="card">
+        <div class="section-header" style="margin-bottom:14px">
+          <div class="section-title">📱 Assinaturas</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div id="subsTotalLabel" style="font-size:13px;font-weight:700;color:var(--red)"></div>
+            <button onclick="openSubModal()" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;">＋ Adicionar</button>
+          </div>
         </div>
-      </div>
-      <div id="subsGrid" style="display:flex;flex-wrap:wrap;gap:10px">
-        <div style="color:var(--muted);font-size:13px">Carregando...</div>
+        <div id="subsGrid" style="display:flex;flex-direction:column;gap:8px">
+          <div style="color:var(--muted);font-size:13px">Carregando...</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1559,13 +1555,14 @@ function fillSubscriptions(rows){
   grid.innerHTML=rows.map(r=>{
     const c=SUB_CARD_COLORS[r.card]||{bg:'rgba(99,102,241,.12)',border:'rgba(99,102,241,.3)',color:'#818cf8',label:r.card||'—'};
     return`<div onclick="openSubModal(${JSON.stringify(r).replace(/"/g,'&quot;')})"
-      style="cursor:pointer;background:${c.bg};border:1px solid ${c.border};border-radius:12px;padding:12px 14px;min-width:150px;max-width:190px;flex:1;transition:.15s"
+      style="cursor:pointer;display:flex;align-items:center;gap:10px;background:${c.bg};border:1px solid ${c.border};border-radius:10px;padding:9px 12px;transition:.15s"
       onmouseenter="this.style.filter='brightness(1.15)'" onmouseleave="this.style.filter=''">
-      <div style="font-size:26px;margin-bottom:6px">${r.emoji||'📱'}</div>
-      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px">${r.name}</div>
-      <div style="font-size:15px;font-weight:800;color:${c.color};margin-bottom:6px">${brl(r.amount)}<span style="font-size:10px;font-weight:400;opacity:.7">/mês</span></div>
-      <div style="font-size:10px;font-weight:600;background:${c.bg};border:1px solid ${c.border};color:${c.color};border-radius:5px;padding:2px 7px;display:inline-block;margin-bottom:4px">${c.label}</div>
-      ${r.billing_day?`<div style="font-size:10px;color:var(--muted);margin-top:3px">💳 dia ${r.billing_day}</div>`:''}
+      <div style="font-size:22px;flex-shrink:0">${r.emoji||'📱'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.name}</div>
+        <div style="font-size:10px;font-weight:600;color:${c.color};margin-top:1px">${c.label}${r.billing_day?` · dia ${r.billing_day}`:''}</div>
+      </div>
+      <div style="font-size:13px;font-weight:800;color:${c.color};flex-shrink:0">${brl(r.amount)}</div>
     </div>`;
   }).join('');
 }
