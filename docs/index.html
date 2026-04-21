@@ -226,13 +226,13 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .proj-sumcard-label{font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--muted);margin-bottom:5px}
 .proj-sumcard-val{font-size:20px;font-weight:800;letter-spacing:-.5px;line-height:1}
 .proj-sumcard-sub{font-size:10px;color:var(--muted2);margin-top:4px}
-.proj-timeline{display:flex;flex-direction:column;gap:6px}
+.proj-timeline{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;align-items:start}
 .proj-week-card{border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .15s}
 .proj-week-card:hover{border-color:var(--border2)}
 .proj-week-head{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none}
 .proj-week-head:hover{background:rgba(255,255,255,.02)}
-.proj-week-title{font-size:12px;font-weight:600;color:var(--text);flex:1}
-.proj-week-period{font-size:10px;color:var(--muted);font-weight:400}
+.proj-week-title{font-size:12px;font-weight:600;color:var(--text);flex:1;line-height:1.4}
+.proj-week-period{display:block;font-size:10px;color:var(--muted);font-weight:400;margin-top:1px}
 .proj-week-balance{font-size:12px;font-weight:700;padding:2px 10px;border-radius:20px;white-space:nowrap}
 .proj-week-balance-pos{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.2);color:#4ade80}
 .proj-week-balance-neg{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.2);color:#fb7185}
@@ -729,14 +729,8 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(139,92,246,.15)">📈</span>Investido</div><div class="kpi-value amt-purple" id="kpiInvestido">—</div><div class="kpi-sub">mês atual</div></div>
     </div>
   </div>
-  <div class="grid g4" style="margin-top:14px">
-    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🏢</span>Portfolio FII</div><div class="kpi-value amt-yellow" id="kpiFii">—</div><div class="kpi-sub" id="kpiFiiSub">valor de mercado</div></div>
-    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💸</span>Dividendos / Mês</div><div class="kpi-value amt-green" id="kpiDiv">—</div><div class="kpi-sub">renda passiva estimada</div></div>
-    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Total Investido</div><div class="kpi-value" style="color:var(--cyan)" id="kpiInv">—</div><div class="kpi-sub">Caixinha + FIIs</div></div>
-    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🎯</span>Meta Reserva · Dez/2027</div><div class="kpi-value amt-yellow" id="kpiMeta">—</div><div class="progress"><div class="progress-fill" id="kpiMetaBar" style="width:0%;background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div><div class="kpi-sub" id="kpiMetaSub">de R$ 60.000</div></div>
-  </div>
 
-  <!-- Projeção de Caixa Futuro -->
+  <!-- Projeção de Caixa — movida para logo após os KPIs principais -->
   <div class="section" style="margin-top:14px">
     <div class="card" style="padding:18px 20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
@@ -754,7 +748,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       <div id="fluxoGrid" class="proj-summary">
         <div style="color:var(--muted);font-size:12px;grid-column:1/-1">Carregando...</div>
       </div>
-      <!-- Timeline semanal -->
+      <!-- Timeline em colunas -->
       <div id="projTimeline" class="proj-timeline"></div>
       <!-- Saldo projetado no final -->
       <div id="projSaldoLine" style="display:none" class="proj-cumul">
@@ -762,7 +756,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
         <span id="projSaldoVal" class="proj-cumul-val"></span>
       </div>
 
-      <!-- ── Previsões Manuais (unificado aqui) ─────────────────────────── -->
+      <!-- ── Previsões Manuais ─────────────────────────────────────────── -->
       <div class="prev-section">
         <div class="prev-header">
           <span class="prev-title">📋 Previsões Manuais <span class="prev-count" id="prevCount">0 pendentes</span></span>
@@ -785,6 +779,13 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   <div class="section" style="margin-top:14px">
     <div class="section-header" style="margin-bottom:12px"><div class="section-title">💼 Contas &amp; Patrimônio</div></div>
     <div class="grid g4" id="accountsGrid"><div class="card" style="opacity:.4">carregando...</div></div>
+  </div>
+
+  <div class="grid g4" style="margin-top:14px">
+    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🏢</span>Portfolio FII</div><div class="kpi-value amt-yellow" id="kpiFii">—</div><div class="kpi-sub" id="kpiFiiSub">valor de mercado</div></div>
+    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💸</span>Dividendos / Mês</div><div class="kpi-value amt-green" id="kpiDiv">—</div><div class="kpi-sub">renda passiva estimada</div></div>
+    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Total Investido</div><div class="kpi-value" style="color:var(--cyan)" id="kpiInv">—</div><div class="kpi-sub">Caixinha + FIIs</div></div>
+    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🎯</span>Meta Reserva · Dez/2027</div><div class="kpi-value amt-yellow" id="kpiMeta">—</div><div class="progress"><div class="progress-fill" id="kpiMetaBar" style="width:0%;background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div><div class="kpi-sub" id="kpiMetaSub">de R$ 60.000</div></div>
   </div>
 
   <!-- IDs mantidos para não quebrar o JS que ainda atualiza estes elementos -->
@@ -1789,7 +1790,7 @@ function _renderProjecao(dias){
     return `<div class="proj-week-card">
       <div class="proj-week-head" onclick="(function(el){const b=el.closest('.proj-week-card').querySelector('.proj-items');b.style.maxHeight=b.style.maxHeight?'':'2000px';el.querySelector('.proj-week-toggle').textContent=b.style.maxHeight?'▲':'▼'})(this)">
         <div>
-          <div class="proj-week-title">${wLabel} <span class="proj-week-period">· ${periodLabel}</span></div>
+          <div class="proj-week-title">${wLabel}<span class="proj-week-period">${periodLabel}</span></div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
           ${w.wItems.length>0?`<span class="proj-week-balance ${balCls}">${wNet>=0?'+':''}${brl(wNet)}</span>`:''}
