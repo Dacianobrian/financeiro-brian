@@ -790,6 +790,10 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
             <span class="inv10-sub-label">Valor investido</span>
             <span class="inv10-sub-val" id="inv10ValorInv">—</span>
           </div>
+          <div class="inv10-sub">
+            <span class="inv10-sub-label">Variação hoje</span>
+            <span class="inv10-sub-val" id="inv10Hoje">—</span>
+          </div>
         </div>
       </div>
 
@@ -909,6 +913,20 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
     </div>
   </div>
 
+  <!-- Row 3.5: Proventos -->
+  <div class="section">
+    <div class="card">
+      <div class="section-header" style="margin-bottom:12px">
+        <div class="section-title">📅 Proventos</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="invProvHoje" style="font-size:11px;background:rgba(16,185,129,.1);color:var(--green);border-radius:20px;padding:2px 10px;font-weight:600"></span>
+          <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="refreshProventos()">⟳ Atualizar</button>
+        </div>
+      </div>
+      <div id="invProventosPanel" style="font-size:13px;color:var(--muted);text-align:center;padding:16px">Aguardando cotações...</div>
+    </div>
+  </div>
+
   <!-- Row 4: Renda Fixa -->
   <div class="section">
     <div class="card">
@@ -921,14 +939,28 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
           <div>
             <div style="font-weight:700;font-size:14px">Caixinha Nubank</div>
             <div style="display:flex;gap:6px;margin-top:4px">
-              <span style="background:rgba(130,10,209,.2);color:#c084fc;border:1px solid rgba(130,10,209,.3);border-radius:5px;padding:1px 8px;font-size:10px;font-weight:700">100% CDI</span>
+              <span id="invRfCdiBadge" style="background:rgba(130,10,209,.2);color:#c084fc;border:1px solid rgba(130,10,209,.3);border-radius:5px;padding:1px 8px;font-size:10px;font-weight:700">100% CDI</span>
               <span style="background:rgba(16,185,129,.1);color:var(--green);border-radius:5px;padding:1px 8px;font-size:10px;font-weight:700">Liquidez Diária</span>
             </div>
           </div>
         </div>
         <div style="text-align:right">
           <div style="font-size:22px;font-weight:800;color:#c084fc" id="invRfBalance">—</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px">saldo atualizado</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">saldo atual</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px">
+        <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Rend. Hoje</div>
+          <div style="font-size:14px;font-weight:700;color:#c084fc" id="invRfDaily">—</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Rend. Mês est.</div>
+          <div style="font-size:14px;font-weight:700;color:#c084fc" id="invRfMonthly">—</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Rend. Ano est.</div>
+          <div style="font-size:14px;font-weight:700;color:#c084fc" id="invRfAnnual">—</div>
         </div>
       </div>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
@@ -1413,9 +1445,9 @@ async function fetchFiiQuotes(tickers){
         change: r.regularMarketChangePercent || 0,
         dy: r.dividendYield || 0,
         dividends: (r.dividendsData?.cashDividends || [])
-          .filter(d => d.paymentDate && new Date(d.paymentDate) >= new Date())
+          .filter(d => { if(!d.paymentDate) return false; const ago90=new Date(); ago90.setDate(ago90.getDate()-90); return new Date(d.paymentDate)>=ago90; })
           .sort((a,b) => new Date(a.paymentDate)-new Date(b.paymentDate))
-          .slice(0,3)
+          .slice(0,18)
       };
     });
     localStorage.setItem(FII_CACHE_KEY, JSON.stringify({data, ts: Date.now()}));
@@ -1555,6 +1587,15 @@ function fillInvFii(rows, quotes, accounts, monthly, divTxs){
   if(elRfBal) elRfBal.textContent=brl(caixVal);
   if(elRfTot) elRfTot.textContent=brl(caixVal);
 
+  // Variação hoje (FIIs)
+  if(quotes){
+    let todayPL=0;
+    rows.forEach(f=>{const q=quotes[f.ticker];if(q?.change&&q?.price) todayPL+=(+(f.shares||0))*q.price*(q.change/100);});
+    const elHoje=document.getElementById('inv10Hoje');
+    if(elHoje){elHoje.textContent=(todayPL>=0?'+':'')+brl(Math.abs(todayPL));elHoje.className='inv10-sub-val '+(todayPL>=0?'amt-green':'amt-red');}
+    if(caixVal>0) fillCaixinhaMetrics(caixVal);
+  }
+
   // Last updated
   const lu=document.getElementById('invFiiUpdated');
   if(lu&&quotes){
@@ -1606,6 +1647,144 @@ function fillInvFii(rows, quotes, accounts, monthly, divTxs){
     <td class="amt-green">${pct(avgDy)}</td>
     <td class="amt-green">${brl(totalRenda)}</td>
     <td style="color:var(--muted2);font-size:11px">100%</td>`;
+}
+
+// ── CDI / Caixinha rendimento ───────────────────────────────────────────────
+async function fetchCDI(){
+  const KEY='cdi_cache_v1',TTL=6*3600*1000;
+  try{const raw=localStorage.getItem(KEY);if(raw){const{data,ts}=JSON.parse(raw);if(Date.now()-ts<TTL)return data;}}catch(e){}
+  try{
+    const r=await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.4391/dados/ultimos/1?formato=json');
+    if(!r.ok) throw new Error();
+    const j=await r.json();
+    const cdi=+(j[0]?.valor?.replace(',','.')||0);
+    if(cdi>0){localStorage.setItem(KEY,JSON.stringify({data:cdi,ts:Date.now()}));return cdi;}
+  }catch(e){}
+  return 10.65; // fallback
+}
+
+async function fillCaixinhaMetrics(balance){
+  if(!balance) return;
+  const cdi=await fetchCDI();
+  if(!cdi) return;
+  const daily=balance*(Math.pow(1+cdi/100,1/252)-1);
+  const monthly=balance*(Math.pow(1+cdi/100,1/12)-1);
+  const annual=balance*(cdi/100);
+  const el=id=>document.getElementById(id);
+  const badge=el('invRfCdiBadge');
+  if(badge) badge.textContent=`CDI ${cdi.toFixed(2)}% a.a.`;
+  if(el('invRfDaily')) el('invRfDaily').textContent=brl(daily);
+  if(el('invRfMonthly')) el('invRfMonthly').textContent=brl(monthly);
+  if(el('invRfAnnual')) el('invRfAnnual').textContent=brl(annual);
+}
+
+// ── Proventos (agenda + histórico + lançamento) ────────────────────────────
+async function fillProventos(fiiRows, quotes, existingDivTxs){
+  const panel=document.getElementById('invProventosPanel');
+  if(!panel||!fiiRows||!quotes) return;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const todayStr=today.toISOString().substring(0,10);
+
+  const allDivs=[];
+  for(const f of fiiRows){
+    const q=quotes[f.ticker];
+    if(!q?.dividends?.length) continue;
+    const shares=+(f.shares||0);
+    for(const d of q.dividends){
+      if(!d.paymentDate||!d.rate) continue;
+      const total=shares*(+(d.rate||0));
+      if(total<0.01) continue;
+      allDivs.push({ticker:f.ticker,paymentDate:d.paymentDate.substring(0,10),
+        rate:+(d.rate||0),total,shares,isPast:d.paymentDate.substring(0,10)<=todayStr});
+    }
+  }
+  allDivs.sort((a,b)=>b.paymentDate.localeCompare(a.paymentDate));
+
+  const past=allDivs.filter(d=>d.isPast);
+  const upcoming=allDivs.filter(d=>!d.isPast).sort((a,b)=>a.paymentDate.localeCompare(b.paymentDate));
+
+  // Quais já foram lançados no sistema
+  const divSet=new Set((existingDivTxs||_divTxs||[]).map(t=>`${t.date}_${(+(t.amount||0)).toFixed(2)}`));
+
+  // Badge "hoje"
+  const totalHoje=past.filter(d=>d.paymentDate===todayStr).reduce((s,d)=>s+d.total,0);
+  const provHoje=document.getElementById('invProvHoje');
+  if(provHoje) provHoje.textContent=totalHoje>0?`+${brl(totalHoje)} hoje`:'';
+
+  if(!allDivs.length){
+    panel.innerHTML=`<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">Nenhum dado de proventos encontrado.<br><span style="font-size:11px;opacity:.7">Verifique o token brapi.dev ou aguarde a próxima atualização.</span></div>`;
+    return;
+  }
+
+  let html='';
+
+  if(upcoming.length){
+    const totalFut=upcoming.reduce((s,d)=>s+d.total,0);
+    html+=`<div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase">📆 Próximos Proventos</div>
+        <span style="font-size:12px;font-weight:700;color:var(--green)">Total estimado: ${brl(totalFut)}</span>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Ativo</th><th>Data Pagto</th><th style="text-align:right">R$/cota</th><th style="text-align:right">Total estimado</th></tr></thead>
+        <tbody>${upcoming.map(d=>`<tr>
+          <td><span style="font-weight:700;color:var(--blue2)">${d.ticker}</span></td>
+          <td style="color:var(--muted)">${fmtDate(d.paymentDate)}</td>
+          <td style="text-align:right;color:var(--muted2)">${d.rate.toFixed(4)}</td>
+          <td style="text-align:right;font-weight:700;color:var(--green)">${brl(d.total)}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+    </div>`;
+  }
+
+  if(past.length){
+    const totalPast=past.reduce((s,d)=>s+d.total,0);
+    html+=`<div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase">✅ Recebidos (últimos 90 dias)</div>
+        <span style="font-size:12px;font-weight:700;color:var(--green)">${brl(totalPast)}</span>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Ativo</th><th>Data Pagto</th><th style="text-align:right">R$/cota</th><th style="text-align:right">Total</th><th>Status</th></tr></thead>
+        <tbody>${past.map((d,i)=>{
+          const key=`${d.paymentDate}_${d.total.toFixed(2)}`;
+          const jaLancado=divSet.has(key);
+          const btn=jaLancado
+            ?`<span style="font-size:11px;color:var(--green)">✓ Lançado</span>`
+            :`<button onclick="_lanciarProvento(${i})" id="provBtn${i}" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--green);background:rgba(16,185,129,.1);color:var(--green);cursor:pointer;font-weight:600">+ Lançar</button>`;
+          return`<tr>
+            <td><span style="font-weight:700;color:var(--blue2)">${d.ticker}</span></td>
+            <td style="color:var(--muted)">${fmtDate(d.paymentDate)}</td>
+            <td style="text-align:right;color:var(--muted2)">${d.rate.toFixed(4)}</td>
+            <td style="text-align:right;font-weight:700;color:var(--green)">${brl(d.total)}</td>
+            <td>${btn}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>
+    </div>`;
+  }
+
+  panel.innerHTML=html;
+  window._provDivs=past;
+}
+
+async function _lanciarProvento(i){
+  const d=window._provDivs?.[i];
+  if(!d) return;
+  const btn=document.getElementById('provBtn'+i);
+  if(btn){btn.disabled=true;btn.textContent='⏳';}
+  try{
+    const desc=`Provento ${d.ticker}`;
+    await sbPost('transactions',{date:d.paymentDate,description:desc,amount:d.total,
+      type:'entrada',category:'FII — Dividendos',account:'Nubank Conta Corrente'});
+    if(btn){btn.textContent='✓ Lançado';btn.style.color='var(--green)';btn.style.borderColor='var(--green)';}
+    _divTxs.push({date:d.paymentDate,amount:d.total,description:desc});
+    refreshDashboard();
+  }catch(e){if(btn){btn.disabled=false;btn.textContent='Erro!';}}
+}
+
+async function refreshProventos(){
+  if(_invFiiRows?.length&&_invQuotes) await fillProventos(_invFiiRows,_invQuotes,_divTxs);
 }
 
 function loadInvTab(rows, quotes, accounts){
@@ -1898,6 +2077,7 @@ async function refreshDashboard(){
         _invQuotes = quotes;
         fillInvFii(fii, quotes, accounts, monthly, divTxs);
         buildInvCharts(fii, quotes);
+        fillProventos(fii, quotes, divTxs).catch(()=>{});
       }
     }).catch(()=>{});
     _lastRefreshTs=Date.now();
