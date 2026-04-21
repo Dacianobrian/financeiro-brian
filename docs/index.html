@@ -260,6 +260,46 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .proj-cumul{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface2);border-top:1px solid var(--border);margin-top:10px;border-radius:0 0 12px 12px}
 .proj-cumul-label{font-size:11px;color:var(--muted2);font-weight:500}
 .proj-cumul-val{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+/* ── Previsões unificadas (dentro do card projeção) ──────────────────────── */
+.prev-section{border-top:2px solid var(--border);margin-top:14px;padding-top:14px}
+.prev-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.prev-title{font-size:11px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:7px}
+.prev-count{font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1px 7px;color:var(--muted2);font-weight:500}
+.prev-actions{display:flex;gap:5px}
+.prev-tabs{display:flex;gap:4px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px}
+.prev-tab{font-size:11px;padding:4px 11px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);cursor:pointer;transition:.15s;white-space:nowrap;flex-shrink:0}
+.prev-tab:hover{border-color:var(--border2);color:var(--text)}
+.prev-tab.active{background:rgba(56,189,248,.12);border-color:rgba(56,189,248,.3);color:var(--blue2);font-weight:600}
+.prev-tab.tab-in.active{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#4ade80}
+.prev-tab.tab-out.active{background:rgba(244,63,94,.09);border-color:rgba(244,63,94,.3);color:#fb7185}
+.prev-tab.tab-done.active{background:rgba(255,255,255,.05);border-color:var(--border2);color:var(--muted2)}
+.prev-empty{padding:18px 0;text-align:center;font-size:12px;color:var(--muted);font-style:italic}
+.prev-item{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,.03);transition:.1s}
+.prev-item:last-child{border-bottom:none}
+.prev-item:hover{background:rgba(255,255,255,.015);border-radius:8px}
+.prev-bar{width:3px;height:34px;border-radius:2px;flex-shrink:0}
+.prev-check{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.15s}
+.prev-info{flex:1;min-width:0}
+.prev-desc{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.prev-meta{font-size:10.5px;color:var(--muted);margin-top:2px;display:flex;gap:5px;flex-wrap:nowrap;overflow:hidden;align-items:center}
+.prev-val{font-size:13px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;flex-shrink:0}
+.prev-btns{display:flex;gap:2px;flex-shrink:0;opacity:.25;transition:.2s}
+.prev-item:hover .prev-btns{opacity:1}
+/* ── Card cashflow no tab Investimentos ──────────────────────────────────── */
+.inv-cf-card{border-radius:14px;border:1px solid var(--border);overflow:hidden;margin-top:0}
+.inv-cf-header{padding:14px 18px 10px;display:flex;align-items:center;justify-content:space-between}
+.inv-cf-title{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.inv-cf-row{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-top:1px solid rgba(255,255,255,.04)}
+.inv-cf-label{font-size:11px;color:var(--muted2)}
+.inv-cf-val{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.inv-cf-result{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-top:1px solid var(--border);background:var(--surface2)}
+.inv-cf-result-label{font-size:11px;color:var(--text);font-weight:600}
+.inv-cf-result-val{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.inv-cf-items{padding:0 18px 10px;display:flex;flex-direction:column;gap:0}
+.inv-cf-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:11.5px}
+.inv-cf-item:last-child{border-bottom:none}
+.inv-cf-item-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.kpi-saldo-upcoming{font-size:10px;color:var(--muted2);margin-top:4px;display:flex;align-items:center;gap:5px}
 
 /* ── Banner de Vencimentos ───────────────────────────────── */
 #notifBanner{position:sticky;top:60px;z-index:190;display:none;flex-direction:column;gap:0;border-bottom:1px solid rgba(251,191,36,.2)}
@@ -683,7 +723,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   </div>
   <div class="section">
     <div class="grid g4" id="kpiGrid">
-      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(99,102,241,.15)">🏦</span>Saldo em Conta</div><div class="kpi-value" id="kpiSaldo">—</div><div class="kpi-sub" id="kpiSaldoSub">Nubank + Bradesco</div></div>
+      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(99,102,241,.15)">🏦</span>Saldo em Conta</div><div class="kpi-value" id="kpiSaldo">—</div><div class="kpi-sub" id="kpiSaldoSub">Nubank + Bradesco</div><div class="kpi-saldo-upcoming" id="kpiUpcoming" style="display:none"><span id="kpiUpcomingTxt"></span></div></div>
       <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Entradas</div><div class="kpi-value amt-green" id="kpiEntradas">—</div><div class="kpi-sub">mês atual</div></div>
       <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(239,68,68,.15)">📤</span>Saídas</div><div class="kpi-value amt-red" id="kpiSaidas">—</div><div class="kpi-sub">mês atual</div></div>
       <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(139,92,246,.15)">📈</span>Investido</div><div class="kpi-value amt-purple" id="kpiInvestido">—</div><div class="kpi-sub">mês atual</div></div>
@@ -708,8 +748,6 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           <button onclick="_fillFluxo(30)" id="fluxoBtn30" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid rgba(56,189,248,.3);background:linear-gradient(135deg,#0284c7,#2dd4bf);color:#fff;cursor:pointer;font-weight:600">30d</button>
           <button onclick="_fillFluxo(60)" id="fluxoBtn60" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);cursor:pointer">60d</button>
           <button onclick="_fillFluxo(90)" id="fluxoBtn90" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);cursor:pointer">90d</button>
-          <button onclick="openPlanModal('entrada')" title="Nova receita prevista" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.1);color:#4ade80;cursor:pointer;font-weight:600">＋ Receita</button>
-          <button onclick="openPlanModal('saida')" title="Nova despesa prevista" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid rgba(244,63,94,.3);background:rgba(244,63,94,.08);color:#fb7185;cursor:pointer;font-weight:600">＋ Despesa</button>
         </div>
       </div>
       <!-- Resumo -->
@@ -722,6 +760,24 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       <div id="projSaldoLine" style="display:none" class="proj-cumul">
         <span class="proj-cumul-label">Impacto no saldo em <span id="projSaldoData"></span></span>
         <span id="projSaldoVal" class="proj-cumul-val"></span>
+      </div>
+
+      <!-- ── Previsões Manuais (unificado aqui) ─────────────────────────── -->
+      <div class="prev-section">
+        <div class="prev-header">
+          <span class="prev-title">📋 Previsões Manuais <span class="prev-count" id="prevCount">0 pendentes</span></span>
+          <div class="prev-actions">
+            <button onclick="openPlanModal('entrada')" style="font-size:11px;padding:4px 11px;border-radius:20px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.09);color:#4ade80;cursor:pointer;font-weight:600">＋ Receita</button>
+            <button onclick="openPlanModal('saida')" style="font-size:11px;padding:4px 11px;border-radius:20px;border:1px solid rgba(244,63,94,.3);background:rgba(244,63,94,.08);color:#fb7185;cursor:pointer;font-weight:600">＋ Despesa</button>
+          </div>
+        </div>
+        <div class="prev-tabs">
+          <button id="prevTabAll"  class="prev-tab active"   onclick="_setPrevTab('all')">Todas</button>
+          <button id="prevTabIn"   class="prev-tab tab-in"   onclick="_setPrevTab('entrada')">↑ Receitas</button>
+          <button id="prevTabOut"  class="prev-tab tab-out"  onclick="_setPrevTab('saida')">↓ Despesas</button>
+          <button id="prevTabDone" class="prev-tab tab-done" onclick="_setPrevTab('confirmed')">✓ Confirmadas</button>
+        </div>
+        <div id="prevList"><div class="prev-empty">Nenhuma previsão cadastrada.</div></div>
       </div>
     </div>
   </div>
@@ -1205,6 +1261,32 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:12px;color:var(--muted)">Total Renda Fixa</span>
         <span id="invRfTotal" style="font-size:16px;font-weight:800;color:#c084fc">—</span>
+      </div>
+    </div>
+  </div>
+  <!-- Card: Caixa Disponível para Investir -->
+  <div class="section">
+    <div class="card inv-cf-card" style="padding:0">
+      <div class="inv-cf-header">
+        <span class="inv-cf-title"><span style="font-size:18px">💸</span> Caixa Disponível para Investir</span>
+        <span style="font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:var(--blue2);font-weight:600">30 DIAS</span>
+      </div>
+      <div class="inv-cf-row">
+        <span class="inv-cf-label">💳 Saldo em conta corrente</span>
+        <span class="inv-cf-val" id="invCfSaldo" style="color:var(--text)">—</span>
+      </div>
+      <div class="inv-cf-row">
+        <span class="inv-cf-label">📤 Saídas previstas (30d)</span>
+        <span class="inv-cf-val" id="invCfSaidas" style="color:var(--red)">—</span>
+      </div>
+      <div class="inv-cf-row">
+        <span class="inv-cf-label">📥 Receitas previstas (30d)</span>
+        <span class="inv-cf-val" id="invCfEntradas" style="color:var(--green)">—</span>
+      </div>
+      <div id="invCfItems" class="inv-cf-items"></div>
+      <div class="inv-cf-result">
+        <span class="inv-cf-result-label">⚡ Disponível para investir</span>
+        <span class="inv-cf-result-val" id="invCfDisponivel">—</span>
       </div>
     </div>
   </div>
@@ -1746,6 +1828,64 @@ function _renderProjecao(dias){
 
 // Alias para manter compatibilidade
 const _renderFluxo=(dias)=>_renderProjecao(dias);
+
+// ── Cashflow para aba Investimentos + sub-métrica no KPI ─────────────────────
+function _fillInvCashflow(){
+  if(!_fluxoData||!_invAccounts) return;
+  const {fixedCosts,subs,insts,planned}=_fluxoData;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const limit=new Date(today); limit.setDate(today.getDate()+30);
+
+  // Reutiliza a mesma lógica de coleta da projeção
+  const items=[];
+  const _addM=(label,amt,day,source)=>{
+    let d=new Date(today.getFullYear(),today.getMonth(),+day);
+    if(d<today) d=new Date(today.getFullYear(),today.getMonth()+1,+day);
+    if(d<=limit) items.push({label,amt,date:new Date(d),source});
+  };
+  (fixedCosts||[]).forEach(c=>{ if(c.amount&&c.due_day) _addM(c.description,-(+c.amount),c.due_day,'fix'); });
+  (subs||[]).forEach(s=>{ if(s.amount&&s.billing_day) _addM(`${s.emoji||''}${s.name}`,-(+s.amount),s.billing_day,'sub'); });
+  (insts||[]).forEach(i=>{ if(i.installment_amount) _addM(i.description,-(+i.installment_amount),(fixedCosts||[]).find(c=>c.due_day&&/fatura/i.test(c.description||''))?.due_day||10,'inst'); });
+  (planned||[]).forEach(p=>{
+    if(!p.amount||p.confirmed) return;
+    const sign=p.type==='entrada'?+(+p.amount):-(+p.amount);
+    if(p.recorrente&&p.recorrencia_dia){ _addM(p.description,sign,p.recorrencia_dia,'planned'); }
+    else if(p.due_date){const d=new Date(p.due_date+'T00:00:00');if(d>=today&&d<=limit)items.push({label:p.description,amt:sign,date:d,source:'planned'});}
+  });
+
+  const saldoCC=(_invAccounts||[]).filter(a=>a.type==='corrente').reduce((s,a)=>s+(+a.balance||0),0);
+  const totalOut=Math.abs(items.filter(i=>i.amt<0).reduce((s,i)=>s+i.amt,0));
+  const totalIn=items.filter(i=>i.amt>0).reduce((s,i)=>s+i.amt,0);
+  const disponivel=saldoCC-totalOut+totalIn;
+
+  // Preenche card de investimentos
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('invCfSaldo', brl(saldoCC));
+  setEl('invCfSaidas', totalOut>0?`-${brl(totalOut)}`:'—');
+  setEl('invCfEntradas', totalIn>0?`+${brl(totalIn)}`:'—');
+  const dispEl=document.getElementById('invCfDisponivel');
+  if(dispEl){dispEl.textContent=(disponivel>=0?'':'-')+brl(Math.abs(disponivel));dispEl.style.color=disponivel>=0?'var(--green)':'var(--red)';}
+
+  // Top 5 maiores saídas como lista de referência
+  const top5=items.filter(i=>i.amt<0).sort((a,b)=>a.amt-b.amt).slice(0,5);
+  const cfItems=document.getElementById('invCfItems');
+  if(cfItems){
+    const srcColor={fix:'var(--blue)',sub:'var(--cyan)',inst:'var(--purple)',planned:'var(--yellow)'};
+    cfItems.innerHTML=top5.length?top5.map(i=>{
+      const d=`${String(i.date.getDate()).padStart(2,'0')}/${String(i.date.getMonth()+1).padStart(2,'0')}`;
+      return `<div class="inv-cf-item"><span class="inv-cf-item-dot" style="background:${srcColor[i.source]||'var(--muted)'}"></span><span style="flex:1;color:var(--text)">${i.label.length>30?i.label.slice(0,30)+'…':i.label}</span><span style="color:var(--muted);font-size:10px;margin-right:8px">${d}</span><span style="color:var(--red);font-weight:700;font-size:11.5px;font-variant-numeric:tabular-nums">-${brl(Math.abs(i.amt))}</span></div>`;
+    }).join(''):`<div style="padding:6px 0;font-size:11px;color:var(--muted)">Nenhuma saída prevista nos próximos 30 dias</div>`;
+  }
+
+  // Sub-métrica no KPI de saldo (dashboard)
+  const upEl=document.getElementById('kpiUpcoming');
+  const upTxt=document.getElementById('kpiUpcomingTxt');
+  if(upEl&&upTxt&&totalOut>0){
+    upTxt.innerHTML=`↓ ${brl(totalOut)} previstos <span style="color:var(--muted)">/ 30d</span>`;
+    upTxt.style.color='var(--red)';
+    upEl.style.display='flex';
+  } else if(upEl){ upEl.style.display='none'; }
+}
 
 // ══ GRÁFICO PATRIMÔNIO HISTÓRICO ═══════════════════════════════════════════════
 let _chartPatrimHist=null;
@@ -2889,8 +3029,11 @@ async function refreshDashboard(){
     _checkVencimentos(fc||[], subs||[], insts||[]);
     loadPlanned(plannedRows||[]);
     fillAnoTab(monthly, catsObj);
+    _prevRows = plannedRows||[];
     _fluxoData={fixedCosts:fc||[],subs:subs||[],insts:insts||[],planned:(plannedRows||[]).filter(p=>!p.confirmed)};
     _fillFluxo(_fluxoDias);
+    _renderPrevList();
+    _fillInvCashflow();
     buildPatrimHistChart(monthly, patRow.accounts);
     // CDI caixinha — roda sem esperar cotações FII
     const _caixinha=accounts.find(a=>/(caixinha|rdb)/i.test(a.type||''));
@@ -3093,7 +3236,7 @@ function switchTab(tab){
   document.getElementById('tabBtnGeral').classList.toggle('active',tab==='geral');
   document.getElementById('tabBtnAno').classList.toggle('active',tab==='ano');
   document.getElementById('tabBtnInv').classList.toggle('active',tab==='inv');
-  if(tab==='inv') buildInvCharts(_invFiiRows, _invQuotes);
+  if(tab==='inv'){ buildInvCharts(_invFiiRows, _invQuotes); _fillInvCashflow(); }
   // Atualiza tudo se dados tiverem mais de 90 segundos
   if(Date.now()-_lastRefreshTs > 90000) refreshDashboard();
 }
@@ -3482,12 +3625,89 @@ async function uncheckPlan(id){
   refreshDashboard();
 }
 
+// ── Previsões manuais — estado e renderização unificada ─────────────────────
+let _prevRows = [];
+let _prevTab  = 'all';
+
+function _setPrevTab(tab){
+  _prevTab = tab;
+  const map={all:'All',entrada:'In',saida:'Out',confirmed:'Done'};
+  Object.keys(map).forEach(t=>{
+    const btn=document.getElementById('prevTab'+map[t]);
+    if(!btn) return;
+    btn.classList.toggle('active', t===tab);
+  });
+  _renderPrevList();
+}
+
+function _renderPrevList(){
+  const el=document.getElementById('prevList');
+  if(!el) return;
+
+  let rows=[..._prevRows];
+  if(_prevTab==='entrada')   rows=rows.filter(r=>r.type==='entrada'&&!r.confirmed);
+  else if(_prevTab==='saida')rows=rows.filter(r=>r.type==='saida'&&!r.confirmed);
+  else if(_prevTab==='confirmed') rows=rows.filter(r=>r.confirmed);
+  else rows=rows.filter(r=>!r.confirmed); // 'all' = pendentes
+
+  // Atualiza contador
+  const pending=_prevRows.filter(r=>!r.confirmed);
+  const cnt=document.getElementById('prevCount');
+  if(cnt){
+    const nIn=pending.filter(r=>r.type==='entrada').length;
+    const nOut=pending.filter(r=>r.type==='saida').length;
+    cnt.textContent=`${pending.length} pendentes · ↑${nIn} ↓${nOut}`;
+  }
+
+  if(!rows.length){
+    el.innerHTML=`<div class="prev-empty">Nenhuma previsão${_prevTab==='confirmed'?' confirmada':' pendente'}.</div>`;
+    return;
+  }
+
+  el.innerHTML=rows.map(r=>{
+    const isIn=r.type==='entrada';
+    const barColor=r.confirmed?'var(--border2)':isIn?'var(--green)':'var(--red)';
+    const valColor=r.confirmed?'var(--muted)':isIn?'var(--green)':'var(--red)';
+    const chkBorder=r.confirmed?'var(--green)':'var(--border2)';
+    const chkBg=r.confirmed?'var(--green)':'transparent';
+    const checkSvg=r.confirmed?`<svg width="9" height="7"><path d="M1 3.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`:'';
+    const onChk=r.confirmed?`uncheckPlan(${r.id})`:`openConfirmModal(${JSON.stringify(r).replace(/"/g,'&quot;')})`;
+
+    const meta=[];
+    if(r.recorrente)      meta.push(`<span style="color:var(--blue2)">↻ dia ${r.recorrencia_dia||'?'}</span>`);
+    else if(r.due_date)   meta.push(`<span>${fmtDate(r.due_date)}</span>`);
+    else                  meta.push(`<span style="color:var(--muted)">sem data</span>`);
+    if(r.category)        meta.push(`<span>${r.category}</span>`);
+    if(r.account)         meta.push(`<span>${r.account}</span>`);
+
+    const typeTag=`<span style="font-size:9px;padding:1px 5px;border-radius:8px;background:${isIn?'rgba(34,197,94,.1)':'rgba(244,63,94,.08)'};color:${isIn?'#4ade80':'#fb7185'};border:1px solid ${isIn?'rgba(34,197,94,.25)':'rgba(244,63,94,.2)'}">${isIn?'↑ Receita':'↓ Despesa'}</span>`;
+
+    return `<div class="prev-item" style="${r.confirmed?'opacity:.45':''}">
+      <div class="prev-bar" style="background:${barColor}"></div>
+      <div class="prev-check" style="border:2px solid ${chkBorder};background:${chkBg}" onclick="${onChk}" title="${r.confirmed?'Desfazer confirmação':'Confirmar como realizado'}">${checkSvg}</div>
+      <div class="prev-info">
+        <div class="prev-desc" style="color:${r.confirmed?'var(--muted)':'var(--text)'};${r.confirmed?'text-decoration:line-through;':''}">${r.description}</div>
+        <div class="prev-meta">${typeTag}${meta.map((m,i)=>(i>0?`<span style="opacity:.35">·</span>`:'') + m).join('')}</div>
+      </div>
+      <div class="prev-val" style="color:${valColor}">${isIn?'+':'−'}${brl(r.amount)}</div>
+      <div class="prev-btns">
+        <button onclick="openPlanModal('${r.type}',${JSON.stringify(r).replace(/"/g,'&quot;')})" style="background:none;border:none;color:var(--muted2);cursor:pointer;padding:3px 5px;font-size:12px">✏️</button>
+        <button onclick="deletePlan(${r.id},'${r.description.replace(/'/g,"\\'")}')" style="background:none;border:none;color:var(--muted2);cursor:pointer;padding:3px 5px;font-size:12px">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 async function loadPlanned(rows=null){
   if(!rows) rows = await sbGet('planned_entries', {select:'*', order:'recorrente.desc,confirmed.asc,due_date.asc.nullslast,id.desc'});
+  _prevRows = rows;
+  // compatibilidade com elementos ocultos legados
   renderPlanned(rows.filter(r=>r.type==='entrada'), 'listEntrada', 'totalEntradaPrev', 'entrada');
   renderPlanned(rows.filter(r=>r.type==='saida'),  'listSaida',   'totalSaidaPrev',   'saida');
-  // Atualiza fluxoData com planejamentos mais recentes
+  _renderPrevList();
+  // Atualiza projeção e cashflow
   if(_fluxoData){ _fluxoData.planned=rows; _renderProjecao(_fluxoDias); }
+  _fillInvCashflow();
   return rows;
 }
 
