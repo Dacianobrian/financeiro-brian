@@ -8,6 +8,11 @@
 <meta http-equiv="Expires" content="0"/>
 <title>Brian · Controle Financeiro</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%236366f1'/><text y='.9em' font-size='72' x='12'>💰</text></svg>"/>
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#6366f1"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Financeiro"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
@@ -738,9 +743,9 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
 <div id="tabAno" style="display:none">
   <div class="section">
     <div class="grid g4">
-      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Entradas 2026</div><div class="kpi-value amt-green" id="anoEntradas">—</div><div class="kpi-sub" id="anoEntradasSub">acumulado</div></div>
-      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(239,68,68,.15)">📤</span>Saídas 2026</div><div class="kpi-value amt-red" id="anoSaidas">—</div><div class="kpi-sub" id="anoSaidasSub">acumulado</div></div>
-      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Investido 2026</div><div class="kpi-value" style="color:var(--cyan)" id="anoInvestido">—</div><div class="kpi-sub" id="anoInvestidoSub">acumulado</div></div>
+      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Entradas <span class="ano-lbl"></span></div><div class="kpi-value amt-green" id="anoEntradas">—</div><div class="kpi-sub" id="anoEntradasSub">acumulado</div></div>
+      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(239,68,68,.15)">📤</span>Saídas <span class="ano-lbl"></span></div><div class="kpi-value amt-red" id="anoSaidas">—</div><div class="kpi-sub" id="anoSaidasSub">acumulado</div></div>
+      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Investido <span class="ano-lbl"></span></div><div class="kpi-value" style="color:var(--cyan)" id="anoInvestido">—</div><div class="kpi-sub" id="anoInvestidoSub">acumulado</div></div>
       <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(139,92,246,.15)">📊</span>Taxa de Poupança</div><div class="kpi-value amt-purple" id="anoRate">—</div><div class="kpi-sub">do total de entradas</div></div>
     </div>
   </div>
@@ -761,7 +766,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
         </table></div>
       </div>
       <div class="card">
-        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:12px">🍩 Despesas por Categoria 2026</div>
+        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:12px">🍩 Despesas por Categoria <span class="ano-lbl"></span></div>
         <div class="chart-wrap" style="height:320px"><canvas id="chartCatAno"></canvas></div>
       </div>
     </div>
@@ -1823,7 +1828,7 @@ function fillInstallments(rows){
         </div>
         <div style="text-align:right;flex-shrink:0">
           <div style="font-size:13px;font-weight:800;color:var(--red)">${brl(r.installment_amount)}<span style="font-size:10px;font-weight:400;opacity:.6">/mês</span></div>
-          <div style="font-size:10px;color:var(--muted)">${r.current_installment}/${r.total_installments} parcelas</div>
+          <div style="font-size:10px;color:var(--muted)">${r.current_installment}/${r.total_installments} parcelas${restParcelas<=1&&restParcelas>0?' <span style="color:#f59e0b">⚠ última!</span>':''}</div>
         </div>
       </div>
       <div style="background:var(--surface);border-radius:4px;height:5px;overflow:hidden;margin-bottom:6px">
@@ -1961,6 +1966,22 @@ async function deleteSub(){
   closeSubModal();refreshDashboard();
 }
 
+function _daysUntil(day){
+  if(!day) return null;
+  const today=new Date(); const d=+day;
+  let next=new Date(today.getFullYear(),today.getMonth(),d);
+  if(next<today) next=new Date(today.getFullYear(),today.getMonth()+1,d);
+  return Math.round((next-today)/(1000*60*60*24));
+}
+function _dueBadge(day){
+  const diff=_daysUntil(day);
+  if(diff===null) return`<span class="due" style="color:var(--muted)">?</span>`;
+  const base=`<span class="due">${day}</span>`;
+  if(diff<=0)  return base+`<span style="font-size:10px;background:rgba(239,68,68,.2);color:#f87171;border-radius:4px;padding:1px 5px;margin-left:4px">HOJE</span>`;
+  if(diff<=3)  return base+`<span style="font-size:10px;background:rgba(239,68,68,.15);color:#f87171;border-radius:4px;padding:1px 5px;margin-left:4px">${diff}d</span>`;
+  if(diff<=7)  return base+`<span style="font-size:10px;background:rgba(245,158,11,.15);color:#f59e0b;border-radius:4px;padding:1px 5px;margin-left:4px">${diff}d</span>`;
+  return base;
+}
 function fillCustos(rows){
   const tb=document.getElementById('tblCustos');
   if(!rows||!rows.length){tb.innerHTML=`<tr><td colspan="4" class="empty">—</td></tr>`;return}
@@ -1975,13 +1996,14 @@ function fillCustos(rows){
     else if(/financiamento|votorantim|casa line|aluguel|locabens|capitaliz/i.test(desc))cat='Moradia';
     else if(/das mei/i.test(desc))cat='Impostos / MEI';
     else if(/cartao|bradesco/i.test(desc))cat='Cartão Bradesco';
-    const due=c.due_day?`<span class="due">${c.due_day}</span>`:`<span class="due" style="color:var(--muted)">?</span>`;
-    return`<tr><td>${due}</td><td style="font-weight:500">${desc}</td><td style="text-align:right" class="${c.amount>0?'amt-red':''}">${c.amount>0?brl(c.amount):'—'}</td><td>${catBadge(cat)}</td></tr>`;
+    return`<tr><td style="white-space:nowrap">${_dueBadge(c.due_day)}</td><td style="font-weight:500">${desc}</td><td style="text-align:right" class="${c.amount>0?'amt-red':''}">${c.amount>0?brl(c.amount):'—'}</td><td>${catBadge(cat)}</td></tr>`;
   }).join('');
   document.getElementById('totalFixo').textContent=`Total: ${brl(total)}/mês`;
 }
 
 function fillAnoTab(monthly, cats){
+  const yr=new Date().getFullYear();
+  document.querySelectorAll('.ano-lbl').forEach(el=>el.textContent=yr);
   const totE=monthly.reduce((s,r)=>s+(+(r.entradas||0)),0);
   const totS=monthly.reduce((s,r)=>s+(+(r.saidas||0)),0);
   const totI=monthly.reduce((s,r)=>s+(+(r.investido||0)),0);
@@ -2036,14 +2058,14 @@ async function refreshDashboard(){
   try{
     const [cm, monthly, cats, txs, fii, fc, accounts, pat, divTxs, subs, insts] = await Promise.all([
       sbRpc('get_current_month_data'),
-      sbRpc('get_monthly_summary', {year_val: 2026}),
-      sbRpc('get_expense_by_category', {year_val: 2026}),
+      sbRpc('get_monthly_summary', {year_val: new Date().getFullYear()}),
+      sbRpc('get_expense_by_category', {year_val: new Date().getFullYear()}),
       sbGet('transactions', {select:'*', order:'date.desc,id.desc', limit:10}),
       sbGet('fii_portfolio', {select:'*', order:'ticker.asc'}),
       sbGet('fixed_costs', {select:'*', order:'due_day.asc.nullslast,id.asc'}),
       sbGet('accounts', {select:'*', order:'bank.asc,type.asc'}),
       sbRpc('get_patrimonio_breakdown'),
-      sbGet('transactions', {select:'amount,date,description', category:'ilike.*Dividend*', date:'gte.2026-01-01', type:'eq.entrada'}),
+      sbGet('transactions', {select:'amount,date,description', category:'ilike.*Dividend*', date:`gte.${new Date().getFullYear()}-01-01`, type:'eq.entrada'}),
       sbGet('subscriptions', {select:'*', active:'eq.true', order:'billing_day.asc.nullslast,name.asc'}),
       sbGet('installments', {select:'*', active:'eq.true', order:'installment_amount.desc'}),
     ]);
@@ -2062,6 +2084,7 @@ async function refreshDashboard(){
     fillCustos(fc);
     fillSubscriptions(subs||[]);
     fillInstallments(insts||[]);
+    _updateTitleAlerts(fc, insts);
     loadPlanned();
     fillAnoTab(monthly, catsObj);
     _allTxs = txs;
@@ -2437,11 +2460,37 @@ async function parseCommand(cmd){
 }
 
 // ══ TERMINAL ══════════════════════════════════════════════════════════════════
+// ── Terminal: histórico ↑↓ ────────────────────────────────────────────────
+const _termHistory=(()=>{try{return JSON.parse(localStorage.getItem('termHistory')||'[]');}catch(e){return[];}})();
+let _termHIdx=-1;
+
+(function initTermHistory(){
+  const inp=document.getElementById('termInput');
+  if(!inp) return;
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='ArrowUp'){
+      e.preventDefault();
+      if(_termHistory.length===0) return;
+      _termHIdx=Math.min(_termHIdx+1,_termHistory.length-1);
+      inp.value=_termHistory[_termHIdx]||'';
+      setTimeout(()=>inp.setSelectionRange(inp.value.length,inp.value.length),0);
+    } else if(e.key==='ArrowDown'){
+      e.preventDefault();
+      _termHIdx=Math.max(_termHIdx-1,-1);
+      inp.value=_termHIdx<0?'':(_termHistory[_termHIdx]||'');
+    }
+  });
+})();
+
 async function sendCmd(e){
   e.preventDefault();
   const inp=document.getElementById('termInput');
   const cmd=inp.value.trim();
   if(!cmd)return;
+  // Salva no histórico
+  if(_termHistory[0]!==cmd){_termHistory.unshift(cmd);if(_termHistory.length>50)_termHistory.pop();}
+  try{localStorage.setItem('termHistory',JSON.stringify(_termHistory));}catch(e){}
+  _termHIdx=-1;
   const resp=document.getElementById('termResp');
   resp.className='term-resp info'; resp.innerHTML='⟳ Executando...';
   try{
@@ -2705,13 +2754,48 @@ async function deleteFc(id,name){
 
 // ══ EXCEL EXPORT ══════════════════════════════════════════════════════════════
 async function exportExcel(){
-  const txs=await sbGet('transactions',{select:'*',order:'date.desc,id.desc',limit:5000});
-  const ws=XLSX.utils.json_to_sheet(txs.map(t=>({
-    Data:t.date,Tipo:t.type,'Valor':t.amount,Descrição:t.description,Categoria:t.category,Conta:t.account
+  const yr=new Date().getFullYear();
+  const desde=prompt(`Exportar desde (AAAA-MM-DD):`,`${yr}-01-01`);
+  if(desde===null) return;
+  const ate=prompt(`Até (AAAA-MM-DD):`,new Date().toISOString().substring(0,10));
+  if(ate===null) return;
+
+  const btn=document.querySelector('[onclick="exportExcel()"]');
+  if(btn){const orig=btn.textContent;btn.textContent='⏳ Exportando...';btn.disabled=true;
+    setTimeout(()=>{btn.textContent=orig;btn.disabled=false;},6000);}
+
+  const params={select:'*',order:'date.asc,id.asc',limit:9999};
+  if(desde) params.date=`gte.${desde}`;
+
+  const txs=await sbGet('transactions',params);
+  const filtrado=txs.filter(t=>!ate||t.date<=ate);
+
+  // Aba Transações
+  const ws=XLSX.utils.json_to_sheet(filtrado.map(t=>({
+    Data:t.date,Descrição:t.description,Tipo:t.type,
+    'Valor (R$)':+(t.amount||0),Categoria:t.category,Conta:t.account
   })));
+  // Aba Resumo por mês
+  const meses={};
+  filtrado.forEach(t=>{
+    const m=t.date?t.date.substring(0,7):'?';
+    if(!meses[m]) meses[m]={Mês:m,Entradas:0,Saídas:0,Investido:0};
+    if(t.type==='entrada') meses[m].Entradas+=+(t.amount||0);
+    else if(t.type==='saida') meses[m].Saídas+=+(t.amount||0);
+    else if(t.type==='investido') meses[m].Investido+=+(t.amount||0);
+  });
+  const wsR=XLSX.utils.json_to_sheet(Object.values(meses).map(m=>({
+    ...m,
+    'Entradas (R$)':+m.Entradas.toFixed(2),
+    'Saídas (R$)':+m.Saídas.toFixed(2),
+    'Investido (R$)':+m.Investido.toFixed(2),
+    'Saldo (R$)':+(m.Entradas-m.Saídas-m.Investido).toFixed(2)
+  })));
+
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Transações');
-  XLSX.writeFile(wb,'financeiro-brian.xlsx');
+  XLSX.utils.book_append_sheet(wb,wsR,'Resumo Mensal');
+  XLSX.writeFile(wb,`financeiro-brian-${desde||yr}-${ate||'hoje'}.xlsx`);
 }
 
 // ══ IMPORT EXTRATO ════════════════════════════════════════════════════════════
@@ -3584,18 +3668,6 @@ function toggleSelectAll(checked){
   updateImportCount();
 }
 
-async function doImport(){
-  const btn=document.getElementById('impBtnImport');
-  btn.disabled=true;btn.textContent='Importando...';
-
-  const selected=[];
-  document.querySelectorAll('.imp-row-chk:checked').forEach(c=>{
-    selected.push(_impParsed[parseInt(c.dataset.i)]);
-  });
-
-  await _runImport(selected, _impParsed.length-selected.length);
-}
-
 // ⚡ Importação direta: SEM verificação de duplicata — importa tudo
 async function importDirect(){
   const btn=document.getElementById('impBtnDirect');
@@ -3995,6 +4067,28 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 // ══ INIT ══════════════════════════════════════════════════════════════════════
 if(localStorage.getItem('auth')==='1'){showApp()}
 else{document.getElementById('loginPwd').focus()}
+
+// ── PWA Service Worker ────────────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+// ── Alerta de vencimentos próximos no título ──────────────────────────────
+function _updateTitleAlerts(fixedCosts, installments){
+  const today=new Date();
+  const todayDay=today.getDate();
+  const alerts=[];
+  const checkDay=day=>{
+    if(!day) return false;
+    const d=+day;
+    // calcular dias até próximo vencimento
+    let next=new Date(today.getFullYear(),today.getMonth(),d);
+    if(next<today) next=new Date(today.getFullYear(),today.getMonth()+1,d);
+    return Math.round((next-today)/(1000*60*60*24))<=3;
+  };
+  (fixedCosts||[]).forEach(c=>{if(checkDay(c.due_day)) alerts.push(c.description||'Custo fixo');});
+  document.title=alerts.length>0?`(${alerts.length} ⚠) Financeiro Brian`:'Brian · Controle Financeiro';
+}
 </script>
 </body>
 </html>
