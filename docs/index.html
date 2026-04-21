@@ -219,44 +219,52 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .imp-report-stat-val{font-size:18px;font-weight:800;margin-bottom:4px}
 .imp-report-stat-lbl{font-size:11px;color:var(--muted)}
 
-/* ── Projeção de Caixa ───────────────────────────────────── */
 /* ── Projeção de Caixa ─────────────────────────────────────────────────── */
 .proj-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;margin-bottom:16px}
 .proj-sumcard{border-radius:12px;padding:12px 14px}
 .proj-sumcard-label{font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--muted);margin-bottom:5px}
 .proj-sumcard-val{font-size:20px;font-weight:800;letter-spacing:-.5px;line-height:1}
 .proj-sumcard-sub{font-size:10px;color:var(--muted2);margin-top:4px}
-.proj-timeline{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;align-items:start}
-.proj-week-card{border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .15s}
+/* ── Week cards em colunas ───────────────────────────────────────────────── */
+.proj-timeline{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;align-items:start}
+.proj-week-card{border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .15s;background:var(--surface)}
 .proj-week-card:hover{border-color:var(--border2)}
-.proj-week-head{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;user-select:none}
-.proj-week-head:hover{background:rgba(255,255,255,.025)}
-.proj-week-title{font-size:11.5px;font-weight:600;color:var(--text);white-space:nowrap}
-.proj-week-period{font-size:10px;color:var(--muted);font-weight:400;white-space:nowrap}
-.proj-week-balance{font-size:12px;font-weight:700;padding:2px 10px;border-radius:20px;white-space:nowrap}
-.proj-week-balance-pos{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.2);color:#4ade80}
-.proj-week-balance-neg{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.2);color:#fb7185}
-.proj-week-balance-zero{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted2)}
-.proj-week-toggle{font-size:10px;color:var(--muted);transition:.15s;flex-shrink:0}
-.proj-bars{padding:0 14px 10px;display:flex;flex-direction:column;gap:5px}
-.proj-bar-row{display:flex;align-items:center;gap:8px}
-.proj-bar-meta{font-size:10px;width:64px;flex-shrink:0;font-weight:500;white-space:nowrap}
-.proj-bar-track{flex:1;height:7px;background:rgba(255,255,255,.04);border-radius:99px;overflow:hidden}
-.proj-bar-fill{height:100%;border-radius:99px;transition:width .5s ease}
-.proj-bar-fill-green{background:linear-gradient(90deg,#16a34a,#22c55e)}
-.proj-bar-fill-red{background:linear-gradient(90deg,#be123c,#f43f5e)}
-.proj-bar-val{font-size:10px;font-weight:700;width:80px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-.proj-items{border-top:1px solid var(--border);overflow:hidden;transition:max-height .25s ease}
-.proj-item-row{display:flex;align-items:center;gap:10px;padding:7px 14px;border-bottom:1px solid rgba(255,255,255,.03);transition:.1s}
-.proj-item-row:last-child{border-bottom:none}
-.proj-item-row:hover{background:rgba(255,255,255,.02)}
-.proj-item-day{font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:1px 6px;color:var(--muted2);font-weight:600;flex-shrink:0;width:30px;text-align:center}
-.proj-item-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.proj-item-label{flex:1;font-size:11.5px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.proj-item-label small{display:block;font-size:9.5px;color:var(--muted);font-weight:400;margin-top:1px}
-.proj-item-val{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;flex-shrink:0}
-.proj-item-recur{font-size:9px;padding:1px 5px;border-radius:10px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:var(--blue2);flex-shrink:0}
-.proj-empty-week{padding:10px 14px;font-size:11px;color:var(--muted);font-style:italic}
+/* Collapsed summary (sempre visível) */
+.pwc-summary{padding:12px 13px;cursor:pointer;user-select:none;transition:background .1s}
+.pwc-summary:hover{background:rgba(255,255,255,.02)}
+.pwc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+.pwc-label{font-size:12px;font-weight:700;color:var(--text)}
+.pwc-tog{font-size:11px;color:var(--muted2);flex-shrink:0;line-height:1;transition:.15s}
+.pwc-period{font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.3}
+.pwc-totals{display:flex;flex-direction:column;gap:3px}
+.pwc-row-in{font-size:11px;color:var(--green);font-weight:600;font-variant-numeric:tabular-nums}
+.pwc-row-out{font-size:11px;color:var(--red);font-weight:600;font-variant-numeric:tabular-nums}
+.pwc-net{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;border-top:1px solid rgba(255,255,255,.05);padding-top:7px;margin-top:4px}
+.pwc-net-pos{color:var(--green)}
+.pwc-net-neg{color:var(--red)}
+.pwc-net-zero{color:var(--muted2)}
+.pwc-count{font-size:9.5px;color:var(--muted);margin-top:3px}
+/* Expanded body */
+.pwc-body{overflow:hidden;transition:max-height .25s ease}
+.pwc-items{border-top:1px solid var(--border);max-height:260px;overflow-y:auto}
+.pwc-item{display:flex;align-items:center;gap:7px;padding:6px 12px;border-bottom:1px solid rgba(255,255,255,.03)}
+.pwc-item:last-child{border-bottom:none}
+.pwc-item:hover{background:rgba(255,255,255,.02)}
+.pwc-day{font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 5px;color:var(--muted2);font-weight:600;flex-shrink:0;min-width:22px;text-align:center}
+.pwc-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.pwc-name{flex:1;font-size:11px;font-weight:500;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;line-height:1.3}
+.pwc-name small{display:block;font-size:9px;color:var(--muted);font-weight:400}
+.pwc-val{font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;flex-shrink:0}
+/* Add form inline */
+.pwc-add{border-top:1px solid var(--border);padding:10px 12px;display:flex;flex-direction:column;gap:6px;background:rgba(255,255,255,.008)}
+.pwc-add input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:6px 9px;font-size:11px;outline:none;width:100%;box-sizing:border-box;font-family:var(--font)}
+.pwc-add input:focus{border-color:rgba(56,189,248,.4)}
+.pwc-add-btns{display:flex;gap:5px}
+.pwc-btn-in{flex:1;font-size:11px;padding:5px 4px;border-radius:8px;cursor:pointer;font-weight:600;background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.25);transition:.15s}
+.pwc-btn-out{flex:1;font-size:11px;padding:5px 4px;border-radius:8px;cursor:pointer;font-weight:600;background:rgba(244,63,94,.08);color:#fb7185;border:1px solid rgba(244,63,94,.25);transition:.15s}
+.pwc-btn-in:hover{background:rgba(34,197,94,.2)}
+.pwc-btn-out:hover{background:rgba(244,63,94,.15)}
+/* Cumul footer */
 .proj-cumul{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface2);border-top:1px solid var(--border);margin-top:10px;border-radius:0 0 12px 12px}
 .proj-cumul-label{font-size:11px;color:var(--muted2);font-weight:500}
 .proj-cumul-val{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
@@ -756,23 +764,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
         <span id="projSaldoVal" class="proj-cumul-val"></span>
       </div>
 
-      <!-- ── Previsões Manuais ─────────────────────────────────────────── -->
-      <div class="prev-section">
-        <div class="prev-header">
-          <span class="prev-title">📋 Previsões Manuais <span class="prev-count" id="prevCount">0 pendentes</span></span>
-          <div class="prev-actions">
-            <button onclick="openPlanModal('entrada')" style="font-size:11px;padding:4px 11px;border-radius:20px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.09);color:#4ade80;cursor:pointer;font-weight:600">＋ Receita</button>
-            <button onclick="openPlanModal('saida')" style="font-size:11px;padding:4px 11px;border-radius:20px;border:1px solid rgba(244,63,94,.3);background:rgba(244,63,94,.08);color:#fb7185;cursor:pointer;font-weight:600">＋ Despesa</button>
-          </div>
-        </div>
-        <div class="prev-tabs">
-          <button id="prevTabAll"  class="prev-tab active"   onclick="_setPrevTab('all')">Todas</button>
-          <button id="prevTabIn"   class="prev-tab tab-in"   onclick="_setPrevTab('entrada')">↑ Receitas</button>
-          <button id="prevTabOut"  class="prev-tab tab-out"  onclick="_setPrevTab('saida')">↓ Despesas</button>
-          <button id="prevTabDone" class="prev-tab tab-done" onclick="_setPrevTab('confirmed')">✓ Confirmadas</button>
-        </div>
-        <div id="prevList"><div class="prev-empty">Nenhuma previsão cadastrada.</div></div>
-      </div>
+      <!-- Previsões integradas nas semanas acima -->
     </div>
   </div>
 
@@ -1736,7 +1728,7 @@ function _renderProjecao(dias){
       <div class="proj-sumcard-sub">${totalEvt} eventos em ${dias} dias</div>
     </div>`;
 
-  // ── Semanas ───────────────────────────────────────────────────────────────
+  // ── Semanas em colunas ───────────────────────────────────────────────────
   if(!timeline) return;
   const numWeeks=Math.ceil(dias/7);
   const weeks=[];
@@ -1749,76 +1741,54 @@ function _renderProjecao(dias){
     const wOut=Math.abs(wItems.filter(i=>i.amt<0).reduce((s,i)=>s+i.amt,0));
     weeks.push({wStart,wEnd,wItems,wIn,wOut});
   }
-  const maxVal=Math.max(...weeks.map(w=>Math.max(w.wIn,w.wOut)),1);
   const fmtDM=(d)=>`${String(d.getDate()).padStart(2,'0')} ${meses[d.getMonth()]}`;
-
-  // Fonte de cor por source
   const _srcColor={fix:'var(--blue)',sub:'var(--cyan)',inst:'var(--purple)',planned:'var(--yellow)'};
-  const _srcLabel={fix:'Fixo',sub:'Assinatura',inst:'Parcela',planned:'Manual'};
-
-  // Calcular saldo acumulado semana a semana
-  let cumul=0;
+  const _srcLabel={fix:'Fixo',sub:'Assin.',inst:'Parcela',planned:'Manual'};
 
   timeline.innerHTML=weeks.map((w,wi)=>{
     const wNet=w.wIn-w.wOut;
-    cumul+=wNet;
-    if(w.wItems.length===0) return ''; // oculta semanas sem eventos
-    const balCls=wNet>0?'proj-week-balance-pos':wNet<0?'proj-week-balance-neg':'proj-week-balance-zero';
+    const netCls=wNet>0?'pwc-net-pos':wNet<0?'pwc-net-neg':'pwc-net-zero';
+    const wLabel=wi===0?'Esta semana':`Semana ${wi+1}`;
     const period=`${fmtDM(w.wStart)} – ${fmtDM(w.wEnd)}`;
-    const wLabel=wi===0?'Esta semana':`Sem ${wi+1}`;
-    const inPct=Math.round((w.wIn/maxVal)*100);
-    const outPct=Math.round((w.wOut/maxVal)*100);
+    const dateStr=w.wStart.toISOString().slice(0,10);
 
     const itemRows=w.wItems.map(i=>{
       const col=_srcColor[i.source]||'var(--muted2)';
       const valCol=i.amt>=0?'var(--green)':'var(--red)';
       const sign=i.amt>=0?'+':'';
-      const dayStr=String(i.date.getDate()).padStart(2,'0');
-      const recTag=i.recorrente?`<span class="proj-item-recur">↻</span>`:'';
-      return `<div class="proj-item-row">
-        <span class="proj-item-day">${dayStr}</span>
-        <span class="proj-item-dot" style="background:${col}"></span>
-        <span class="proj-item-label">${i.label.length>32?i.label.slice(0,32)+'…':i.label}<small style="color:${col}">${_srcLabel[i.source]||''}</small></span>
-        ${recTag}
-        <span class="proj-item-val" style="color:${valCol}">${sign}${brl(Math.abs(i.amt))}</span>
+      const day=String(i.date.getDate()).padStart(2,'0');
+      return `<div class="pwc-item">
+        <span class="pwc-day">${day}</span>
+        <span class="pwc-dot" style="background:${col}"></span>
+        <span class="pwc-name">${i.label.length>28?i.label.slice(0,28)+'…':i.label}<small style="color:${col}">${_srcLabel[i.source]||''}</small></span>
+        <span class="pwc-val" style="color:${valCol}">${sign}${brl(Math.abs(i.amt))}</span>
       </div>`;
     }).join('');
 
-    // Minibarras inline no header (horizontal, dentro do card fechado)
-    const miniIn =w.wIn >0?`<span style="font-size:10px;color:var(--green);font-variant-numeric:tabular-nums;white-space:nowrap">↑${brl(w.wIn)}</span>`:'';
-    const miniOut=w.wOut>0?`<span style="font-size:10px;color:var(--red);font-variant-numeric:tabular-nums;white-space:nowrap">↓${brl(w.wOut)}</span>`:'';
-
     return `<div class="proj-week-card">
-      <div class="proj-week-head" onclick="(function(el){
-        const card=el.closest('.proj-week-card');
-        const body=card.querySelector('.proj-body');
-        const tog=el.querySelector('.proj-week-toggle');
-        const open=body.style.maxHeight;
-        body.style.maxHeight=open?'':'600px';
-        tog.textContent=open?'▼':'▲';
-      })(this)">
-        <span class="proj-week-title">${wLabel}</span>
-        <span class="proj-week-period">${period}</span>
-        <div style="display:flex;align-items:center;gap:5px;margin-left:auto">
-          ${miniIn}${miniIn&&miniOut?`<span style="opacity:.3;font-size:9px">·</span>`:''}${miniOut}
-          <span class="proj-week-balance ${balCls}">${wNet>=0?'+':''}${brl(wNet)}</span>
-          <span class="proj-week-toggle" style="font-size:9px;color:var(--muted)">▼</span>
+      <div class="pwc-summary" onclick="_toggleWeek(${wi})">
+        <div class="pwc-top">
+          <span class="pwc-label">${wLabel}</span>
+          <span class="pwc-tog" id="ptog-${wi}">▶</span>
+        </div>
+        <div class="pwc-period">${period}</div>
+        <div class="pwc-totals">
+          ${w.wIn >0?`<div class="pwc-row-in">↑ +${brl(w.wIn)}</div>`:''}
+          ${w.wOut>0?`<div class="pwc-row-out">↓ -${brl(w.wOut)}</div>`:''}
+          <div class="pwc-net ${netCls}">${wNet>=0?'+':''}${brl(wNet)}</div>
+          <div class="pwc-count">${w.wItems.length} evento${w.wItems.length!==1?'s':''}</div>
         </div>
       </div>
-      <div class="proj-body" style="max-height:0;overflow:hidden;transition:max-height .22s ease">
-        <div class="proj-bars" style="padding:6px 12px 8px">
-          ${w.wIn>0?`<div class="proj-bar-row">
-            <span class="proj-bar-meta" style="color:var(--green)">↑</span>
-            <div class="proj-bar-track"><div class="proj-bar-fill proj-bar-fill-green" style="width:${inPct}%"></div></div>
-            <span class="proj-bar-val" style="color:var(--green)">+${brl(w.wIn)}</span>
-          </div>`:''}
-          ${w.wOut>0?`<div class="proj-bar-row">
-            <span class="proj-bar-meta" style="color:var(--red)">↓</span>
-            <div class="proj-bar-track"><div class="proj-bar-fill proj-bar-fill-red" style="width:${outPct}%"></div></div>
-            <span class="proj-bar-val" style="color:var(--red)">-${brl(w.wOut)}</span>
-          </div>`:''}
+      <div class="pwc-body" id="pb-${wi}" style="max-height:0">
+        ${w.wItems.length?`<div class="pwc-items">${itemRows}</div>`:''}
+        <div class="pwc-add">
+          <input id="pad-${wi}" placeholder="Descrição..." type="text" autocomplete="off">
+          <input id="pav-${wi}" placeholder="R$ 0,00" type="text" inputmode="decimal">
+          <div class="pwc-add-btns">
+            <button class="pwc-btn-in"  onclick="_weekAdd(${wi},'${dateStr}','entrada')">＋ Receita</button>
+            <button class="pwc-btn-out" onclick="_weekAdd(${wi},'${dateStr}','saida')">＋ Despesa</button>
+          </div>
         </div>
-        <div class="proj-items" style="max-height:none">${itemRows}</div>
       </div>
     </div>`;
   }).join('');
@@ -1836,6 +1806,33 @@ function _renderProjecao(dias){
 
 // Alias para manter compatibilidade
 const _renderFluxo=(dias)=>_renderProjecao(dias);
+
+// ── Week card toggle & inline add ────────────────────────────────────────────
+function _toggleWeek(wi){
+  const body=document.getElementById(`pb-${wi}`);
+  const tog=document.getElementById(`ptog-${wi}`);
+  if(!body) return;
+  const isOpen=body.style.maxHeight&&body.style.maxHeight!=='0px'&&body.style.maxHeight!=='0';
+  body.style.maxHeight=isOpen?'0':'560px';
+  body.style.transition='max-height .25s ease';
+  if(tog) tog.textContent=isOpen?'▶':'▼';
+}
+
+async function _weekAdd(wi, dateStr, type){
+  const descEl=document.getElementById(`pad-${wi}`);
+  const valEl =document.getElementById(`pav-${wi}`);
+  if(!descEl||!valEl) return;
+  const desc=descEl.value.trim();
+  const val =parseFloat((valEl.value||'').replace(/[^0-9,.]/g,'').replace(',','.'));
+  if(!desc){ toast('Informe a descrição','warn'); descEl.focus(); return; }
+  if(!val||val<=0){ toast('Informe o valor','warn'); valEl.focus(); return; }
+  try{
+    await sbPost('planned_entries',{type,description:desc,amount:val,due_date:dateStr,recorrente:false,confirmed:false});
+    descEl.value=''; valEl.value='';
+    toast(`✓ ${type==='entrada'?'Receita':'Despesa'} adicionada`,'ok');
+    await loadPlanned();
+  }catch(e){ toast('Erro ao salvar','err'); }
+}
 
 // ── Cashflow para aba Investimentos + sub-métrica no KPI ─────────────────────
 function _fillInvCashflow(){
