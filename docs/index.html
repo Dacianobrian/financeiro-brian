@@ -1728,39 +1728,60 @@ function _renderProjecao(dias){
       <div class="proj-sumcard-sub">${totalEvt} eventos em ${dias} dias</div>
     </div>`;
 
-  // ── Semanas em colunas ───────────────────────────────────────────────────
+  // ── Semanas em colunas — alinhadas ao calendário (Dom→Sáb) ─────────────
   if(!timeline) return;
-  const numWeeks=Math.ceil(dias/7);
+
+  // Início da semana atual (domingo anterior ou hoje se for domingo)
+  const calStart=new Date(today);
+  calStart.setDate(today.getDate() - today.getDay()); // volta ao domingo
+
+  // Quantas semanas cobrir: da semana atual até o fim do período
+  const totalDays=Math.ceil((limit-calStart)/86400000);
+  const numWeeks=Math.ceil(totalDays/7);
+
   const weeks=[];
   for(let w=0;w<numWeeks;w++){
-    const wStart=new Date(today); wStart.setDate(today.getDate()+w*7);
-    const wEnd=new Date(today); wEnd.setDate(today.getDate()+(w+1)*7-1);
+    const wStart=new Date(calStart); wStart.setDate(calStart.getDate()+w*7);
+    const wEnd  =new Date(calStart); wEnd.setDate(calStart.getDate()+(w+1)*7-1);
     if(wEnd>limit) wEnd.setTime(limit.getTime());
-    const wItems=itemsComData.filter(i=>i.date>=wStart&&i.date<=wEnd).sort((a,b)=>a.date-b.date);
-    const wIn=wItems.filter(i=>i.amt>0).reduce((s,i)=>s+i.amt,0);
+    // Itens: a partir de hoje na semana 0, wStart nas demais
+    const rangeStart=w===0?today:wStart;
+    const wItems=itemsComData.filter(i=>i.date>=rangeStart&&i.date<=wEnd).sort((a,b)=>a.date-b.date);
+    const wIn =wItems.filter(i=>i.amt>0).reduce((s,i)=>s+i.amt,0);
     const wOut=Math.abs(wItems.filter(i=>i.amt<0).reduce((s,i)=>s+i.amt,0));
     weeks.push({wStart,wEnd,wItems,wIn,wOut});
   }
+
   const fmtDM=(d)=>`${String(d.getDate()).padStart(2,'0')} ${meses[d.getMonth()]}`;
+  const diasSemCur=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   const _srcColor={fix:'var(--blue)',sub:'var(--cyan)',inst:'var(--purple)',planned:'var(--yellow)'};
   const _srcLabel={fix:'Fixo',sub:'Assin.',inst:'Parcela',planned:'Manual'};
 
   timeline.innerHTML=weeks.map((w,wi)=>{
     const wNet=w.wIn-w.wOut;
     const netCls=wNet>0?'pwc-net-pos':wNet<0?'pwc-net-neg':'pwc-net-zero';
-    const wLabel=wi===0?'Esta semana':`Semana ${wi+1}`;
-    const period=`${fmtDM(w.wStart)} – ${fmtDM(w.wEnd)}`;
-    const dateStr=w.wStart.toISOString().slice(0,10);
+    // Rótulo: "Esta semana (Seg-Dom)" ou "Sem 2 · Mai"
+    const mesLabel=w.wStart.getMonth()!==w.wEnd.getMonth()
+      ?`${meses[w.wStart.getMonth()]}–${meses[w.wEnd.getMonth()]}`
+      :meses[w.wStart.getMonth()];
+    const wLabel=wi===0?'Esta semana':`Sem ${wi+1} · ${mesLabel}`;
+    // Período: usa "hoje" como início na semana atual
+    const periodStart=wi===0?today:w.wStart;
+    const period=`${fmtDM(periodStart)} – ${fmtDM(w.wEnd)}`;
+    // data para novos lançamentos = hoje (sem 0) ou início da semana
+    const dateStr=wi===0?today.toISOString().slice(0,10):w.wStart.toISOString().slice(0,10);
 
     const itemRows=w.wItems.map(i=>{
       const col=_srcColor[i.source]||'var(--muted2)';
       const valCol=i.amt>=0?'var(--green)':'var(--red)';
       const sign=i.amt>=0?'+':'';
       const day=String(i.date.getDate()).padStart(2,'0');
+      const dsem=diasSemCur[i.date.getDay()];
+      const isToday=i.date.getTime()===today.getTime();
       return `<div class="pwc-item">
-        <span class="pwc-day">${day}</span>
+        <span class="pwc-day" style="${isToday?'background:rgba(56,189,248,.15);border-color:rgba(56,189,248,.4);color:var(--blue2)':''}" title="${dsem}">${day}</span>
         <span class="pwc-dot" style="background:${col}"></span>
-        <span class="pwc-name">${i.label.length>28?i.label.slice(0,28)+'…':i.label}<small style="color:${col}">${_srcLabel[i.source]||''}</small></span>
+        <span class="pwc-name">${i.label.length>26?i.label.slice(0,26)+'…':i.label}<small style="color:${col}">${dsem} · ${_srcLabel[i.source]||''}</small></span>
         <span class="pwc-val" style="color:${valCol}">${sign}${brl(Math.abs(i.amt))}</span>
       </div>`;
     }).join('');
