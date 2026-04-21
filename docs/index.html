@@ -220,21 +220,46 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .imp-report-stat-lbl{font-size:11px;color:var(--muted)}
 
 /* ── Projeção de Caixa ───────────────────────────────────── */
-.proj-timeline{display:flex;flex-direction:column;gap:2px;margin-top:12px}
-.proj-week{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;transition:.15s;cursor:default}
-.proj-week:hover{background:rgba(255,255,255,.04)}
-.proj-week-label{font-size:11px;color:var(--muted);width:90px;flex-shrink:0;font-weight:500}
-.proj-bar-wrap{flex:1;display:flex;align-items:center;gap:6px}
-.proj-bar{height:6px;border-radius:99px;transition:width .5s ease;min-width:4px}
-.proj-bar-green{background:linear-gradient(90deg,#16a34a,#22c55e)}
-.proj-bar-red{background:linear-gradient(90deg,#be123c,#f43f5e)}
-.proj-items{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;padding:0 12px 8px}
-.proj-chip{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;padding:2px 8px;border-radius:20px;font-weight:500}
-.proj-chip-in{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#4ade80}
-.proj-chip-out{background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);color:#fb7185}
-.proj-chip-fix{background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);color:#7dd3fc}
-.proj-saldo-line{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-top:1px solid var(--border);margin-top:8px;font-size:12px}
-.proj-recurr-badge{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;padding:1px 6px;border-radius:20px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:var(--blue2);font-weight:600;vertical-align:middle;margin-left:4px}
+/* ── Projeção de Caixa ─────────────────────────────────────────────────── */
+.proj-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;margin-bottom:16px}
+.proj-sumcard{border-radius:12px;padding:12px 14px}
+.proj-sumcard-label{font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--muted);margin-bottom:5px}
+.proj-sumcard-val{font-size:20px;font-weight:800;letter-spacing:-.5px;line-height:1}
+.proj-sumcard-sub{font-size:10px;color:var(--muted2);margin-top:4px}
+.proj-timeline{display:flex;flex-direction:column;gap:6px}
+.proj-week-card{border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .15s}
+.proj-week-card:hover{border-color:var(--border2)}
+.proj-week-head{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none}
+.proj-week-head:hover{background:rgba(255,255,255,.02)}
+.proj-week-title{font-size:12px;font-weight:600;color:var(--text);flex:1}
+.proj-week-period{font-size:10px;color:var(--muted);font-weight:400}
+.proj-week-balance{font-size:12px;font-weight:700;padding:2px 10px;border-radius:20px;white-space:nowrap}
+.proj-week-balance-pos{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.2);color:#4ade80}
+.proj-week-balance-neg{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.2);color:#fb7185}
+.proj-week-balance-zero{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted2)}
+.proj-week-toggle{font-size:10px;color:var(--muted);transition:.15s;flex-shrink:0}
+.proj-bars{padding:0 14px 10px;display:flex;flex-direction:column;gap:5px}
+.proj-bar-row{display:flex;align-items:center;gap:8px}
+.proj-bar-meta{font-size:10px;width:64px;flex-shrink:0;font-weight:500;white-space:nowrap}
+.proj-bar-track{flex:1;height:7px;background:rgba(255,255,255,.04);border-radius:99px;overflow:hidden}
+.proj-bar-fill{height:100%;border-radius:99px;transition:width .5s ease}
+.proj-bar-fill-green{background:linear-gradient(90deg,#16a34a,#22c55e)}
+.proj-bar-fill-red{background:linear-gradient(90deg,#be123c,#f43f5e)}
+.proj-bar-val{font-size:10px;font-weight:700;width:80px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.proj-items{border-top:1px solid var(--border);overflow:hidden;transition:max-height .25s ease}
+.proj-item-row{display:flex;align-items:center;gap:10px;padding:7px 14px;border-bottom:1px solid rgba(255,255,255,.03);transition:.1s}
+.proj-item-row:last-child{border-bottom:none}
+.proj-item-row:hover{background:rgba(255,255,255,.02)}
+.proj-item-day{font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:1px 6px;color:var(--muted2);font-weight:600;flex-shrink:0;width:30px;text-align:center}
+.proj-item-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.proj-item-label{flex:1;font-size:11.5px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proj-item-label small{display:block;font-size:9.5px;color:var(--muted);font-weight:400;margin-top:1px}
+.proj-item-val{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;flex-shrink:0}
+.proj-item-recur{font-size:9px;padding:1px 5px;border-radius:10px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:var(--blue2);flex-shrink:0}
+.proj-empty-week{padding:10px 14px;font-size:11px;color:var(--muted);font-style:italic}
+.proj-cumul{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface2);border-top:1px solid var(--border);margin-top:10px;border-radius:0 0 12px 12px}
+.proj-cumul-label{font-size:11px;color:var(--muted2);font-weight:500}
+.proj-cumul-val{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
 
 /* ── Banner de Vencimentos ───────────────────────────────── */
 #notifBanner{position:sticky;top:60px;z-index:190;display:none;flex-direction:column;gap:0;border-bottom:1px solid rgba(251,191,36,.2)}
@@ -687,16 +712,16 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           <button onclick="openPlanModal('saida')" title="Nova despesa prevista" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid rgba(244,63,94,.3);background:rgba(244,63,94,.08);color:#fb7185;cursor:pointer;font-weight:600">＋ Despesa</button>
         </div>
       </div>
-      <!-- Totais rápidos -->
-      <div id="fluxoGrid" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
-        <div style="color:var(--muted);font-size:12px">Carregando...</div>
+      <!-- Resumo -->
+      <div id="fluxoGrid" class="proj-summary">
+        <div style="color:var(--muted);font-size:12px;grid-column:1/-1">Carregando...</div>
       </div>
       <!-- Timeline semanal -->
       <div id="projTimeline" class="proj-timeline"></div>
-      <!-- Linha de saldo projetado -->
-      <div id="projSaldoLine" style="display:none" class="proj-saldo-line">
-        <span style="color:var(--muted)">Saldo projetado em <span id="projSaldoData"></span></span>
-        <span id="projSaldoVal" style="font-size:14px;font-weight:800"></span>
+      <!-- Saldo projetado no final -->
+      <div id="projSaldoLine" style="display:none" class="proj-cumul">
+        <span class="proj-cumul-label">Impacto no saldo em <span id="projSaldoData"></span></span>
+        <span id="projSaldoVal" class="proj-cumul-val"></span>
       </div>
     </div>
   </div>
@@ -1563,56 +1588,44 @@ function _renderProjecao(dias){
   const {fixedCosts,subs,insts,planned}=_fluxoData;
   const today=new Date(); today.setHours(0,0,0,0);
   const limit=new Date(today); limit.setDate(today.getDate()+dias);
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const diasSem=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 
-  // ── Coleta todos os itens com data ──────────────────────────────────────────
+  // ── Coleta itens ───────────────────────────────────────────────────────────
   const items=[];
-  const _addMonthly=(label,amt,billingDay,source)=>{
-    // Gera ocorrência para cada mês no período
+  const _addMonthly=(label,amt,billingDay,source,category)=>{
     let d=new Date(today.getFullYear(),today.getMonth(),+billingDay);
     if(d<today) d=new Date(today.getFullYear(),today.getMonth()+1,+billingDay);
     while(d<=limit){
-      items.push({label,amt,date:new Date(d),source});
+      items.push({label,amt,date:new Date(d),source,category});
       d=new Date(d.getFullYear(),d.getMonth()+1,+billingDay);
     }
   };
-
-  const _getDueDay=(accountName)=>{
-    const bank=(accountName||'').toLowerCase();
-    const fc=(fixedCosts||[]).find(c=>c.due_day&&/fatura|cartão|card/i.test(c.description||'')&&(c.description||'').toLowerCase().includes(bank.substring(0,4)));
+  const _getDueDay=(card)=>{
+    const fc=(fixedCosts||[]).find(c=>c.due_day&&/fatura|cartão|card/i.test(c.description||''));
     return fc?.due_day||10;
   };
 
-  // Custos fixos
   (fixedCosts||[]).forEach(c=>{
     if(!c.amount||!c.due_day) return;
-    _addMonthly(c.description,-(+c.amount),c.due_day,'fix');
+    _addMonthly(c.description,-(+c.amount),c.due_day,'fix',c.category);
   });
-
-  // Assinaturas
   (subs||[]).forEach(s=>{
     if(!s.amount||!s.billing_day) return;
-    _addMonthly(`${s.emoji||''}${s.name}`,-(+s.amount),s.billing_day,'fix');
+    _addMonthly(`${s.emoji||''}${s.name}`,-(+s.amount),s.billing_day,'sub',s.category);
   });
-
-  // Parcelamentos
   (insts||[]).forEach(i=>{
     if(!i.installment_amount) return;
-    _addMonthly(i.description,-(+i.installment_amount),_getDueDay(i.card||''),('inst'));
+    _addMonthly(i.description,-(+i.installment_amount),_getDueDay(i.card||''),'inst',i.category);
   });
-
-  // Planejamentos one-time
   (planned||[]).forEach(p=>{
     if(!p.amount||p.confirmed) return;
+    const sign=p.type==='entrada'?+(+p.amount):-(+p.amount);
     if(p.recorrente&&p.recorrencia_dia){
-      _addMonthly(p.description,(p.type==='entrada'?+(+p.amount):-(+p.amount)),p.recorrencia_dia,'planned');
+      _addMonthly(p.description,sign,p.recorrencia_dia,'planned',p.category);
     } else if(p.due_date){
       const d=new Date(p.due_date+'T00:00:00');
-      if(d>=today&&d<=limit){
-        items.push({label:p.description,amt:(p.type==='entrada'?+(+p.amount):-(+p.amount)),date:d,source:'planned',recorrente:p.recorrente});
-      }
-    } else {
-      // sem data — coloca no "sem data" bucket para mostrar nos totais
-      items.push({label:p.description,amt:(p.type==='entrada'?+(+p.amount):-(+p.amount)),date:null,source:'planned',recorrente:p.recorrente});
+      if(d>=today&&d<=limit) items.push({label:p.description,amt:sign,date:d,source:'planned',category:p.category,recorrente:p.recorrente});
     }
   });
 
@@ -1620,70 +1633,109 @@ function _renderProjecao(dias){
   const totalEntradas=itemsComData.filter(i=>i.amt>0).reduce((s,i)=>s+i.amt,0);
   const totalSaidas=Math.abs(itemsComData.filter(i=>i.amt<0).reduce((s,i)=>s+i.amt,0));
   const saldoImpacto=totalEntradas-totalSaidas;
+  const totalEvt=itemsComData.length;
 
-  // ── Totais rápidos ──────────────────────────────────────────────────────────
+  // ── Summary cards ─────────────────────────────────────────────────────────
   grid.innerHTML=`
-    <div style="background:var(--glow-green);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:12px 16px;min-width:140px;text-align:center">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:500">RECEITAS PREVISTAS</div>
-      <div style="font-size:18px;font-weight:800;color:var(--green)">+${brl(totalEntradas)}</div>
+    <div class="proj-sumcard" style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.18)">
+      <div class="proj-sumcard-label">RECEITAS PREVISTAS</div>
+      <div class="proj-sumcard-val" style="color:var(--green)">+${brl(totalEntradas)}</div>
+      <div class="proj-sumcard-sub">${itemsComData.filter(i=>i.amt>0).length} evento(s)</div>
     </div>
-    <div style="background:var(--glow-red);border:1px solid rgba(244,63,94,.2);border-radius:12px;padding:12px 16px;min-width:140px;text-align:center">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:500">DESPESAS PREVISTAS</div>
-      <div style="font-size:18px;font-weight:800;color:var(--red)">-${brl(totalSaidas)}</div>
+    <div class="proj-sumcard" style="background:rgba(244,63,94,.07);border:1px solid rgba(244,63,94,.18)">
+      <div class="proj-sumcard-label">DESPESAS PREVISTAS</div>
+      <div class="proj-sumcard-val" style="color:var(--red)">-${brl(totalSaidas)}</div>
+      <div class="proj-sumcard-sub">${itemsComData.filter(i=>i.amt<0).length} evento(s)</div>
     </div>
-    <div style="background:${saldoImpacto>=0?'var(--glow-green)':'var(--glow-red)'};border:1px solid ${saldoImpacto>=0?'rgba(34,197,94,.2)':'rgba(244,63,94,.2)'};border-radius:12px;padding:12px 16px;min-width:140px;text-align:center">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:500">IMPACTO NO SALDO</div>
-      <div style="font-size:18px;font-weight:800;color:${saldoImpacto>=0?'var(--green)':'var(--red)'}">${saldoImpacto>=0?'+':''}${brl(saldoImpacto)}</div>
-    </div>
-    <div style="flex:1;font-size:11px;color:var(--muted2);display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:4px 0">
-      <span>📋 <b style="color:var(--text)">${items.filter(i=>i.source==='planned').length}</b> eventos manuais</span>
-      <span>🔄 <b style="color:var(--text)">${itemsComData.filter(i=>i.source==='fix'||i.source==='inst').length}</b> automáticos</span>
+    <div class="proj-sumcard" style="background:${saldoImpacto>=0?'rgba(34,197,94,.07)':'rgba(244,63,94,.07)'};border:1px solid ${saldoImpacto>=0?'rgba(34,197,94,.18)':'rgba(244,63,94,.18)'}">
+      <div class="proj-sumcard-label">IMPACTO NO SALDO</div>
+      <div class="proj-sumcard-val" style="color:${saldoImpacto>=0?'var(--green)':'var(--red)'}">${saldoImpacto>=0?'+':''}${brl(saldoImpacto)}</div>
+      <div class="proj-sumcard-sub">${totalEvt} eventos em ${dias} dias</div>
     </div>`;
 
-  // ── Timeline semanal ────────────────────────────────────────────────────────
+  // ── Semanas ───────────────────────────────────────────────────────────────
   if(!timeline) return;
-  const weeks=[];
   const numWeeks=Math.ceil(dias/7);
+  const weeks=[];
   for(let w=0;w<numWeeks;w++){
     const wStart=new Date(today); wStart.setDate(today.getDate()+w*7);
     const wEnd=new Date(today); wEnd.setDate(today.getDate()+(w+1)*7-1);
     if(wEnd>limit) wEnd.setTime(limit.getTime());
-    const wItems=itemsComData.filter(i=>i.date>=wStart&&i.date<=wEnd);
+    const wItems=itemsComData.filter(i=>i.date>=wStart&&i.date<=wEnd).sort((a,b)=>a.date-b.date);
     const wIn=wItems.filter(i=>i.amt>0).reduce((s,i)=>s+i.amt,0);
     const wOut=Math.abs(wItems.filter(i=>i.amt<0).reduce((s,i)=>s+i.amt,0));
     weeks.push({wStart,wEnd,wItems,wIn,wOut});
   }
   const maxVal=Math.max(...weeks.map(w=>Math.max(w.wIn,w.wOut)),1);
-  const fmt=(d)=>`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
-  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const fmtDM=(d)=>`${String(d.getDate()).padStart(2,'0')} ${meses[d.getMonth()]}`;
+
+  // Fonte de cor por source
+  const _srcColor={fix:'var(--blue)',sub:'var(--cyan)',inst:'var(--purple)',planned:'var(--yellow)'};
+  const _srcLabel={fix:'Fixo',sub:'Assinatura',inst:'Parcela',planned:'Manual'};
+
+  // Calcular saldo acumulado semana a semana
+  let cumul=0;
 
   timeline.innerHTML=weeks.map((w,wi)=>{
-    const inW=Math.round((w.wIn/maxVal)*120);
-    const outW=Math.round((w.wOut/maxVal)*120);
-    const label=wi===0?`Essa semana`:`${fmt(w.wStart)} – ${fmt(w.wEnd)}`;
-    const chips=w.wItems.sort((a,b)=>a.date-b.date).map(i=>{
-      const cls=i.source==='fix'||i.source==='inst'?'proj-chip-fix':(i.amt>=0?'proj-chip-in':'proj-chip-out');
-      const sig=i.amt>=0?'+':'';
-      const recBadge=i.recorrente?`<span class="proj-recurr-badge">🔄</span>`:'';
-      return `<span class="proj-chip ${cls}">${fmtDate(i.date.toISOString().slice(0,10))} ${i.label.length>20?i.label.slice(0,20)+'…':i.label} ${sig}${brl(Math.abs(i.amt))}${recBadge}</span>`;
+    const wNet=w.wIn-w.wOut;
+    cumul+=wNet;
+    const balCls=wNet>0?'proj-week-balance-pos':wNet<0?'proj-week-balance-neg':'proj-week-balance-zero';
+    const periodLabel=wi===0?`Essa semana • ${fmtDM(w.wStart)}–${fmtDM(w.wEnd)}`:`${fmtDM(w.wStart)} – ${fmtDM(w.wEnd)}`;
+    const wLabel=wi===0?'Semana atual':`Semana ${wi+1}`;
+    const inPct=Math.round((w.wIn/maxVal)*100);
+    const outPct=Math.round((w.wOut/maxVal)*100);
+    const itemsId=`proj-items-${wi}`;
+    // auto-expand first week; collapse others for 60/90d
+    const expanded=(wi===0||dias<=30);
+
+    const itemRows=w.wItems.map(i=>{
+      const col=_srcColor[i.source]||'var(--muted2)';
+      const valCol=i.amt>=0?'var(--green)':'var(--red)';
+      const sign=i.amt>=0?'+':'';
+      const dayStr=String(i.date.getDate()).padStart(2,'0');
+      const recTag=i.recorrente?`<span class="proj-item-recur">↻ recorrente</span>`:'';
+      const srcTag=`<small style="color:${col}">${_srcLabel[i.source]||i.source}</small>`;
+      return `<div class="proj-item-row">
+        <span class="proj-item-day">${dayStr}</span>
+        <span class="proj-item-dot" style="background:${col}"></span>
+        <span class="proj-item-label">${i.label.length>36?i.label.slice(0,36)+'…':i.label}${srcTag}</span>
+        ${recTag}
+        <span class="proj-item-val" style="color:${valCol}">${sign}${brl(Math.abs(i.amt))}</span>
+      </div>`;
     }).join('');
-    return `<div>
-      <div class="proj-week">
-        <div class="proj-week-label">${label}</div>
-        <div class="proj-bar-wrap">
-          ${w.wIn>0?`<div class="proj-bar proj-bar-green" style="width:${inW}px" title="Entradas: +${brl(w.wIn)}"></div>`:``}
-          ${w.wOut>0?`<div class="proj-bar proj-bar-red" style="width:${outW}px" title="Saídas: -${brl(w.wOut)}"></div>`:``}
-          ${w.wItems.length===0?`<span style="color:var(--muted);font-size:11px">sem movimentações previstas</span>`:''}
+
+    return `<div class="proj-week-card">
+      <div class="proj-week-head" onclick="(function(el){const b=el.closest('.proj-week-card').querySelector('.proj-items');b.style.maxHeight=b.style.maxHeight?'':'2000px';el.querySelector('.proj-week-toggle').textContent=b.style.maxHeight?'▲':'▼'})(this)">
+        <div>
+          <div class="proj-week-title">${wLabel} <span class="proj-week-period">· ${periodLabel}</span></div>
         </div>
-        <div style="font-size:11px;font-weight:700;color:${(w.wIn-w.wOut)>=0?'var(--green)':'var(--red)'}; white-space:nowrap;min-width:80px;text-align:right">${w.wItems.length>0?((w.wIn-w.wOut)>=0?'+':'')+brl(w.wIn-w.wOut):''}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+          ${w.wItems.length>0?`<span class="proj-week-balance ${balCls}">${wNet>=0?'+':''}${brl(wNet)}</span>`:''}
+          ${w.wItems.length>0?`<span class="proj-week-toggle">${expanded?'▲':'▼'}</span>`:''}
+        </div>
       </div>
-      ${chips?`<div class="proj-items">${chips}</div>`:''}
+      ${w.wIn>0||w.wOut>0?`
+      <div class="proj-bars">
+        ${w.wIn>0?`<div class="proj-bar-row">
+          <span class="proj-bar-meta" style="color:var(--green)">↑ Entradas</span>
+          <div class="proj-bar-track"><div class="proj-bar-fill proj-bar-fill-green" style="width:${inPct}%"></div></div>
+          <span class="proj-bar-val" style="color:var(--green)">+${brl(w.wIn)}</span>
+        </div>`:''}
+        ${w.wOut>0?`<div class="proj-bar-row">
+          <span class="proj-bar-meta" style="color:var(--red)">↓ Saídas</span>
+          <div class="proj-bar-track"><div class="proj-bar-fill proj-bar-fill-red" style="width:${outPct}%"></div></div>
+          <span class="proj-bar-val" style="color:var(--red)">-${brl(w.wOut)}</span>
+        </div>`:''}
+      </div>`:''}
+      <div class="proj-items" id="${itemsId}" style="max-height:${w.wItems.length===0||expanded?'2000px':'0'}">
+        ${w.wItems.length===0?`<div class="proj-empty-week">Sem movimentações previstas nesta semana</div>`:itemRows}
+      </div>
     </div>`;
   }).join('');
 
-  // Saldo projetado no final do período
+  // Saldo projetado
   if(saldoLine){
-    const limitFmt=`${String(limit.getDate()).padStart(2,'0')}/${meses[limit.getMonth()]}`;
+    const limitFmt=`${String(limit.getDate()).padStart(2,'0')} ${meses[limit.getMonth()]}`;
     document.getElementById('projSaldoData').textContent=limitFmt;
     const sp=document.getElementById('projSaldoVal');
     sp.textContent=(saldoImpacto>=0?'+':'')+brl(saldoImpacto);
