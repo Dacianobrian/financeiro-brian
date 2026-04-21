@@ -229,10 +229,10 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .proj-timeline{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;align-items:start}
 .proj-week-card{border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .15s}
 .proj-week-card:hover{border-color:var(--border2)}
-.proj-week-head{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none}
-.proj-week-head:hover{background:rgba(255,255,255,.02)}
-.proj-week-title{font-size:12px;font-weight:600;color:var(--text);flex:1;line-height:1.4}
-.proj-week-period{display:block;font-size:10px;color:var(--muted);font-weight:400;margin-top:1px}
+.proj-week-head{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;user-select:none}
+.proj-week-head:hover{background:rgba(255,255,255,.025)}
+.proj-week-title{font-size:11.5px;font-weight:600;color:var(--text);white-space:nowrap}
+.proj-week-period{font-size:10px;color:var(--muted);font-weight:400;white-space:nowrap}
 .proj-week-balance{font-size:12px;font-weight:700;padding:2px 10px;border-radius:20px;white-space:nowrap}
 .proj-week-balance-pos{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.2);color:#4ade80}
 .proj-week-balance-neg{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.2);color:#fb7185}
@@ -1762,56 +1762,63 @@ function _renderProjecao(dias){
   timeline.innerHTML=weeks.map((w,wi)=>{
     const wNet=w.wIn-w.wOut;
     cumul+=wNet;
+    if(w.wItems.length===0) return ''; // oculta semanas sem eventos
     const balCls=wNet>0?'proj-week-balance-pos':wNet<0?'proj-week-balance-neg':'proj-week-balance-zero';
-    const periodLabel=wi===0?`Essa semana • ${fmtDM(w.wStart)}–${fmtDM(w.wEnd)}`:`${fmtDM(w.wStart)} – ${fmtDM(w.wEnd)}`;
-    const wLabel=wi===0?'Semana atual':`Semana ${wi+1}`;
+    const period=`${fmtDM(w.wStart)} – ${fmtDM(w.wEnd)}`;
+    const wLabel=wi===0?'Esta semana':`Sem ${wi+1}`;
     const inPct=Math.round((w.wIn/maxVal)*100);
     const outPct=Math.round((w.wOut/maxVal)*100);
-    const itemsId=`proj-items-${wi}`;
-    // auto-expand first week; collapse others for 60/90d
-    const expanded=(wi===0||dias<=30);
 
     const itemRows=w.wItems.map(i=>{
       const col=_srcColor[i.source]||'var(--muted2)';
       const valCol=i.amt>=0?'var(--green)':'var(--red)';
       const sign=i.amt>=0?'+':'';
       const dayStr=String(i.date.getDate()).padStart(2,'0');
-      const recTag=i.recorrente?`<span class="proj-item-recur">↻ recorrente</span>`:'';
-      const srcTag=`<small style="color:${col}">${_srcLabel[i.source]||i.source}</small>`;
+      const recTag=i.recorrente?`<span class="proj-item-recur">↻</span>`:'';
       return `<div class="proj-item-row">
         <span class="proj-item-day">${dayStr}</span>
         <span class="proj-item-dot" style="background:${col}"></span>
-        <span class="proj-item-label">${i.label.length>36?i.label.slice(0,36)+'…':i.label}${srcTag}</span>
+        <span class="proj-item-label">${i.label.length>32?i.label.slice(0,32)+'…':i.label}<small style="color:${col}">${_srcLabel[i.source]||''}</small></span>
         ${recTag}
         <span class="proj-item-val" style="color:${valCol}">${sign}${brl(Math.abs(i.amt))}</span>
       </div>`;
     }).join('');
 
+    // Minibarras inline no header (horizontal, dentro do card fechado)
+    const miniIn =w.wIn >0?`<span style="font-size:10px;color:var(--green);font-variant-numeric:tabular-nums;white-space:nowrap">↑${brl(w.wIn)}</span>`:'';
+    const miniOut=w.wOut>0?`<span style="font-size:10px;color:var(--red);font-variant-numeric:tabular-nums;white-space:nowrap">↓${brl(w.wOut)}</span>`:'';
+
     return `<div class="proj-week-card">
-      <div class="proj-week-head" onclick="(function(el){const b=el.closest('.proj-week-card').querySelector('.proj-items');b.style.maxHeight=b.style.maxHeight?'':'2000px';el.querySelector('.proj-week-toggle').textContent=b.style.maxHeight?'▲':'▼'})(this)">
-        <div>
-          <div class="proj-week-title">${wLabel}<span class="proj-week-period">${periodLabel}</span></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
-          ${w.wItems.length>0?`<span class="proj-week-balance ${balCls}">${wNet>=0?'+':''}${brl(wNet)}</span>`:''}
-          ${w.wItems.length>0?`<span class="proj-week-toggle">${expanded?'▲':'▼'}</span>`:''}
+      <div class="proj-week-head" onclick="(function(el){
+        const card=el.closest('.proj-week-card');
+        const body=card.querySelector('.proj-body');
+        const tog=el.querySelector('.proj-week-toggle');
+        const open=body.style.maxHeight;
+        body.style.maxHeight=open?'':'600px';
+        tog.textContent=open?'▼':'▲';
+      })(this)">
+        <span class="proj-week-title">${wLabel}</span>
+        <span class="proj-week-period">${period}</span>
+        <div style="display:flex;align-items:center;gap:5px;margin-left:auto">
+          ${miniIn}${miniIn&&miniOut?`<span style="opacity:.3;font-size:9px">·</span>`:''}${miniOut}
+          <span class="proj-week-balance ${balCls}">${wNet>=0?'+':''}${brl(wNet)}</span>
+          <span class="proj-week-toggle" style="font-size:9px;color:var(--muted)">▼</span>
         </div>
       </div>
-      ${w.wIn>0||w.wOut>0?`
-      <div class="proj-bars">
-        ${w.wIn>0?`<div class="proj-bar-row">
-          <span class="proj-bar-meta" style="color:var(--green)">↑ Entradas</span>
-          <div class="proj-bar-track"><div class="proj-bar-fill proj-bar-fill-green" style="width:${inPct}%"></div></div>
-          <span class="proj-bar-val" style="color:var(--green)">+${brl(w.wIn)}</span>
-        </div>`:''}
-        ${w.wOut>0?`<div class="proj-bar-row">
-          <span class="proj-bar-meta" style="color:var(--red)">↓ Saídas</span>
-          <div class="proj-bar-track"><div class="proj-bar-fill proj-bar-fill-red" style="width:${outPct}%"></div></div>
-          <span class="proj-bar-val" style="color:var(--red)">-${brl(w.wOut)}</span>
-        </div>`:''}
-      </div>`:''}
-      <div class="proj-items" id="${itemsId}" style="max-height:${w.wItems.length===0||expanded?'2000px':'0'}">
-        ${w.wItems.length===0?`<div class="proj-empty-week">Sem movimentações previstas nesta semana</div>`:itemRows}
+      <div class="proj-body" style="max-height:0;overflow:hidden;transition:max-height .22s ease">
+        <div class="proj-bars" style="padding:6px 12px 8px">
+          ${w.wIn>0?`<div class="proj-bar-row">
+            <span class="proj-bar-meta" style="color:var(--green)">↑</span>
+            <div class="proj-bar-track"><div class="proj-bar-fill proj-bar-fill-green" style="width:${inPct}%"></div></div>
+            <span class="proj-bar-val" style="color:var(--green)">+${brl(w.wIn)}</span>
+          </div>`:''}
+          ${w.wOut>0?`<div class="proj-bar-row">
+            <span class="proj-bar-meta" style="color:var(--red)">↓</span>
+            <div class="proj-bar-track"><div class="proj-bar-fill proj-bar-fill-red" style="width:${outPct}%"></div></div>
+            <span class="proj-bar-val" style="color:var(--red)">-${brl(w.wOut)}</span>
+          </div>`:''}
+        </div>
+        <div class="proj-items" style="max-height:none">${itemRows}</div>
       </div>
     </div>`;
   }).join('');
