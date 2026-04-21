@@ -605,6 +605,11 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
 
 <!-- TAB: VISÃO GERAL -->
 <div id="tabGeral">
+  <!-- Banner alerta saldo baixo -->
+  <div id="saldoBanner" style="display:none;margin:0 0 10px;padding:10px 16px;border-radius:10px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35);color:#fbbf24;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px">
+    <span style="font-size:18px">⚠️</span>
+    <span id="saldoBannerMsg"></span>
+  </div>
   <div class="section">
     <div class="grid g4" id="kpiGrid">
       <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(99,102,241,.15)">🏦</span>Saldo em Conta</div><div class="kpi-value" id="kpiSaldo">—</div><div class="kpi-sub" id="kpiSaldoSub">Nubank + Bradesco</div></div>
@@ -1543,11 +1548,21 @@ function _renderFluxo(dias){
     if(d<=limit){totalSaidas+=+(s.amount||0);items.push({label:`${s.emoji||''} ${s.name}`,amt:-(+s.amount),date:d});}
   });
 
-  // Parcelamentos ativos
+  // Parcelamentos ativos — usa due_day do custo fixo "fatura" da conta correspondente
+  const _getDueDay=(accountName)=>{
+    if(!accountName) return 10;
+    const bank=(accountName||'').toLowerCase().replace(/conta\s+|corrente\s+/g,'').trim();
+    const fc=(fixedCosts||[]).find(c=>{
+      const desc=(c.description||'').toLowerCase();
+      return c.due_day && desc.includes(bank.substring(0,6)) && /fatura|cartão|card/i.test(desc);
+    });
+    return fc?.due_day||10;
+  };
   (insts||[]).forEach(i=>{
     if(!i.installment_amount) return;
-    // Vence no próximo mês (estimativa: dia 10)
-    let d=new Date(today.getFullYear(),today.getMonth()+1,10);
+    const dueDay=_getDueDay(i.account);
+    let d=new Date(today.getFullYear(),today.getMonth(),dueDay);
+    if(d<today) d=new Date(today.getFullYear(),today.getMonth()+1,dueDay);
     if(d<=limit){totalSaidas+=+(i.installment_amount||0);items.push({label:i.description,amt:-(+i.installment_amount),date:d});}
   });
 
@@ -1588,13 +1603,15 @@ let _fluxoData=null;
 
 // ══ GRÁFICO PATRIMÔNIO HISTÓRICO ═══════════════════════════════════════════════
 let _chartPatrimHist=null;
-function buildPatrimHistChart(monthly){
+function buildPatrimHistChart(monthly, baseBalance=0){
   const ctx=document.getElementById('chartPatrimHist');
   if(!ctx||!monthly||!monthly.length) return;
-  // Calcula saldo acumulado mês a mês
-  let acc=0;
+  const sorted=[...monthly].sort((a,b)=>String(a.month||'').localeCompare(String(b.month||'')));
+  // Usa saldo real das contas como ponto de chegada e retrocede para encontrar o seed
+  const totalFlow=sorted.reduce((s,m)=>s+(+(m.entradas||0))-(+(m.saidas||0))-(+(m.investido||0)),0);
+  let acc=baseBalance-totalFlow; // ponto de partida real (início do ano)
   const labels=[], data=[];
-  [...monthly].sort((a,b)=>String(a.month||'').localeCompare(String(b.month||''))).forEach(m=>{
+  sorted.forEach(m=>{
     acc+=(+(m.entradas||0))-(+(m.saidas||0))-(+(m.investido||0));
     labels.push(m.month||'');
     data.push(+acc.toFixed(2));
@@ -1889,6 +1906,19 @@ function fillAccounts(accounts, patrimonio){
     html+=`<div class="card" style="border:1px solid rgba(99,102,241,.35);background:rgba(99,102,241,.1)"><div class="kpi-label" style="margin-bottom:8px"><span class="kpi-icon" style="background:rgba(99,102,241,.15)">⚖️</span><span style="color:#a78bfa;font-weight:600;font-size:11px">PATRIMÔNIO TOTAL</span></div><div style="font-size:11px;color:var(--muted2);font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">contas + FIIs</div><div class="kpi-value" style="color:#a78bfa;font-size:22px">${brl(patrimonio.total)}</div><div class="kpi-sub" style="margin-top:4px"><span style="color:var(--muted2)">contas: ${brl(patrimonio.accounts)}</span> · <span style="color:var(--muted2)">fiis: ${brl(patrimonio.fii)}</span></div></div>`;
   }
   grid.innerHTML=html;
+  // Banner de alerta global no topo
+  const banner=document.getElementById('saldoBanner');
+  const bannerMsg=document.getElementById('saldoBannerMsg');
+  if(banner&&bannerMsg){
+    const LIMITE_ALERTA2=cfg('alertaSaldo',500);
+    const baixas=(accounts||[]).filter(a=>a.type==='corrente'&&(+a.balance||0)<LIMITE_ALERTA2);
+    if(baixas.length){
+      bannerMsg.textContent=`Saldo baixo: ${baixas.map(a=>`${a.name||a.type} (${brl(a.balance)})`).join(', ')}`;
+      banner.style.display='flex';
+    } else {
+      banner.style.display='none';
+    }
+  }
 }
 
 function fillTx(rows){
@@ -2550,7 +2580,7 @@ setInterval(()=>{ if(document.visibilityState!=='hidden') refreshDashboard(); },
 async function refreshDashboard(){
   _setRefreshLoading(true);
   try{
-    const [cm, monthly, cats, txs, fii, fc, accounts, pat, divTxs, subs, insts] = await Promise.all([
+    const [cm, monthly, cats, txs, fii, fc, accounts, pat, divTxs, subs, insts, plannedRows] = await Promise.all([
       sbRpc('get_current_month_data'),
       sbRpc('get_monthly_summary', {year_val: new Date().getFullYear()}),
       sbRpc('get_expense_by_category', {year_val: new Date().getFullYear()}),
@@ -2562,6 +2592,7 @@ async function refreshDashboard(){
       sbGet('transactions', {select:'amount,date,description', category:'ilike.*Dividend*', date:`gte.${new Date().getFullYear()}-01-01`, type:'eq.entrada'}),
       sbGet('subscriptions', {select:'*', active:'eq.true', order:'billing_day.asc.nullslast,name.asc'}),
       sbGet('installments', {select:'*', active:'eq.true', order:'installment_amount.desc'}),
+      sbGet('planned_entries', {select:'*', order:'confirmed.asc,due_date.asc.nullslast,id.desc'}),
     ]);
     const cmRow = cm[0]||{entradas:0,saidas:0,investido:0,meta_diario:70,meta_reserva:10000,meta_mensal:10000};
     const patRow = pat[0]||{accounts:0,fii:0,total:0};
@@ -2579,11 +2610,14 @@ async function refreshDashboard(){
     fillSubscriptions(subs||[]);
     fillInstallments(insts||[]);
     _updateTitleAlerts(fc, insts);
-    loadPlanned();
+    loadPlanned(plannedRows||[]);
     fillAnoTab(monthly, catsObj);
-    _fluxoData={fixedCosts:fc||[],subs:subs||[],insts:insts||[],planned:[]};
+    _fluxoData={fixedCosts:fc||[],subs:subs||[],insts:insts||[],planned:(plannedRows||[]).filter(p=>!p.confirmed)};
     _fillFluxo(_fluxoDias);
-    buildPatrimHistChart(monthly);
+    buildPatrimHistChart(monthly, patRow.accounts);
+    // CDI caixinha — roda sem esperar cotações FII
+    const _caixinha=accounts.find(a=>/(caixinha|rdb)/i.test(a.type||''));
+    if(_caixinha&&+(+_caixinha.balance||0)>0) fillCaixinhaMetrics(+_caixinha.balance).catch(()=>{});
     _allTxs = txs;
     _invFiiRows = fii;
     _invAccounts = accounts;
@@ -3147,10 +3181,11 @@ async function uncheckPlan(id){
   refreshDashboard();
 }
 
-async function loadPlanned(){
-  const rows = await sbGet('planned_entries', {select:'*', order:'confirmed.asc,due_date.asc.nullslast,id.desc'});
+async function loadPlanned(rows=null){
+  if(!rows) rows = await sbGet('planned_entries', {select:'*', order:'confirmed.asc,due_date.asc.nullslast,id.desc'});
   renderPlanned(rows.filter(r=>r.type==='entrada'), 'listEntrada', 'totalEntradaPrev', 'entrada');
   renderPlanned(rows.filter(r=>r.type==='saida'),  'listSaida',   'totalSaidaPrev',   'saida');
+  return rows;
 }
 
 function renderPlanned(rows, listId, totalId, type){
@@ -3378,6 +3413,9 @@ const IMP_ALL_CATS = ['Alimentação','Transporte','Combustível','Moradia','Sa�
   'Impostos / MEI','Cartão Bradesco','Lazer','Vestuário','Educação','Pet',
   'Salário','Dividendos FII','Comissão','Transferência','Rendimentos',
   'Reembolso','Aluguel Recebido','Venda','Benefício','Investimentos','Outros'];
+// Listas separadas por tipo para dropdown filtrado
+const IMP_CATS_SAIDA_NAMES=['Alimentação','Transporte','Combustível','Moradia','Saúde','Streaming','Impostos / MEI','Cartão Bradesco','Lazer','Vestuário','Educação','Pet','Transferência','Outros'];
+const IMP_CATS_ENTRADA_NAMES=['Salário','Dividendos FII','Comissão','Transferência','Rendimentos','Reembolso','Aluguel Recebido','Venda','Benefício','Outros'];
 
 // Mapa categorias Nubank → sistema
 const NUBANK_CAT_MAP = {
@@ -3512,8 +3550,11 @@ function impAutoCategory(desc, type, nubankCat){
   return 'Outros';
 }
 
-function impCatOptions(selected){
-  return IMP_ALL_CATS.map(c=>`<option value="${c}"${c===selected?' selected':''}>${c}</option>`).join('');
+function impCatOptions(selected, type){
+  const list=type==='investido'?['Investimentos']:type==='entrada'?IMP_CATS_ENTRADA_NAMES:IMP_CATS_SAIDA_NAMES;
+  // garante que a categoria atual está na lista mesmo se vier de outro contexto
+  const cats=list.includes(selected)?list:[selected,...list];
+  return cats.map(c=>`<option value="${c}"${c===selected?' selected':''}>${c}</option>`).join('');
 }
 
 function openImportModal(){
@@ -4116,7 +4157,7 @@ async function processImport(){
   let existing=[];
   try{
     existing=await sbGet('transactions',{select:'date,amount,type,description',
-      date:`gte.${minDate}`,limit:1000});
+      date:`gte.${minDate}`,limit:5000});
     existing=existing.filter(t=>t.date<=maxDate);
   }catch(e){}
   const normDesc=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'').substring(0,15);
@@ -4148,7 +4189,7 @@ function renderImportPreview(){
       <td style="white-space:nowrap;color:var(--muted2)">${fmtDate(r.date)}</td>
       <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.description}">${r.description}</td>
       <td><select class="imp-cat-sel" data-i="${i}" onchange="_impParsed[this.dataset.i].category=this.value;_saveCatLearn(_impParsed[this.dataset.i].description,this.value)">
-        ${impCatOptions(r.category)}
+        ${impCatOptions(r.category,r.type)}
       </select></td>
       <td style="font-size:11px;color:var(--muted)">${r.account}</td>
       <td style="text-align:right;font-weight:700" class="${r.type==='entrada'?'amt-green':r.type==='investido'?'amt-purple':'amt-red'}">
