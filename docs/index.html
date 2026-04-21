@@ -264,6 +264,15 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .pwc-btn-out{flex:1;font-size:11px;padding:5px 4px;border-radius:8px;cursor:pointer;font-weight:600;background:rgba(244,63,94,.08);color:#fb7185;border:1px solid rgba(244,63,94,.25);transition:.15s}
 .pwc-btn-in:hover{background:rgba(34,197,94,.2)}
 .pwc-btn-out:hover{background:rgba(244,63,94,.15)}
+/* Barra de adição global */
+.proj-add-bar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:10px 12px;background:var(--surface2);border-radius:12px;border:1px solid var(--border)}
+.proj-add-input{background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:7px 10px;font-size:12px;outline:none;font-family:var(--font);min-width:0}
+.proj-add-input:focus{border-color:rgba(56,189,248,.45)}
+.proj-add-input[type="date"]{color-scheme:dark}
+.proj-add-btn-in{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.3);transition:.15s}
+.proj-add-btn-in:hover{background:rgba(34,197,94,.22)}
+.proj-add-btn-out{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;background:rgba(244,63,94,.1);color:#fb7185;border:1px solid rgba(244,63,94,.3);transition:.15s}
+.proj-add-btn-out:hover{background:rgba(244,63,94,.2)}
 /* Cumul footer */
 .proj-cumul{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface2);border-top:1px solid var(--border);margin-top:10px;border-radius:0 0 12px 12px}
 .proj-cumul-label{font-size:11px;color:var(--muted2);font-weight:500}
@@ -763,13 +772,21 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       </div>
       <!-- Timeline em colunas -->
       <div id="projTimeline" class="proj-timeline"></div>
+
+      <!-- Barra de adição global -->
+      <div class="proj-add-bar" style="margin-top:12px">
+        <input id="projAddDesc" type="text"  class="proj-add-input" placeholder="Descrição..." autocomplete="off" style="flex:2;min-width:120px"/>
+        <input id="projAddVal"  type="text"  class="proj-add-input" placeholder="R$ 0,00" inputmode="decimal" style="flex:1;min-width:90px"/>
+        <input id="projAddDate" type="date"  class="proj-add-input" style="flex:1;min-width:130px"/>
+        <button onclick="_projAdd('entrada')" class="proj-add-btn-in">＋ Receita</button>
+        <button onclick="_projAdd('saida')"   class="proj-add-btn-out">＋ Despesa</button>
+      </div>
+
       <!-- Saldo projetado no final -->
       <div id="projSaldoLine" style="display:none" class="proj-cumul">
         <span class="proj-cumul-label">Impacto no saldo em <span id="projSaldoData"></span></span>
         <span id="projSaldoVal" class="proj-cumul-val"></span>
       </div>
-
-      <!-- Previsões integradas nas semanas acima -->
     </div>
   </div>
 
@@ -1806,18 +1823,16 @@ function _renderProjecao(dias){
         </div>
       </div>
       <div class="pwc-body" id="pb-${wi}" style="max-height:0">
-        ${w.wItems.length?`<div class="pwc-items">${itemRows}</div>`:''}
-        <div class="pwc-add">
-          <input id="pad-${wi}" placeholder="Descrição..." type="text" autocomplete="off">
-          <input id="pav-${wi}" placeholder="R$ 0,00" type="text" inputmode="decimal">
-          <div class="pwc-add-btns">
-            <button class="pwc-btn-in"  onclick="_weekAdd(${wi},'${dateStr}','entrada')">＋ Receita</button>
-            <button class="pwc-btn-out" onclick="_weekAdd(${wi},'${dateStr}','saida')">＋ Despesa</button>
-          </div>
-        </div>
+        ${w.wItems.length
+          ? `<div class="pwc-items">${itemRows}</div>`
+          : `<div style="padding:10px 12px;font-size:11px;color:var(--muted);font-style:italic">Sem eventos nesta semana</div>`}
       </div>
     </div>`;
   }).join('');
+
+  // Define data padrão da barra de adição = hoje (se ainda vazio)
+  const addDateEl=document.getElementById('projAddDate');
+  if(addDateEl&&!addDateEl.value) addDateEl.value=today.toISOString().slice(0,10);
 
   // Saldo projetado
   if(saldoLine){
@@ -1832,6 +1847,30 @@ function _renderProjecao(dias){
 
 // Alias para manter compatibilidade
 const _renderFluxo=(dias)=>_renderProjecao(dias);
+
+// ── Adição global de previsão ────────────────────────────────────────────────
+async function _projAdd(type){
+  const descEl = document.getElementById('projAddDesc');
+  const valEl  = document.getElementById('projAddVal');
+  const dateEl = document.getElementById('projAddDate');
+  if(!descEl||!valEl||!dateEl) return;
+  const desc = descEl.value.trim();
+  const val  = parseFloat((valEl.value||'').replace(/[^0-9,.]/g,'').replace(',','.'));
+  const date = dateEl.value;
+  if(!desc){ toast('Informe a descrição','warn'); descEl.focus(); return; }
+  if(!val||val<=0){ toast('Informe o valor','warn'); valEl.focus(); return; }
+  if(!date){ toast('Informe a data','warn'); dateEl.focus(); return; }
+  try{
+    await sbPost('planned_entries',{type,description:desc,amount:val,due_date:date,recorrente:false,confirmed:false});
+    descEl.value=''; valEl.value='';
+    // mantém a data para facilitar adição de múltiplos itens no mesmo dia
+    const [y,m,d]=date.split('-');
+    const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    toast(`✓ ${type==='entrada'?'Receita':'Despesa'} adicionada em ${d}/${meses[+m-1]}`,'ok');
+    descEl.focus();
+    await loadPlanned();
+  }catch(e){ toast('Erro ao salvar','err'); }
+}
 
 // ── Week card toggle & inline add ────────────────────────────────────────────
 function _toggleWeek(wi){
