@@ -236,6 +236,16 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .proj-saldo-line{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-top:1px solid var(--border);margin-top:8px;font-size:12px}
 .proj-recurr-badge{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;padding:1px 6px;border-radius:20px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:var(--blue2);font-weight:600;vertical-align:middle;margin-left:4px}
 
+/* ── Banner de Vencimentos ───────────────────────────────── */
+#notifBanner{position:sticky;top:60px;z-index:190;display:none;flex-direction:column;gap:0;border-bottom:1px solid rgba(251,191,36,.2)}
+.notif-item{display:flex;align-items:center;gap:12px;padding:9px 28px;font-size:12px;font-weight:500;animation:slideDown .2s ease}
+.notif-urgent{background:rgba(244,63,94,.1);border-bottom:1px solid rgba(244,63,94,.1)}
+.notif-warn{background:rgba(251,191,36,.08);border-bottom:1px solid rgba(251,191,36,.08)}
+.notif-ok{background:rgba(34,197,94,.07);border-bottom:1px solid rgba(34,197,94,.07)}
+.notif-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.notif-close{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 4px;line-height:1;flex-shrink:0}
+@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
 /* ── Toast ────────────────────────────────────────────────── */
 #toastWrap{position:fixed;bottom:80px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .toast{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:500;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,.5);animation:toastIn .2s ease;display:flex;align-items:center;gap:10px;pointer-events:all}
@@ -389,6 +399,9 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     <button class="btn btn-ghost" onclick="doLogout()">⏻</button>
   </div>
 </header>
+
+<!-- Notification Banner -->
+<div id="notifBanner"></div>
 
 <!-- Modal Todas as Transações -->
 <div class="modal-overlay" id="txModalOverlay" onclick="if(event.target===this)closeTxModal()" style="z-index:8500">
@@ -1759,6 +1772,91 @@ function showApp(){
     const el = document.getElementById(id);
     if(el){ el.addEventListener('input',updatePreview); el.addEventListener('change',updatePreview); }
   });
+  _requestNotifPermission();
+}
+
+// ══ NOTIFICAÇÕES DE VENCIMENTO ══════════════════════════════════════════════
+function _requestNotifPermission(){
+  if('Notification' in window && Notification.permission==='default'){
+    setTimeout(()=>Notification.requestPermission(), 3000);
+  }
+}
+
+function _sendBrowserNotif(title, body){
+  if('Notification' in window && Notification.permission==='granted'){
+    new Notification(title, {body, icon:'/sistema-financeiro/icon-192.png'});
+  }
+}
+
+function _checkVencimentos(fc, subs, insts){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const items = [];
+
+  // Custos fixos — due_day no mês atual
+  (fc||[]).forEach(r=>{
+    if(!r.due_day) return;
+    const due = new Date(today.getFullYear(), today.getMonth(), r.due_day);
+    const diff = Math.round((due - today) / 86400000);
+    if(diff >= 0 && diff <= 3){
+      items.push({label: r.name||r.description||'Custo fixo', value: r.amount, diff, type: diff===0?'urgent':(diff<=1?'warn':'ok')});
+    }
+  });
+
+  // Assinaturas — billing_day
+  (subs||[]).forEach(r=>{
+    if(!r.billing_day) return;
+    const due = new Date(today.getFullYear(), today.getMonth(), r.billing_day);
+    const diff = Math.round((due - today) / 86400000);
+    if(diff >= 0 && diff <= 3){
+      items.push({label: r.name||'Assinatura', value: r.amount, diff, type: diff===0?'urgent':(diff<=1?'warn':'ok')});
+    }
+  });
+
+  // Parcelas — data de vencimento da parcela atual
+  (insts||[]).forEach(r=>{
+    if(!r.due_date) return;
+    const due = new Date(r.due_date+'T00:00:00');
+    const diff = Math.round((due - today) / 86400000);
+    if(diff >= 0 && diff <= 3){
+      items.push({label: r.description||'Parcela', value: r.installment_amount||r.total_amount, diff, type: diff===0?'urgent':(diff<=1?'warn':'ok')});
+    }
+  });
+
+  _showNotifBanner(items);
+
+  // Browser notification para itens urgentes (hoje ou amanhã)
+  const urgent = items.filter(i=>i.type==='urgent'||i.type==='warn');
+  if(urgent.length > 0 && Notification.permission==='granted'){
+    const fmtV = v=>v!=null?'R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2}):'';
+    if(urgent.length === 1){
+      const u = urgent[0];
+      _sendBrowserNotif(
+        u.diff===0?'⚠️ Vence hoje: '+u.label:'📅 Vence amanhã: '+u.label,
+        fmtV(u.value)
+      );
+    } else {
+      _sendBrowserNotif('💸 '+urgent.length+' contas vencem em breve', urgent.map(u=>u.label).join(', '));
+    }
+  }
+}
+
+function _showNotifBanner(items){
+  const banner = document.getElementById('notifBanner');
+  if(!banner) return;
+  if(!items || items.length===0){ banner.style.display='none'; banner.innerHTML=''; return; }
+
+  const fmtV = v=>v!=null?'R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2}):'';
+  const diffLabel = d=>d===0?'Hoje':d===1?'Amanhã':'Em '+d+' dias';
+
+  banner.style.display='flex';
+  banner.innerHTML = items.map((it,i)=>`
+    <div class="notif-item notif-${it.type}">
+      <span class="notif-dot" style="background:${it.type==='urgent'?'var(--red)':it.type==='warn'?'var(--yellow)':'var(--green)'}"></span>
+      <span style="color:var(--muted2)">${diffLabel(it.diff)}</span>
+      <span style="color:var(--text);font-weight:600">${it.label}</span>
+      ${it.value?`<span style="color:var(--red);font-weight:700;font-variant-numeric:tabular-nums">${fmtV(it.value)}</span>`:''}
+      <button class="notif-close" onclick="this.closest('.notif-item').remove();const b=document.getElementById('notifBanner');if(!b.children.length)b.style.display='none'">✕</button>
+    </div>`).join('');
 }
 
 // ══ SUPABASE API ══════════════════════════════════════════════════════════════
@@ -2736,6 +2834,7 @@ async function refreshDashboard(){
     fillSubscriptions(subs||[]);
     fillInstallments(insts||[]);
     _updateTitleAlerts(fc, insts);
+    _checkVencimentos(fc||[], subs||[], insts||[]);
     loadPlanned(plannedRows||[]);
     fillAnoTab(monthly, catsObj);
     _fluxoData={fixedCosts:fc||[],subs:subs||[],insts:insts||[],planned:(plannedRows||[]).filter(p=>!p.confirmed)};
