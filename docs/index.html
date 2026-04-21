@@ -662,7 +662,12 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 <div class="modal-overlay" id="modalConfirm" onclick="if(event.target===this)closeConfirmModal()">
   <div class="modal" style="max-width:440px;width:95%">
     <div class="modal-title" id="confirmTitle">✅ Confirmar Recebimento<button class="modal-close" onclick="closeConfirmModal()">✕</button></div>
-    <p style="font-size:13px;color:var(--muted2);margin-bottom:18px" id="confirmDesc">Confirmar que este valor foi recebido/pago?</p>
+    <p style="font-size:13px;color:var(--muted2);margin-bottom:14px" id="confirmDesc">Confirmar que este valor foi recebido/pago?</p>
+    <div class="field" style="margin-bottom:12px">
+      <label>Data da efetivação</label>
+      <input type="date" id="confirmDate" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:8px 12px;font-size:13px;width:100%;box-sizing:border-box;outline:none"/>
+      <div style="font-size:10.5px;color:var(--muted);margin-top:4px" id="confirmDateHint"></div>
+    </div>
     <div class="field">
       <label id="confirmAccountLabel">Conta que recebeu</label>
       <select id="confirmAccount">
@@ -3609,6 +3614,8 @@ async function deletePlan(id, desc){
 function openConfirmModal(item){
   _planConfirmId = item;
   const isEntrada = item.type === 'entrada';
+  const todayStr = new Date().toISOString().slice(0,10);
+
   document.getElementById('confirmTitle').innerHTML =
     (isEntrada ? '✅ Confirmar Recebimento' : '✅ Confirmar Pagamento') +
     '<button class="modal-close" onclick="closeConfirmModal()">✕</button>';
@@ -3616,6 +3623,22 @@ function openConfirmModal(item){
     `"${item.description}" — ${brl(item.amount)}`;
   document.getElementById('confirmAccountLabel').textContent = isEntrada ? 'Conta que recebeu' : 'Conta que pagou';
   document.getElementById('confirmAccount').value = item.account || 'corrente nubank';
+
+  // Data: usa due_date planejado ou hoje
+  const dateEl = document.getElementById('confirmDate');
+  const hintEl = document.getElementById('confirmDateHint');
+  const usedDate = item.due_date || todayStr;
+  dateEl.value = usedDate;
+  if(item.due_date && item.due_date !== todayStr){
+    const [y,m,d] = item.due_date.split('-');
+    const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    hintEl.textContent = `📅 Data planejada: ${d}/${meses[+m-1]}/${y} — altere se necessário`;
+    hintEl.style.color = 'var(--blue2)';
+  } else {
+    hintEl.textContent = 'Sem data planejada — usando hoje';
+    hintEl.style.color = 'var(--muted)';
+  }
+
   document.getElementById('modalConfirm').classList.add('open');
 }
 
@@ -3626,24 +3649,25 @@ function closeConfirmModal(){
 
 async function doConfirm(){
   if(!_planConfirmId) return;
-  const item = _planConfirmId;
+  const item    = _planConfirmId;
   const account = document.getElementById('confirmAccount').value;
-  const today = new Date().toISOString().slice(0,10);
+  const txDate  = document.getElementById('confirmDate').value
+                  || new Date().toISOString().slice(0,10);
   try{
-    // Marca como confirmado
+    // Marca como confirmado usando a data efetiva escolhida
     await sbPatch('planned_entries', {id:`eq.${item.id}`},
-      {confirmed: true, confirmed_at: today, account});
-    // Registra como transação real
-    const desc = `${item.description} [${account}]`;
+      {confirmed: true, confirmed_at: txDate, account});
+    // Cria transação real com a data correta → cai no mês certo
     const category = item.category || (item.type==='entrada'?'Entrada':'Outros');
     await sbPost('transactions', {
-      date: today, type: item.type, amount: item.amount,
-      description: desc, category, account
+      date: txDate, type: item.type, amount: item.amount,
+      description: item.description, category, account
     });
     closeConfirmModal();
+    toast(`✓ ${item.type==='entrada'?'Receita':'Despesa'} registrada em ${fmtDate(txDate)}`,'ok',4000);
     await loadPlanned();
     await refreshDashboard();
-  }catch(e){ alert('Erro: '+e.message); }
+  }catch(e){ toast('Erro ao confirmar: '+e.message,'err'); }
 }
 
 async function uncheckPlan(id){
