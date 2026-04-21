@@ -20,16 +20,18 @@
 <script>if(typeof pdfjsLib!=='undefined') pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 <style>
 :root{
-  --bg:#060912;--surface:#0d1424;--surface2:#131d30;--border:#1a2840;--border2:#223152;
-  --text:#e2e8f0;--muted:#64748b;--muted2:#94a3b8;--blue:#6366f1;--blue2:#818cf8;
-  --green:#10b981;--red:#ef4444;--purple:#8b5cf6;--yellow:#f59e0b;--orange:#f97316;
-  --cyan:#06b6d4;--pink:#ec4899;--font:'Inter',sans-serif;--nu:#820ad1;--bradesco:#cc092f;--r:14px;
-  --shadow:0 1px 3px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.02);
+  --bg:#08090d;--surface:#0f1117;--surface2:#14181f;--border:#1d2230;--border2:#252d3e;
+  --text:#eef0f6;--muted:#505870;--muted2:#8892a8;
+  --blue:#38bdf8;--blue2:#7dd3fc;
+  --green:#22c55e;--red:#f43f5e;--purple:#a78bfa;--yellow:#fbbf24;--orange:#fb923c;
+  --cyan:#2dd4bf;--pink:#f472b6;--font:'Inter',sans-serif;--nu:#820ad1;--bradesco:#cc092f;--r:14px;
+  --shadow:0 1px 6px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.03);
+  --glow-blue:rgba(56,189,248,.15);--glow-green:rgba(34,197,94,.12);--glow-red:rgba(244,63,94,.12);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13.5px;padding-bottom:100px;min-height:100vh}
-::selection{background:rgba(99,102,241,.35)}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13.5px;padding-bottom:100px;min-height:100vh;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(56,189,248,.3)}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--surface)}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
@@ -38,51 +40,51 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh}
 .login-box{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:40px 36px;width:100%;max-width:380px;box-shadow:0 24px 80px rgba(0,0,0,.6)}
 .login-logo{display:flex;align-items:center;gap:12px;margin-bottom:28px}
-.login-logo-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(99,102,241,.4)}
+.login-logo-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#0ea5e9,#2dd4bf);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 24px rgba(56,189,248,.4)}
 .login-title{font-size:20px;font-weight:800;letter-spacing:-.4px}
 .login-title span{color:var(--blue2)}
 .login-sub{font-size:12px;color:var(--muted);margin-bottom:24px}
 .login-field label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px}
 .login-field input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:var(--font);font-size:14px;padding:11px 14px;outline:none;transition:.15s;margin-bottom:16px}
 .login-field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
-.login-btn{width:100%;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;border:none;border-radius:10px;padding:12px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.2px;box-shadow:0 4px 16px rgba(99,102,241,.4);transition:.15s}
+.login-btn{width:100%;background:linear-gradient(135deg,#0284c7,#2dd4bf);color:#fff;border:none;border-radius:10px;padding:12px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.2px;box-shadow:0 4px 16px rgba(56,189,248,.35);transition:.15s}
 .login-btn:hover{opacity:.9;transform:translateY(-1px)}
 .login-err{color:var(--red);font-size:12px;margin-top:8px;min-height:16px;text-align:center}
 
 /* ── Header ── */
-.header{position:sticky;top:0;z-index:200;background:rgba(6,9,18,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(26,40,64,.9);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.header{position:sticky;top:0;z-index:200;background:rgba(8,9,13,.93);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid rgba(29,34,48,.9);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .logo{display:flex;align-items:center;gap:10px}
-.logo-icon{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 0 16px rgba(99,102,241,.4)}
+.logo-icon{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#0ea5e9,#2dd4bf);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 0 16px rgba(56,189,248,.35)}
 .logo-text{font-size:16px;font-weight:700;letter-spacing:-.3px}
 .logo-text span{color:var(--blue2)}
 .header-center{display:flex;align-items:center;gap:4px}
-.tab-btn{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:6px 16px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:.15s;height:58px;display:flex;align-items:center;gap:6px;border-radius:0}
+.tab-btn{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:6px 14px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:.15s;height:60px;display:flex;align-items:center;gap:6px;border-radius:0}
 .tab-btn:hover{color:var(--text)}
 .tab-btn.active{color:var(--blue2);border-bottom-color:var(--blue);font-weight:600}
 .header-right{display:flex;align-items:center;gap:8px}
 .date-chip{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--muted)}
 .btn{border:none;cursor:pointer;border-radius:9px;padding:7px 14px;font-family:var(--font);font-size:12px;font-weight:600;transition:.15s;letter-spacing:.2px;display:flex;align-items:center;gap:5px}
 .btn:hover{opacity:.85}
-.btn-primary{background:linear-gradient(135deg,#5558e8,#7c3aed);color:#fff;box-shadow:0 2px 12px rgba(99,102,241,.4);border-radius:20px}
+.btn-primary{background:linear-gradient(135deg,#0284c7,#0891b2);color:#fff;box-shadow:0 2px 12px rgba(56,189,248,.3);border-radius:20px}
 .btn-ghost{background:rgba(255,255,255,.04);border:1px solid var(--border2);color:var(--muted2);border-radius:20px}
-.btn-green{background:linear-gradient(135deg,#047857,#059669);color:#fff;box-shadow:0 2px 10px rgba(5,150,105,.3);border-radius:20px}
+.btn-green{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;box-shadow:0 2px 10px rgba(34,197,94,.3);border-radius:20px}
 
 /* ── Layout ── */
 .page{max-width:1440px;margin:0 auto;padding:20px 24px}
 .section{margin-top:20px}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.section-title{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:8px}
-.section-title::before{content:'';width:2px;height:12px;background:linear-gradient(180deg,var(--blue),var(--purple));border-radius:2px;display:inline-block}
+.section-title{font-size:12px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.9px;display:flex;align-items:center;gap:8px}
+.section-title::before{content:'';width:2px;height:12px;background:linear-gradient(180deg,var(--blue),var(--cyan));border-radius:2px;display:inline-block}
 .grid{display:grid;gap:14px}
 .g4{grid-template-columns:repeat(4,1fr)}
 .g3{grid-template-columns:repeat(3,1fr)}
 .g2{grid-template-columns:1fr 1fr}
 @media(max-width:1200px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){.g4,.g2,.g3{grid-template-columns:1fr}}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;box-shadow:var(--shadow);transition:border-color .2s,box-shadow .2s}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(99,102,241,.5),transparent);opacity:0;transition:.2s}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;box-shadow:var(--shadow);transition:border-color .25s,box-shadow .25s}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,248,.45),transparent);opacity:0;transition:.25s}
 .card:hover::before{opacity:1}
-.card:hover{border-color:var(--border2);box-shadow:0 4px 24px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.03)}
+.card:hover{border-color:var(--border2);box-shadow:0 4px 28px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.04)}
 .kpi-label{font-size:11px;font-weight:500;color:var(--muted2);text-transform:none;letter-spacing:0;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .kpi-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
 .kpi-value{font-size:26px;font-weight:800;letter-spacing:-1.2px;line-height:1;font-variant-numeric:tabular-nums}
@@ -105,26 +107,26 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .amt-yellow{color:var(--yellow);font-weight:700}
 .table-wrap{overflow-x:auto;border-radius:10px;margin-top:2px}
 table{width:100%;border-collapse:collapse;font-size:12.5px}
-thead th{background:var(--surface2);color:var(--muted);font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;padding:9px 14px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--border)}
-tbody tr{border-bottom:1px solid rgba(30,45,69,.6);transition:.1s}
+thead th{background:rgba(20,24,31,.8);color:var(--muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;padding:10px 14px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--border)}
+tbody tr{border-bottom:1px solid rgba(29,34,48,.7);transition:.12s}
 tbody tr:last-child{border-bottom:none}
-tbody tr:nth-child(even){background:rgba(255,255,255,.013)}
-tbody tr:hover{background:rgba(99,102,241,.05)}
-tbody td{padding:9px 14px;vertical-align:middle}
-tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);background:var(--surface2)}
+tbody tr:nth-child(even){background:rgba(255,255,255,.014)}
+tbody tr:hover{background:rgba(56,189,248,.055)}
+tbody td{padding:10px 14px;vertical-align:middle}
+tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);background:rgba(20,24,31,.6)}
 .chart-wrap{position:relative;height:240px}
 .ftag{display:inline-block;border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;letter-spacing:.3px}
 .ftag-papel{background:rgba(99,102,241,.15);color:var(--blue2)}
 .ftag-tijolo{background:rgba(245,158,11,.15);color:var(--yellow)}
 .ftag-hib{background:rgba(16,185,129,.15);color:var(--green)}
 .progress{background:var(--surface2);border-radius:99px;height:6px;overflow:hidden;margin-top:8px}
-.progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--blue),var(--purple));transition:width .6s ease}
+.progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#0284c7,#2dd4bf);transition:width .6s ease}
 .due{width:28px;height:28px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--muted2);flex-shrink:0}
 .empty{color:var(--muted);text-align:center;padding:32px;font-size:12px}
 .divider{height:1px;background:var(--border);margin:6px 0}
 .modal-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:28px;width:100%;max-width:480px;box-shadow:0 32px 100px rgba(0,0,0,.75),0 0 0 1px rgba(255,255,255,.03);animation:modalIn .18s ease}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:28px;width:100%;max-width:480px;box-shadow:0 24px 80px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.04);animation:modalIn .18s ease}
 @keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:none}}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinning{display:inline-block;animation:spin .7s linear infinite}
@@ -140,7 +142,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
 .field{margin-bottom:14px}
 .field label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
 .field input,.field select{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:9px;color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;transition:.15s}
-.field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+.field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(56,189,248,.12)}
 .field select option{background:var(--surface2);color:var(--text)}
 .field-row{display:flex;gap:10px}
 .field-row .field{flex:1}
@@ -185,7 +187,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
 .imp-title{font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px}
 .imp-steps{display:flex;gap:6px;align-items:center;font-size:11px;color:var(--muted)}
 .imp-step{padding:3px 10px;border-radius:20px;font-weight:600}
-.imp-step.active{background:var(--blue);color:#fff}
+.imp-step.active{background:linear-gradient(135deg,#0284c7,#2dd4bf);color:#fff}
 .imp-step.done{background:rgba(16,185,129,.2);color:var(--green)}
 .imp-body{padding:24px;overflow-y:auto;flex:1}
 .imp-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0}
@@ -216,6 +218,23 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
 .imp-report-stat{background:var(--surface2);border-radius:10px;padding:14px;text-align:center}
 .imp-report-stat-val{font-size:18px;font-weight:800;margin-bottom:4px}
 .imp-report-stat-lbl{font-size:11px;color:var(--muted)}
+
+/* ── Projeção de Caixa ───────────────────────────────────── */
+.proj-timeline{display:flex;flex-direction:column;gap:2px;margin-top:12px}
+.proj-week{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;transition:.15s;cursor:default}
+.proj-week:hover{background:rgba(255,255,255,.04)}
+.proj-week-label{font-size:11px;color:var(--muted);width:90px;flex-shrink:0;font-weight:500}
+.proj-bar-wrap{flex:1;display:flex;align-items:center;gap:6px}
+.proj-bar{height:6px;border-radius:99px;transition:width .5s ease;min-width:4px}
+.proj-bar-green{background:linear-gradient(90deg,#16a34a,#22c55e)}
+.proj-bar-red{background:linear-gradient(90deg,#be123c,#f43f5e)}
+.proj-items{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;padding:0 12px 8px}
+.proj-chip{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;padding:2px 8px;border-radius:20px;font-weight:500}
+.proj-chip-in{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#4ade80}
+.proj-chip-out{background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);color:#fb7185}
+.proj-chip-fix{background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);color:#7dd3fc}
+.proj-saldo-line{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-top:1px solid var(--border);margin-top:8px;font-size:12px}
+.proj-recurr-badge{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;padding:1px 6px;border-radius:20px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:var(--blue2);font-weight:600;vertical-align:middle;margin-left:4px}
 
 /* ── Toast ────────────────────────────────────────────────── */
 #toastWrap{position:fixed;bottom:80px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
@@ -533,6 +552,18 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
       </select>
     </div>
 
+    <!-- Recorrência -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:500">
+        <input type="checkbox" id="planRecorrente" onchange="_togglePlanRecorrente(this.checked)" style="width:16px;height:16px;accent-color:var(--blue);cursor:pointer"/>
+        <span>🔄 Receita/Despesa recorrente (repete todo mês)</span>
+      </label>
+      <div id="planRecorrenteDia" style="display:none;margin-top:10px">
+        <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:5px">Dia do mês</label>
+        <input id="planRecorrenciaDia" type="number" min="1" max="31" placeholder="Ex: 5 (dia 5 de cada mês)" style="width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:8px 12px;outline:none"/>
+      </div>
+    </div>
+
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closePlanModal()">Cancelar</button>
       <button class="btn btn-primary" onclick="savePlan()">✓ Salvar</button>
@@ -627,19 +658,32 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:2px solid var(--border);ba
     <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🎯</span>Meta Reserva · Dez/2027</div><div class="kpi-value amt-yellow" id="kpiMeta">—</div><div class="progress"><div class="progress-fill" id="kpiMetaBar" style="width:0%;background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div><div class="kpi-sub" id="kpiMetaSub">de R$ 60.000</div></div>
   </div>
 
-  <!-- Fluxo de caixa futuro -->
+  <!-- Projeção de Caixa Futuro -->
   <div class="section" style="margin-top:14px">
-    <div class="card" style="padding:16px 20px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div style="font-size:13px;font-weight:700">📆 Compromissos dos Próximos 60 Dias</div>
+    <div class="card" style="padding:18px 20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px;font-weight:700;color:var(--text)">📆 Projeção de Caixa</span>
+          <span style="font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:var(--blue2);font-weight:600">FUTURO</span>
+        </div>
         <div style="display:flex;gap:6px">
-          <button onclick="_fillFluxo(30)" id="fluxoBtn30" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);background:var(--blue);color:#fff;cursor:pointer">30d</button>
+          <button onclick="_fillFluxo(30)" id="fluxoBtn30" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid rgba(56,189,248,.3);background:linear-gradient(135deg,#0284c7,#2dd4bf);color:#fff;cursor:pointer;font-weight:600">30d</button>
           <button onclick="_fillFluxo(60)" id="fluxoBtn60" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);cursor:pointer">60d</button>
           <button onclick="_fillFluxo(90)" id="fluxoBtn90" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);cursor:pointer">90d</button>
+          <button onclick="openPlanModal('entrada')" title="Nova receita prevista" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.1);color:#4ade80;cursor:pointer;font-weight:600">＋ Receita</button>
+          <button onclick="openPlanModal('saida')" title="Nova despesa prevista" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid rgba(244,63,94,.3);background:rgba(244,63,94,.08);color:#fb7185;cursor:pointer;font-weight:600">＋ Despesa</button>
         </div>
       </div>
-      <div id="fluxoGrid" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <!-- Totais rápidos -->
+      <div id="fluxoGrid" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
         <div style="color:var(--muted);font-size:12px">Carregando...</div>
+      </div>
+      <!-- Timeline semanal -->
+      <div id="projTimeline" class="proj-timeline"></div>
+      <!-- Linha de saldo projetado -->
+      <div id="projSaldoLine" style="display:none" class="proj-saldo-line">
+        <span style="color:var(--muted)">Saldo projetado em <span id="projSaldoData"></span></span>
+        <span id="projSaldoVal" style="font-size:14px;font-weight:800"></span>
       </div>
     </div>
   </div>
@@ -1510,99 +1554,164 @@ async function loadTxModal(){
   }catch(e){if(body) body.innerHTML=`<tr><td colspan="5" class="empty">Erro ao buscar</td></tr>`;}
 }
 
-// ══ FLUXO DE CAIXA FUTURO ══════════════════════════════════════════════════════
+// ══ PROJEÇÃO DE CAIXA FUTURO ═══════════════════════════════════════════════════
 let _fluxoDias=30;
+let _fluxoData=null;
+
 function _fillFluxo(dias){
   _fluxoDias=dias;
   ['30','60','90'].forEach(d=>{
     const btn=document.getElementById(`fluxoBtn${d}`);
-    if(btn){
-      const active=d===String(dias);
-      btn.style.background=active?'var(--blue)':'var(--surface2)';
-      btn.style.color=active?'#fff':'var(--muted2)';
-    }
+    if(!btn) return;
+    const active=d===String(dias);
+    btn.style.background=active?'linear-gradient(135deg,#0284c7,#2dd4bf)':'var(--surface2)';
+    btn.style.color=active?'#fff':'var(--muted2)';
+    btn.style.border=active?'1px solid rgba(56,189,248,.3)':'1px solid var(--border2)';
+    btn.style.fontWeight=active?'600':'400';
   });
-  _renderFluxo(dias);
+  _renderProjecao(dias);
 }
-function _renderFluxo(dias){
+
+function _renderProjecao(dias){
   const grid=document.getElementById('fluxoGrid');
+  const timeline=document.getElementById('projTimeline');
+  const saldoLine=document.getElementById('projSaldoLine');
   if(!grid||!_fluxoData) return;
+
   const {fixedCosts,subs,insts,planned}=_fluxoData;
   const today=new Date(); today.setHours(0,0,0,0);
   const limit=new Date(today); limit.setDate(today.getDate()+dias);
 
-  let totalSaidas=0, totalEntradas=0;
+  // ── Coleta todos os itens com data ──────────────────────────────────────────
   const items=[];
+  const _addMonthly=(label,amt,billingDay,source)=>{
+    // Gera ocorrência para cada mês no período
+    let d=new Date(today.getFullYear(),today.getMonth(),+billingDay);
+    if(d<today) d=new Date(today.getFullYear(),today.getMonth()+1,+billingDay);
+    while(d<=limit){
+      items.push({label,amt,date:new Date(d),source});
+      d=new Date(d.getFullYear(),d.getMonth()+1,+billingDay);
+    }
+  };
 
-  // Custos fixos (cobram todo mês no due_day)
-  (fixedCosts||[]).forEach(c=>{
-    if(!c.amount||!c.due_day) return;
-    // próximo vencimento dentro do período
-    let d=new Date(today.getFullYear(),today.getMonth(),+c.due_day);
-    if(d<today) d=new Date(today.getFullYear(),today.getMonth()+1,+c.due_day);
-    if(d<=limit){totalSaidas+=+(c.amount||0);items.push({label:c.description,amt:-(+c.amount),date:d});}
-  });
-
-  // Assinaturas (similar a custos fixos)
-  (subs||[]).forEach(s=>{
-    if(!s.amount||!s.billing_day) return;
-    let d=new Date(today.getFullYear(),today.getMonth(),+s.billing_day);
-    if(d<today) d=new Date(today.getFullYear(),today.getMonth()+1,+s.billing_day);
-    if(d<=limit){totalSaidas+=+(s.amount||0);items.push({label:`${s.emoji||''} ${s.name}`,amt:-(+s.amount),date:d});}
-  });
-
-  // Parcelamentos ativos — usa due_day do custo fixo "fatura" da conta correspondente
   const _getDueDay=(accountName)=>{
-    if(!accountName) return 10;
-    const bank=(accountName||'').toLowerCase().replace(/conta\s+|corrente\s+/g,'').trim();
-    const fc=(fixedCosts||[]).find(c=>{
-      const desc=(c.description||'').toLowerCase();
-      return c.due_day && desc.includes(bank.substring(0,6)) && /fatura|cartão|card/i.test(desc);
-    });
+    const bank=(accountName||'').toLowerCase();
+    const fc=(fixedCosts||[]).find(c=>c.due_day&&/fatura|cartão|card/i.test(c.description||'')&&(c.description||'').toLowerCase().includes(bank.substring(0,4)));
     return fc?.due_day||10;
   };
-  (insts||[]).forEach(i=>{
-    if(!i.installment_amount) return;
-    const dueDay=_getDueDay(i.account);
-    let d=new Date(today.getFullYear(),today.getMonth(),dueDay);
-    if(d<today) d=new Date(today.getFullYear(),today.getMonth()+1,dueDay);
-    if(d<=limit){totalSaidas+=+(i.installment_amount||0);items.push({label:i.description,amt:-(+i.installment_amount),date:d});}
+
+  // Custos fixos
+  (fixedCosts||[]).forEach(c=>{
+    if(!c.amount||!c.due_day) return;
+    _addMonthly(c.description,-(+c.amount),c.due_day,'fix');
   });
 
-  // Planejamentos com data futura
+  // Assinaturas
+  (subs||[]).forEach(s=>{
+    if(!s.amount||!s.billing_day) return;
+    _addMonthly(`${s.emoji||''}${s.name}`,-(+s.amount),s.billing_day,'fix');
+  });
+
+  // Parcelamentos
+  (insts||[]).forEach(i=>{
+    if(!i.installment_amount) return;
+    _addMonthly(i.description,-(+i.installment_amount),_getDueDay(i.card||''),('inst'));
+  });
+
+  // Planejamentos one-time
   (planned||[]).forEach(p=>{
-    if(!p.due_date||!p.amount||p.done) return;
-    const d=new Date(p.due_date+'T00:00:00');
-    if(d>=today&&d<=limit){
-      const amt=p.type==='entrada'?+(p.amount):-(+p.amount);
-      if(amt>0) totalEntradas+=Math.abs(amt); else totalSaidas+=Math.abs(amt);
-      items.push({label:p.description,amt,date:d});
+    if(!p.amount||p.confirmed) return;
+    if(p.recorrente&&p.recorrencia_dia){
+      _addMonthly(p.description,(p.type==='entrada'?+(+p.amount):-(+p.amount)),p.recorrencia_dia,'planned');
+    } else if(p.due_date){
+      const d=new Date(p.due_date+'T00:00:00');
+      if(d>=today&&d<=limit){
+        items.push({label:p.description,amt:(p.type==='entrada'?+(+p.amount):-(+p.amount)),date:d,source:'planned',recorrente:p.recorrente});
+      }
+    } else {
+      // sem data — coloca no "sem data" bucket para mostrar nos totais
+      items.push({label:p.description,amt:(p.type==='entrada'?+(+p.amount):-(+p.amount)),date:null,source:'planned',recorrente:p.recorrente});
     }
   });
 
-  const saldo=totalEntradas-totalSaidas;
+  const itemsComData=items.filter(i=>i.date);
+  const totalEntradas=itemsComData.filter(i=>i.amt>0).reduce((s,i)=>s+i.amt,0);
+  const totalSaidas=Math.abs(itemsComData.filter(i=>i.amt<0).reduce((s,i)=>s+i.amt,0));
+  const saldoImpacto=totalEntradas-totalSaidas;
+
+  // ── Totais rápidos ──────────────────────────────────────────────────────────
   grid.innerHTML=`
-    <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:10px 16px;min-width:130px;text-align:center">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Saídas previstas</div>
-      <div style="font-size:16px;font-weight:800;color:var(--red)">-${brl(totalSaidas)}</div>
+    <div style="background:var(--glow-green);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:12px 16px;min-width:140px;text-align:center">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:500">RECEITAS PREVISTAS</div>
+      <div style="font-size:18px;font-weight:800;color:var(--green)">+${brl(totalEntradas)}</div>
     </div>
-    ${totalEntradas>0?`<div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:10px 16px;min-width:130px;text-align:center">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Entradas previstas</div>
-      <div style="font-size:16px;font-weight:800;color:var(--green)">+${brl(totalEntradas)}</div>
-    </div>`:''}
-    <div style="background:${saldo>=0?'rgba(16,185,129,.08)':'rgba(239,68,68,.08)'};border:1px solid ${saldo>=0?'rgba(16,185,129,.2)':'rgba(239,68,68,.2)'};border-radius:10px;padding:10px 16px;min-width:130px;text-align:center">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Impacto no saldo</div>
-      <div style="font-size:16px;font-weight:800;color:${saldo>=0?'var(--green)':'var(--red)'}">${saldo>=0?'+':''}${brl(saldo)}</div>
+    <div style="background:var(--glow-red);border:1px solid rgba(244,63,94,.2);border-radius:12px;padding:12px 16px;min-width:140px;text-align:center">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:500">DESPESAS PREVISTAS</div>
+      <div style="font-size:18px;font-weight:800;color:var(--red)">-${brl(totalSaidas)}</div>
     </div>
-    <div style="flex:1;font-size:11px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center">
-      ${items.sort((a,b)=>a.date-b.date).slice(0,8).map(i=>`
-        <span style="background:${i.amt>=0?'rgba(16,185,129,.1)':'rgba(239,68,68,.08)'};border:1px solid ${i.amt>=0?'rgba(16,185,129,.2)':'rgba(239,68,68,.15)'};border-radius:20px;padding:2px 10px;color:${i.amt>=0?'var(--green)':'var(--muted2)'}">
-          ${fmtDate(i.date.toISOString().substring(0,10))} ${i.label.substring(0,18)} ${brl(Math.abs(i.amt))}
-        </span>`).join('')}
-      ${items.length>8?`<span style="color:var(--muted);font-size:11px">+${items.length-8} mais</span>`:''}
+    <div style="background:${saldoImpacto>=0?'var(--glow-green)':'var(--glow-red)'};border:1px solid ${saldoImpacto>=0?'rgba(34,197,94,.2)':'rgba(244,63,94,.2)'};border-radius:12px;padding:12px 16px;min-width:140px;text-align:center">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:500">IMPACTO NO SALDO</div>
+      <div style="font-size:18px;font-weight:800;color:${saldoImpacto>=0?'var(--green)':'var(--red)'}">${saldoImpacto>=0?'+':''}${brl(saldoImpacto)}</div>
+    </div>
+    <div style="flex:1;font-size:11px;color:var(--muted2);display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:4px 0">
+      <span>📋 <b style="color:var(--text)">${items.filter(i=>i.source==='planned').length}</b> eventos manuais</span>
+      <span>🔄 <b style="color:var(--text)">${itemsComData.filter(i=>i.source==='fix'||i.source==='inst').length}</b> automáticos</span>
     </div>`;
+
+  // ── Timeline semanal ────────────────────────────────────────────────────────
+  if(!timeline) return;
+  const weeks=[];
+  const numWeeks=Math.ceil(dias/7);
+  for(let w=0;w<numWeeks;w++){
+    const wStart=new Date(today); wStart.setDate(today.getDate()+w*7);
+    const wEnd=new Date(today); wEnd.setDate(today.getDate()+(w+1)*7-1);
+    if(wEnd>limit) wEnd.setTime(limit.getTime());
+    const wItems=itemsComData.filter(i=>i.date>=wStart&&i.date<=wEnd);
+    const wIn=wItems.filter(i=>i.amt>0).reduce((s,i)=>s+i.amt,0);
+    const wOut=Math.abs(wItems.filter(i=>i.amt<0).reduce((s,i)=>s+i.amt,0));
+    weeks.push({wStart,wEnd,wItems,wIn,wOut});
+  }
+  const maxVal=Math.max(...weeks.map(w=>Math.max(w.wIn,w.wOut)),1);
+  const fmt=(d)=>`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  timeline.innerHTML=weeks.map((w,wi)=>{
+    const inW=Math.round((w.wIn/maxVal)*120);
+    const outW=Math.round((w.wOut/maxVal)*120);
+    const label=wi===0?`Essa semana`:`${fmt(w.wStart)} – ${fmt(w.wEnd)}`;
+    const chips=w.wItems.sort((a,b)=>a.date-b.date).map(i=>{
+      const cls=i.source==='fix'||i.source==='inst'?'proj-chip-fix':(i.amt>=0?'proj-chip-in':'proj-chip-out');
+      const sig=i.amt>=0?'+':'';
+      const recBadge=i.recorrente?`<span class="proj-recurr-badge">🔄</span>`:'';
+      return `<span class="proj-chip ${cls}">${fmtDate(i.date.toISOString().slice(0,10))} ${i.label.length>20?i.label.slice(0,20)+'…':i.label} ${sig}${brl(Math.abs(i.amt))}${recBadge}</span>`;
+    }).join('');
+    return `<div>
+      <div class="proj-week">
+        <div class="proj-week-label">${label}</div>
+        <div class="proj-bar-wrap">
+          ${w.wIn>0?`<div class="proj-bar proj-bar-green" style="width:${inW}px" title="Entradas: +${brl(w.wIn)}"></div>`:``}
+          ${w.wOut>0?`<div class="proj-bar proj-bar-red" style="width:${outW}px" title="Saídas: -${brl(w.wOut)}"></div>`:``}
+          ${w.wItems.length===0?`<span style="color:var(--muted);font-size:11px">sem movimentações previstas</span>`:''}
+        </div>
+        <div style="font-size:11px;font-weight:700;color:${(w.wIn-w.wOut)>=0?'var(--green)':'var(--red)'}; white-space:nowrap;min-width:80px;text-align:right">${w.wItems.length>0?((w.wIn-w.wOut)>=0?'+':'')+brl(w.wIn-w.wOut):''}</div>
+      </div>
+      ${chips?`<div class="proj-items">${chips}</div>`:''}
+    </div>`;
+  }).join('');
+
+  // Saldo projetado no final do período
+  if(saldoLine){
+    const limitFmt=`${String(limit.getDate()).padStart(2,'0')}/${meses[limit.getMonth()]}`;
+    document.getElementById('projSaldoData').textContent=limitFmt;
+    const sp=document.getElementById('projSaldoVal');
+    sp.textContent=(saldoImpacto>=0?'+':'')+brl(saldoImpacto);
+    sp.style.color=saldoImpacto>=0?'var(--green)':'var(--red)';
+    saldoLine.style.display='flex';
+  }
 }
-let _fluxoData=null;
+
+// Alias para manter compatibilidade
+const _renderFluxo=(dias)=>_renderProjecao(dias);
 
 // ══ GRÁFICO PATRIMÔNIO HISTÓRICO ═══════════════════════════════════════════════
 let _chartPatrimHist=null;
@@ -1622,8 +1731,8 @@ function buildPatrimHistChart(monthly, baseBalance=0){
   if(_chartPatrimHist) _chartPatrimHist.destroy();
   _chartPatrimHist=new Chart(ctx,{
     type:'line',
-    data:{labels,datasets:[{label:'Saldo acumulado',data,borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,.1)',fill:true,tension:.4,pointRadius:3,pointHoverRadius:6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'R$ '+c.parsed.y.toLocaleString('pt-BR',{minimumFractionDigits:2})}}},scales:{x:{grid:{color:'rgba(30,45,69,.6)'},ticks:{color:'#64748b',font:{size:10}}},y:{grid:{color:'rgba(30,45,69,.6)'},ticks:{color:'#64748b',font:{size:10},callback:v=>'R$ '+v.toLocaleString('pt-BR',{maximumFractionDigits:0})}}}}
+    data:{labels,datasets:[{label:'Saldo acumulado',data,borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.08)',fill:true,tension:.4,pointRadius:3,pointHoverRadius:6,pointBackgroundColor:'#38bdf8'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'R$ '+c.parsed.y.toLocaleString('pt-BR',{minimumFractionDigits:2})}}},scales:{x:{grid:{color:'rgba(29,34,48,.8)'},ticks:{color:'#505870',font:{size:10}}},y:{grid:{color:'rgba(29,34,48,.8)'},ticks:{color:'#505870',font:{size:10},callback:v=>'R$ '+v.toLocaleString('pt-BR',{maximumFractionDigits:0})}}}}
   });
 }
 
@@ -3144,20 +3253,29 @@ async function submitModal(){
 // ══ PREVISÕES (Entrada / Contas Variável) ════════════════════════════════════
 let _planConfirmId = null;
 
+function _togglePlanRecorrente(checked){
+  document.getElementById('planRecorrenteDia').style.display=checked?'block':'none';
+  if(checked) document.getElementById('planDate').closest('.field').style.opacity='.5';
+  else document.getElementById('planDate').closest('.field').style.opacity='1';
+}
+
 function openPlanModal(type, item=null){
   document.getElementById('planType').value = type;
   document.getElementById('planEditId').value = item ? item.id : '';
   document.getElementById('planModalTitle').innerHTML =
     (item ? '✏️ Editar' : '＋ Nova') + ' ' +
-    (type==='entrada' ? 'Previsão de Entrada' : 'Previsão de Conta Variável') +
+    (type==='entrada' ? 'Receita Prevista' : 'Despesa Prevista') +
     '<button class="modal-close" onclick="closePlanModal()">✕</button>';
   document.getElementById('planAccountLabel').textContent = type==='entrada' ? 'Conta que vai receber' : 'Conta que vai pagar';
-  document.getElementById('confirmAccountLabel').textContent = type==='entrada' ? 'Conta que recebeu' : 'Conta que pagou';
   document.getElementById('planDesc').value = item ? item.description : '';
   document.getElementById('planAmount').value = item ? item.amount : '';
-  document.getElementById('planDate').value = item ? (item.due_date||'') : new Date().toISOString().slice(0,10);
+  document.getElementById('planDate').value = item ? (item.due_date||'') : '';
   document.getElementById('planCategory').value = item ? (item.category||'Outros') : (type==='entrada'?'Comissão Imobiliária':'Outros');
   document.getElementById('planAccount').value = item ? (item.account||'corrente nubank') : 'corrente nubank';
+  const rec=!!(item?.recorrente);
+  document.getElementById('planRecorrente').checked=rec;
+  document.getElementById('planRecorrenciaDia').value=item?.recorrencia_dia||'';
+  _togglePlanRecorrente(rec);
   document.getElementById('planResp').textContent = '';
   document.getElementById('modalPlan').classList.add('open');
   setTimeout(()=>document.getElementById('planDesc').focus(), 80);
@@ -3175,16 +3293,20 @@ async function savePlan(){
   const category = document.getElementById('planCategory').value;
   const account = document.getElementById('planAccount').value;
   const due_date = document.getElementById('planDate').value || null;
+  const recorrente = document.getElementById('planRecorrente').checked;
+  const recorrencia_dia = recorrente ? (parseInt(document.getElementById('planRecorrenciaDia').value)||null) : null;
   const resp = document.getElementById('planResp');
-  if(!desc){ resp.style.color='#f87171'; resp.textContent='Descrição obrigatória'; return; }
+  if(!desc){ resp.style.color='var(--red)'; resp.textContent='Descrição obrigatória'; return; }
+  if(recorrente&&!recorrencia_dia){ resp.style.color='var(--red)'; resp.textContent='Informe o dia do mês para recorrência'; return; }
   try{
-    const data = {type, description:desc, amount, category, account, due_date};
+    const data = {type, description:desc, amount, category, account, due_date, recorrente, recorrencia_dia};
     if(id) await sbPatch('planned_entries', {id:`eq.${id}`}, data);
     else await sbPost('planned_entries', data);
-    resp.style.color='#34d399';
+    resp.style.color='var(--green)';
     resp.textContent = id ? '✓ Atualizado!' : '✓ Adicionado!';
-    setTimeout(()=>{ closePlanModal(); refreshDashboard(); }, 700);
-  }catch(e){ resp.style.color='#f87171'; resp.textContent='✗ '+e.message; }
+    toast(id?'Previsão atualizada':'Previsão adicionada','ok');
+    setTimeout(()=>{ closePlanModal(); refreshDashboard(); }, 500);
+  }catch(e){ resp.style.color='var(--red)'; resp.textContent='✗ '+e.message; }
 }
 
 async function deletePlan(id, desc){
@@ -3241,9 +3363,11 @@ async function uncheckPlan(id){
 }
 
 async function loadPlanned(rows=null){
-  if(!rows) rows = await sbGet('planned_entries', {select:'*', order:'confirmed.asc,due_date.asc.nullslast,id.desc'});
+  if(!rows) rows = await sbGet('planned_entries', {select:'*', order:'recorrente.desc,confirmed.asc,due_date.asc.nullslast,id.desc'});
   renderPlanned(rows.filter(r=>r.type==='entrada'), 'listEntrada', 'totalEntradaPrev', 'entrada');
   renderPlanned(rows.filter(r=>r.type==='saida'),  'listSaida',   'totalSaidaPrev',   'saida');
+  // Atualiza fluxoData com planejamentos mais recentes
+  if(_fluxoData){ _fluxoData.planned=rows; _renderProjecao(_fluxoDias); }
   return rows;
 }
 
@@ -3264,7 +3388,8 @@ function renderPlanned(rows, listId, totalId, type){
     const color = isEntrada ? 'var(--green)' : 'var(--red)';
     const borderColor = confirmed ? 'rgba(100,116,139,.3)' : (isEntrada ? 'rgba(16,185,129,.25)' : 'rgba(239,68,68,.25)');
     const bg = confirmed ? 'rgba(100,116,139,.05)' : (isEntrada ? 'rgba(16,185,129,.05)' : 'rgba(239,68,68,.05)');
-    const dateStr = r.due_date ? `<span style="font-size:10px;color:var(--muted)">${fmtDate(r.due_date)}</span>` : '';
+    const dateStr = r.due_date ? `<span style="font-size:10px;color:var(--muted)">${fmtDate(r.due_date)}</span>` : (r.recorrente?'':'<span style="font-size:10px;color:var(--muted)">sem data</span>');
+    const recBadge = r.recorrente ? `<span class="proj-recurr-badge">🔄 dia ${r.recorrencia_dia||'?'}</span>` : '';
     const catBdg = r.category ? catBadge(r.category) : '';
     const accountBdg = r.account ? `<span style="font-size:10px;color:var(--muted2);background:var(--surface2);border-radius:4px;padding:1px 6px">${r.account}</span>` : '';
 
@@ -3277,7 +3402,7 @@ function renderPlanned(rows, listId, totalId, type){
       <!-- Info -->
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;${confirmed?'text-decoration:line-through;color:var(--muted)':''};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.description}</div>
-        <div style="display:flex;gap:4px;align-items:center;margin-top:3px;flex-wrap:wrap">${dateStr}${catBdg}${accountBdg}</div>
+        <div style="display:flex;gap:4px;align-items:center;margin-top:3px;flex-wrap:wrap">${dateStr}${recBadge}${catBdg}${accountBdg}</div>
       </div>
       <!-- Valor -->
       <div style="font-size:14px;font-weight:700;color:${confirmed?'var(--muted)':color};white-space:nowrap">${brl(r.amount)}</div>
