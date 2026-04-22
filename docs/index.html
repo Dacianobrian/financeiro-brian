@@ -2376,7 +2376,6 @@ function fillKpis(cm, fii, accounts, patrimonio){
 }
 
 // ── Análise por Categoria ──────────────────────────────────────────────────────
-const CAT_COLOR={'Alimentação':'#fb923c','Supermercado':'#4ade80','Combustível':'#fbbf24','Moradia':'#2dd4bf','Saúde':'#f43f5e','Educação':'#60a5fa','Transporte':'#818cf8','Lazer':'#e879f9','Streaming':'#a78bfa','Cartão Bradesco':'#f87171','Impostos / MEI':'#94a3b8','Parcelas':'#67e8f9','Anuidade':'#fcd34d','Outros':'#64748b','Comissão Imobiliária':'#34d399','Gerenciamento':'#c084fc'};
 function fillCatBreakdown(catsObj){
   const el=document.getElementById('catBreakdown');
   if(!el) return;
@@ -2393,7 +2392,7 @@ function fillCatBreakdown(catsObj){
   if(lbl) lbl.textContent=`Total: ${brl(total)}`;
   el.innerHTML=entries.map(([cat,val])=>{
     const pct=Math.min(100,(val/total)*100);
-    const color=CAT_COLOR[cat]||'#64748b';
+    const color=catColor(cat);
     const icon=CAT_ICON[cat]||'📌';
     return`<div style="display:flex;flex-direction:column;gap:5px">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:6px">
