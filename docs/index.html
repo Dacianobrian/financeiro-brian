@@ -518,7 +518,12 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
         <tbody id="txModalBody"><tr><td colspan="5" class="empty">Carregando...</td></tr></tbody>
       </table>
     </div>
-    <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);flex-shrink:0">
+    <div style="padding:8px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;justify-content:center">
+      <button id="txPrevBtn" onclick="_txModalPrev()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 14px;font-size:12px;cursor:pointer" disabled>← Anterior</button>
+      <span id="txPageInfo" style="font-size:11px;color:var(--muted);min-width:80px;text-align:center">Página 1</span>
+      <button id="txNextBtn" onclick="_txModalNext()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 14px;font-size:12px;cursor:pointer" disabled>Próximo →</button>
+    </div>
+    <div style="padding:10px 20px 12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);flex-shrink:0">
       <span id="txModalCount"></span>
       <span id="txModalTotal" style="font-weight:700"></span>
     </div>
@@ -1214,11 +1219,12 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           <th>Cotas</th>
           <th>Cotação</th>
           <th>Total</th>
+          <th>P&amp;L</th>
           <th>DY% a.a.</th>
           <th>Renda/Mês</th>
           <th>% Carteira</th>
         </tr></thead>
-        <tbody id="invTblFii"><tr><td colspan="8" class="empty">Carregando...</td></tr></tbody>
+        <tbody id="invTblFii"><tr><td colspan="9" class="empty">Carregando...</td></tr></tbody>
         <tfoot><tr id="invTblFiiFoot"></tr></tfoot>
       </table></div>
     </div>
@@ -1632,17 +1638,22 @@ async function openTxModal(){
   await loadTxModal();
 }
 function closeTxModal(){document.getElementById('txModalOverlay').classList.remove('open');}
-async function loadTxModal(){
+async function loadTxModal(keepPage=false){
+  if(!keepPage) _txModalPage=0;
   const body=document.getElementById('txModalBody');
   const countEl=document.getElementById('txModalCount');
   const totalEl=document.getElementById('txModalTotal');
+  const prevBtn=document.getElementById('txPrevBtn');
+  const nextBtn=document.getElementById('txNextBtn');
+  const pageInfo=document.getElementById('txPageInfo');
   if(body) body.innerHTML=`<tr><td colspan="5" class="empty">Carregando...</td></tr>`;
   const q=document.getElementById('txModalSearch')?.value?.trim()||'';
   const type=document.getElementById('txModalType')?.value||'';
   const cat=document.getElementById('txModalCat')?.value||'';
   const from=document.getElementById('txModalFrom')?.value||'';
   const to=document.getElementById('txModalTo')?.value||'';
-  const params={select:'*',order:'date.desc,id.desc',limit:500};
+  const offset=_txModalPage*_TX_PAGE;
+  const params={select:'*',order:'date.desc,id.desc',limit:_TX_PAGE+1,offset};
   if(q) params.description=`ilike.*${q}*`;
   if(type) params.type=`eq.${type}`;
   if(cat) params.category=`eq.${cat}`;
@@ -1650,11 +1661,17 @@ async function loadTxModal(){
   try{
     let rows=await sbGet('transactions',params);
     if(to) rows=rows.filter(t=>t.date<=to);
+    const hasNext=rows.length>_TX_PAGE;
+    if(hasNext) rows=rows.slice(0,_TX_PAGE);
     const totE=rows.filter(t=>t.type==='entrada').reduce((s,t)=>s+(+t.amount||0),0);
     const totS=rows.filter(t=>t.type==='saida').reduce((s,t)=>s+(+t.amount||0),0);
     const totI=rows.filter(t=>t.type==='investido').reduce((s,t)=>s+(+t.amount||0),0);
-    if(countEl) countEl.textContent=`${rows.length} transação${rows.length!==1?'ões':''}`;
+    const startItem=offset+1; const endItem=offset+rows.length;
+    if(countEl) countEl.textContent=`${startItem}–${endItem} transações`;
     if(totalEl) totalEl.innerHTML=`<span class="amt-green">+${brl(totE)}</span> &nbsp; <span class="amt-red">-${brl(totS)}</span> &nbsp; <span class="amt-purple">📈${brl(totI)}</span>`;
+    if(pageInfo) pageInfo.textContent=`Página ${_txModalPage+1}`;
+    if(prevBtn){ prevBtn.disabled=_txModalPage===0; prevBtn.style.opacity=_txModalPage===0?'.35':'1'; }
+    if(nextBtn){ nextBtn.disabled=!hasNext; nextBtn.style.opacity=!hasNext?'.35':'1'; }
     if(body) body.innerHTML=rows.map(t=>{
       const ac=t.type==='entrada'?'amt-green':t.type==='investido'?'amt-purple':'amt-red';
       const sig=t.type==='entrada'?'+':'-';
@@ -1668,6 +1685,8 @@ async function loadTxModal(){
     }).join('');
   }catch(e){if(body) body.innerHTML=`<tr><td colspan="5" class="empty">Erro ao buscar</td></tr>`;}
 }
+function _txModalPrev(){ if(_txModalPage>0){ _txModalPage--; loadTxModal(true); } }
+function _txModalNext(){ _txModalPage++; loadTxModal(true); }
 
 // ══ PROJEÇÃO DE CAIXA FUTURO ═══════════════════════════════════════════════════
 let _fluxoDias=30;
@@ -2203,10 +2222,27 @@ function buildCharts(monthly, cats){
 
   const sortedCatsAno=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
   const catLabelsAno=sortedCatsAno.map(([l])=>catIcon(l)+' '+l);
+  const catNamesAno=sortedCatsAno.map(([l])=>l); // nomes sem emoji para filtro
   const catValsAno=sortedCatsAno.map(([,v])=>v);
   const catColorsAno=sortedCatsAno.map(([l])=>catColor(l));
   if(chartCatAno)chartCatAno.destroy();
-  chartCatAno=new Chart(document.getElementById('chartCatAno'),{type:'bar',data:{labels:catLabelsAno,datasets:[{data:catValsAno,backgroundColor:catColorsAno.map(c=>c+'bb'),borderColor:catColorsAno,borderWidth:1,borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+brl(c.raw)}}},scales:{x:{grid:{color:'rgba(30,45,69,.5)'},ticks:{callback:v=>shortBrl(v),font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10.5}}}}}});
+  chartCatAno=new Chart(document.getElementById('chartCatAno'),{type:'bar',data:{labels:catLabelsAno,datasets:[{data:catValsAno,backgroundColor:catColorsAno.map(c=>c+'bb'),borderColor:catColorsAno,borderWidth:1,borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    onClick:(evt,items)=>{
+      if(!items.length) return;
+      const cat=catNamesAno[items[0].index];
+      const yr=new Date().getFullYear();
+      openTxModal();
+      setTimeout(()=>{
+        const catSel=document.getElementById('txModalCat');
+        const fromEl=document.getElementById('txModalFrom');
+        const toEl=document.getElementById('txModalTo');
+        if(catSel) catSel.value=cat;
+        if(fromEl) fromEl.value=`${yr}-01-01`;
+        if(toEl) toEl.value=new Date().toISOString().slice(0,10);
+        loadTxModal();
+      },250);
+    },
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+brl(c.raw)+' · clique para ver transações'},title:t=>[t[0].label,'']},},scales:{x:{grid:{color:'rgba(30,45,69,.5)'},ticks:{callback:v=>shortBrl(v),font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10.5}}}}}});
 }
 
 function buildInvCharts(rows, quotes){
@@ -2647,6 +2683,15 @@ function fillInvFii(rows, quotes, accounts, monthly, divTxs){
     const nextDiv=q&&q.dividends&&q.dividends.length
       ?`<span title="Próx: ${brl(q.dividends[0].rate)}/cota em ${fmtDate(q.dividends[0].paymentDate)}" style="cursor:help;margin-left:4px">💰</span>`:'';
 
+    // P&L por FII: usa cost_per_share se disponível, senão f.price como custo médio
+    const costBase=+(f.cost_per_share||f.price||0);
+    const plHasLive=q&&q.price; // só mostra P&L quando tem cotação ao vivo
+    const plVal=costBase>0&&plHasLive?(price-costBase)*shares:null;
+    const plPct=costBase>0&&plHasLive?(price-costBase)/costBase*100:null;
+    const plCell=plVal!==null
+      ?`<td style="text-align:right"><span class="${plVal>=0?'amt-green':'amt-red'}" style="font-weight:700;font-size:12px">${plVal>=0?'+':''}${brl(plVal)}</span><div style="font-size:10px;color:${plPct>=0?'var(--green)':'var(--red)'}">${plPct>=0?'+':''}${plPct.toFixed(1)}%</div></td>`
+      :`<td style="color:var(--muted2);text-align:right;font-size:11px">—</td>`;
+
     const pctBar=`<div style="display:flex;align-items:center;gap:6px">
       <div style="flex:1;height:4px;background:var(--border);border-radius:2px;min-width:40px">
         <div style="width:${Math.min(cartPct,100).toFixed(1)}%;height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:2px"></div>
@@ -2660,6 +2705,7 @@ function fillInvFii(rows, quotes, accounts, monthly, divTxs){
       <td style="color:var(--muted2)">${shares}</td>
       <td style="color:var(--muted2)">${brl(price)}${changeHtml}</td>
       <td class="amt-yellow">${brl(val)}</td>
+      ${plCell}
       <td class="${dy>=0?'amt-green':'amt-red'}">${dy?pct(dy):'—'}</td>
       <td class="amt-green">${brl(renda)}</td>
       <td>${pctBar}</td>
@@ -2670,6 +2716,7 @@ function fillInvFii(rows, quotes, accounts, monthly, divTxs){
     <td style="color:var(--muted)">TOTAL</td><td></td>
     <td style="font-weight:700;color:var(--muted2)">${totalCotas}</td><td></td>
     <td class="amt-yellow">${brl(fiiMarket)}</td>
+    <td class="${ganhoCapital>=0?'amt-green':'amt-red'}" style="font-weight:700">${ganhoCapital>=0?'+':''}${brl(ganhoCapital)}<div style="font-size:10px">${varPct>=0?'+':''}${varPct.toFixed(1)}%</div></td>
     <td class="amt-green">${pct(avgDy)}</td>
     <td class="amt-green">${brl(totalRenda)}</td>
     <td style="color:var(--muted2);font-size:11px">100%</td>`;
@@ -3088,6 +3135,8 @@ async function fillAnoTab(monthly, cats){
 let _allTxs = [];
 let _invFiiRows = [], _invQuotes = null, _invAccounts = [], _monthly = [], _divTxs = [];
 let _catsObj = {};
+let _txModalPage = 0;
+const _TX_PAGE = 50;
 let _lastRefreshTs = 0;
 const _relCache={};
 
@@ -3791,7 +3840,27 @@ async function doConfirm(){
 }
 
 async function uncheckPlan(id){
-  await sbPatch('planned_entries', {id:`eq.${id}`}, {confirmed:false, confirmed_at:null});
+  // Antes de reverter, verifica se o item é recorrente para limpar o próximo mês criado automaticamente
+  try{
+    const item=(_prevRows||[]).find(r=>r.id===id);
+    await sbPatch('planned_entries',{id:`eq.${id}`},{confirmed:false,confirmed_at:null});
+    // Se era recorrente, busca e apaga a entrada do próximo mês gerada automaticamente
+    if(item&&item.recorrente&&item.recorrencia_dia&&item.confirmed_at){
+      const base=new Date(item.confirmed_at+'T12:00:00');
+      const nextY=base.getMonth()===11?base.getFullYear()+1:base.getFullYear();
+      const nextM=String((base.getMonth()+2>12?1:base.getMonth()+2)).padStart(2,'0');
+      const nextDate=`${nextY}-${nextM}-`;
+      const candidates=await sbGet('planned_entries',{
+        description:`eq.${item.description}`,
+        confirmed:'eq.false',
+        recorrente:'eq.true',
+        due_date:`gte.${nextY}-${nextM}-01`
+      });
+      if(candidates&&candidates.length>0){
+        await sbDelete('planned_entries',{id:`eq.${candidates[0].id}`});
+      }
+    }
+  }catch(e){ console.warn('uncheckPlan cleanup:',e); }
   refreshDashboard();
 }
 
