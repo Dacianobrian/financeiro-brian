@@ -747,7 +747,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     <div class="grid g4" id="kpiGrid">
       <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(99,102,241,.15)">🏦</span>Saldo em Conta</div><div class="kpi-value" id="kpiSaldo">—</div><div class="kpi-sub" id="kpiSaldoSub">Nubank + Bradesco</div><div class="kpi-saldo-upcoming" id="kpiUpcoming" style="display:none"><span id="kpiUpcomingTxt"></span></div></div>
       <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Entradas</div><div class="kpi-value amt-green" id="kpiEntradas">—</div><div class="kpi-sub">mês atual</div></div>
-      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(239,68,68,.15)">📤</span>Saídas</div><div class="kpi-value amt-red" id="kpiSaidas">—</div><div class="kpi-sub">mês atual</div></div>
+      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(239,68,68,.15)">📤</span>Saídas</div><div class="kpi-value amt-red" id="kpiSaidas">—</div><div class="progress" id="kpiSaidasProg" style="display:none;margin:6px 0 2px"><div class="progress-fill" id="kpiSaidasBar" style="width:0%"></div></div><div class="kpi-sub" id="kpiSaidasSub">mês atual</div></div>
       <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(139,92,246,.15)">📈</span>Investido</div><div class="kpi-value amt-purple" id="kpiInvestido">—</div><div class="kpi-sub">mês atual</div></div>
     </div>
   </div>
@@ -800,6 +800,17 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💸</span>Dividendos / Mês</div><div class="kpi-value amt-green" id="kpiDiv">—</div><div class="kpi-sub">renda passiva estimada</div></div>
     <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Total Investido</div><div class="kpi-value" style="color:var(--cyan)" id="kpiInv">—</div><div class="kpi-sub">Caixinha + FIIs</div></div>
     <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🎯</span>Meta Reserva · Dez/2027</div><div class="kpi-value amt-yellow" id="kpiMeta">—</div><div class="progress"><div class="progress-fill" id="kpiMetaBar" style="width:0%;background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div><div class="kpi-sub" id="kpiMetaSub">de R$ 60.000</div></div>
+  </div>
+
+  <!-- 📊 Gastos por Categoria -->
+  <div style="margin-top:14px">
+    <div class="card" style="padding:18px 20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <span style="font-weight:700;font-size:13px">📊 Gastos por Categoria — <span id="catPeriodLabel" style="color:var(--muted2);font-weight:600">Ano atual</span></span>
+        <span id="catTotalLabel" style="font-size:11px;color:var(--muted)"></span>
+      </div>
+      <div id="catBreakdown" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px 18px"></div>
+    </div>
   </div>
 
   <!-- IDs mantidos para não quebrar o JS que ainda atualiza estes elementos -->
@@ -2287,6 +2298,25 @@ function fillKpis(cm, fii, accounts, patrimonio){
   document.getElementById('kpiEntradas').textContent=brl(cm.entradas);
   document.getElementById('kpiSaidas').textContent=brl(cm.saidas);
   document.getElementById('kpiInvestido').textContent=brl(cm.investido);
+  // Meta mensal de gastos — progress bar no card Saídas
+  const _metaM=+(cm.meta_mensal||0);
+  const _saidasSub=document.getElementById('kpiSaidasSub');
+  const _saidasBar=document.getElementById('kpiSaidasBar');
+  const _saidasProg=document.getElementById('kpiSaidasProg');
+  if(_metaM>0){
+    const _pctM=Math.min(100,(+(cm.saidas||0)/_metaM)*100);
+    const _resto=_metaM-(+(cm.saidas||0));
+    if(_saidasSub) _saidasSub.textContent=_pctM>=100?`⚠️ Meta estourada +${brl(Math.abs(_resto))}`:_resto>0?`${brl(_resto)} restante de ${brl(_metaM)}`:`Meta: ${brl(_metaM)}`;
+    if(_saidasBar){ _saidasBar.style.width=_pctM+'%'; _saidasBar.style.background=_pctM>=100?'linear-gradient(90deg,#f43f5e,#fb7185)':_pctM>=80?'linear-gradient(90deg,#fb923c,#fbbf24)':'linear-gradient(90deg,#4ade80,#22d3ee)'; }
+    if(_saidasProg) _saidasProg.style.display='';
+  } else {
+    if(_saidasSub) _saidasSub.textContent='mês atual';
+    if(_saidasProg) _saidasProg.style.display='none';
+  }
+  // Meta diária no sub do saldo
+  const _metaD=+(cm.meta_diario||0);
+  const _saldoSub=document.getElementById('kpiSaldoSub');
+  if(_metaD>0&&_saldoSub) _saldoSub.textContent=`Nubank + Bradesco · meta/dia: ${brl(_metaD)}`;
   const fiiTotal=fii.reduce((s,f)=>s+(+(f.shares||0))*(+(f.price||0)),0);
   document.getElementById('kpiFii').textContent=brl(fiiTotal);
   document.getElementById('kpiFiiSub').textContent=`${fii.length} fundos`;
@@ -2307,6 +2337,38 @@ function fillKpis(cm, fii, accounts, patrimonio){
   const metaCard=document.getElementById('kpiMeta')?.closest('.card');
   if(metaCard){const lbl=metaCard.querySelector('.kpi-label');if(lbl)lbl.innerHTML=lbl.innerHTML.replace(/Meta Reserva.*$/,`Meta Reserva · ${metaLabel}`);}
 
+}
+
+// ── Análise por Categoria ──────────────────────────────────────────────────────
+const CAT_COLOR={'Alimentação':'#fb923c','Supermercado':'#4ade80','Combustível':'#fbbf24','Moradia':'#2dd4bf','Saúde':'#f43f5e','Educação':'#60a5fa','Transporte':'#818cf8','Lazer':'#e879f9','Streaming':'#a78bfa','Cartão Bradesco':'#f87171','Impostos / MEI':'#94a3b8','Parcelas':'#67e8f9','Anuidade':'#fcd34d','Outros':'#64748b','Comissão Imobiliária':'#34d399','Gerenciamento':'#c084fc'};
+function fillCatBreakdown(catsObj){
+  const el=document.getElementById('catBreakdown');
+  if(!el) return;
+  // Filtra só despesas (exclui categorias de receita/investimento)
+  const skipCats=new Set(['Investimentos','Dividendos FII','Rendimento RDB/CDB','Salário','Entrada','Comissão Imobiliária']);
+  const entries=Object.entries(catsObj||{}).filter(([c,v])=>v>0&&!skipCats.has(c)).sort(([,a],[,b])=>b-a);
+  const lbl=document.getElementById('catTotalLabel');
+  if(!entries.length){
+    el.innerHTML='<div style="color:var(--muted);font-size:12px;grid-column:1/-1">Sem dados de categorias para o período</div>';
+    if(lbl) lbl.textContent='';
+    return;
+  }
+  const total=entries.reduce((s,[,v])=>s+v,0);
+  if(lbl) lbl.textContent=`Total: ${brl(total)}`;
+  el.innerHTML=entries.map(([cat,val])=>{
+    const pct=Math.min(100,(val/total)*100);
+    const color=CAT_COLOR[cat]||'#64748b';
+    const icon=CAT_ICON[cat]||'📌';
+    return`<div style="display:flex;flex-direction:column;gap:5px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:6px">
+        <span style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${icon} ${cat}</span>
+        <span style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;flex-shrink:0">${brl(val)} <span style="font-size:10px;color:var(--muted);font-weight:400">${pct.toFixed(1)}%</span></span>
+      </div>
+      <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width .5s ease"></div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function fillAccounts(accounts, patrimonio){
@@ -2365,7 +2427,7 @@ function fillAccounts(accounts, patrimonio){
 function fillTx(rows){
   const tb=document.getElementById('tblTransactions');
   if(!rows||!rows.length){tb.innerHTML=`<tr><td colspan="4" class="empty">Nenhuma transação.</td></tr>`;return}
-  tb.innerHTML=rows.slice(0,10).map(t=>{
+  tb.innerHTML=rows.slice(0,15).map(t=>{
     const amtCls=t.type==='entrada'?'amt-green':t.type==='investido'?'amt-purple':'amt-red';
     const dot=t.type==='entrada'?'🟢':t.type==='investido'?'🟣':'🔴';
     return`<tr style="font-size:12px">
@@ -3071,7 +3133,7 @@ async function refreshDashboard(){
       sbRpc('get_current_month_data'),
       sbRpc('get_monthly_summary', {year_val: new Date().getFullYear()}),
       sbRpc('get_expense_by_category', {year_val: new Date().getFullYear()}),
-      sbGet('transactions', {select:'*', order:'date.desc,id.desc', limit:10}),
+      sbGet('transactions', {select:'*', order:'date.desc,id.desc', limit:100}),
       sbGet('fii_portfolio', {select:'*', order:'ticker.asc'}),
       sbGet('fixed_costs', {select:'*', order:'due_day.asc.nullslast,id.asc'}),
       sbGet('accounts', {select:'*', order:'bank.asc,type.asc'}),
@@ -3091,6 +3153,7 @@ async function refreshDashboard(){
     monthly.forEach(r=>{ r.month=_enPt[r.month]||r.month; });
 
     fillKpis(cmRow, fii, accounts, patRow);
+    fillCatBreakdown(catsObj);
     fillAccounts(accounts, patRow);
     buildCharts(monthly, catsObj);
     fillTx(txs);
@@ -3310,6 +3373,7 @@ function switchTab(tab){
   document.getElementById('tabBtnInv').classList.toggle('active',tab==='inv');
   if(tab==='inv'){ buildInvCharts(_invFiiRows, _invQuotes); _fillInvCashflow(); }
   if(tab==='ano'){ buildCharts(_monthly, _catsObj); fillAnoTab(_monthly, _catsObj); }
+  if(tab==='geral'){ fillCatBreakdown(_catsObj); }
   // Atualiza tudo se dados tiverem mais de 90 segundos
   if(Date.now()-_lastRefreshTs > 90000) refreshDashboard();
 }
@@ -3705,8 +3769,22 @@ async function doConfirm(){
       date: txDate, type: item.type, amount: item.amount,
       description: item.description, category, account
     });
+    // Se for recorrente, cria automaticamente a próxima entrada do mês seguinte
+    if(item.recorrente && item.recorrencia_dia){
+      const baseDate = new Date(txDate+'T12:00:00');
+      const nextMonth = new Date(baseDate.getFullYear(), baseDate.getMonth()+1, 1);
+      const maxDay = new Date(nextMonth.getFullYear(), nextMonth.getMonth()+1, 0).getDate();
+      const nextDay = Math.min(item.recorrencia_dia, maxDay);
+      const nextDate = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth()+1).padStart(2,'0')}-${String(nextDay).padStart(2,'0')}`;
+      await sbPost('planned_entries',{
+        type:item.type, description:item.description, amount:item.amount,
+        category:item.category, account:item.account||null,
+        due_date:nextDate, recorrente:true, recorrencia_dia:item.recorrencia_dia,
+        confirmed:false
+      });
+    }
     closeConfirmModal();
-    toast(`✓ ${item.type==='entrada'?'Receita':'Despesa'} registrada em ${fmtDate(txDate)}`,'ok',4000);
+    toast(`✓ ${item.type==='entrada'?'Receita':'Despesa'} registrada em ${fmtDate(txDate)}`+(item.recorrente?' · ↻ próximo mês criado automaticamente':''),'ok',4500);
     await loadPlanned();
     await refreshDashboard();
   }catch(e){ toast('Erro ao confirmar: '+e.message,'err'); }
