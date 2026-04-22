@@ -3025,6 +3025,7 @@ async function fillAnoTab(monthly, cats){
 // ══ DASHBOARD LOAD ════════════════════════════════════════════════════════════
 let _allTxs = [];
 let _invFiiRows = [], _invQuotes = null, _invAccounts = [], _monthly = [], _divTxs = [];
+let _catsObj = {};
 let _lastRefreshTs = 0;
 const _relCache={};
 
@@ -3084,6 +3085,7 @@ async function refreshDashboard(){
     const patRow = pat[0]||{accounts:0,fii:0,total:0};
     const catsObj = {};
     (cats||[]).forEach(r=>catsObj[r.cat]=+r.total);
+    _catsObj = catsObj;
     // Traduz meses inglês → português
     const _enPt={'Jan':'Jan','Feb':'Fev','Mar':'Mar','Apr':'Abr','May':'Mai','Jun':'Jun','Jul':'Jul','Aug':'Ago','Sep':'Set','Oct':'Out','Nov':'Nov','Dec':'Dez'};
     monthly.forEach(r=>{ r.month=_enPt[r.month]||r.month; });
@@ -3307,6 +3309,7 @@ function switchTab(tab){
   document.getElementById('tabBtnAno').classList.toggle('active',tab==='ano');
   document.getElementById('tabBtnInv').classList.toggle('active',tab==='inv');
   if(tab==='inv'){ buildInvCharts(_invFiiRows, _invQuotes); _fillInvCashflow(); }
+  if(tab==='ano'){ buildCharts(_monthly, _catsObj); fillAnoTab(_monthly, _catsObj); }
   // Atualiza tudo se dados tiverem mais de 90 segundos
   if(Date.now()-_lastRefreshTs > 90000) refreshDashboard();
 }
