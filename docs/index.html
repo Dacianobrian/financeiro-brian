@@ -750,7 +750,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   </div>
   <div class="section">
     <div class="grid g4" id="kpiGrid">
-      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(99,102,241,.15)">🏦</span>Saldo em Conta</div><div class="kpi-value" id="kpiSaldo">—</div><div class="kpi-sub" id="kpiSaldoSub">Nubank + Bradesco</div><div class="kpi-saldo-upcoming" id="kpiUpcoming" style="display:none"><span id="kpiUpcomingTxt"></span></div></div>
+      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(99,102,241,.15)">🏦</span>Saldo em Conta</div><div class="kpi-value" id="kpiSaldo">—</div><div class="kpi-sub" id="kpiSaldoSub">Nubank + Bradesco</div><div class="kpi-saldo-upcoming" id="kpiUpcoming" style="display:none"><span id="kpiUpcomingTxt"></span></div><div id="kpiProjetado" style="display:none;margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,.06);font-size:11px;color:var(--muted)">Fim do mês: <span id="kpiProjetadoVal" style="font-weight:700"></span></div></div>
       <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Entradas</div><div class="kpi-value amt-green" id="kpiEntradas">—</div><div class="kpi-sub">mês atual</div></div>
       <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(239,68,68,.15)">📤</span>Saídas</div><div class="kpi-value amt-red" id="kpiSaidas">—</div><div class="progress" id="kpiSaidasProg" style="display:none;margin:6px 0 2px"><div class="progress-fill" id="kpiSaidasBar" style="width:0%"></div></div><div class="kpi-sub" id="kpiSaidasSub">mês atual</div></div>
       <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(139,92,246,.15)">📈</span>Investido</div><div class="kpi-value amt-purple" id="kpiInvestido">—</div><div class="kpi-sub">mês atual</div></div>
@@ -1672,6 +1672,7 @@ async function loadTxModal(keepPage=false){
     if(pageInfo) pageInfo.textContent=`Página ${_txModalPage+1}`;
     if(prevBtn){ prevBtn.disabled=_txModalPage===0; prevBtn.style.opacity=_txModalPage===0?'.35':'1'; }
     if(nextBtn){ nextBtn.disabled=!hasNext; nextBtn.style.opacity=!hasNext?'.35':'1'; }
+    rows.forEach(t=>_txMap[t.id]=t);
     if(body) body.innerHTML=rows.map(t=>{
       const ac=t.type==='entrada'?'amt-green':t.type==='investido'?'amt-purple':'amt-red';
       const sig=t.type==='entrada'?'+':'-';
@@ -1681,6 +1682,7 @@ async function loadTxModal(keepPage=false){
         <td style="padding:7px 12px">${catBadge(t.category)}</td>
         <td style="padding:7px 12px;font-size:11px;color:var(--muted2)">${t.account||'—'}</td>
         <td style="padding:7px 12px;text-align:right;font-weight:700" class="${ac}">${sig}${brl(t.amount)}</td>
+        <td style="padding:7px 8px;width:24px"><span onclick="openEditTx(${t.id})" style="cursor:pointer;font-size:12px" title="Editar">✏️</span></td>
       </tr>`;
     }).join('');
   }catch(e){if(body) body.innerHTML=`<tr><td colspan="5" class="empty">Erro ao buscar</td></tr>`;}
@@ -2379,31 +2381,72 @@ function fillKpis(cm, fii, accounts, patrimonio){
 function fillCatBreakdown(catsObj){
   const el=document.getElementById('catBreakdown');
   if(!el) return;
-  // Filtra só despesas (exclui categorias de receita/investimento)
   const skipCats=new Set(['Investimentos','Dividendos FII','Rendimento RDB/CDB','Salário','Entrada','Comissão Imobiliária']);
-  const entries=Object.entries(catsObj||{}).filter(([c,v])=>v>0&&!skipCats.has(c)).sort(([,a],[,b])=>b-a);
+  // Calcula mês atual a partir de _allTxs
+  const now=new Date();
+  const monthStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const monthCats={};
+  (_allTxs||[]).filter(t=>t.type==='saida'&&(t.date||'').startsWith(monthStr)).forEach(t=>{
+    const c=t.category||'Outros';
+    if(!skipCats.has(c)) monthCats[c]=(monthCats[c]||0)+(+t.amount||0);
+  });
+  const useCats=Object.keys(monthCats).length>0 ? monthCats :
+    Object.fromEntries(Object.entries(catsObj||{}).filter(([c,v])=>v>0&&!skipCats.has(c)));
+  const periodLbl=document.getElementById('catPeriodLabel');
   const lbl=document.getElementById('catTotalLabel');
+  const isMonth=Object.keys(monthCats).length>0;
+  if(periodLbl) periodLbl.textContent=isMonth?'Mês atual':'Ano atual';
+  const entries=Object.entries(useCats).sort(([,a],[,b])=>b-a);
   if(!entries.length){
-    el.innerHTML='<div style="color:var(--muted);font-size:12px;grid-column:1/-1">Sem dados de categorias para o período</div>';
-    if(lbl) lbl.textContent='';
-    return;
+    el.innerHTML='<div style="color:var(--muted);font-size:12px;grid-column:1/-1">Sem gastos registrados</div>';
+    if(lbl) lbl.textContent=''; return;
   }
   const total=entries.reduce((s,[,v])=>s+v,0);
   if(lbl) lbl.textContent=`Total: ${brl(total)}`;
   el.innerHTML=entries.map(([cat,val])=>{
+    const color=catColor(cat); const icon=CAT_ICON[cat]||'📌';
+    const budget=+(_catBudgets[cat]||0);
+    if(budget>0){
+      const pctB=Math.min(120,(val/budget)*100);
+      const barColor=pctB>=100?'#f43f5e':pctB>=80?'#fb923c':'#4ade80';
+      const resto=budget-val;
+      return`<div style="display:flex;flex-direction:column;gap:4px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:6px">
+          <span style="font-size:12px;font-weight:600;color:var(--text)">${icon} ${cat}</span>
+          <span style="font-size:11px;font-weight:700;white-space:nowrap;color:${pctB>=100?'var(--red)':'var(--text)'}">${brl(val)}<span style="font-size:10px;color:var(--muted);font-weight:400"> / ${brl(budget)}</span></span>
+        </div>
+        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${Math.min(100,pctB)}%;background:${barColor};border-radius:3px;transition:width .5s ease"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)">
+          <span>${pctB.toFixed(0)}% da meta</span>
+          <span style="cursor:pointer;color:var(--blue2)" onclick="_editCatBudget('${cat.replace(/'/g,"\\'")}')">
+            ${resto>=0?brl(resto)+' restante':'⚠️ '+brl(Math.abs(resto))+' acima'}
+          </span>
+        </div>
+      </div>`;
+    }
     const pct=Math.min(100,(val/total)*100);
-    const color=catColor(cat);
-    const icon=CAT_ICON[cat]||'📌';
-    return`<div style="display:flex;flex-direction:column;gap:5px">
+    return`<div style="display:flex;flex-direction:column;gap:4px">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:6px">
-        <span style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${icon} ${cat}</span>
-        <span style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;flex-shrink:0">${brl(val)} <span style="font-size:10px;color:var(--muted);font-weight:400">${pct.toFixed(1)}%</span></span>
+        <span style="font-size:12px;font-weight:600;color:var(--text)">${icon} ${cat}</span>
+        <span style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap">${brl(val)} <span style="font-size:10px;color:var(--muted);font-weight:400">${pct.toFixed(1)}%</span></span>
       </div>
       <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden">
         <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width .5s ease"></div>
       </div>
+      <div style="text-align:right;font-size:10px"><span style="color:var(--blue2);cursor:pointer" onclick="_editCatBudget('${cat.replace(/'/g,"\\'")}')">+ definir meta mensal</span></div>
     </div>`;
   }).join('');
+}
+function _editCatBudget(cat){
+  const cur=_catBudgets[cat]||'';
+  const val=prompt(`Meta mensal para "${cat}" (R$):\nDeixe vazio para remover.`,cur);
+  if(val===null) return;
+  if(!val.trim()){ delete _catBudgets[cat]; }
+  else{ const n=parseFloat(val.replace(',','.')); if(!isNaN(n)&&n>0) _catBudgets[cat]=n; }
+  localStorage.setItem('catBudgets',JSON.stringify(_catBudgets));
+  fillCatBreakdown(_catsObj);
 }
 
 function fillAccounts(accounts, patrimonio){
@@ -2461,7 +2504,8 @@ function fillAccounts(accounts, patrimonio){
 
 function fillTx(rows){
   const tb=document.getElementById('tblTransactions');
-  if(!rows||!rows.length){tb.innerHTML=`<tr><td colspan="4" class="empty">Nenhuma transação.</td></tr>`;return}
+  if(!rows||!rows.length){tb.innerHTML=`<tr><td colspan="5" class="empty">Nenhuma transação.</td></tr>`;return}
+  rows.forEach(t=>_txMap[t.id]=t);
   tb.innerHTML=rows.slice(0,15).map(t=>{
     const amtCls=t.type==='entrada'?'amt-green':t.type==='investido'?'amt-purple':'amt-red';
     const dot=t.type==='entrada'?'🟢':t.type==='investido'?'🟣':'🔴';
@@ -2472,6 +2516,7 @@ function fillTx(rows){
       </td>
       <td style="padding:5px 6px">${catBadge(t.category)}</td>
       <td style="text-align:right;padding:5px 6px;font-weight:700" class="${amtCls}">${brl(t.amount)}</td>
+      <td style="padding:5px 4px;width:20px"><span onclick="openEditTx(${t.id})" style="cursor:pointer;color:var(--muted2);font-size:11px" title="Editar">✏️</span></td>
     </tr>`;
   }).join('');
 }
@@ -3136,6 +3181,9 @@ let _invFiiRows = [], _invQuotes = null, _invAccounts = [], _monthly = [], _divT
 let _catsObj = {};
 let _txModalPage = 0;
 const _TX_PAGE = 50;
+let _editTxId = null;
+const _txMap = {};
+let _catBudgets = JSON.parse(localStorage.getItem('catBudgets')||'{}');
 let _lastRefreshTs = 0;
 const _relCache={};
 
@@ -3215,6 +3263,7 @@ async function refreshDashboard(){
     _prevRows = plannedRows||[];
     _fluxoData={fixedCosts:fc||[],subs:subs||[],insts:insts||[],planned:(plannedRows||[]).filter(p=>!p.confirmed)};
     _fillFluxo(_fluxoDias);
+    _fillProjetado(_fluxoData, accounts);
     _renderPrevList();
     _fillInvCashflow();
     buildPatrimHistChart(monthly, patRow.accounts);
@@ -3409,6 +3458,39 @@ async function manualRefreshFii(){
     buildInvCharts(fii, quotes);
     loadPlanned();
   }
+}
+
+// ══ SALDO PROJETADO FIM DO MÊS ═══════════════════════════════════════════════
+function _fillProjetado(fluxoData, accounts){
+  const el=document.getElementById('kpiProjetado');
+  const valEl=document.getElementById('kpiProjetadoVal');
+  if(!el||!valEl||!fluxoData) return;
+  const today=new Date(); const todayDay=today.getDate();
+  const lastDay=new Date(today.getFullYear(),today.getMonth()+1,0);
+  const todayStr=today.toISOString().slice(0,10);
+  const lastDayStr=lastDay.toISOString().slice(0,10);
+  // Saldo atual corrente
+  let proj=(accounts||[]).filter(a=>a.type==='corrente').reduce((s,a)=>s+(+a.balance||0),0);
+  // Custos fixos restantes (due_day >= hoje)
+  (fluxoData.fixedCosts||[]).forEach(fc=>{
+    if(+fc.amount>0&&+(fc.due_day||0)>=todayDay) proj-=+fc.amount;
+  });
+  // Assinaturas restantes (billing_day >= hoje)
+  (fluxoData.subs||[]).forEach(s=>{
+    if(+s.amount>0&&+(s.billing_day||0)>=todayDay) proj-=+s.amount;
+  });
+  // Parcelas do mês
+  (fluxoData.insts||[]).forEach(i=>{
+    if(+i.installment_amount>0) proj-=+i.installment_amount;
+  });
+  // Planned entries ainda não confirmados neste mês
+  (fluxoData.planned||[]).forEach(p=>{
+    if(!p.due_date||p.due_date<todayStr||p.due_date>lastDayStr) return;
+    proj+=p.type==='entrada'?+p.amount:-+p.amount;
+  });
+  valEl.textContent=brl(proj);
+  valEl.style.color=proj>=0?'var(--green)':'var(--red)';
+  el.style.display='';
 }
 
 // ══ TAB SWITCHING ═════════════════════════════════════════════════════════════
@@ -3659,7 +3741,31 @@ function openModal(){
   document.getElementById('modalOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('mValor').focus(),80);
 }
-function closeModal(){document.getElementById('modalOverlay').classList.remove('open')}
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+  if(_editTxId){
+    _editTxId=null;
+    const title=document.querySelector('#modalOverlay .modal-title');
+    if(title) title.innerHTML='＋ Novo Lançamento<button class="modal-close" onclick="closeModal()">✕</button>';
+    document.getElementById('mSubmitBtn').textContent='✓ Registrar';
+  }
+}
+function openEditTx(id){
+  const tx=_txMap[id]; if(!tx) return;
+  _editTxId=id;
+  setTipo(tx.type);
+  document.getElementById('mData').value=tx.date||'';
+  document.getElementById('mValor').value=String(+(tx.amount||0)).replace('.',',');
+  const cta=document.getElementById('mConta');
+  if([...cta.options].some(o=>o.value===tx.account)) cta.value=tx.account;
+  document.getElementById('mDesc').value=tx.description||'';
+  document.getElementById('mResp').textContent='';
+  const title=document.querySelector('#modalOverlay .modal-title');
+  if(title) title.innerHTML='✏️ Editar Lançamento<button class="modal-close" onclick="closeModal()">✕</button>';
+  document.getElementById('mSubmitBtn').textContent='✓ Atualizar';
+  document.getElementById('modalOverlay').classList.add('open');
+  updatePreview();
+}
 function setTipo(t){
   _mTipo=t;
   ['saida','entrada','investido'].forEach(x=>{
@@ -3684,6 +3790,21 @@ async function submitModal(){
   const desc=document.getElementById('mDesc').value.trim();
   const resp=document.getElementById('mResp');
   if(!dateVal||!valorRaw||!desc){resp.className='term-resp err';resp.textContent='✗ Preencha data, valor e descrição.';return}
+  // ── Modo edição ──────────────────────────────────────────────────────────────
+  if(_editTxId){
+    const val=parseFloat(valorRaw.replace(/[^0-9,]/g,'').replace(',','.'));
+    if(isNaN(val)||val<=0){resp.className='term-resp err';resp.textContent='✗ Valor inválido';return}
+    const cat=autoCategory(desc,_mTipo);
+    const btn=document.getElementById('mSubmitBtn');
+    btn.disabled=true; resp.className='term-resp info'; resp.textContent='⟳ Atualizando...';
+    try{
+      await sbPatch('transactions',{id:`eq.${_editTxId}`},{date:dateVal,type:_mTipo,amount:val,description:desc,account:conta,category:cat});
+      resp.className='term-resp ok'; resp.textContent='✓ Atualizado!';
+      await refreshDashboard(); setTimeout(()=>closeModal(),1200);
+    }catch(e){resp.className='term-resp err';resp.textContent='✗ '+e.message;}
+    finally{btn.disabled=false;}
+    return;
+  }
   const [y,m,d]=dateVal.split('-');
   const dateDisp=`${d}/${m}/${y}`;
   const prefix=_mTipo==='saida'?'':_mTipo+' ';
