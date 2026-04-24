@@ -1,5 +1,5 @@
 // Service Worker — Financeiro Brian
-const CACHE = 'fin-v3';
+const CACHE = 'fin-v4';
 const STATIC = [
   '/financeiro-brian/',
   '/financeiro-brian/index.html',
