@@ -411,7 +411,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   #settingsOverlay,#dialogOverlay,#toastWrap{display:none!important}
   .card{border:1px solid #ccc!important;background:#fff!important;break-inside:avoid}
   .page{padding:0!important;max-width:100%!important}
-  #tabGeral,#tabAno,#tabInv{display:block!important}
+  #tabGeral,#tabInv{display:block!important}
   [id^="tabBtn"]{display:none}
   .kpi-value{color:#000!important}
   .amt-green{color:#065f46!important}.amt-red{color:#991b1b!important}.amt-yellow{color:#92400e!important}
@@ -509,7 +509,6 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   </div>
   <div class="header-center">
     <button class="tab-btn active" id="tabBtnGeral" onclick="switchTab('geral')">📊 Visão Geral</button>
-    <button class="tab-btn" id="tabBtnAno" onclick="switchTab('ano')">📅 Dashboard Anual</button>
     <button class="tab-btn" id="tabBtnInv" onclick="switchTab('inv')">📈 Investimentos</button>
   </div>
   <div class="header-right">
@@ -980,6 +979,42 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       </div>
     </div>
   </div>
+
+  <!-- ── Análise Anual ── -->
+  <div class="section" style="margin-top:24px">
+    <div class="section-header" style="margin-bottom:14px">
+      <div class="section-title">📅 Análise Anual</div>
+    </div>
+    <div class="grid g4">
+      <div class="card card-green"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Entradas <span class="ano-lbl"></span></div><div class="kpi-value amt-green" id="anoEntradas">—</div><div class="kpi-sub" id="anoEntradasSub">acumulado</div></div>
+      <div class="card card-red"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(239,68,68,.15)">📤</span>Saídas <span class="ano-lbl"></span></div><div class="kpi-value amt-red" id="anoSaidas">—</div><div class="kpi-sub" id="anoSaidasSub">acumulado</div></div>
+      <div class="card" style="border-top:2px solid var(--cyan)!important;background:linear-gradient(180deg,rgba(45,212,191,.04) 0%,var(--surface) 60%)!important"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Investido <span class="ano-lbl"></span></div><div class="kpi-value" style="color:var(--cyan)" id="anoInvestido">—</div><div class="kpi-sub" id="anoInvestidoSub">acumulado</div></div>
+      <div class="card card-purple"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(139,92,246,.15)">📊</span>Taxa de Poupança</div><div class="kpi-value amt-purple" id="anoRate">—</div><div class="kpi-sub">do total de entradas</div></div>
+      <div id="anoCmpRow" style="display:none;font-size:12px;color:var(--muted);grid-column:1/-1;padding:4px 0;gap:8px;flex-wrap:wrap"></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="card">
+      <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:14px">📊 Fluxo Mensal — Entradas vs Saídas vs Investido</div>
+      <div class="chart-wrap" style="height:280px"><canvas id="chartFluxoAno"></canvas></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="grid g3">
+      <div class="card" style="grid-column:span 2">
+        <div class="section-header" style="margin-bottom:10px"><div class="section-title">📋 Resumo por Mês</div></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Mês</th><th style="text-align:right">Entradas</th><th style="text-align:right">Saídas</th><th style="text-align:right">Investido</th><th style="text-align:right">Saldo</th></tr></thead>
+          <tbody id="tblMeses"><tr><td colspan="5" class="empty">—</td></tr></tbody>
+          <tfoot><tr id="tblMesesFoot"></tr></tfoot>
+        </table></div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:12px">🍩 Despesas por Categoria <span class="ano-lbl"></span></div>
+        <div class="chart-wrap" style="height:320px"><canvas id="chartCatAno"></canvas></div>
+      </div>
+    </div>
+  </div>
 </div><!-- /tabGeral -->
 
 <!-- Modal Parcelamento -->
@@ -1088,41 +1123,6 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     <div id="subResp" style="font-size:12px;margin-top:8px;min-height:14px;text-align:right"></div>
   </div>
 </div>
-
-<!-- TAB: DASHBOARD ANUAL -->
-<div id="tabAno" style="display:none">
-  <div class="section">
-    <div class="grid g4">
-      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Entradas <span class="ano-lbl"></span></div><div class="kpi-value amt-green" id="anoEntradas">—</div><div class="kpi-sub" id="anoEntradasSub">acumulado</div></div>
-      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(239,68,68,.15)">📤</span>Saídas <span class="ano-lbl"></span></div><div class="kpi-value amt-red" id="anoSaidas">—</div><div class="kpi-sub" id="anoSaidasSub">acumulado</div></div>
-      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Investido <span class="ano-lbl"></span></div><div class="kpi-value" style="color:var(--cyan)" id="anoInvestido">—</div><div class="kpi-sub" id="anoInvestidoSub">acumulado</div></div>
-      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(139,92,246,.15)">📊</span>Taxa de Poupança</div><div class="kpi-value amt-purple" id="anoRate">—</div><div class="kpi-sub">do total de entradas</div></div>
-      <div id="anoCmpRow" style="display:none;font-size:12px;color:var(--muted);grid-column:1/-1;padding:4px 0;gap:8px;flex-wrap:wrap"></div>
-    </div>
-  </div>
-  <div class="section">
-    <div class="card">
-      <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:14px">📊 Fluxo Mensal 2026 — Entradas vs Saídas vs Investido</div>
-      <div class="chart-wrap" style="height:280px"><canvas id="chartFluxoAno"></canvas></div>
-    </div>
-  </div>
-  <div class="section">
-    <div class="grid g3">
-      <div class="card" style="grid-column:span 2">
-        <div class="section-header" style="margin-bottom:10px"><div class="section-title">📋 Resumo por Mês</div></div>
-        <div class="table-wrap"><table>
-          <thead><tr><th>Mês</th><th style="text-align:right">Entradas</th><th style="text-align:right">Saídas</th><th style="text-align:right">Investido</th><th style="text-align:right">Saldo</th></tr></thead>
-          <tbody id="tblMeses"><tr><td colspan="5" class="empty">—</td></tr></tbody>
-          <tfoot><tr id="tblMesesFoot"></tr></tfoot>
-        </table></div>
-      </div>
-      <div class="card">
-        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:12px">🍩 Despesas por Categoria <span class="ano-lbl"></span></div>
-        <div class="chart-wrap" style="height:320px"><canvas id="chartCatAno"></canvas></div>
-      </div>
-    </div>
-  </div>
-</div><!-- /tabAno -->
 
 <!-- TAB: INVESTIMENTOS -->
 <div id="tabInv" style="display:none">
@@ -3461,14 +3461,11 @@ function _fillProjetado(fluxoData, accounts){
 // ══ TAB SWITCHING ═════════════════════════════════════════════════════════════
 function switchTab(tab){
   document.getElementById('tabGeral').style.display=tab==='geral'?'':'none';
-  document.getElementById('tabAno').style.display=tab==='ano'?'':'none';
   document.getElementById('tabInv').style.display=tab==='inv'?'':'none';
   document.getElementById('tabBtnGeral').classList.toggle('active',tab==='geral');
-  document.getElementById('tabBtnAno').classList.toggle('active',tab==='ano');
   document.getElementById('tabBtnInv').classList.toggle('active',tab==='inv');
   if(tab==='inv'){ buildInvCharts(_invFiiRows, _invQuotes); _fillInvCashflow(); }
-  if(tab==='ano'){ buildCharts(_monthly, _catsObj); fillAnoTab(_monthly, _catsObj); }
-  if(tab==='geral'){ fillCatBreakdown(_catsObj); }
+  if(tab==='geral'){ fillCatBreakdown(_catsObj); buildCharts(_monthly, _catsObj); }
   // Atualiza tudo se dados tiverem mais de 90 segundos
   if(Date.now()-_lastRefreshTs > 90000) refreshDashboard();
 }
