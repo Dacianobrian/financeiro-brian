@@ -847,14 +847,34 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   </div>
 
   <!-- 📊 Gastos por Categoria -->
-  <div style="margin-top:14px">
+  <div style="margin-top:14px;display:flex;flex-direction:column;gap:12px">
+
+    <!-- Card Mês Atual -->
     <div class="card" style="padding:18px 20px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-        <span style="font-weight:700;font-size:13px">📊 Gastos por Categoria — <span id="catPeriodLabel" style="color:var(--muted2);font-weight:600">Ano atual</span></span>
+        <span style="font-weight:700;font-size:13px">📊 Gastos por Categoria — <span style="color:var(--blue2)">Mês Atual</span></span>
         <span id="catTotalLabel" style="font-size:11px;color:var(--muted)"></span>
       </div>
       <div id="catBreakdown" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px 18px"></div>
+      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--muted2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.6px">Distribuição visual</div>
+        <div class="chart-wrap" style="height:200px;padding:0"><canvas id="chartCatMesBar"></canvas></div>
+      </div>
     </div>
+
+    <!-- Card Ano Atual -->
+    <div class="card" style="padding:18px 20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <span style="font-weight:700;font-size:13px">📊 Gastos por Categoria — <span id="catPeriodLabel" style="color:var(--muted2);font-weight:600">Ano atual</span></span>
+        <span id="catTotalAnoLabel" style="font-size:11px;color:var(--muted)"></span>
+      </div>
+      <div id="catBreakdownAno" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px 18px"></div>
+      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--muted2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.6px">Distribuição visual</div>
+        <div class="chart-wrap" style="height:200px;padding:0"><canvas id="chartCatAnoBar"></canvas></div>
+      </div>
+    </div>
+
   </div>
 
   <!-- IDs mantidos para não quebrar o JS que ainda atualiza estes elementos -->
@@ -2344,34 +2364,16 @@ function fillKpis(cm, fii, accounts, patrimonio){
 }
 
 // ── Análise por Categoria ──────────────────────────────────────────────────────
-function fillCatBreakdown(catsObj){
-  const el=document.getElementById('catBreakdown');
-  if(!el) return;
-  const skipCats=new Set(['Investimentos','Dividendos FII','Rendimento RDB/CDB','Salário','Entrada','Comissão Imobiliária']);
-  // Calcula mês atual a partir de _allTxs
-  const now=new Date();
-  const monthStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const monthCats={};
-  (_allTxs||[]).filter(t=>t.type==='saida'&&(t.date||'').startsWith(monthStr)).forEach(t=>{
-    const c=t.category||'Outros';
-    if(!skipCats.has(c)) monthCats[c]=(monthCats[c]||0)+(+t.amount||0);
-  });
-  const useCats=Object.keys(monthCats).length>0 ? monthCats :
-    Object.fromEntries(Object.entries(catsObj||{}).filter(([c,v])=>v>0&&!skipCats.has(c)));
-  const periodLbl=document.getElementById('catPeriodLabel');
-  const lbl=document.getElementById('catTotalLabel');
-  const isMonth=Object.keys(monthCats).length>0;
-  if(periodLbl) periodLbl.textContent=isMonth?'Mês atual':'Ano atual';
-  const entries=Object.entries(useCats).sort(([,a],[,b])=>b-a);
+let _catMesBarInst=null, _catAnoBarInst=null;
+
+function _renderCatGrid(el, entries, total, showBudget=true){
   if(!entries.length){
     el.innerHTML='<div style="color:var(--muted);font-size:12px;grid-column:1/-1">Sem gastos registrados</div>';
-    if(lbl) lbl.textContent=''; return;
+    return;
   }
-  const total=entries.reduce((s,[,v])=>s+v,0);
-  if(lbl) lbl.textContent=`Total: ${brl(total)}`;
   el.innerHTML=entries.map(([cat,val])=>{
     const color=catColor(cat); const icon=CAT_ICON[cat]||'📌';
-    const budget=+(_catBudgets[cat]||0);
+    const budget=showBudget?+(_catBudgets[cat]||0):0;
     if(budget>0){
       const pctB=Math.min(120,(val/budget)*100);
       const barColor=pctB>=100?'#f43f5e':pctB>=80?'#fb923c':'#4ade80';
@@ -2381,7 +2383,7 @@ function fillCatBreakdown(catsObj){
           <span style="font-size:12px;font-weight:600;color:var(--text)">${icon} ${cat}</span>
           <span style="font-size:11px;font-weight:700;white-space:nowrap;color:${pctB>=100?'var(--red)':'var(--text)'}">${brl(val)}<span style="font-size:10px;color:var(--muted);font-weight:400"> / ${brl(budget)}</span></span>
         </div>
-        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+        <div style="height:7px;background:var(--border);border-radius:3px;overflow:hidden">
           <div style="height:100%;width:${Math.min(100,pctB)}%;background:${barColor};border-radius:3px;transition:width .5s ease"></div>
         </div>
         <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)">
@@ -2398,12 +2400,71 @@ function fillCatBreakdown(catsObj){
         <span style="font-size:12px;font-weight:600;color:var(--text)">${icon} ${cat}</span>
         <span style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap">${brl(val)} <span style="font-size:10px;color:var(--muted);font-weight:400">${pct.toFixed(1)}%</span></span>
       </div>
-      <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+      <div style="height:7px;background:var(--border);border-radius:3px;overflow:hidden">
         <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width .5s ease"></div>
       </div>
-      <div style="text-align:right;font-size:10px"><span style="color:var(--blue2);cursor:pointer" onclick="_editCatBudget('${cat.replace(/'/g,"\\'")}')">+ definir meta mensal</span></div>
+      <div style="text-align:right;font-size:10px"><span style="color:var(--blue2);cursor:pointer" onclick="_editCatBudget('${cat.replace(/'/g,"\\'")}')">+ meta mensal</span></div>
     </div>`;
   }).join('');
+}
+
+function _renderCatBar(canvasId, entries, instRef, setInst){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas||!entries.length) return;
+  const top=entries.slice(0,10);
+  const labels=top.map(([c])=>c);
+  const vals=top.map(([,v])=>v);
+  const colors=labels.map(c=>catColor(c));
+  if(instRef) instRef.destroy();
+  const inst=new Chart(canvas,{
+    type:'bar',
+    data:{labels,datasets:[{data:vals,backgroundColor:colors.map(c=>c+'bb'),borderColor:colors,borderWidth:1,borderRadius:5,borderSkipped:false}]},
+    options:{
+      indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+brl(ctx.raw)}}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#8892a8',font:{size:10},callback:v=>v>=1000?'R$'+(v/1000).toFixed(0)+'k':'R$'+v},border:{display:false}},
+        y:{grid:{display:false},ticks:{color:'#eef0f6',font:{size:11,weight:'600'}},border:{display:false}}
+      }
+    }
+  });
+  setInst(inst);
+}
+
+function fillCatBreakdown(catsObj){
+  const el=document.getElementById('catBreakdown');
+  if(!el) return;
+  const skipCats=new Set(['Investimentos','Dividendos FII','Rendimento RDB/CDB','Salário','Entrada','Comissão Imobiliária']);
+  // Mês atual
+  const now=new Date();
+  const monthStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const monthCats={};
+  (_allTxs||[]).filter(t=>t.type==='saida'&&(t.date||'').startsWith(monthStr)).forEach(t=>{
+    const c=t.category||'Outros';
+    if(!skipCats.has(c)) monthCats[c]=(monthCats[c]||0)+(+t.amount||0);
+  });
+  const entries=Object.entries(monthCats).sort(([,a],[,b])=>b-a);
+  const total=entries.reduce((s,[,v])=>s+v,0);
+  const lbl=document.getElementById('catTotalLabel');
+  if(lbl) lbl.textContent=entries.length?`Total: ${brl(total)}`:'';
+  _renderCatGrid(el, entries, total, true);
+  _renderCatBar('chartCatMesBar', entries, _catMesBarInst, inst=>{ _catMesBarInst=inst; });
+  // Ano (card separado)
+  fillCatBreakdownAno(catsObj);
+}
+
+function fillCatBreakdownAno(catsObj){
+  const el=document.getElementById('catBreakdownAno');
+  if(!el) return;
+  const skipCats=new Set(['Investimentos','Dividendos FII','Rendimento RDB/CDB','Salário','Entrada','Comissão Imobiliária']);
+  const entries=Object.entries(catsObj||{}).filter(([c,v])=>v>0&&!skipCats.has(c)).sort(([,a],[,b])=>b-a);
+  const total=entries.reduce((s,[,v])=>s+v,0);
+  const lbl=document.getElementById('catTotalAnoLabel');
+  if(lbl) lbl.textContent=entries.length?`Total: ${brl(total)}`:'';
+  const periodLbl=document.getElementById('catPeriodLabel');
+  if(periodLbl) periodLbl.textContent=new Date().getFullYear();
+  _renderCatGrid(el, entries, total, false);
+  _renderCatBar('chartCatAnoBar', entries, _catAnoBarInst, inst=>{ _catAnoBarInst=inst; });
 }
 function _editCatBudget(cat){
   const cur=_catBudgets[cat]||'';
