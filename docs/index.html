@@ -31,6 +31,10 @@
   --dur-fast:150ms;--dur-normal:250ms;--dur-slow:400ms;
   /* Ponto 3 — Alias para substituir hardcoded */
   --surface-input:#0d1218;--border-input:#1e2d45;
+  --accent-blue-bg:rgba(56,189,248,.08);
+  --accent-green-bg:rgba(34,197,94,.08);
+  --accent-red-bg:rgba(244,63,94,.08);
+  --accent-purple-bg:rgba(167,139,250,.08);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -113,6 +117,24 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,248,.45),transparent);opacity:0;transition:opacity var(--dur-normal)}
 .card:hover::before{opacity:1}
 .card:hover{border-color:var(--border2);box-shadow:0 4px 28px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.04)}
+/* ── Accent card variants (colored top border) ── */
+.card-blue{border-top:2px solid var(--blue)!important;background:linear-gradient(180deg,rgba(56,189,248,.04) 0%,var(--surface) 60%)!important}
+.card-green{border-top:2px solid var(--green)!important;background:linear-gradient(180deg,rgba(34,197,94,.04) 0%,var(--surface) 60%)!important}
+.card-red{border-top:2px solid var(--red)!important;background:linear-gradient(180deg,rgba(244,63,94,.04) 0%,var(--surface) 60%)!important}
+.card-purple{border-top:2px solid var(--purple)!important;background:linear-gradient(180deg,rgba(167,139,250,.04) 0%,var(--surface) 60%)!important}
+/* ── Section title upgrade ── */
+.section-title{font-size:11px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:8px}
+/* ── Skeleton loading ── */
+.skel{background:linear-gradient(90deg,var(--surface2) 25%,rgba(255,255,255,.05) 50%,var(--surface2) 75%);background-size:200% 100%;animation:skelAnim 1.5s infinite;border-radius:6px;color:transparent;user-select:none}
+@keyframes skelAnim{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* ── Connection badge ── */
+.conn-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;letter-spacing:.2px}
+.conn-ok{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25)}
+.conn-err{background:rgba(244,63,94,.12);color:var(--red);border:1px solid rgba(244,63,94,.25)}
+/* ── Stat mini card (usado em relatórios) ── */
+.mini-stat{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:2px}
+.mini-stat-label{font-size:10px;color:var(--muted2);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.mini-stat-val{font-size:18px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
 .kpi-label{font-size:11px;font-weight:500;color:var(--muted2);text-transform:none;letter-spacing:0;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .kpi-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
 .kpi-value{font-size:26px;font-weight:800;letter-spacing:-1.2px;line-height:1;font-variant-numeric:tabular-nums}
@@ -347,15 +369,6 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .inv-cf-item-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
 .kpi-saldo-upcoming{font-size:10px;color:var(--muted2);margin-top:4px;display:flex;align-items:center;gap:5px}
 
-/* ── Banner de Vencimentos ───────────────────────────────── */
-#notifBanner{position:sticky;top:60px;z-index:190;display:none;flex-direction:column;gap:0;border-bottom:1px solid rgba(251,191,36,.2)}
-.notif-item{display:flex;align-items:center;gap:12px;padding:9px 28px;font-size:12px;font-weight:500;animation:slideDown .2s ease}
-.notif-urgent{background:rgba(244,63,94,.1);border-bottom:1px solid rgba(244,63,94,.1)}
-.notif-warn{background:rgba(251,191,36,.08);border-bottom:1px solid rgba(251,191,36,.08)}
-.notif-ok{background:rgba(34,197,94,.07);border-bottom:1px solid rgba(34,197,94,.07)}
-.notif-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.notif-close{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 4px;line-height:1;flex-shrink:0}
-@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 
 /* ── Toast ────────────────────────────────────────────────── */
 #toastWrap{position:fixed;bottom:80px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
@@ -511,8 +524,6 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   </div>
 </header>
 
-<!-- Notification Banner -->
-<div id="notifBanner"></div>
 
 <!-- Modal Todas as Transações -->
 <div class="modal-overlay" id="txModalOverlay" onclick="if(event.target===this)closeTxModal()" style="z-index:8500">
@@ -779,10 +790,10 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   </div>
   <div class="section">
     <div class="grid g4" id="kpiGrid">
-      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(99,102,241,.15)">🏦</span>Saldo em Conta</div><div class="kpi-value" id="kpiSaldo">—</div><div class="kpi-sub" id="kpiSaldoSub">Nubank + Bradesco</div><div class="kpi-saldo-upcoming" id="kpiUpcoming" style="display:none"><span id="kpiUpcomingTxt"></span></div><div id="kpiProjetado" style="display:none;margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,.06);font-size:11px;color:var(--muted)">Fim do mês: <span id="kpiProjetadoVal" style="font-weight:700"></span></div></div>
-      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Entradas</div><div class="kpi-value amt-green" id="kpiEntradas">—</div><div class="kpi-sub">mês atual</div></div>
-      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(239,68,68,.15)">📤</span>Saídas</div><div class="kpi-value amt-red" id="kpiSaidas">—</div><div class="progress" id="kpiSaidasProg" style="display:none;margin:6px 0 2px"><div class="progress-fill" id="kpiSaidasBar" style="width:0%"></div></div><div class="kpi-sub" id="kpiSaidasSub">mês atual</div></div>
-      <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(139,92,246,.15)">📈</span>Investido</div><div class="kpi-value amt-purple" id="kpiInvestido">—</div><div class="kpi-sub">mês atual</div></div>
+      <div class="card card-blue"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(99,102,241,.15)">🏦</span>Saldo em Conta</div><div class="kpi-value" id="kpiSaldo">—</div><div class="kpi-sub" id="kpiSaldoSub">Nubank + Bradesco</div><div class="kpi-saldo-upcoming" id="kpiUpcoming" style="display:none"><span id="kpiUpcomingTxt"></span></div><div id="kpiProjetado" style="display:none;margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,.06);font-size:11px;color:var(--muted)">Fim do mês: <span id="kpiProjetadoVal" style="font-weight:700"></span></div></div>
+      <div class="card card-green"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Entradas</div><div class="kpi-value amt-green" id="kpiEntradas">—</div><div class="kpi-sub">mês atual</div></div>
+      <div class="card card-red"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(239,68,68,.15)">📤</span>Saídas</div><div class="kpi-value amt-red" id="kpiSaidas">—</div><div class="progress" id="kpiSaidasProg" style="display:none;margin:6px 0 2px"><div class="progress-fill" id="kpiSaidasBar" style="width:0%"></div></div><div class="kpi-sub" id="kpiSaidasSub">mês atual</div></div>
+      <div class="card card-purple"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(139,92,246,.15)">📈</span>Investido</div><div class="kpi-value amt-purple" id="kpiInvestido">—</div><div class="kpi-sub">mês atual</div></div>
     </div>
   </div>
 
@@ -2095,106 +2106,27 @@ function showApp(){
     const el = document.getElementById(id);
     if(el){ el.addEventListener('input',updatePreview); el.addEventListener('change',updatePreview); }
   });
-  _requestNotifPermission();
 }
 
-// ══ NOTIFICAÇÕES DE VENCIMENTO ══════════════════════════════════════════════
-function _requestNotifPermission(){
-  if('Notification' in window && Notification.permission==='default'){
-    setTimeout(()=>Notification.requestPermission(), 3000);
-  }
-}
-
-function _sendBrowserNotif(title, body){
-  if('Notification' in window && Notification.permission==='granted'){
-    new Notification(title, {body, icon:'/sistema-financeiro/icon-192.png'});
-  }
-}
-
-function _checkVencimentos(fc, subs, insts){
-  const today = new Date(); today.setHours(0,0,0,0);
-  const items = [];
-
-  // Custos fixos — due_day no mês atual
-  (fc||[]).forEach(r=>{
-    if(!r.due_day) return;
-    const due = new Date(today.getFullYear(), today.getMonth(), r.due_day);
-    const diff = Math.round((due - today) / 86400000);
-    if(diff >= 0 && diff <= 3){
-      items.push({label: r.name||r.description||'Custo fixo', value: r.amount, diff, type: diff===0?'urgent':(diff<=1?'warn':'ok')});
-    }
-  });
-
-  // Assinaturas — billing_day
-  (subs||[]).forEach(r=>{
-    if(!r.billing_day) return;
-    const due = new Date(today.getFullYear(), today.getMonth(), r.billing_day);
-    const diff = Math.round((due - today) / 86400000);
-    if(diff >= 0 && diff <= 3){
-      items.push({label: r.name||'Assinatura', value: r.amount, diff, type: diff===0?'urgent':(diff<=1?'warn':'ok')});
-    }
-  });
-
-  // Parcelas — data de vencimento da parcela atual
-  (insts||[]).forEach(r=>{
-    if(!r.due_date) return;
-    const due = new Date(r.due_date+'T00:00:00');
-    const diff = Math.round((due - today) / 86400000);
-    if(diff >= 0 && diff <= 3){
-      items.push({label: r.description||'Parcela', value: r.installment_amount||r.total_amount, diff, type: diff===0?'urgent':(diff<=1?'warn':'ok')});
-    }
-  });
-
-  _showNotifBanner(items);
-
-  // Browser notification para itens urgentes (hoje ou amanhã)
-  const urgent = items.filter(i=>i.type==='urgent'||i.type==='warn');
-  if(urgent.length > 0 && Notification.permission==='granted'){
-    const fmtV = v=>v!=null?'R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2}):'';
-    if(urgent.length === 1){
-      const u = urgent[0];
-      _sendBrowserNotif(
-        u.diff===0?'⚠️ Vence hoje: '+u.label:'📅 Vence amanhã: '+u.label,
-        fmtV(u.value)
-      );
-    } else {
-      _sendBrowserNotif('💸 '+urgent.length+' contas vencem em breve', urgent.map(u=>u.label).join(', '));
-    }
-  }
-}
-
-function _showNotifBanner(items){
-  const banner = document.getElementById('notifBanner');
-  if(!banner) return;
-  if(!items || items.length===0){ banner.style.display='none'; banner.innerHTML=''; return; }
-
-  const fmtV = v=>v!=null?'R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2}):'';
-  const diffLabel = d=>d===0?'Hoje':d===1?'Amanhã':'Em '+d+' dias';
-
-  banner.style.display='flex';
-  banner.innerHTML = items.map((it,i)=>`
-    <div class="notif-item notif-${it.type}">
-      <span class="notif-dot" style="background:${it.type==='urgent'?'var(--red)':it.type==='warn'?'var(--yellow)':'var(--green)'}"></span>
-      <span style="color:var(--muted2)">${diffLabel(it.diff)}</span>
-      <span style="color:var(--text);font-weight:600">${it.label}</span>
-      ${it.value?`<span style="color:var(--red);font-weight:700;font-variant-numeric:tabular-nums">${fmtV(it.value)}</span>`:''}
-      <button class="notif-close" onclick="this.closest('.notif-item').remove();const b=document.getElementById('notifBanner');if(!b.children.length)b.style.display='none'">✕</button>
-    </div>`).join('');
-}
 
 // ══ SUPABASE API ══════════════════════════════════════════════════════════════
-async function sbGet(table, params={}){
+async function sbGet(table, params={}, _retry=2){
   const url = new URL(REST+'/'+table);
   Object.entries(params).forEach(([k,v])=>url.searchParams.append(k,v));
-  const r = await fetch(url, {headers: HDR});
-  if(!r.ok) throw new Error(await r.text());
-  return r.json();
+  try{
+    const r = await fetch(url, {headers: HDR, signal: AbortSignal.timeout(12000)});
+    if(!r.ok) throw new Error(await r.text());
+    return r.json();
+  }catch(e){
+    if(_retry>0 && !(e instanceof DOMException)) return sbGet(table, params, _retry-1);
+    throw e;
+  }
 }
 
 async function sbPost(table, data, returning=false){
   const h = {...HDR};
   if(returning) h['Prefer'] = 'return=representation';
-  const r = await fetch(REST+'/'+table, {method:'POST', headers:h, body:JSON.stringify(data)});
+  const r = await fetch(REST+'/'+table, {method:'POST', headers:h, body:JSON.stringify(data), signal: AbortSignal.timeout(12000)});
   if(!r.ok) throw new Error(await r.text());
   return returning ? r.json() : null;
 }
@@ -3250,7 +3182,12 @@ setInterval(()=>{
   if(document.visibilityState!=='hidden'&&!idle) refreshDashboard();
 },3*60*1000);
 
-async function refreshDashboard(){
+let _refreshTimer=null;
+function refreshDashboard(immediate=false){
+  if(_refreshTimer) clearTimeout(_refreshTimer);
+  _refreshTimer=setTimeout(()=>_doRefresh(), immediate?0:200);
+}
+async function _doRefresh(){
   _setRefreshLoading(true);
   Object.keys(_relCache).forEach(k=>delete _relCache[k]);
   try{
@@ -3286,7 +3223,6 @@ async function refreshDashboard(){
     fillSubscriptions(subs||[]);
     fillInstallments(insts||[]);
     _updateTitleAlerts(fc, insts);
-    _checkVencimentos(fc||[], subs||[], insts||[]);
     loadPlanned(plannedRows||[]);
     fillAnoTab(monthly, catsObj);
     _prevRows = plannedRows||[];
