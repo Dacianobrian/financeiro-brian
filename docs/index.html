@@ -866,13 +866,17 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   <!-- 📊 Relatório Mensal -->
   <div class="section">
     <div class="card">
-      <div class="section-header" style="margin-bottom:14px">
-        <div class="section-title">📊 Relatório Mensal — <span id="relMesLabel" style="color:var(--muted2);font-weight:600">...</span></div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <button onclick="relMesNav(-1)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;">← Mês anterior</button>
-          <button onclick="relMesNav(0)" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;">Hoje</button>
-          <button onclick="relMesNav(1)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;">Próximo mês →</button>
+      <div style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="section-title">📊 Relatório Mensal — <span id="relMesLabel" style="color:var(--blue2);font-weight:700;text-transform:none;letter-spacing:0">...</span></div>
+          <div style="display:flex;gap:5px;align-items:center">
+            <select id="relMesYear" onchange="relMesJumpYear(+this.value)" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:12px;padding:5px 10px;outline:none;cursor:pointer;font-family:var(--font)"></select>
+            <button onclick="relMesNav(-1)" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted2);border-radius:8px;padding:5px 11px;font-size:15px;cursor:pointer;line-height:1;font-weight:300">‹</button>
+            <button onclick="relMesNav(0)" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">Hoje</button>
+            <button onclick="relMesNav(1)" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted2);border-radius:8px;padding:5px 11px;font-size:15px;cursor:pointer;line-height:1;font-weight:300">›</button>
+          </div>
         </div>
+        <div id="relMesPills" style="display:flex;gap:5px;flex-wrap:wrap"></div>
       </div>
       <!-- KPIs linha 1: 5 indicadores -->
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px" id="relMesKpis">
@@ -3269,6 +3273,59 @@ function relMesNav(delta){
   fillRelatorioMes();
 }
 
+function relMesJump(year, month){ // month: 0-11
+  const hoje=new Date();
+  _relMesOffset=(year-hoje.getFullYear())*12+(month-hoje.getMonth());
+  fillRelatorioMes();
+}
+
+function relMesJumpYear(year){
+  const hoje=new Date();
+  const alvo=new Date(hoje.getFullYear(), hoje.getMonth()+_relMesOffset, 1);
+  _relMesOffset=(year-hoje.getFullYear())*12+(alvo.getMonth()-hoje.getMonth());
+  fillRelatorioMes();
+}
+
+function _updateRelMesPills(){
+  const hoje=new Date();
+  const alvo=new Date(hoje.getFullYear(), hoje.getMonth()+_relMesOffset, 1);
+  const curYear=alvo.getFullYear();
+  const curMonth=alvo.getMonth();
+  const nomes=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  // Year select
+  const yrSel=document.getElementById('relMesYear');
+  if(yrSel){
+    const minY=Math.min(2024, hoje.getFullYear()-1);
+    const maxY=hoje.getFullYear()+1;
+    yrSel.innerHTML='';
+    for(let y=maxY;y>=minY;y--){
+      const o=document.createElement('option');
+      o.value=y; o.textContent=y;
+      if(y===curYear) o.selected=true;
+      yrSel.appendChild(o);
+    }
+  }
+
+  // Month pills
+  const pills=document.getElementById('relMesPills');
+  if(!pills) return;
+  pills.innerHTML=nomes.map((m,i)=>{
+    const isMesAtual=(i===curMonth);
+    const isFuturo=new Date(curYear,i,1)>hoje;
+    let bg,color,border,fw,cursor,opacity;
+    if(isMesAtual){
+      bg='linear-gradient(135deg,#0284c7,#2dd4bf)';color='#fff';border='transparent';fw='700';cursor='default';opacity='1';
+    } else if(isFuturo){
+      bg='transparent';color='var(--muted)';border='var(--border)';fw='500';cursor='default';opacity='.4';
+    } else {
+      bg='var(--surface2)';color='var(--muted2)';border='var(--border2)';fw='600';cursor='pointer';opacity='1';
+    }
+    const click=isFuturo||isMesAtual?'':`onclick="relMesJump(${curYear},${i})"`;
+    return `<button ${click} style="background:${bg};color:${color};border:1px solid ${border};border-radius:20px;padding:5px 13px;font-size:11px;font-weight:${fw};cursor:${cursor};opacity:${opacity};transition:.15s;font-family:var(--font);outline:none">${m}</button>`;
+  }).join('');
+}
+
 let _relMesChartInst=null;
 
 async function fillRelatorioMes(){
@@ -3282,6 +3339,7 @@ async function fillRelatorioMes(){
   const ultDia=d=>new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
 
   document.getElementById('relMesLabel').textContent=fmtMY(alvo);
+  _updateRelMesPills();
 
   // Gera últimos 4 meses incluindo o alvo
   const blocos=[];

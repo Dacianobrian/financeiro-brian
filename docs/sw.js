@@ -1,5 +1,5 @@
 // Service Worker — Financeiro Brian
-const CACHE = 'fin-v7';
+const CACHE = 'fin-v8';
 const STATIC = [
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js',
   'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js',
