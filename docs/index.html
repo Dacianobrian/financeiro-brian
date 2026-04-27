@@ -1787,11 +1787,11 @@ function _renderProjecao(dias){
 
   // ── Coleta itens ───────────────────────────────────────────────────────────
   const items=[];
-  const _addMonthly=(label,amt,billingDay,source,category)=>{
+  const _addMonthly=(label,amt,billingDay,source,category,itemId,itemAccount,ptype)=>{
     let d=new Date(today.getFullYear(),today.getMonth(),+billingDay);
     if(d<today) d=new Date(today.getFullYear(),today.getMonth()+1,+billingDay);
     while(d<=limit){
-      items.push({label,amt,date:new Date(d),source,category});
+      items.push({label,amt,date:new Date(d),source,category,itemId,itemAccount,ptype:ptype||'saida'});
       d=new Date(d.getFullYear(),d.getMonth()+1,+billingDay);
     }
   };
@@ -1802,24 +1802,28 @@ function _renderProjecao(dias){
 
   (fixedCosts||[]).forEach(c=>{
     if(!c.amount||!c.due_day) return;
-    _addMonthly(c.description,-(+c.amount),c.due_day,'fix',c.category);
+    const acc=c.account||'corrente bradesco';
+    _addMonthly(c.description,-(+c.amount),c.due_day,'fix',c.category,c.id,acc,'saida');
   });
   (subs||[]).forEach(s=>{
     if(!s.amount||!s.billing_day) return;
-    _addMonthly(`${s.emoji||''}${s.name}`,-(+s.amount),s.billing_day,'sub',s.category);
+    const acc=s.card||'corrente nubank';
+    _addMonthly(`${s.emoji||''}${s.name}`,-(+s.amount),s.billing_day,'sub',s.category,s.id,acc,'saida');
   });
   (insts||[]).forEach(i=>{
     if(!i.installment_amount) return;
-    _addMonthly(i.description,-(+i.installment_amount),_getDueDay(i.card||''),'inst',i.category);
+    const acc=i.card||'cartão bradesco';
+    _addMonthly(i.description,-(+i.installment_amount),_getDueDay(i.card||''),'inst',i.category,i.id,acc,'saida');
   });
   (planned||[]).forEach(p=>{
     if(!p.amount||p.confirmed) return;
     const sign=p.type==='entrada'?+(+p.amount):-(+p.amount);
+    const acc=p.account||'corrente nubank';
     if(p.recorrente&&p.recorrencia_dia){
-      _addMonthly(p.description,sign,p.recorrencia_dia,'planned',p.category);
+      _addMonthly(p.description,sign,p.recorrencia_dia,'planned',p.category,p.id,acc,p.type);
     } else if(p.due_date){
       const d=new Date(p.due_date+'T00:00:00');
-      if(d>=today&&d<=limit) items.push({label:p.description,amt:sign,date:d,source:'planned',category:p.category,recorrente:p.recorrente,pid:p.id,ptype:p.type,paccount:p.account||'corrente nubank'});
+      if(d>=today&&d<=limit) items.push({label:p.description,amt:sign,date:d,source:'planned',category:p.category,recorrente:p.recorrente,itemId:p.id,itemAccount:acc,ptype:p.type,pid:p.id,paccount:acc});
     }
   });
 
@@ -1890,7 +1894,27 @@ function _renderProjecao(dias){
     // data para novos lançamentos = hoje (sem 0) ou início da semana
     const dateStr=wi===0?today.toISOString().slice(0,10):w.wStart.toISOString().slice(0,10);
 
-    const itemRows=w.wItems.map(i=>{
+    const _accLabel=acc=>{
+      if(!acc) return '';
+      const a=acc.toLowerCase();
+      if(a.includes('nubank')&&a.includes('caixinha')) return '🐷 Caixinha';
+      if(a.includes('nubank')) return '💜 Nubank';
+      if(a.includes('bradesco')&&a.includes('cart')) return '❤️ Cartão Bra.';
+      if(a.includes('bradesco')) return '❤️ Bradesco';
+      if(a.includes('pix')) return '⚡ Pix';
+      return '🏦 '+acc.split(' ').slice(-1)[0];
+    };
+    const _accOpts=(sel='')=>[
+      ['corrente nubank','💜 Nubank Conta Corrente'],
+      ['caixinha nubank','🐷 Caixinha Nubank'],
+      ['corrente bradesco','❤️ Bradesco Conta Corrente'],
+      ['cartão bradesco','❤️ Cartão Bradesco'],
+      ['pix','⚡ Pix / Transferência'],
+      ['dinheiro','💵 Dinheiro'],
+    ].map(([v,l])=>`<option value="${v}" ${sel===v?'selected':''}>${l}</option>`).join('');
+
+    const itemRows=w.wItems.map((i,idx)=>{
+      const uid=`${wi}-${idx}`;
       const col=_srcColor[i.source]||'var(--muted2)';
       const valCol=i.amt>=0?'var(--green)':'var(--red)';
       const sign=i.amt>=0?'+':'';
@@ -1898,23 +1922,35 @@ function _renderProjecao(dias){
       const dsem=diasSemCur[i.date.getDay()];
       const isToday=i.date.getTime()===today.getTime();
       const dateIso=i.date.toISOString().slice(0,10);
-      const isPlanned=i.source==='planned'&&i.pid;
-      const eid=isPlanned?`pe-${i.pid}`:``;
-      const editBtn=isPlanned?`<button onclick="_pwcToggleEdit('${i.pid}')" title="Editar" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--muted2);padding:0 3px;line-height:1;opacity:.6;transition:.15s" onmouseover="this.style.opacity=1;this.style.color='var(--blue2)'" onmouseout="this.style.opacity=.6;this.style.color='var(--muted2)'">✏️</button>`:'';
-      const confirmBtn=isPlanned?`<button onclick="_pwcConfirm(${i.pid},'${i.ptype}','${(i.paccount||'').replace(/'/g,"\\'")}','${dateIso}',${Math.abs(i.amt)},'${(i.label||'').replace(/'/g,"\\'")}','${i.category||'Outros'}')" title="Confirmar — registra como transação" style="width:20px;height:20px;border-radius:50%;border:2px solid rgba(34,197,94,.4);background:rgba(34,197,94,.08);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--green);transition:.15s;flex-shrink:0" onmouseover="this.style.background='rgba(34,197,94,.25)';this.style.borderColor='var(--green)'" onmouseout="this.style.background='rgba(34,197,94,.08)';this.style.borderColor='rgba(34,197,94,.4)'">✓</button>`:'';
-      const editRow=isPlanned?`<div id="pwci-edit-${i.pid}" style="display:none;padding:6px 12px 8px;gap:6px;background:rgba(56,189,248,.04);border-top:1px solid var(--border);flex-wrap:wrap;align-items:center">
-        <input type="number" id="pwci-val-${i.pid}" value="${Math.abs(i.amt)}" step="0.01" min="0" style="width:110px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:5px 8px;outline:none;font-family:var(--font)"/>
-        <input type="date" id="pwci-date-${i.pid}" value="${dateIso}" style="background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:5px 8px;outline:none;font-family:var(--font)"/>
-        <button onclick="_pwcSaveEdit(${i.pid},'${i.ptype}')" style="background:linear-gradient(135deg,#0284c7,#2dd4bf);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">✓ Salvar</button>
-        <button onclick="_pwcToggleEdit('${i.pid}')" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted2);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer">✕</button>
-      </div>`:'';
-      return `<div style="display:flex;flex-direction:column">
-        <div class="pwc-item">
+      const acc=i.itemAccount||i.paccount||'';
+      const accLbl=_accLabel(acc);
+      const isPlannedDB=i.source==='planned'&&i.itemId;
+      const safeLabel=(i.label||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      const safeCat=(i.category||'Outros').replace(/'/g,"\\'");
+      const safeAcc=acc.replace(/'/g,"\\'");
+
+      const editRow=`<div id="pwci-edit-${uid}" style="display:none;padding:8px 12px 10px;gap:6px;background:rgba(56,189,248,.04);border-top:1px solid var(--border);flex-wrap:wrap;align-items:center">
+        <div style="width:100%;font-size:10px;color:var(--muted2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">✏️ Editar lançamento</div>
+        <input type="number" id="pwci-val-${uid}" value="${Math.abs(i.amt).toFixed(2)}" step="0.01" min="0" placeholder="Valor R$" style="width:110px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;outline:none;font-family:var(--font)"/>
+        <input type="date" id="pwci-date-${uid}" value="${dateIso}" style="background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;outline:none;font-family:var(--font)"/>
+        <select id="pwci-acc-${uid}" style="background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:11px;padding:6px 8px;outline:none;font-family:var(--font)">${_accOpts(acc)}</select>
+        <button onclick="_pwcSaveAndConfirm('${uid}','${i.source}',${i.itemId||'null'},'${safeLabel}','${safeCat}','${i.ptype||'saida'}')" style="background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">✓ Confirmar e Registrar</button>
+        ${isPlannedDB?`<button onclick="_pwcSaveOnly('${uid}',${i.itemId})" style="background:linear-gradient(135deg,#0284c7,#2dd4bf);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">💾 Só atualizar</button>`:''}
+        <button onclick="_pwcToggleEdit('${uid}')" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted2);border-radius:6px;padding:6px 10px;font-size:11px;cursor:pointer">✕</button>
+      </div>`;
+
+      return `<div style="display:flex;flex-direction:column;border-bottom:1px solid rgba(255,255,255,.03)">
+        <div class="pwc-item" style="border-bottom:none">
           <span class="pwc-day" style="${isToday?'background:rgba(56,189,248,.15);border-color:rgba(56,189,248,.4);color:var(--blue2)':''}" title="${dsem}">${day}</span>
           <span class="pwc-dot" style="background:${col}"></span>
-          <span class="pwc-name">${i.label.length>22?i.label.slice(0,22)+'…':i.label}<small style="color:${col}">${dsem} · ${_srcLabel[i.source]||''}</small></span>
+          <span class="pwc-name" style="min-width:0">
+            ${i.label.length>20?i.label.slice(0,20)+'…':i.label}
+            <small style="color:${col}">${dsem} · ${_srcLabel[i.source]||''}</small>
+            ${accLbl?`<small style="color:var(--muted2);display:block;margin-top:1px;font-size:9px">${accLbl}</small>`:''}
+          </span>
           <span class="pwc-val" style="color:${valCol}">${sign}${brl(Math.abs(i.amt))}</span>
-          ${editBtn}${confirmBtn}
+          <button onclick="_pwcToggleEdit('${uid}')" title="Editar" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0 3px;opacity:.5;transition:.15s;flex-shrink:0" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.5">✏️</button>
+          <button onclick="_pwcToggleEdit('${uid}')" title="Confirmar pagamento" style="width:22px;height:22px;border-radius:50%;border:2px solid rgba(34,197,94,.35);background:rgba(34,197,94,.07);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--green);transition:.15s;flex-shrink:0;line-height:1" onmouseover="this.style.background='rgba(34,197,94,.22)';this.style.borderColor='var(--green)'" onmouseout="this.style.background='rgba(34,197,94,.07)';this.style.borderColor='rgba(34,197,94,.35)'">✓</button>
         </div>
         ${editRow}
       </div>`;
@@ -1961,51 +1997,59 @@ function _renderProjecao(dias){
 const _renderFluxo=(dias)=>_renderProjecao(dias);
 
 // ── Adição global de previsão ────────────────────────────────────────────────
-// ── Edição inline de item planned na projeção ───────────────────────────────
-function _pwcToggleEdit(pid){
-  const el=document.getElementById(`pwci-edit-${pid}`);
+// ── Edição inline de itens na Projeção de Caixa ─────────────────────────────
+function _pwcToggleEdit(uid){
+  const el=document.getElementById(`pwci-edit-${uid}`);
   if(!el) return;
   const open=el.style.display==='flex';
   el.style.display=open?'none':'flex';
 }
 
-async function _pwcSaveEdit(pid, ptype){
-  const valEl=document.getElementById(`pwci-val-${pid}`);
-  const dateEl=document.getElementById(`pwci-date-${pid}`);
+// Salva edição + registra transação (para qualquer fonte)
+async function _pwcSaveAndConfirm(uid, source, itemId, label, category, ptype){
+  const valEl=document.getElementById(`pwci-val-${uid}`);
+  const dateEl=document.getElementById(`pwci-date-${uid}`);
+  const accEl=document.getElementById(`pwci-acc-${uid}`);
+  if(!valEl||!dateEl||!accEl){ toast('Erro: campos não encontrados','err'); return; }
+  const newVal=parseFloat(valEl.value);
+  const newDate=dateEl.value;
+  const newAcc=accEl.value;
+  if(isNaN(newVal)||newVal<=0||!newDate){ toast('Valor ou data inválidos','err'); return; }
+  const hoje=new Date().toISOString().slice(0,10);
+  const tipo=ptype||'saida';
+  try{
+    // Para planned_entries: marca como confirmado
+    if(source==='planned'&&itemId){
+      await sbPatch('planned_entries',{id:`eq.${itemId}`},{confirmed:true,amount:newVal,due_date:newDate});
+    }
+    // Cria a transação real para todos os tipos
+    await sbPost('transactions',{
+      date: newDate<=hoje ? newDate : hoje,
+      type: tipo,
+      amount: newVal,
+      description: label,
+      account: newAcc,
+      category: category||'Outros'
+    });
+    toast(`✓ "${label}" registrado!`,'ok');
+    await refreshDashboard();
+  }catch(e){ toast('Erro: '+e.message,'err'); }
+}
+
+// Só atualiza planned_entry (sem criar transação) — botão "Só atualizar"
+async function _pwcSaveOnly(uid, pid){
+  const valEl=document.getElementById(`pwci-val-${uid}`);
+  const dateEl=document.getElementById(`pwci-date-${uid}`);
   if(!valEl||!dateEl) return;
   const newVal=parseFloat(valEl.value);
   const newDate=dateEl.value;
   if(isNaN(newVal)||newVal<=0||!newDate){ toast('Valor ou data inválidos','err'); return; }
   try{
-    await sbPatch('planned_entries',{id:`eq.${pid}`},{amount:newVal, due_date:newDate});
+    await sbPatch('planned_entries',{id:`eq.${pid}`},{amount:newVal,due_date:newDate});
     toast('✓ Previsão atualizada','ok');
-    _pwcToggleEdit(pid);
+    _pwcToggleEdit(uid);
     await refreshDashboard();
-  }catch(e){ toast('Erro ao salvar: '+e.message,'err'); }
-}
-
-async function _pwcConfirm(pid, ptype, paccount, dateIso, amt, label, category){
-  const hoje=new Date().toISOString().slice(0,10);
-  const confirmed=await _confirm(
-    `✅ Confirmar ${ptype==='entrada'?'recebimento':'pagamento'}`,
-    `Registrar "${label}" de ${brl(amt)} como transação real?`
-  );
-  if(!confirmed) return;
-  try{
-    // Marca como confirmado no planned_entries
-    await sbPatch('planned_entries',{id:`eq.${pid}`},{confirmed:true});
-    // Cria a transação real
-    await sbPost('transactions',{
-      date: dateIso<=hoje ? dateIso : hoje,
-      type: ptype,
-      amount: amt,
-      description: label,
-      account: paccount||'corrente nubank',
-      category: category||'Outros'
-    });
-    toast(`✓ "${label}" confirmado e registrado!`,'ok');
-    await refreshDashboard();
-  }catch(e){ toast('Erro ao confirmar: '+e.message,'err'); }
+  }catch(e){ toast('Erro: '+e.message,'err'); }
 }
 
 async function _projAdd(type){
