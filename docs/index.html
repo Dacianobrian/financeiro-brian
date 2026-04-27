@@ -328,6 +328,27 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .proj-cumul{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface2);border-top:1px solid var(--border);margin-top:10px;border-radius:0 0 12px 12px}
 .proj-cumul-label{font-size:11px;color:var(--muted2);font-weight:500}
 .proj-cumul-val{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+/* ── Opção B: Tabs por semana ────────────────────────────────────────────── */
+.proj-tab{flex-shrink:0;padding:10px 16px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap;font-family:var(--font)}
+.proj-tab:hover{color:var(--text);background:rgba(255,255,255,.02)}
+.proj-tab.active{color:#38bdf8;border-bottom-color:#38bdf8;background:rgba(56,189,248,.04)}
+.proj-tab-badge{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1px 6px;font-size:9px;margin-left:5px;color:var(--muted2);font-weight:500;vertical-align:middle}
+.proj-tab.active .proj-tab-badge{background:rgba(56,189,248,.15);border-color:rgba(56,189,248,.3);color:#38bdf8}
+/* ── Item lista (Opção B) ────────────────────────────────────────────────── */
+.pli{display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.03);transition:.1s}
+.pli:last-child{border-bottom:none}
+.pli:hover{background:rgba(255,255,255,.025)}
+.pli:hover .pli-btns{opacity:1}
+.pli-date{font-size:11px;color:var(--muted);width:28px;flex-shrink:0;text-align:center;line-height:1.3}
+.pli-date strong{display:block;font-size:15px;font-weight:800;color:var(--text);line-height:1.1}
+.pli-bar{width:3px;height:36px;border-radius:2px;flex-shrink:0}
+.pli-info{flex:1;min-width:0}
+.pli-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pli-meta{font-size:10.5px;color:var(--muted);margin-top:2px}
+.pli-val{font-size:14px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums;flex-shrink:0}
+.pli-btns{display:flex;align-items:center;gap:3px;opacity:0;transition:.15s;flex-shrink:0}
+.pli-btns button{background:none;border:none;cursor:pointer;font-size:12px;color:var(--muted2);padding:2px 4px;line-height:1}
+.pli-btns .pli-ok{width:22px;height:22px;border-radius:50%;border:2px solid rgba(34,197,94,.35);background:rgba(34,197,94,.07);color:var(--green);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
 /* ── Previsões unificadas (dentro do card projeção) ──────────────────────── */
 .prev-section{border-top:2px solid var(--border);margin-top:14px;padding-top:14px}
 .prev-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -809,37 +830,35 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     </div>
   </div>
 
-  <!-- Projeção de Caixa — movida para logo após os KPIs principais -->
+  <!-- Projeção de Caixa -->
   <div class="section" style="margin-top:14px">
-    <div class="card" style="padding:18px 20px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <div style="display:flex;align-items:center;gap:8px">
+    <div class="card" style="padding:0;overflow:hidden">
+      <!-- Top bar -->
+      <div style="padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
           <span style="font-size:14px;font-weight:700;color:var(--text)">📆 Projeção de Caixa</span>
           <span style="font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:var(--blue2);font-weight:600">FUTURO</span>
         </div>
-        <div style="display:flex;gap:6px">
+        <div id="fluxoGrid" style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;flex-wrap:wrap;flex:1;justify-content:center;color:var(--muted)">Carregando...</div>
+        <div style="display:flex;gap:5px;flex-shrink:0">
           <button onclick="_fillFluxo(30)" id="fluxoBtn30" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid rgba(56,189,248,.3);background:linear-gradient(135deg,#0284c7,#2dd4bf);color:#fff;cursor:pointer;font-weight:600">30d</button>
           <button onclick="_fillFluxo(60)" id="fluxoBtn60" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);cursor:pointer">60d</button>
           <button onclick="_fillFluxo(90)" id="fluxoBtn90" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);cursor:pointer">90d</button>
         </div>
       </div>
-      <!-- Resumo -->
-      <div id="fluxoGrid" class="proj-summary">
-        <div style="color:var(--muted);font-size:12px;grid-column:1/-1">Carregando...</div>
-      </div>
-      <!-- Timeline em colunas -->
-      <div id="projTimeline" class="proj-timeline"></div>
-
-      <!-- Barra de adição global -->
-      <div class="proj-add-bar" style="margin-top:12px">
+      <!-- Abas por semana -->
+      <div id="projWeekTabs" style="display:flex;overflow-x:auto;border-bottom:1px solid var(--border);scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
+      <!-- Conteúdo da semana ativa -->
+      <div id="projTimeline"></div>
+      <!-- Barra de adição -->
+      <div class="proj-add-bar" style="margin-top:0;border-top:1px solid var(--border);border-radius:0;border-left:none;border-right:none;border-bottom:none">
         <input id="projAddDesc" type="text"  class="proj-add-input" placeholder="Descrição..." autocomplete="off" style="flex:2;min-width:120px"/>
         <input id="projAddVal"  type="text"  class="proj-add-input" placeholder="R$ 0,00" inputmode="decimal" style="flex:1;min-width:90px"/>
         <input id="projAddDate" type="date"  class="proj-add-input" style="flex:1;min-width:130px"/>
         <button onclick="_projAdd('entrada')" class="proj-add-btn-in">＋ Receita</button>
         <button onclick="_projAdd('saida')"   class="proj-add-btn-out">＋ Despesa</button>
       </div>
-
-      <!-- Saldo projetado no final -->
+      <!-- Saldo projetado -->
       <div id="projSaldoLine" style="display:none" class="proj-cumul">
         <span class="proj-cumul-label">Impacto no saldo em <span id="projSaldoData"></span></span>
         <span id="projSaldoVal" class="proj-cumul-val"></span>
@@ -1738,6 +1757,7 @@ function _txModalNext(){ _txModalPage++; loadTxModal(true); }
 // ══ PROJEÇÃO DE CAIXA FUTURO ═══════════════════════════════════════════════════
 let _fluxoDias=30;
 let _fluxoData=null;
+let _projActiveTab=0;
 
 function _fillFluxo(dias){
   _fluxoDias=dias;
@@ -1813,23 +1833,15 @@ function _renderProjecao(dias){
   const saldoImpacto=totalEntradas-totalSaidas;
   const totalEvt=itemsComData.length;
 
-  // ── Summary cards ─────────────────────────────────────────────────────────
+  // ── Summary compacto (linha única) ────────────────────────────────────────
   grid.innerHTML=`
-    <div class="proj-sumcard" style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.18)">
-      <div class="proj-sumcard-label">RECEITAS PREVISTAS</div>
-      <div class="proj-sumcard-val" style="color:var(--green)">+${brl(totalEntradas)}</div>
-      <div class="proj-sumcard-sub">${itemsComData.filter(i=>i.amt>0).length} evento(s)</div>
-    </div>
-    <div class="proj-sumcard" style="background:rgba(244,63,94,.07);border:1px solid rgba(244,63,94,.18)">
-      <div class="proj-sumcard-label">DESPESAS PREVISTAS</div>
-      <div class="proj-sumcard-val" style="color:var(--red)">-${brl(totalSaidas)}</div>
-      <div class="proj-sumcard-sub">${itemsComData.filter(i=>i.amt<0).length} evento(s)</div>
-    </div>
-    <div class="proj-sumcard" style="background:${saldoImpacto>=0?'rgba(34,197,94,.07)':'rgba(244,63,94,.07)'};border:1px solid ${saldoImpacto>=0?'rgba(34,197,94,.18)':'rgba(244,63,94,.18)'}">
-      <div class="proj-sumcard-label">IMPACTO NO SALDO</div>
-      <div class="proj-sumcard-val" style="color:${saldoImpacto>=0?'var(--green)':'var(--red)'}">${saldoImpacto>=0?'+':''}${brl(saldoImpacto)}</div>
-      <div class="proj-sumcard-sub">${totalEvt} eventos em ${dias} dias</div>
-    </div>`;
+    <span style="color:var(--green);font-weight:700">↑ ${brl(totalEntradas)}</span>
+    <span style="color:var(--border2)">·</span>
+    <span style="color:var(--red);font-weight:700">↓ ${brl(totalSaidas)}</span>
+    <span style="color:var(--border2)">·</span>
+    <span style="color:var(--muted);font-weight:400">Saldo</span>
+    <span style="color:${saldoImpacto>=0?'var(--green)':'var(--red)'};font-weight:800">${saldoImpacto>=0?'+':''}${brl(saldoImpacto)}</span>
+    <span style="color:var(--muted2);font-size:10px;font-weight:400">${totalEvt} eventos · ${dias}d</span>`;
 
   // ── Semanas em colunas — alinhadas ao calendário (Dom→Sáb) ─────────────
   if(!timeline) return;
@@ -1860,104 +1872,90 @@ function _renderProjecao(dias){
   const _srcColor={fix:'var(--blue)',sub:'var(--cyan)',inst:'var(--purple)',planned:'var(--yellow)'};
   const _srcLabel={fix:'Fixo',sub:'Assin.',inst:'Parcela',planned:'Manual'};
 
-  timeline.innerHTML=weeks.map((w,wi)=>{
-    const wNet=w.wIn-w.wOut;
-    const netCls=wNet>0?'pwc-net-pos':wNet<0?'pwc-net-neg':'pwc-net-zero';
-    // Rótulo: "Esta semana (Seg-Dom)" ou "Sem 2 · Mai"
+  // ── Helpers compartilhados ────────────────────────────────────────────────
+  const _accLabel=acc=>{
+    if(!acc) return '';
+    const a=acc.toLowerCase();
+    if(a.includes('nubank')&&a.includes('caixinha')) return '🐷 Caixinha';
+    if(a.includes('nubank')) return '💜 Nubank';
+    if(a.includes('bradesco')&&a.includes('cart')) return '❤️ Cartão Bra.';
+    if(a.includes('bradesco')) return '❤️ Bradesco';
+    if(a.includes('pix')) return '⚡ Pix';
+    return '🏦 '+acc.split(' ').slice(-1)[0];
+  };
+  const _accOpts=(sel='')=>[
+    ['corrente nubank','💜 Nubank Conta Corrente'],
+    ['caixinha nubank','🐷 Caixinha Nubank'],
+    ['corrente bradesco','❤️ Bradesco Conta Corrente'],
+    ['cartão bradesco','❤️ Cartão Bradesco'],
+    ['pix','⚡ Pix / Transferência'],
+    ['dinheiro','💵 Dinheiro'],
+  ].map(([v,l])=>`<option value="${v}" ${sel===v?'selected':''}>${l}</option>`).join('');
+
+  // ── Tabs por semana ───────────────────────────────────────────────────────
+  const tabsEl=document.getElementById('projWeekTabs');
+  if(!tabsEl) return;
+
+  if(_projActiveTab>=weeks.length) _projActiveTab=0;
+
+  tabsEl.innerHTML=weeks.map((w,wi)=>{
     const mesLabel=w.wStart.getMonth()!==w.wEnd.getMonth()
       ?`${meses[w.wStart.getMonth()]}–${meses[w.wEnd.getMonth()]}`
       :meses[w.wStart.getMonth()];
     const wLabel=wi===0?'Esta semana':`Sem ${wi+1} · ${mesLabel}`;
-    // Período: usa "hoje" como início na semana atual
-    const periodStart=wi===0?today:w.wStart;
-    const period=`${fmtDM(periodStart)} – ${fmtDM(w.wEnd)}`;
-    // data para novos lançamentos = hoje (sem 0) ou início da semana
-    const dateStr=wi===0?today.toISOString().slice(0,10):w.wStart.toISOString().slice(0,10);
+    return `<button class="proj-tab${wi===_projActiveTab?' active':''}" onclick="_switchWeekTab(${wi})">${wLabel}<span class="proj-tab-badge">${w.wItems.length}</span></button>`;
+  }).join('');
 
-    const _accLabel=acc=>{
-      if(!acc) return '';
-      const a=acc.toLowerCase();
-      if(a.includes('nubank')&&a.includes('caixinha')) return '🐷 Caixinha';
-      if(a.includes('nubank')) return '💜 Nubank';
-      if(a.includes('bradesco')&&a.includes('cart')) return '❤️ Cartão Bra.';
-      if(a.includes('bradesco')) return '❤️ Bradesco';
-      if(a.includes('pix')) return '⚡ Pix';
-      return '🏦 '+acc.split(' ').slice(-1)[0];
-    };
-    const _accOpts=(sel='')=>[
-      ['corrente nubank','💜 Nubank Conta Corrente'],
-      ['caixinha nubank','🐷 Caixinha Nubank'],
-      ['corrente bradesco','❤️ Bradesco Conta Corrente'],
-      ['cartão bradesco','❤️ Cartão Bradesco'],
-      ['pix','⚡ Pix / Transferência'],
-      ['dinheiro','💵 Dinheiro'],
-    ].map(([v,l])=>`<option value="${v}" ${sel===v?'selected':''}>${l}</option>`).join('');
+  // ── Conteúdo da semana ativa ──────────────────────────────────────────────
+  const activeWeek=weeks[_projActiveTab]||weeks[0];
+  const itemRows=activeWeek.wItems.map((i,idx)=>{
+    const wi=_projActiveTab;
+    const uid=`${wi}-${idx}`;
+    const col=_srcColor[i.source]||'var(--muted2)';
+    const valCol=i.amt>=0?'var(--green)':'var(--red)';
+    const sign=i.amt>=0?'+':'';
+    const day=String(i.date.getDate()).padStart(2,'0');
+    const dsem=diasSemCur[i.date.getDay()];
+    const isToday=i.date.getTime()===today.getTime();
+    const dateIso=i.date.toISOString().slice(0,10);
+    const acc=i.itemAccount||i.paccount||'';
+    const accLbl=_accLabel(acc);
+    const isPlannedDB=i.source==='planned'&&i.itemId;
+    const safeLabel=(i.label||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    const safeCat=(i.category||'Outros').replace(/'/g,"\\'");
 
-    const itemRows=w.wItems.map((i,idx)=>{
-      const uid=`${wi}-${idx}`;
-      const col=_srcColor[i.source]||'var(--muted2)';
-      const valCol=i.amt>=0?'var(--green)':'var(--red)';
-      const sign=i.amt>=0?'+':'';
-      const day=String(i.date.getDate()).padStart(2,'0');
-      const dsem=diasSemCur[i.date.getDay()];
-      const isToday=i.date.getTime()===today.getTime();
-      const dateIso=i.date.toISOString().slice(0,10);
-      const acc=i.itemAccount||i.paccount||'';
-      const accLbl=_accLabel(acc);
-      const isPlannedDB=i.source==='planned'&&i.itemId;
-      const safeLabel=(i.label||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
-      const safeCat=(i.category||'Outros').replace(/'/g,"\\'");
-      const safeAcc=acc.replace(/'/g,"\\'");
+    const editRow=`<div id="pwci-edit-${uid}" style="display:none;padding:8px 18px 12px;gap:6px;background:rgba(56,189,248,.04);border-top:1px solid var(--border);flex-wrap:wrap;align-items:center">
+      <div style="width:100%;font-size:10px;color:var(--muted2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">✏️ Editar lançamento</div>
+      <input type="number" id="pwci-val-${uid}" value="${Math.abs(i.amt).toFixed(2)}" step="0.01" min="0" placeholder="Valor R$" style="width:110px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;outline:none;font-family:var(--font)"/>
+      <input type="date" id="pwci-date-${uid}" value="${dateIso}" style="background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;outline:none;font-family:var(--font)"/>
+      <select id="pwci-acc-${uid}" style="background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:11px;padding:6px 8px;outline:none;font-family:var(--font)">${_accOpts(acc)}</select>
+      <button onclick="_pwcSaveAndConfirm('${uid}','${i.source}',${i.itemId||'null'},'${safeLabel}','${safeCat}','${i.ptype||'saida'}')" style="background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">✓ Confirmar e Registrar</button>
+      ${isPlannedDB?`<button onclick="_pwcSaveOnly('${uid}',${i.itemId})" style="background:linear-gradient(135deg,#0284c7,#2dd4bf);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">💾 Só atualizar</button>`:''}
+      <button onclick="_pwcToggleEdit('${uid}')" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted2);border-radius:6px;padding:6px 10px;font-size:11px;cursor:pointer">✕</button>
+    </div>`;
 
-      const editRow=`<div id="pwci-edit-${uid}" style="display:none;padding:8px 12px 10px;gap:6px;background:rgba(56,189,248,.04);border-top:1px solid var(--border);flex-wrap:wrap;align-items:center">
-        <div style="width:100%;font-size:10px;color:var(--muted2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">✏️ Editar lançamento</div>
-        <input type="number" id="pwci-val-${uid}" value="${Math.abs(i.amt).toFixed(2)}" step="0.01" min="0" placeholder="Valor R$" style="width:110px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;outline:none;font-family:var(--font)"/>
-        <input type="date" id="pwci-date-${uid}" value="${dateIso}" style="background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;outline:none;font-family:var(--font)"/>
-        <select id="pwci-acc-${uid}" style="background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:11px;padding:6px 8px;outline:none;font-family:var(--font)">${_accOpts(acc)}</select>
-        <button onclick="_pwcSaveAndConfirm('${uid}','${i.source}',${i.itemId||'null'},'${safeLabel}','${safeCat}','${i.ptype||'saida'}')" style="background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">✓ Confirmar e Registrar</button>
-        ${isPlannedDB?`<button onclick="_pwcSaveOnly('${uid}',${i.itemId})" style="background:linear-gradient(135deg,#0284c7,#2dd4bf);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">💾 Só atualizar</button>`:''}
-        <button onclick="_pwcToggleEdit('${uid}')" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted2);border-radius:6px;padding:6px 10px;font-size:11px;cursor:pointer">✕</button>
-      </div>`;
-
-      return `<div style="display:flex;flex-direction:column;border-bottom:1px solid rgba(255,255,255,.03)">
-        <div class="pwc-item" style="border-bottom:none">
-          <span class="pwc-day" style="${isToday?'background:rgba(56,189,248,.15);border-color:rgba(56,189,248,.4);color:var(--blue2)':''}" title="${dsem}">${day}</span>
-          <span class="pwc-dot" style="background:${col}"></span>
-          <span class="pwc-name" style="min-width:0">
-            ${i.label.length>28?i.label.slice(0,28)+'…':i.label}
-            <small style="color:${col}">${dsem} · ${_srcLabel[i.source]||''}</small>
-            ${accLbl?`<small style="color:var(--muted2);display:block;margin-top:1px;font-size:9px">${accLbl}</small>`:''}
-          </span>
-          <span class="pwc-val" style="color:${valCol}">${sign}${brl(Math.abs(i.amt))}</span>
-          <button onclick="_pwcToggleEdit('${uid}')" title="Editar" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0 3px;opacity:.5;transition:.15s;flex-shrink:0" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.5">✏️</button>
-          ${i.itemId?`<button onclick="_pwcDeleteItem('${i.source}',${i.itemId},'${safeLabel}')" title="Excluir lançamento" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0 3px;opacity:.4;transition:.15s;flex-shrink:0" onmouseover="this.style.opacity=1;this.style.color='var(--red)'" onmouseout="this.style.opacity=.4;this.style.color='inherit'">🗑️</button>`:''}
-          <button onclick="_pwcToggleEdit('${uid}')" title="Confirmar pagamento" style="width:22px;height:22px;border-radius:50%;border:2px solid rgba(34,197,94,.35);background:rgba(34,197,94,.07);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--green);transition:.15s;flex-shrink:0;line-height:1" onmouseover="this.style.background='rgba(34,197,94,.22)';this.style.borderColor='var(--green)'" onmouseout="this.style.background='rgba(34,197,94,.07)';this.style.borderColor='rgba(34,197,94,.35)'">✓</button>
+    return `<div style="display:flex;flex-direction:column">
+      <div class="pli" style="${isToday?'background:rgba(56,189,248,.03)':''}">
+        <div class="pli-date" style="${isToday?'color:var(--blue2)':''}"><strong style="${isToday?'color:var(--blue2)':''}">${day}</strong>${dsem}</div>
+        <div class="pli-bar" style="background:${col}"></div>
+        <div class="pli-info">
+          <div class="pli-name">${i.label.length>32?i.label.slice(0,32)+'…':i.label}</div>
+          <div class="pli-meta">${_srcLabel[i.source]||''}${accLbl?' · '+accLbl:''}</div>
         </div>
-        ${editRow}
-      </div>`;
-    }).join('');
-
-    return `<div class="proj-week-card">
-      <div class="pwc-summary" onclick="_toggleWeek(${wi})">
-        <div class="pwc-top">
-          <span class="pwc-label">${wLabel}</span>
-          <span class="pwc-tog" id="ptog-${wi}">▶</span>
-        </div>
-        <div class="pwc-period">${period}</div>
-        <div class="pwc-totals">
-          ${w.wIn >0?`<div class="pwc-row-in">↑ +${brl(w.wIn)}</div>`:''}
-          ${w.wOut>0?`<div class="pwc-row-out">↓ -${brl(w.wOut)}</div>`:''}
-          <div class="pwc-net ${netCls}">${wNet>=0?'+':''}${brl(wNet)}</div>
-          <div class="pwc-count">${w.wItems.length} evento${w.wItems.length!==1?'s':''}</div>
+        <div class="pli-val" style="color:${valCol}">${sign}${brl(Math.abs(i.amt))}</div>
+        <div class="pli-btns">
+          <button onclick="_pwcToggleEdit('${uid}')" title="Editar">✏️</button>
+          ${i.itemId?`<button onclick="_pwcDeleteItem('${i.source}',${i.itemId},'${safeLabel}')" title="Excluir" style="color:var(--muted2)" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted2)'">🗑️</button>`:''}
+          <button class="pli-ok" onclick="_pwcToggleEdit('${uid}')" title="Confirmar">✓</button>
         </div>
       </div>
-      <div class="pwc-body" id="pb-${wi}" style="max-height:0">
-        ${w.wItems.length
-          ? `<div class="pwc-items">${itemRows}</div>`
-          : `<div style="padding:10px 12px;font-size:11px;color:var(--muted);font-style:italic">Sem eventos nesta semana</div>`}
-      </div>
+      ${editRow}
     </div>`;
   }).join('');
+
+  timeline.innerHTML=activeWeek.wItems.length
+    ?`<div style="padding:4px 0">${itemRows}</div>`
+    :`<div style="padding:18px;font-size:12px;color:var(--muted);font-style:italic;text-align:center">Nenhum evento nesta semana</div>`;
 
   // Define data padrão da barra de adição = hoje (se ainda vazio)
   const addDateEl=document.getElementById('projAddDate');
@@ -1976,6 +1974,11 @@ function _renderProjecao(dias){
 
 // Alias para manter compatibilidade
 const _renderFluxo=(dias)=>_renderProjecao(dias);
+
+function _switchWeekTab(wi){
+  _projActiveTab=wi;
+  _renderProjecao(_fluxoDias);
+}
 
 // ── Adição global de previsão ────────────────────────────────────────────────
 // ── Edição inline de itens na Projeção de Caixa ─────────────────────────────
