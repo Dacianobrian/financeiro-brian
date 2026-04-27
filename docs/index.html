@@ -787,6 +787,19 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     <span style="font-size:18px">⚠️</span>
     <span id="saldoBannerMsg"></span>
   </div>
+
+  <div class="section" style="margin-bottom:14px">
+    <div class="section-header" style="margin-bottom:12px"><div class="section-title">💼 Contas &amp; Patrimônio</div></div>
+    <div class="grid g4" id="accountsGrid"><div class="card" style="opacity:.4">carregando...</div></div>
+  </div>
+
+  <div class="grid g4" style="margin-bottom:14px">
+    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🏢</span>Portfolio FII</div><div class="kpi-value amt-yellow" id="kpiFii">—</div><div class="kpi-sub" id="kpiFiiSub">valor de mercado</div></div>
+    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💸</span>Dividendos / Mês</div><div class="kpi-value amt-green" id="kpiDiv">—</div><div class="kpi-sub">renda passiva estimada</div></div>
+    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Total Investido</div><div class="kpi-value" style="color:var(--cyan)" id="kpiInv">—</div><div class="kpi-sub">Caixinha + FIIs</div></div>
+    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🎯</span>Meta Reserva · Dez/2027</div><div class="kpi-value amt-yellow" id="kpiMeta">—</div><div class="progress"><div class="progress-fill" id="kpiMetaBar" style="width:0%;background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div><div class="kpi-sub" id="kpiMetaSub">de R$ 60.000</div></div>
+  </div>
+
   <div class="section">
     <div class="grid g4" id="kpiGrid">
       <div class="card card-blue"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(99,102,241,.15)">🏦</span>Saldo em Conta</div><div class="kpi-value" id="kpiSaldo">—</div><div class="kpi-sub" id="kpiSaldoSub">Nubank + Bradesco</div><div class="kpi-saldo-upcoming" id="kpiUpcoming" style="display:none"><span id="kpiUpcomingTxt"></span></div><div id="kpiProjetado" style="display:none;margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,.06);font-size:11px;color:var(--muted)">Fim do mês: <span id="kpiProjetadoVal" style="font-weight:700"></span></div></div>
@@ -834,17 +847,6 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     </div>
   </div>
 
-  <div class="section" style="margin-top:14px">
-    <div class="section-header" style="margin-bottom:12px"><div class="section-title">💼 Contas &amp; Patrimônio</div></div>
-    <div class="grid g4" id="accountsGrid"><div class="card" style="opacity:.4">carregando...</div></div>
-  </div>
-
-  <div class="grid g4" style="margin-top:14px">
-    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🏢</span>Portfolio FII</div><div class="kpi-value amt-yellow" id="kpiFii">—</div><div class="kpi-sub" id="kpiFiiSub">valor de mercado</div></div>
-    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💸</span>Dividendos / Mês</div><div class="kpi-value amt-green" id="kpiDiv">—</div><div class="kpi-sub">renda passiva estimada</div></div>
-    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Total Investido</div><div class="kpi-value" style="color:var(--cyan)" id="kpiInv">—</div><div class="kpi-sub">Caixinha + FIIs</div></div>
-    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🎯</span>Meta Reserva · Dez/2027</div><div class="kpi-value amt-yellow" id="kpiMeta">—</div><div class="progress"><div class="progress-fill" id="kpiMetaBar" style="width:0%;background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div><div class="kpi-sub" id="kpiMetaSub">de R$ 60.000</div></div>
-  </div>
 
   <!-- IDs ocultos para não quebrar o JS -->
   <div id="catBreakdown" style="display:none"></div>
