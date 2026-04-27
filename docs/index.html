@@ -1950,7 +1950,7 @@ function _renderProjecao(dias){
           </span>
           <span class="pwc-val" style="color:${valCol}">${sign}${brl(Math.abs(i.amt))}</span>
           <button onclick="_pwcToggleEdit('${uid}')" title="Editar" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0 3px;opacity:.5;transition:.15s;flex-shrink:0" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.5">✏️</button>
-          ${isPlannedDB?`<button onclick="deletePlan(${i.itemId},'${safeLabel}')" title="Excluir lançamento" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0 3px;opacity:.4;transition:.15s;flex-shrink:0" onmouseover="this.style.opacity=1;this.style.color='var(--red)'" onmouseout="this.style.opacity=.4;this.style.color='inherit'">🗑️</button>`:''}
+          ${i.itemId?`<button onclick="_pwcDeleteItem('${i.source}',${i.itemId},'${safeLabel}')" title="Excluir lançamento" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0 3px;opacity:.4;transition:.15s;flex-shrink:0" onmouseover="this.style.opacity=1;this.style.color='var(--red)'" onmouseout="this.style.opacity=.4;this.style.color='inherit'">🗑️</button>`:''}
           <button onclick="_pwcToggleEdit('${uid}')" title="Confirmar pagamento" style="width:22px;height:22px;border-radius:50%;border:2px solid rgba(34,197,94,.35);background:rgba(34,197,94,.07);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--green);transition:.15s;flex-shrink:0;line-height:1" onmouseover="this.style.background='rgba(34,197,94,.22)';this.style.borderColor='var(--green)'" onmouseout="this.style.background='rgba(34,197,94,.07)';this.style.borderColor='rgba(34,197,94,.35)'">✓</button>
         </div>
         ${editRow}
@@ -4127,6 +4127,18 @@ async function deletePlan(id, desc){
   if(!ok) return;
   await sbDelete('planned_entries', {id:`eq.${id}`});
   toast('Planejamento removido','ok');
+  refreshDashboard();
+}
+
+async function _pwcDeleteItem(source, itemId, label){
+  const tableMap={fix:'fixed_costs',sub:'subscriptions',inst:'installments',planned:'planned_entries'};
+  const table=tableMap[source];
+  if(!table||!itemId) return;
+  const extra=source!=='planned'?' Isso remove o registro permanentemente.':'';
+  const ok=await _confirm(`Remover "${label}"?`,'Esta ação não pode ser desfeita.'+extra);
+  if(!ok) return;
+  await sbDelete(table,{id:`eq.${itemId}`});
+  toast('Removido com sucesso','ok');
   refreshDashboard();
 }
 
