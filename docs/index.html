@@ -392,18 +392,28 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 
 
 /* ── Saúde Financeira ─────────────────────────────────────── */
-.saude-score-ring{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;flex-shrink:0;font-weight:800;position:relative;border:3px solid transparent}
-.saude-score-num{font-size:26px;line-height:1;letter-spacing:-1px}
-.saude-score-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-top:1px;opacity:.8}
-.saude-bar-row{display:flex;flex-direction:column;gap:3px;flex:1}
-.saude-bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted2)}
-.saude-bar-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
-.saude-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
-.insight-item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border)}
-.insight-item:last-child{border-bottom:none;padding-bottom:0}
-.insight-icon{font-size:15px;flex-shrink:0;margin-top:1px}
-.insight-body{font-size:12px;line-height:1.55;color:var(--muted2)}
-.insight-body strong{color:var(--text);font-weight:600}
+.saude-gauge-wrap{position:relative;flex-shrink:0;width:150px;height:150px}
+.saude-gauge-svg{width:150px;height:150px}
+.saude-gauge-inner{position:absolute;top:50%;left:50%;transform:translate(-50%,-54%);text-align:center;pointer-events:none}
+.saude-score-big{font-size:42px;font-weight:900;line-height:1;letter-spacing:-2px}
+.saude-score-denom{font-size:13px;font-weight:500;color:var(--muted);line-height:1.2}
+.saude-score-grade{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;margin-top:5px;display:block}
+.saude-comp-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;flex:1}
+@media(max-width:1200px){.saude-comp-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:900px){.saude-comp-grid{grid-template-columns:repeat(2,1fr)}}
+.saude-comp-item{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 13px;display:flex;flex-direction:column;gap:4px;overflow:hidden;position:relative}
+.saude-comp-item::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.saude-comp-pts{font-size:22px;font-weight:800;line-height:1}
+.saude-comp-label{font-size:10.5px;color:var(--muted2);font-weight:600;line-height:1.3;margin-top:1px}
+.saude-comp-val{font-size:10px;color:var(--muted);margin-top:2px}
+.saude-comp-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:5px}
+.saude-comp-bar-fill{height:100%;border-radius:2px;transition:width .7s ease}
+.saude-ins-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(max-width:900px){.saude-ins-grid{grid-template-columns:1fr}}
+.saude-ins-item{background:var(--surface2);border-radius:10px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;border-left:3px solid}
+.saude-ins-icon{font-size:20px;flex-shrink:0;line-height:1.2}
+.saude-ins-txt{font-size:12px;line-height:1.6;color:var(--muted2)}
+.saude-ins-txt strong{color:var(--text);font-weight:600}
 
 /* ── Toast ────────────────────────────────────────────────── */
 #toastWrap{position:fixed;bottom:80px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
@@ -1019,26 +1029,37 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 
   <!-- ── Saúde Financeira + Insights ── -->
   <div class="section" style="margin-top:14px">
-    <div class="section-header" style="margin-bottom:12px"><div class="section-title">🩺 Saúde Financeira</div></div>
-    <div class="grid g2">
-      <!-- Score -->
-      <div class="card" id="saudeScoreCard">
-        <div style="display:flex;align-items:center;gap:18px;margin-bottom:16px">
-          <div class="saude-score-ring" id="saudeRing">
-            <span class="saude-score-num" id="saudeNum">—</span>
-            <span class="saude-score-label" id="saudeLabel">pts</span>
-          </div>
-          <div>
-            <div style="font-size:16px;font-weight:700" id="saudeTitle">Calculando...</div>
-            <div style="font-size:11px;color:var(--muted2);margin-top:3px" id="saudeSubtitle">baseado nos seus dados reais</div>
+    <div class="section-header" style="margin-bottom:12px"><div class="section-title">🩺 Score de Saúde Financeira</div></div>
+    <div class="card" style="padding:22px 24px">
+      <!-- Gauge + Componentes -->
+      <div style="display:flex;align-items:center;gap:24px;margin-bottom:22px;flex-wrap:wrap">
+        <!-- SVG Gauge -->
+        <div class="saude-gauge-wrap">
+          <svg class="saude-gauge-svg" viewBox="0 0 160 160">
+            <!-- trilha cinza 270° -->
+            <circle cx="80" cy="80" r="58" fill="none" stroke="var(--border2)" stroke-width="14" stroke-linecap="round"
+              stroke-dasharray="274 364" transform="rotate(135 80 80)"/>
+            <!-- arco de score -->
+            <circle id="saudeGaugeArc" cx="80" cy="80" r="58" fill="none" stroke="#22c55e" stroke-width="14" stroke-linecap="round"
+              stroke-dasharray="0 364" transform="rotate(135 80 80)" style="transition:stroke-dasharray .9s ease,stroke .4s ease"/>
+          </svg>
+          <div class="saude-gauge-inner">
+            <div class="saude-score-big" id="saudeNum" style="color:#22c55e">—</div>
+            <div class="saude-score-denom">/ 100</div>
+            <span class="saude-score-grade" id="saudeLabel" style="color:#22c55e">pts</span>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:10px" id="saudeComponentes"></div>
+        <!-- Cards de componentes -->
+        <div class="saude-comp-grid" id="saudeComponentes" style="flex:1;min-width:0">
+          <div class="saude-comp-item" style="opacity:.4">Carregando...</div>
+        </div>
       </div>
+      <!-- Divisor -->
+      <div style="border-top:1px solid var(--border);margin-bottom:16px"></div>
       <!-- Insights -->
-      <div class="card">
-        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:10px">💡 Insights do Mês</div>
-        <div id="saudeInsights"><div style="color:var(--muted);font-size:12px">Carregando...</div></div>
+      <div style="font-size:11px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;display:flex;align-items:center;gap:6px"><span>💡</span> Insights do Mês</div>
+      <div class="saude-ins-grid" id="saudeInsights">
+        <div style="color:var(--muted);font-size:12px">Carregando...</div>
       </div>
     </div>
   </div>
@@ -2495,163 +2516,147 @@ function fillKpis(cm, fii, accounts, patrimonio){
 
 // ── Saúde Financeira ───────────────────────────────────────────────────────────
 function fillSaudeFinanceira(cm, monthly, fii, accounts){
-  const entradas = +(cm.entradas||0);
-  const saidas   = +(cm.saidas||0);
-  const investido= +(cm.investido||0);
+  const entradas  = +(cm.entradas||0);
+  const saidas    = +(cm.saidas||0);
+  const investido = +(cm.investido||0);
 
-  // Caixinha para reserva de emergência
-  const caixinha = accounts.find(a=>/caixinha|rdb/i.test((a.type||'')+(a.name||'')));
+  const caixinha    = accounts.find(a=>/caixinha|rdb/i.test((a.type||'')+(a.name||'')));
   const caixinhaVal = caixinha ? +(caixinha.balance||0) : 0;
 
-  // Histórico dos meses com dados (exclui meses zerados)
   const mesesComDados = (monthly||[]).filter(m=>+(m.entradas||0)>0);
-  const ultimos3 = mesesComDados.slice(-3);
+  const ultimos3      = mesesComDados.slice(-3);
 
-  // Médias dos últimos 3 meses com dados
   const mediaEntradas = ultimos3.length ? ultimos3.reduce((s,m)=>s+(+(m.entradas||0)),0)/ultimos3.length : entradas;
   const mediaSaidas   = ultimos3.length ? ultimos3.reduce((s,m)=>s+(+(m.saidas||0)),0)/ultimos3.length : saidas;
   const mediaInv      = ultimos3.length ? ultimos3.reduce((s,m)=>s+(+(m.investido||0)),0)/ultimos3.length : investido;
   const mediaDespesas = mediaSaidas > 0 ? mediaSaidas : 1;
 
-  // ── Componentes do score ──────────────────────────────────────────────────
-  // 1) Taxa de aporte (30 pts) — investido / entradas
-  const taxaAporte = entradas > 0 ? (investido / entradas) * 100 : 0;
-  const ptAporte = entradas > 0
-    ? Math.min(30, Math.round((taxaAporte / 20) * 30))
-    : 0;
+  // ── Score ────────────────────────────────────────────────────────────────
+  const taxaAporte = entradas > 0 ? (investido/entradas)*100 : 0;
+  const ptAporte   = entradas > 0 ? Math.min(30, Math.round((taxaAporte/20)*30)) : 0;
 
-  // 2) Controle de gastos (25 pts) — saídas / entradas, ideal < 70%
-  const taxaGasto = entradas > 0 ? (saidas / entradas) * 100 : 100;
+  const taxaGasto = entradas > 0 ? (saidas/entradas)*100 : 100;
   let ptGasto = 0;
-  if(entradas > 0){
-    if(taxaGasto <= 70)       ptGasto = 25;
-    else if(taxaGasto <= 80)  ptGasto = 18;
-    else if(taxaGasto <= 90)  ptGasto = 10;
-    else if(taxaGasto <= 100) ptGasto = 4;
-    else                      ptGasto = 0;
+  if(entradas>0){
+    if(taxaGasto<=70) ptGasto=25;
+    else if(taxaGasto<=80) ptGasto=18;
+    else if(taxaGasto<=90) ptGasto=10;
+    else if(taxaGasto<=100) ptGasto=4;
   }
 
-  // 3) Reserva de emergência (25 pts) — caixinha / média despesas 3m
-  const mesesReserva = mediaDespesas > 0 ? caixinhaVal / mediaDespesas : 0;
+  const mesesReserva = mediaDespesas > 0 ? caixinhaVal/mediaDespesas : 0;
   let ptReserva = 0;
-  if(mesesReserva >= 6)      ptReserva = 25;
-  else if(mesesReserva >= 3) ptReserva = Math.round(15 + ((mesesReserva-3)/3)*10);
-  else if(mesesReserva >= 1) ptReserva = Math.round(5 + ((mesesReserva-1)/2)*10);
-  else                        ptReserva = Math.round(mesesReserva * 5);
+  if(mesesReserva>=6)      ptReserva=25;
+  else if(mesesReserva>=3) ptReserva=Math.round(15+((mesesReserva-3)/3)*10);
+  else if(mesesReserva>=1) ptReserva=Math.round(5+((mesesReserva-1)/2)*10);
+  else                     ptReserva=Math.round(mesesReserva*5);
 
-  // 4) Diversificação FII (10 pts)
   const nFii = (fii||[]).length;
-  let ptFii = 0;
-  if(nFii >= 5)      ptFii = 10;
-  else if(nFii >= 3) ptFii = 7;
-  else if(nFii >= 1) ptFii = 4;
+  const ptFii = nFii>=5?10:nFii>=3?7:nFii>=1?4:0;
 
-  // 5) Regularidade de aportes — últimos 3 meses com dados (10 pts)
   const mesesComAporte = ultimos3.filter(m=>+(m.investido||0)>0).length;
   const ptRegular = ultimos3.length > 0 ? Math.round((mesesComAporte/ultimos3.length)*10) : 5;
 
   const score = ptAporte + ptGasto + ptReserva + ptFii + ptRegular;
 
-  // ── Render score ─────────────────────────────────────────────────────────
-  let cor, titulo, subtitulo;
-  if(score >= 88)     { cor='#22c55e'; titulo='Excelente!'; subtitulo='Sua gestão está muito acima da média'; }
-  else if(score >= 72){ cor='#4ade80'; titulo='Ótimo'; subtitulo='Você está no caminho certo'; }
-  else if(score >= 55){ cor='#38bdf8'; titulo='Bom'; subtitulo='Bons fundamentos, há pontos a melhorar'; }
-  else if(score >= 40){ cor='#fbbf24'; titulo='Regular'; subtitulo='Atenção a alguns pilares financeiros'; }
-  else                { cor='#f43f5e'; titulo='Atenção'; subtitulo='Hora de reorganizar as finanças'; }
+  // ── Cor e grau ──────────────────────────────────────────────────────────
+  const graus = [
+    {min:88, cor:'#22c55e', grau:'Excelente'},
+    {min:72, cor:'#4ade80', grau:'Ótimo'},
+    {min:55, cor:'#38bdf8', grau:'Bom'},
+    {min:40, cor:'#fbbf24', grau:'Regular'},
+    {min:0,  cor:'#f43f5e', grau:'Atenção'},
+  ];
+  const {cor, grau} = graus.find(g=>score>=g.min);
 
-  const ring = document.getElementById('saudeRing');
-  if(ring){ ring.style.borderColor=cor; ring.style.background=`${cor}14`; ring.style.color=cor; }
+  // ── Gauge SVG ────────────────────────────────────────────────────────────
+  // 270° arc: circunferência r=58 → 2π×58≈364. 270/360×364≈273
+  const arc = document.getElementById('saudeGaugeArc');
+  if(arc){
+    const fill = Math.round(273*(score/100));
+    arc.style.strokeDasharray = `${fill} 364`;
+    arc.style.stroke = cor;
+  }
   const numEl = document.getElementById('saudeNum');
-  if(numEl) numEl.textContent = score;
-  const titleEl = document.getElementById('saudeTitle');
-  if(titleEl){ titleEl.textContent = titulo; titleEl.style.color = cor; }
-  const subEl = document.getElementById('saudeSubtitle');
-  if(subEl) subEl.textContent = subtitulo;
+  if(numEl){ numEl.textContent=score; numEl.style.color=cor; }
+  const lblEl = document.getElementById('saudeLabel');
+  if(lblEl){ lblEl.textContent=grau; lblEl.style.color=cor; }
 
-  // ── Componentes (barras) ─────────────────────────────────────────────────
+  // ── Componentes (cards) ──────────────────────────────────────────────────
   const comps = [
-    { label:'Taxa de Aporte', pts:ptAporte, max:30, val:`${taxaAporte.toFixed(1)}% da renda`, cor:ptAporte>=24?'#22c55e':ptAporte>=15?'#fbbf24':'#f43f5e' },
-    { label:'Controle de Gastos', pts:ptGasto, max:25, val:`${taxaGasto.toFixed(1)}% da renda`, cor:ptGasto>=20?'#22c55e':ptGasto>=12?'#fbbf24':'#f43f5e' },
-    { label:'Reserva de Emergência', pts:ptReserva, max:25, val:`${mesesReserva.toFixed(1)} meses cobertos`, cor:ptReserva>=20?'#22c55e':ptReserva>=10?'#fbbf24':'#f43f5e' },
-    { label:'Diversificação FII', pts:ptFii, max:10, val:`${nFii} ${nFii===1?'fundo':'fundos'}`, cor:ptFii>=8?'#22c55e':ptFii>=5?'#fbbf24':'#f43f5e' },
-    { label:'Regularidade de Aportes', pts:ptRegular, max:10, val:`${mesesComAporte}/${ultimos3.length} meses`, cor:ptRegular>=8?'#22c55e':ptRegular>=5?'#fbbf24':'#f43f5e' },
+    {icon:'📈', label:'Taxa de Aporte',       pts:ptAporte,  max:30, val:`${taxaAporte.toFixed(1)}% da renda`,      cor:ptAporte>=24?'#22c55e':ptAporte>=15?'#fbbf24':'#f43f5e'},
+    {icon:'🎯', label:'Controle de Gastos',   pts:ptGasto,   max:25, val:`${taxaGasto.toFixed(1)}% em despesas`,     cor:ptGasto>=20?'#22c55e':ptGasto>=12?'#fbbf24':'#f43f5e'},
+    {icon:'🛡️', label:'Reserva Emergência',   pts:ptReserva, max:25, val:`${mesesReserva.toFixed(1)} meses cobertos`,cor:ptReserva>=20?'#22c55e':ptReserva>=10?'#fbbf24':'#f43f5e'},
+    {icon:'🏢', label:'Diversificação FII',   pts:ptFii,     max:10, val:`${nFii} fundo${nFii!==1?'s':''}`,          cor:ptFii>=8?'#22c55e':ptFii>=5?'#fbbf24':'#f43f5e'},
+    {icon:'🔁', label:'Regularidade Aportes', pts:ptRegular, max:10, val:`${mesesComAporte}/${ultimos3.length||3} meses`,cor:ptRegular>=8?'#22c55e':ptRegular>=5?'#fbbf24':'#f43f5e'},
   ];
   const compEl = document.getElementById('saudeComponentes');
   if(compEl) compEl.innerHTML = comps.map(c=>`
-    <div class="saude-bar-row">
-      <div class="saude-bar-label"><span>${c.label}</span><span style="color:${c.cor};font-weight:700">${c.pts}/${c.max} <span style="color:var(--muted);font-weight:400">· ${c.val}</span></span></div>
-      <div class="saude-bar-track"><div class="saude-bar-fill" style="width:${Math.round((c.pts/c.max)*100)}%;background:${c.cor}"></div></div>
+    <div class="saude-comp-item" style="border-color:${c.cor}22">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${c.cor};border-radius:12px 12px 0 0;opacity:.9"></div>
+      <div style="font-size:18px;line-height:1;margin-bottom:2px">${c.icon}</div>
+      <div class="saude-comp-pts" style="color:${c.cor}">${c.pts}<span class="saude-comp-max">/${c.max}</span></div>
+      <div class="saude-comp-label">${c.label}</div>
+      <div class="saude-comp-bar"><div class="saude-comp-bar-fill" style="width:${Math.round((c.pts/c.max)*100)}%;background:${c.cor}"></div></div>
+      <div class="saude-comp-val">${c.val}</div>
     </div>`).join('');
 
   // ── Insights ─────────────────────────────────────────────────────────────
   const insights = [];
 
-  // Renda variável: compara com média histórica
-  if(mediaEntradas > 0 && entradas > 0){
-    const varRenda = ((entradas - mediaEntradas) / mediaEntradas) * 100;
-    if(varRenda < -20){
-      insights.push({icon:'⚠️', txt:`<strong>Renda ${Math.abs(varRenda).toFixed(0)}% abaixo da sua média</strong> dos últimos meses. Se os custos fixos continuarem iguais, vão comprometer uma fatia maior da renda.`});
-    } else if(varRenda > 30){
-      insights.push({icon:'🚀', txt:`<strong>Renda ${varRenda.toFixed(0)}% acima da sua média!</strong> Ótimo momento para reforçar a reserva de emergência ou aumentar o aporte.`});
-    }
+  if(mediaEntradas>0 && entradas>0){
+    const varRenda = ((entradas-mediaEntradas)/mediaEntradas)*100;
+    if(varRenda < -20)
+      insights.push({icon:'⚠️', cor:'#fbbf24', txt:`<strong>Renda ${Math.abs(varRenda).toFixed(0)}% abaixo da sua média</strong> dos últimos meses. Se os custos fixos continuarem iguais, vão comprometer uma fatia maior da renda.`});
+    else if(varRenda > 30)
+      insights.push({icon:'🚀', cor:'#22c55e', txt:`<strong>Renda ${varRenda.toFixed(0)}% acima da sua média!</strong> Ótimo momento para reforçar a reserva de emergência ou aumentar o aporte.`});
   }
 
-  // Aporte mesmo com renda menor
-  if(entradas > 0 && entradas < mediaEntradas * 0.85 && investido > mediaInv * 0.8){
-    insights.push({icon:'🏆', txt:`<strong>Manteve o aporte</strong> mesmo com renda abaixo da média — isso é disciplina financeira de verdade.`});
-  }
+  if(entradas>0 && entradas<mediaEntradas*0.85 && investido>mediaInv*0.8)
+    insights.push({icon:'🏆', cor:'#a78bfa', txt:`<strong>Manteve o aporte</strong> mesmo com renda abaixo da média — isso é disciplina financeira de verdade.`});
 
-  // Taxa de poupança atual vs média do ano
-  const taxaPoupancaAtual = entradas > 0 ? ((investido/entradas)*100) : 0;
-  const taxaPoupancaMedia = mesesComDados.reduce((s,m)=>{
+  const taxaPoupAtual = entradas>0 ? (investido/entradas)*100 : 0;
+  const taxaPoupMedia = mesesComDados.reduce((s,m)=>{
     const e=+(m.entradas||0); return e>0?s+(+(m.investido||0)/e*100):s;
-  }, 0) / (mesesComDados.filter(m=>+(m.entradas||0)>0).length||1);
-  if(taxaPoupancaAtual > 0 && taxaPoupancaMedia > 0){
-    const delta = taxaPoupancaAtual - taxaPoupancaMedia;
-    if(delta > 5){
-      insights.push({icon:'📈', txt:`Taxa de poupança de <strong>${taxaPoupancaAtual.toFixed(1)}%</strong> — ${delta.toFixed(1)} p.p. acima da sua média anual (${taxaPoupancaMedia.toFixed(1)}%).`});
-    } else if(delta < -5){
-      insights.push({icon:'📉', txt:`Taxa de poupança de <strong>${taxaPoupancaAtual.toFixed(1)}%</strong> — ${Math.abs(delta).toFixed(1)} p.p. abaixo da sua média anual (${taxaPoupancaMedia.toFixed(1)}%).`});
-    } else {
-      insights.push({icon:'✅', txt:`Taxa de poupança de <strong>${taxaPoupancaAtual.toFixed(1)}%</strong> — alinhada com sua média histórica de ${taxaPoupancaMedia.toFixed(1)}%.`});
-    }
+  },0) / (mesesComDados.filter(m=>+(m.entradas||0)>0).length||1);
+
+  if(taxaPoupAtual>0 && taxaPoupMedia>0){
+    const delta = taxaPoupAtual-taxaPoupMedia;
+    if(delta>5)
+      insights.push({icon:'📈', cor:'#22c55e', txt:`Taxa de poupança de <strong>${taxaPoupAtual.toFixed(1)}%</strong> — ${delta.toFixed(1)} p.p. acima da sua média anual (${taxaPoupMedia.toFixed(1)}%).`});
+    else if(delta< -5)
+      insights.push({icon:'📉', cor:'#f43f5e', txt:`Taxa de poupança de <strong>${taxaPoupAtual.toFixed(1)}%</strong> — ${Math.abs(delta).toFixed(1)} p.p. abaixo da sua média anual (${taxaPoupMedia.toFixed(1)}%).`});
+    else
+      insights.push({icon:'✅', cor:'#38bdf8', txt:`Taxa de poupança de <strong>${taxaPoupAtual.toFixed(1)}%</strong> — alinhada com sua média histórica de ${taxaPoupMedia.toFixed(1)}%.`});
   }
 
-  // Gastos como % da renda (contexto variável)
-  if(entradas > 0 && saidas > 0){
-    const pctGasto = (saidas/entradas)*100;
-    const pctGastoMedia = mediaSaidas > 0 && mediaEntradas > 0 ? (mediaSaidas/mediaEntradas)*100 : pctGasto;
-    if(pctGasto > 85){
-      insights.push({icon:'🔴', txt:`<strong>${pctGasto.toFixed(0)}% da renda</strong> foi para despesas — sobrando pouco margem. Revisar gastos variáveis pode abrir espaço para aporte.`});
-    } else if(pctGasto > pctGastoMedia + 10){
-      insights.push({icon:'🟡', txt:`Despesas em <strong>${pctGasto.toFixed(0)}% da renda</strong>, acima da sua média (${pctGastoMedia.toFixed(0)}%). Verifique se há gastos pontuais ou novos custos fixos.`});
-    }
+  if(entradas>0 && saidas>0){
+    const pct = (saidas/entradas)*100;
+    const pctMedia = mediaSaidas>0&&mediaEntradas>0?(mediaSaidas/mediaEntradas)*100:pct;
+    if(pct>85)
+      insights.push({icon:'🔴', cor:'#f43f5e', txt:`<strong>${pct.toFixed(0)}% da renda</strong> foi para despesas — margem pequena. Revisar gastos variáveis pode abrir espaço para aporte.`});
+    else if(pct>pctMedia+10)
+      insights.push({icon:'🟡', cor:'#fbbf24', txt:`Despesas em <strong>${pct.toFixed(0)}% da renda</strong>, acima da sua média (${pctMedia.toFixed(0)}%). Verifique se há gastos pontuais ou novos custos fixos.`});
   }
 
-  // Reserva de emergência
-  if(mesesReserva < 1 && caixinhaVal < 500){
-    insights.push({icon:'🛡️', txt:`<strong>Reserva de emergência baixa</strong>. Com renda variável, ter ao menos 3 meses de despesas guardados é ainda mais importante.`});
-  } else if(mesesReserva >= 3 && mesesReserva < 6){
-    insights.push({icon:'🛡️', txt:`Reserva cobre <strong>${mesesReserva.toFixed(1)} meses</strong> de despesas. Para renda variável, o ideal são 6 meses — você está na metade do caminho.`});
-  } else if(mesesReserva >= 6){
-    insights.push({icon:'✅', txt:`<strong>Reserva de emergência sólida</strong>: ${mesesReserva.toFixed(1)} meses de despesas cobertos — proteção adequada para renda variável.`});
-  }
+  if(mesesReserva<1&&caixinhaVal<500)
+    insights.push({icon:'🛡️', cor:'#f43f5e', txt:`<strong>Reserva de emergência baixa.</strong> Com renda variável, ter ao menos 3 meses de despesas guardados é ainda mais importante.`});
+  else if(mesesReserva>=3&&mesesReserva<6)
+    insights.push({icon:'🛡️', cor:'#fbbf24', txt:`Reserva cobre <strong>${mesesReserva.toFixed(1)} meses</strong> de despesas. Para renda variável, o ideal são 6 meses — você está na metade do caminho.`});
+  else if(mesesReserva>=6)
+    insights.push({icon:'✅', cor:'#22c55e', txt:`<strong>Reserva de emergência sólida:</strong> ${mesesReserva.toFixed(1)} meses de despesas cobertos — proteção adequada para renda variável.`});
 
-  // FII insights
-  if(nFii === 0){
-    insights.push({icon:'💡', txt:`Você ainda não tem FIIs na carteira. Fundos imobiliários podem gerar <strong>renda passiva mensal</strong> — especialmente útil para suavizar a variação da renda.`});
-  } else if(nFii > 0 && nFii < 3){
-    insights.push({icon:'💡', txt:`Carteira concentrada em <strong>${nFii} fundo${nFii>1?'s':''}</strong>. Diversificar em mais segmentos (logística, lajes, recebíveis) reduz o risco.`});
-  }
+  if(nFii===0)
+    insights.push({icon:'💡', cor:'#38bdf8', txt:`Você ainda não tem FIIs na carteira. Fundos imobiliários podem gerar <strong>renda passiva mensal</strong> — especialmente útil para suavizar a variação da renda.`});
+  else if(nFii<3)
+    insights.push({icon:'💡', cor:'#38bdf8', txt:`Carteira concentrada em <strong>${nFii} fundo${nFii>1?'s':''}</strong>. Diversificar em mais segmentos (logística, lajes, recebíveis) reduz o risco.`});
 
-  // Limita a 4 insights e renderiza
   const insEl = document.getElementById('saudeInsights');
   if(insEl){
     const top4 = insights.slice(0,4);
     insEl.innerHTML = top4.length
-      ? top4.map(i=>`<div class="insight-item"><span class="insight-icon">${i.icon}</span><div class="insight-body">${i.txt}</div></div>`).join('')
-      : '<div style="color:var(--muted);font-size:12px">Nenhum insight disponível ainda — adicione mais transações.</div>';
+      ? top4.map(i=>`<div class="saude-ins-item" style="border-left-color:${i.cor}"><span class="saude-ins-icon">${i.icon}</span><div class="saude-ins-txt">${i.txt}</div></div>`).join('')
+      : '<div style="color:var(--muted);font-size:12px;grid-column:1/-1">Nenhum insight disponível — adicione mais transações.</div>';
   }
 }
 
