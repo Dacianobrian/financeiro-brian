@@ -414,6 +414,25 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .saude-ins-icon{font-size:20px;flex-shrink:0;line-height:1.2}
 .saude-ins-txt{font-size:12px;line-height:1.6;color:var(--muted2)}
 .saude-ins-txt strong{color:var(--text);font-weight:600}
+.saude-mini-badge{cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-top:2px solid #22c55e;background:linear-gradient(180deg,rgba(34,197,94,.05) 0%,var(--surface) 70%);transition:background .2s}
+.saude-mini-badge:hover{background:linear-gradient(180deg,rgba(34,197,94,.1) 0%,var(--surface) 80%)}
+.saude-mini-ring{width:46px;height:46px;border-radius:50%;border:3px solid #22c55e;display:flex;align-items:center;justify-content:center;background:rgba(34,197,94,.08);transition:border-color .3s}
+.saude-mini-comp{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;border:1px solid;white-space:nowrap}
+.edu-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+.edu-card-icon{font-size:22px;line-height:1;margin-bottom:2px}
+.edu-card-val{font-size:26px;font-weight:800;line-height:1;letter-spacing:-1px}
+.edu-card-label{font-size:11px;color:var(--muted2);font-weight:600}
+.edu-card-ref{font-size:10px;color:var(--muted);margin-top:2px}
+.edu-card-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px}
+.edu-card-bar-fill{height:100%;border-radius:3px;transition:width .7s ease}
+.rec-card{border-radius:12px;padding:16px 18px;border-left:4px solid;display:flex;flex-direction:column;gap:8px;background:var(--surface2);border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.rec-card-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+.rec-card-body{font-size:12px;line-height:1.6;color:var(--muted2)}
+.rec-card-body strong{color:var(--text);font-weight:600}
+.rec-card-tip{font-size:11px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.04);color:var(--muted2);border:1px solid var(--border)}
+.dist-legend-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)}
+.dist-legend-row:last-child{border-bottom:none}
+.dist-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
 
 /* ── Toast ────────────────────────────────────────────────── */
 #toastWrap{position:fixed;bottom:80px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
@@ -456,7 +475,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   #settingsOverlay,#dialogOverlay,#toastWrap{display:none!important}
   .card{border:1px solid #ccc!important;background:#fff!important;break-inside:avoid}
   .page{padding:0!important;max-width:100%!important}
-  #tabGeral,#tabInv{display:block!important}
+  #tabGeral,#tabInv,#tabSaude{display:block!important}
   [id^="tabBtn"]{display:none}
   .kpi-value{color:#000!important}
   .amt-green{color:#065f46!important}.amt-red{color:#991b1b!important}.amt-yellow{color:#92400e!important}
@@ -555,6 +574,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   <div class="header-center">
     <button class="tab-btn active" id="tabBtnGeral" onclick="switchTab('geral')">📊 Visão Geral</button>
     <button class="tab-btn" id="tabBtnInv" onclick="switchTab('inv')">📈 Investimentos</button>
+    <button class="tab-btn" id="tabBtnSaude" onclick="switchTab('saude')">🩺 Saúde</button>
   </div>
   <div class="header-right">
     <div class="date-chip" id="headerDate"></div>
@@ -1027,39 +1047,24 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     </div>
   </div>
 
-  <!-- ── Saúde Financeira + Insights ── -->
+  <!-- ── Saúde Financeira (mini badge) ── -->
   <div class="section" style="margin-top:14px">
-    <div class="section-header" style="margin-bottom:12px"><div class="section-title">🩺 Score de Saúde Financeira</div></div>
-    <div class="card" style="padding:22px 24px">
-      <!-- Gauge + Componentes -->
-      <div style="display:flex;align-items:center;gap:24px;margin-bottom:22px;flex-wrap:wrap">
-        <!-- SVG Gauge -->
-        <div class="saude-gauge-wrap">
-          <svg class="saude-gauge-svg" viewBox="0 0 160 160">
-            <!-- trilha cinza 270° -->
-            <circle cx="80" cy="80" r="58" fill="none" stroke="var(--border2)" stroke-width="14" stroke-linecap="round"
-              stroke-dasharray="274 364" transform="rotate(135 80 80)"/>
-            <!-- arco de score -->
-            <circle id="saudeGaugeArc" cx="80" cy="80" r="58" fill="none" stroke="#22c55e" stroke-width="14" stroke-linecap="round"
-              stroke-dasharray="0 364" transform="rotate(135 80 80)" style="transition:stroke-dasharray .9s ease,stroke .4s ease"/>
-          </svg>
-          <div class="saude-gauge-inner">
-            <div class="saude-score-big" id="saudeNum" style="color:#22c55e">—</div>
-            <div class="saude-score-denom">/ 100</div>
-            <span class="saude-score-grade" id="saudeLabel" style="color:#22c55e">pts</span>
+    <div class="card saude-mini-badge" onclick="switchTab('saude')">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="saude-mini-ring" id="saudeMiniRing">
+          <span id="saudeMiniScore" style="font-size:18px;font-weight:900;color:#22c55e;letter-spacing:-1px">—</span>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:700">🩺 Saúde Financeira</div>
+          <div style="font-size:12px;color:var(--muted2);margin-top:2px">
+            <span id="saudeMiniGrade" style="font-weight:600;color:#22c55e">Calculando...</span>
+            <span style="color:var(--muted)"> · clique para ver análise completa</span>
           </div>
         </div>
-        <!-- Cards de componentes -->
-        <div class="saude-comp-grid" id="saudeComponentes" style="flex:1;min-width:0">
-          <div class="saude-comp-item" style="opacity:.4">Carregando...</div>
-        </div>
       </div>
-      <!-- Divisor -->
-      <div style="border-top:1px solid var(--border);margin-bottom:16px"></div>
-      <!-- Insights -->
-      <div style="font-size:11px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;display:flex;align-items:center;gap:6px"><span>💡</span> Insights do Mês</div>
-      <div class="saude-ins-grid" id="saudeInsights">
-        <div style="color:var(--muted);font-size:12px">Carregando...</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div id="saudeMiniComps" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        <span style="color:var(--muted2);font-size:20px;margin-left:4px">›</span>
       </div>
     </div>
   </div>
@@ -1448,6 +1453,74 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     </div>
   </div>
 </div><!-- /tabInv -->
+
+<!-- TAB: SAÚDE FINANCEIRA -->
+<div id="tabSaude" style="display:none">
+
+  <!-- Score Principal + Componentes -->
+  <div class="section">
+    <div class="section-header" style="margin-bottom:12px"><div class="section-title">🩺 Score de Saúde Financeira</div></div>
+    <div class="card" style="padding:22px 24px">
+      <div style="display:flex;align-items:center;gap:24px;margin-bottom:22px;flex-wrap:wrap">
+        <div class="saude-gauge-wrap">
+          <svg class="saude-gauge-svg" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="58" fill="none" stroke="var(--border2)" stroke-width="14" stroke-linecap="round"
+              stroke-dasharray="274 364" transform="rotate(135 80 80)"/>
+            <circle id="saudeGaugeArc" cx="80" cy="80" r="58" fill="none" stroke="#22c55e" stroke-width="14" stroke-linecap="round"
+              stroke-dasharray="0 364" transform="rotate(135 80 80)" style="transition:stroke-dasharray .9s ease,stroke .4s ease"/>
+          </svg>
+          <div class="saude-gauge-inner">
+            <div class="saude-score-big" id="saudeNum" style="color:#22c55e">—</div>
+            <div class="saude-score-denom">/ 100</div>
+            <span class="saude-score-grade" id="saudeLabel" style="color:#22c55e">pts</span>
+          </div>
+        </div>
+        <div class="saude-comp-grid" id="saudeComponentes" style="flex:1;min-width:0">
+          <div class="saude-comp-item" style="opacity:.4">Carregando...</div>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--border);margin-bottom:16px"></div>
+      <div style="font-size:11px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;display:flex;align-items:center;gap:6px"><span>💡</span> Insights do Mês</div>
+      <div class="saude-ins-grid" id="saudeInsights"><div style="color:var(--muted);font-size:12px">Carregando...</div></div>
+    </div>
+  </div>
+
+  <!-- Métricas Educacionais -->
+  <div class="section" style="margin-top:16px">
+    <div class="section-header" style="margin-bottom:12px"><div class="section-title">📐 Métricas Financeiras Chave</div></div>
+    <div class="grid g4" id="saudeMetricasGrid">
+      <div class="edu-card" style="opacity:.4">Carregando...</div>
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="section" style="margin-top:16px">
+    <div class="grid g2">
+      <div class="card">
+        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:14px">📊 Taxa de Poupança por Mês</div>
+        <div class="chart-wrap" style="height:220px"><canvas id="chartSaudePoupanca"></canvas></div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:14px">🎯 Distribuição de Gastos — Regra 50·30·20</div>
+        <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">
+          <div style="position:relative;width:160px;height:160px;flex-shrink:0">
+            <canvas id="chartSaude5030" style="width:160px!important;height:160px!important"></canvas>
+          </div>
+          <div id="saude5030Legend" style="flex:1;min-width:160px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recomendações Personalizadas -->
+  <div class="section" style="margin-top:16px">
+    <div class="section-header" style="margin-bottom:12px"><div class="section-title">📚 Recomendações Personalizadas</div></div>
+    <div class="grid g2" id="saudeRecomendacoes">
+      <div style="color:var(--muted);font-size:12px">Carregando...</div>
+    </div>
+  </div>
+
+</div><!-- /tabSaude -->
 
 </div><!-- /page -->
 
@@ -2658,6 +2731,270 @@ function fillSaudeFinanceira(cm, monthly, fii, accounts){
       ? top4.map(i=>`<div class="saude-ins-item" style="border-left-color:${i.cor}"><span class="saude-ins-icon">${i.icon}</span><div class="saude-ins-txt">${i.txt}</div></div>`).join('')
       : '<div style="color:var(--muted);font-size:12px;grid-column:1/-1">Nenhum insight disponível — adicione mais transações.</div>';
   }
+
+  // ── Mini badge no tabGeral ──────────────────────────────────────────────
+  const miniScore = document.getElementById('saudeMiniScore');
+  const miniGrade = document.getElementById('saudeMiniGrade');
+  const miniRing  = document.getElementById('saudeMiniRing');
+  const miniBadge = miniRing?.closest('.saude-mini-badge');
+  if(miniScore){ miniScore.textContent=score; miniScore.style.color=cor; }
+  if(miniGrade){ miniGrade.textContent=grau; miniGrade.style.color=cor; }
+  if(miniRing){  miniRing.style.borderColor=cor; miniRing.style.background=`${cor}14`; }
+  if(miniBadge){ miniBadge.style.borderTopColor=cor; }
+
+  // Mini chips dos componentes
+  const miniComps = document.getElementById('saudeMiniComps');
+  if(miniComps) miniComps.innerHTML = comps.map(c=>`
+    <span class="saude-mini-comp" style="color:${c.cor};border-color:${c.cor}44;background:${c.cor}0d">
+      ${c.icon} ${c.pts}/${c.max}
+    </span>`).join('');
+
+  // Salva scores para uso nas outras funções da aba
+  _saudeScores = {score,cor,grau,ptAporte,ptGasto,ptReserva,ptFii,ptRegular,
+    taxaAporte,taxaGasto,mesesReserva,nFii,mesesComAporte,ultimos3:ultimos3.length,
+    caixinhaVal,mediaDespesas,mediaEntradas,mediaSaidas,mediaInv};
+}
+
+// ── Saúde Tab: Métricas Educacionais ──────────────────────────────────────────
+function fillSaudeMetricas(cm, monthly, fii, accounts, fc){
+  const el = document.getElementById('saudeMetricasGrid');
+  if(!el) return;
+
+  const entradas  = +(cm.entradas||0);
+  const investido = +(cm.investido||0);
+  const mesesComDados = (monthly||[]).filter(m=>+(m.entradas||0)>0);
+
+  // 1) Taxa de poupança acumulada no ano
+  const totE = mesesComDados.reduce((s,m)=>s+(+(m.entradas||0)),0);
+  const totI = mesesComDados.reduce((s,m)=>s+(+(m.investido||0)),0);
+  const taxaPoupAno = totE>0 ? (totI/totE)*100 : 0;
+
+  // 2) Comprometimento de renda fixa (custos fixos / média de renda)
+  const totalFC = (fc||[]).reduce((s,f)=>s+(+(f.amount||0)),0);
+  const mediaRenda = mesesComDados.length ? mesesComDados.reduce((s,m)=>s+(+(m.entradas||0)),0)/mesesComDados.length : entradas;
+  const comprometimento = mediaRenda>0 ? (totalFC/mediaRenda)*100 : 0;
+
+  // 3) Cobertura de reserva (de _saudeScores)
+  const mesesReserva = _saudeScores.mesesReserva||0;
+
+  // 4) Renda passiva mensal (dividendos FII)
+  const rendaPassiva = (fii||[]).reduce((s,f)=>s+(+(f.shares||0))*(+(f.dividends_per_share||0)),0);
+  const rendaPassivaPct = mediaRenda>0 ? (rendaPassiva/mediaRenda)*100 : 0;
+
+  const metricas = [
+    {
+      icon:'💰', label:'Poupança Acumulada no Ano',
+      val:`${taxaPoupAno.toFixed(1)}%`, ref:'Ideal: ≥ 20% da renda',
+      pct: Math.min(100,(taxaPoupAno/20)*100),
+      cor: taxaPoupAno>=20?'#22c55e':taxaPoupAno>=10?'#fbbf24':'#f43f5e',
+      sub: totI>0?`${brl(totI)} investidos de ${brl(totE)} em entradas`:''
+    },
+    {
+      icon:'🔒', label:'Comprometimento de Renda Fixa',
+      val:`${comprometimento.toFixed(1)}%`, ref:'Ideal: < 50% da renda média',
+      pct: Math.min(100,comprometimento/50*100),
+      cor: comprometimento<=50?'#22c55e':comprometimento<=70?'#fbbf24':'#f43f5e',
+      sub: totalFC>0?`${brl(totalFC)}/mês em custos fixos`:''
+    },
+    {
+      icon:'🛡️', label:'Cobertura de Reserva',
+      val:`${mesesReserva.toFixed(1)} meses`, ref:'Ideal: ≥ 6 meses (renda variável)',
+      pct: Math.min(100,(mesesReserva/6)*100),
+      cor: mesesReserva>=6?'#22c55e':mesesReserva>=3?'#fbbf24':'#f43f5e',
+      sub: _saudeScores.caixinhaVal>0?`${brl(_saudeScores.caixinhaVal)} na Caixinha`:''
+    },
+    {
+      icon:'🏢', label:'Renda Passiva / Mês',
+      val:`${brl(rendaPassiva)}`, ref:'Meta: substituir parte da renda ativa',
+      pct: Math.min(100,rendaPassivaPct),
+      cor: rendaPassivaPct>=20?'#22c55e':rendaPassivaPct>=5?'#fbbf24':'#38bdf8',
+      sub: rendaPassivaPct>0?`${rendaPassivaPct.toFixed(1)}% da sua renda média`:'Comece com qualquer FII'
+    },
+  ];
+
+  el.innerHTML = metricas.map(m=>`
+    <div class="edu-card">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${m.cor};border-radius:12px 12px 0 0;opacity:.85"></div>
+      <div class="edu-card-icon">${m.icon}</div>
+      <div class="edu-card-val" style="color:${m.cor}">${m.val}</div>
+      <div class="edu-card-label">${m.label}</div>
+      <div class="edu-card-bar"><div class="edu-card-bar-fill" style="width:${m.pct.toFixed(0)}%;background:${m.cor}"></div></div>
+      <div class="edu-card-ref">${m.ref}</div>
+      ${m.sub?`<div style="font-size:10px;color:var(--muted);margin-top:2px">${m.sub}</div>`:''}
+    </div>`).join('');
+}
+
+// ── Saúde Tab: Gráficos ────────────────────────────────────────────────────────
+function buildSaudeCharts(monthly, catsObj){
+  // ── Chart 1: Taxa de poupança por mês ──────────────────────────────────────
+  const mesesComDados = (monthly||[]).filter(m=>+(m.entradas||0)>0).slice(-8);
+  const labels = mesesComDados.map(m=>m.month);
+  const taxas  = mesesComDados.map(m=>+(m.entradas||0)>0?+((+(m.investido||0)/+(m.entradas||0))*100).toFixed(1):0);
+  const cores  = taxas.map(t=>t>=20?'rgba(34,197,94,.8)':t>=10?'rgba(251,191,36,.8)':'rgba(244,63,94,.8)');
+
+  const ctx1 = document.getElementById('chartSaudePoupanca');
+  if(ctx1){
+    if(_chartSaudePoupanca){ _chartSaudePoupanca.destroy(); _chartSaudePoupanca=null; }
+    _chartSaudePoupanca = new Chart(ctx1, {
+      type:'bar',
+      data:{labels, datasets:[{
+        label:'Taxa de Poupança %',
+        data:taxas, backgroundColor:cores, borderRadius:6, borderSkipped:false
+      },{
+        label:'Meta 20%', data:taxas.map(()=>20),
+        type:'line', borderColor:'rgba(56,189,248,.5)', borderDash:[5,4],
+        borderWidth:1.5, pointRadius:0, fill:false
+      }]},
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%`}}},
+        scales:{
+          x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#505870',font:{size:11}}},
+          y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#505870',font:{size:11},callback:v=>`${v}%`},min:0,suggestedMax:Math.max(30,...taxas)+5}
+        }
+      }
+    });
+  }
+
+  // ── Chart 2: Distribuição 50-30-20 ─────────────────────────────────────────
+  const NECESSIDADES = new Set(['Moradia','Saúde','Alimentação','Supermercado','Transporte','Combustível','Telefone','Utilidades','Água','Energia','Internet','Educação','Impostos / MEI']);
+  let totNec=0, totDes=0;
+  Object.entries(catsObj||{}).forEach(([cat,val])=>{
+    if(NECESSIDADES.has(cat)) totNec+=val; else totDes+=val;
+  });
+  const totInv = (_saudeScores.mediaSaidas||0)>0
+    ? (monthly||[]).filter(m=>+(m.entradas||0)>0).reduce((s,m)=>s+(+(m.investido||0)),0) / (monthly.filter(m=>+(m.entradas||0)>0).length||1)
+    : 0;
+  const totGeral = totNec+totDes+totInv||1;
+  const pctNec = (totNec/totGeral*100);
+  const pctDes = (totDes/totGeral*100);
+  const pctInv = (totInv/totGeral*100);
+
+  const ctx2 = document.getElementById('chartSaude5030');
+  if(ctx2){
+    if(_chartSaude5030){ _chartSaude5030.destroy(); _chartSaude5030=null; }
+    _chartSaude5030 = new Chart(ctx2, {
+      type:'doughnut',
+      data:{
+        labels:['Necessidades','Desejos','Investimentos'],
+        datasets:[{
+          data:[+pctNec.toFixed(1), +pctDes.toFixed(1), +pctInv.toFixed(1)],
+          backgroundColor:['rgba(251,191,36,.8)','rgba(244,63,94,.7)','rgba(34,197,94,.8)'],
+          borderColor:['#fbbf24','#f43f5e','#22c55e'],
+          borderWidth:1.5, hoverOffset:6
+        }]
+      },
+      options:{
+        responsive:false, cutout:'70%',
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed.toFixed(1)}%`}}}
+      }
+    });
+  }
+
+  // Legenda 50-30-20
+  const legend = document.getElementById('saude5030Legend');
+  if(legend){
+    const rows = [
+      {cor:'#fbbf24',label:'Necessidades',real:pctNec,ideal:50},
+      {cor:'#f43f5e',label:'Desejos',    real:pctDes,ideal:30},
+      {cor:'#22c55e',label:'Investimentos',real:pctInv,ideal:20},
+    ];
+    legend.innerHTML = rows.map(r=>{
+      const diff = r.real - r.ideal;
+      const sinal = diff>0?`<span style="color:${r.label==='Investimentos'?'#22c55e':'#f43f5e'}">▲${diff.toFixed(0)}%</span>`:diff<0?`<span style="color:${r.label==='Investimentos'?'#f43f5e':'#22c55e'}">▼${Math.abs(diff).toFixed(0)}%</span>`:'';
+      return`<div class="dist-legend-row">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="dist-dot" style="background:${r.cor}"></div>
+          <span style="font-size:12px;font-weight:600">${r.label}</span>
+        </div>
+        <div style="text-align:right">
+          <span style="font-size:13px;font-weight:700;color:${r.cor}">${r.real.toFixed(1)}%</span>
+          <span style="font-size:10px;color:var(--muted);margin-left:5px">meta ${r.ideal}% ${sinal}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ── Saúde Tab: Recomendações ───────────────────────────────────────────────────
+function fillSaudeRecomendacoes(){
+  const el = document.getElementById('saudeRecomendacoes');
+  if(!el) return;
+  const s = _saudeScores;
+  if(!s.score) return;
+
+  const recs = [];
+
+  // Baseadas nos componentes mais fracos
+  if(s.ptAporte < 15){
+    const meta = s.taxaAporte < 5 ? 10 : 20;
+    recs.push({
+      cor:'#38bdf8', icon:'📈', urgencia:'Prioridade Alta',
+      title:'Aumentar a Taxa de Aporte',
+      body:`Você está investindo <strong>${s.taxaAporte.toFixed(1)}% da renda</strong> — o ideal é ≥20%. Com renda variável, defina um percentual fixo (ex: 20%) e transfira logo que receber, antes de gastar.`,
+      tip:`💡 Automatize: crie uma regra para mover ${meta}% de toda entrada direto para a Caixinha no dia do recebimento.`
+    });
+  }
+
+  if(s.ptGasto < 15){
+    recs.push({
+      cor:'#f43f5e', icon:'🎯', urgencia:'Atenção',
+      title:'Reduzir Comprometimento de Gastos',
+      body:`<strong>${s.taxaGasto.toFixed(1)}% da renda</strong> está indo para despesas. Com renda variável, meses de renda baixa podem deixar o caixa no vermelho se os gastos não tiverem margem.`,
+      tip:`💡 Identifique os 3 maiores gastos variáveis e defina tetos mensais para cada um. Use a aba Visão Geral para acompanhar.`
+    });
+  }
+
+  if(s.ptReserva < 15){
+    const mesesFalta = Math.max(0, 6 - s.mesesReserva);
+    recs.push({
+      cor:'#fbbf24', icon:'🛡️', urgencia:'Urgente',
+      title:'Construir Reserva de Emergência',
+      body:`Sua reserva cobre <strong>${s.mesesReserva.toFixed(1)} meses</strong> de despesas. Para renda variável o ideal são 6 meses — você precisa de aproximadamente <strong>${brl(s.mediaDespesas * mesesFalta)}</strong> a mais na Caixinha.`,
+      tip:`💡 Separe um percentual fixo de toda comissão recebida (ex: 15-20%) exclusivamente para reserva, até atingir 6 meses.`
+    });
+  }
+
+  if(s.ptFii < 7){
+    recs.push({
+      cor:'#a78bfa', icon:'🏢', urgencia:'Oportunidade',
+      title:'Diversificar Carteira de FIIs',
+      body:`Com <strong>${s.nFii} fundo${s.nFii!==1?'s':''}</strong> na carteira, sua renda passiva ainda é concentrada. Diversificar em segmentos diferentes (logística, lajes corporativas, recebíveis) reduz risco e suaviza a variação de renda.`,
+      tip:`💡 Meta: 5+ FIIs de segmentos diferentes. Recebíveis (papel) como KNCR11 ou MXRF11 pagam dividendos mensais mais estáveis.`
+    });
+  }
+
+  if(s.ptRegular < 7 && s.ultimos3 >= 2){
+    recs.push({
+      cor:'#fb923c', icon:'🔁', urgencia:'Consistência',
+      title:'Manter Regularidade nos Aportes',
+      body:`Você aportou em <strong>${s.mesesComAporte} de ${s.ultimos3} meses</strong> recentes. Consistência é mais poderosa que valor — aportes menores todo mês superam aportes grandes esporádicos no longo prazo.`,
+      tip:`💡 Mesmo em meses de renda baixa, faça um aporte simbólico (qualquer valor). Isso mantém o hábito e o preço médio da carteira.`
+    });
+  }
+
+  if(s.score >= 75){
+    recs.push({
+      cor:'#22c55e', icon:'🚀', urgencia:'Próximo Nível',
+      title:'Continue Evoluindo',
+      body:`Sua saúde financeira está <strong>${s.grau}</strong> — você já tem uma base sólida. Agora é hora de otimizar: aumentar o DY médio da carteira FII, reduzir custos fixos desnecessários e acelerar a reserva para 6 meses.`,
+      tip:`💡 Revise seus FIIs com DY abaixo de 10% ao ano e avalie substituições. Use a aba Investimentos para comparar.`
+    });
+  }
+
+  el.innerHTML = recs.slice(0,6).map(r=>`
+    <div class="rec-card" style="border-left-color:${r.cor}">
+      <div class="rec-card-title">
+        <span style="font-size:20px">${r.icon}</span>
+        <div>
+          <div>${r.title}</div>
+          <div style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:${r.cor}18;color:${r.cor};border:1px solid ${r.cor}33;display:inline-block;margin-top:3px">${r.urgencia}</div>
+        </div>
+      </div>
+      <div class="rec-card-body">${r.body}</div>
+      <div class="rec-card-tip">${r.tip}</div>
+    </div>`).join('') ||
+    `<div style="color:var(--muted);font-size:12px;grid-column:1/-1">Nenhuma recomendação crítica — continue o bom trabalho!</div>`;
 }
 
 // ── Análise por Categoria ──────────────────────────────────────────────────────
@@ -3558,6 +3895,10 @@ async function fillAnoTab(monthly, cats){
 let _allTxs = [];
 let _invFiiRows = [], _invQuotes = null, _invAccounts = [], _monthly = [], _divTxs = [];
 let _catsObj = {};
+let _cmRow = {entradas:0,saidas:0,investido:0};
+let _fcRows = [];
+let _saudeScores = {};
+let _chartSaudePoupanca = null, _chartSaude5030 = null;
 let _txModalPage = 0;
 const _TX_PAGE = 50;
 let _editTxId = null;
@@ -3632,6 +3973,7 @@ async function _doRefresh(){
     const _enPt={'Jan':'Jan','Feb':'Fev','Mar':'Mar','Apr':'Abr','May':'Mai','Jun':'Jun','Jul':'Jul','Aug':'Ago','Sep':'Set','Oct':'Out','Nov':'Nov','Dec':'Dez'};
     monthly.forEach(r=>{ r.month=_enPt[r.month]||r.month; });
 
+    _cmRow = cmRow; _fcRows = fc||[];
     fillKpis(cmRow, fii, accounts, patRow);
     fillSaudeFinanceira(cmRow, monthly, fii, accounts);
     fillCatBreakdown(catsObj);
@@ -3935,11 +4277,13 @@ function _fillProjetado(fluxoData, accounts){
 function switchTab(tab){
   document.getElementById('tabGeral').style.display=tab==='geral'?'':'none';
   document.getElementById('tabInv').style.display=tab==='inv'?'':'none';
+  document.getElementById('tabSaude').style.display=tab==='saude'?'':'none';
   document.getElementById('tabBtnGeral').classList.toggle('active',tab==='geral');
   document.getElementById('tabBtnInv').classList.toggle('active',tab==='inv');
-  if(tab==='inv'){ buildInvCharts(_invFiiRows, _invQuotes); _fillInvCashflow(); }
-  if(tab==='geral'){ fillCatBreakdown(_catsObj); buildCharts(_monthly, _catsObj); }
-  // Atualiza tudo se dados tiverem mais de 90 segundos
+  document.getElementById('tabBtnSaude').classList.toggle('active',tab==='saude');
+  if(tab==='inv')   { buildInvCharts(_invFiiRows, _invQuotes); _fillInvCashflow(); }
+  if(tab==='geral') { fillCatBreakdown(_catsObj); buildCharts(_monthly, _catsObj); }
+  if(tab==='saude') { buildSaudeCharts(_monthly, _catsObj); fillSaudeMetricas(_cmRow, _monthly, _invFiiRows, _invAccounts, _fcRows); fillSaudeRecomendacoes(); }
   if(Date.now()-_lastRefreshTs > 90000) refreshDashboard();
 }
 
