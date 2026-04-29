@@ -3934,6 +3934,7 @@ async function _doRefresh(){
     fillSaudeFinanceira(cmRow, monthly, fii, accounts);
     fillSaudeMetricas(cmRow, monthly, fii, accounts, fc||[]);
     fillSaudeRecomendacoes();
+    buildSaudeCharts(monthly, catsObj);
     fillCatBreakdown(catsObj);
     fillAccounts(accounts, patRow);
     buildCharts(monthly, catsObj);
