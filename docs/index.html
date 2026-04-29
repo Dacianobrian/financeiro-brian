@@ -414,10 +414,6 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .saude-ins-icon{font-size:20px;flex-shrink:0;line-height:1.2}
 .saude-ins-txt{font-size:12px;line-height:1.6;color:var(--muted2)}
 .saude-ins-txt strong{color:var(--text);font-weight:600}
-.saude-mini-badge{cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-top:2px solid #22c55e;background:linear-gradient(180deg,rgba(34,197,94,.05) 0%,var(--surface) 70%);transition:background .2s}
-.saude-mini-badge:hover{background:linear-gradient(180deg,rgba(34,197,94,.1) 0%,var(--surface) 80%)}
-.saude-mini-ring{width:46px;height:46px;border-radius:50%;border:3px solid #22c55e;display:flex;align-items:center;justify-content:center;background:rgba(34,197,94,.08);transition:border-color .3s}
-.saude-mini-comp{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;border:1px solid;white-space:nowrap}
 .edu-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
 .edu-card-icon{font-size:22px;line-height:1;margin-bottom:2px}
 .edu-card-val{font-size:26px;font-weight:800;line-height:1;letter-spacing:-1px}
@@ -2711,23 +2707,6 @@ function fillSaudeFinanceira(cm, monthly, fii, accounts){
       : '<div style="color:var(--muted);font-size:12px;grid-column:1/-1">Nenhum insight disponível — adicione mais transações.</div>';
   }
 
-  // ── Mini badge no tabGeral ──────────────────────────────────────────────
-  const miniScore = document.getElementById('saudeMiniScore');
-  const miniGrade = document.getElementById('saudeMiniGrade');
-  const miniRing  = document.getElementById('saudeMiniRing');
-  const miniBadge = miniRing?.closest('.saude-mini-badge');
-  if(miniScore){ miniScore.textContent=score; miniScore.style.color=cor; }
-  if(miniGrade){ miniGrade.textContent=grau; miniGrade.style.color=cor; }
-  if(miniRing){  miniRing.style.borderColor=cor; miniRing.style.background=`${cor}14`; }
-  if(miniBadge){ miniBadge.style.borderTopColor=cor; }
-
-  // Mini chips dos componentes
-  const miniComps = document.getElementById('saudeMiniComps');
-  if(miniComps) miniComps.innerHTML = comps.map(c=>`
-    <span class="saude-mini-comp" style="color:${c.cor};border-color:${c.cor}44;background:${c.cor}0d">
-      ${c.icon} ${c.pts}/${c.max}
-    </span>`).join('');
-
   // Salva scores para uso nas outras funções da aba
   _saudeScores = {score,cor,grau,ptAporte,ptGasto,ptReserva,ptFii,ptRegular,
     taxaAporte,taxaGasto,mesesReserva,nFii,mesesComAporte,ultimos3:ultimos3.length,
@@ -2841,9 +2820,7 @@ function buildSaudeCharts(monthly, catsObj){
   Object.entries(catsObj||{}).forEach(([cat,val])=>{
     if(NECESSIDADES.has(cat)) totNec+=val; else totDes+=val;
   });
-  const totInv = (_saudeScores.mediaSaidas||0)>0
-    ? (monthly||[]).filter(m=>+(m.entradas||0)>0).reduce((s,m)=>s+(+(m.investido||0)),0) / (monthly.filter(m=>+(m.entradas||0)>0).length||1)
-    : 0;
+  const totInv = (monthly||[]).reduce((s,m)=>s+(+(m.investido||0)),0);
   const totGeral = totNec+totDes+totInv||1;
   const pctNec = (totNec/totGeral*100);
   const pctDes = (totDes/totGeral*100);
@@ -3955,6 +3932,8 @@ async function _doRefresh(){
     _cmRow = cmRow; _fcRows = fc||[];
     fillKpis(cmRow, fii, accounts, patRow);
     fillSaudeFinanceira(cmRow, monthly, fii, accounts);
+    fillSaudeMetricas(cmRow, monthly, fii, accounts, fc||[]);
+    fillSaudeRecomendacoes();
     fillCatBreakdown(catsObj);
     fillAccounts(accounts, patRow);
     buildCharts(monthly, catsObj);
