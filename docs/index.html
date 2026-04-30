@@ -464,6 +464,34 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .tx-search{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:6px 10px;font-family:var(--font);width:100%;box-sizing:border-box}
 .tx-search:focus{outline:none;border-color:var(--blue)}
 
+/* ── Metas ────────────────────────────────────────────────── */
+.meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:900px){.meta-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.meta-grid{grid-template-columns:1fr}}
+.meta-card{background:var(--surface);border-radius:16px;padding:20px;border:1.5px solid transparent;display:flex;flex-direction:column;gap:10px;transition:transform .15s,box-shadow .15s}
+.meta-card:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.3)}
+.meta-card-header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.meta-card-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text)}
+.meta-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap}
+.meta-badge-green{background:rgba(34,197,94,.18);color:#22c55e}
+.meta-badge-yellow{background:rgba(251,191,36,.18);color:#fbbf24}
+.meta-badge-red{background:rgba(244,63,94,.18);color:#f43f5e}
+.meta-valor-atual{font-size:22px;font-weight:900;letter-spacing:-.5px;line-height:1}
+.meta-de{font-size:11px;color:var(--muted);margin-top:2px}
+.meta-progress-wrap{display:flex;flex-direction:column;gap:4px}
+.meta-progress-bar-bg{height:8px;border-radius:4px;background:var(--surface2);overflow:hidden}
+.meta-progress-bar-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.meta-progress-label{font-size:11px;color:var(--muted)}
+.meta-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.meta-kpi-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+.meta-kpi{background:var(--surface);border-radius:12px;padding:14px 18px;flex:1;min-width:140px;border:1px solid var(--border)}
+.meta-kpi-label{font-size:11px;color:var(--muted);margin-bottom:4px}
+.meta-kpi-val{font-size:18px;font-weight:800;color:var(--text)}
+.meta-timeline{background:var(--surface);border-radius:12px;padding:16px;border:1px solid var(--border);margin-top:4px}
+.meta-timeline-title{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.meta-timeline-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.meta-timeline-row:last-child{border-bottom:none}
+
 /* ── Print ────────────────────────────────────────────────── */
 @media print{
   body{background:#fff!important;color:#000!important}
@@ -471,7 +499,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   #settingsOverlay,#dialogOverlay,#toastWrap{display:none!important}
   .card{border:1px solid #ccc!important;background:#fff!important;break-inside:avoid}
   .page{padding:0!important;max-width:100%!important}
-  #tabGeral,#tabInv,#tabSaude{display:block!important}
+  #tabGeral,#tabInv,#tabSaude,#tabMetas{display:block!important}
   [id^="tabBtn"]{display:none}
   .kpi-value{color:#000!important}
   .amt-green{color:#065f46!important}.amt-red{color:#991b1b!important}.amt-yellow{color:#92400e!important}
@@ -571,6 +599,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     <button class="tab-btn active" id="tabBtnGeral" onclick="switchTab('geral')">📊 Visão Geral</button>
     <button class="tab-btn" id="tabBtnInv" onclick="switchTab('inv')">📈 Investimentos</button>
     <button class="tab-btn" id="tabBtnSaude" onclick="switchTab('saude')">🩺 Saúde</button>
+    <button class="tab-btn" id="tabBtnMetas" onclick="switchTab('metas')">🎯 Metas</button>
   </div>
   <div class="header-right">
     <div class="date-chip" id="headerDate"></div>
@@ -1496,6 +1525,20 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   </div>
 
 </div><!-- /tabSaude -->
+
+<div id="tabMetas" style="display:none">
+  <div class="section">
+    <div class="section-header" style="margin-bottom:16px">
+      <div class="section-title">🎯 Metas Financeiras</div>
+    </div>
+    <!-- KPIs de resumo -->
+    <div id="metaKpiRow" class="meta-kpi-row"></div>
+    <!-- Grid de cards -->
+    <div id="metaCardsGrid" class="meta-grid" style="margin-top:8px"></div>
+    <!-- Linha do tempo -->
+    <div id="metaTimeline" class="meta-timeline" style="margin-top:16px"></div>
+  </div>
+</div><!-- /tabMetas -->
 
 </div><!-- /page -->
 
@@ -3857,6 +3900,7 @@ let _catsObj = {};
 let _cmRow = {entradas:0,saidas:0,investido:0};
 let _fcRows = [];
 let _saudeScores = {};
+let _activeTab = 'geral';
 let _chartSaudePoupanca = null, _chartSaude5030 = null;
 let _txModalPage = 0;
 const _TX_PAGE = 50;
@@ -3974,6 +4018,7 @@ async function _doRefresh(){
         fillProventos(fii, quotes, divTxs).catch(()=>{});
       }
     }).catch(()=>{});
+    if(_activeTab==='metas') fillMetas();
     _lastRefreshTs=Date.now();
     _setRefreshLoading(false);
   }catch(e){
@@ -3981,6 +4026,220 @@ async function _doRefresh(){
     _setRefreshLoading(false);
     toast('Erro ao carregar dados. Verifique sua conexão.','err',5000);
   }
+}
+
+// ══ METAS ═════════════════════════════════════════════════════════════════
+function fillMetas(){
+  const kpiRow = document.getElementById('metaKpiRow');
+  const grid   = document.getElementById('metaCardsGrid');
+  const tl     = document.getElementById('metaTimeline');
+  if(!grid) return;
+
+  // ── Coleta de dados ──────────────────────────────────────────────────────
+  const cm  = _cmRow || {};
+  const monthly = _monthly || [];
+  const fii = _invFiiRows || [];
+  const accounts = _invAccounts || [];
+  const ss  = _saudeScores || {};
+
+  // Reserva
+  const caixinhaAtual = +(ss.caixinhaVal || 0);
+  const mediaDespesas = +(ss.mediaDespesas || 0);
+  const metaReserva   = mediaDespesas > 0 ? mediaDespesas * 6 : 72269;
+
+  // Renda mensal — média últimos 3 meses com dados
+  const mesesComDados = monthly.filter(m => +(m.entradas||0) > 0);
+  const ultimos3 = mesesComDados.slice(-3);
+  const mediaRenda = ultimos3.length
+    ? ultimos3.reduce((s,m) => s + +(m.entradas||0), 0) / ultimos3.length
+    : +(cm.entradas||0);
+  const metaRenda = +(cm.meta_mensal || 20000);
+
+  // Produtividade diária
+  const diasDecorridos = new Date().getDate() || 1;
+  const rendaDiaria    = +(cm.entradas||0) / diasDecorridos;
+  const metaDiaria     = +(cm.meta_diario || 800);
+
+  // Patrimônio total
+  const fiiTotal   = fii.reduce((s,f) => s + (+(f.shares||0) * +(f.avg_price||0)), 0);
+  const contasTotal= accounts
+    .filter(a => !/(caixinha|rdb)/i.test(a.type||''))
+    .reduce((s,a) => s + +(a.balance||0), 0);
+  const patrimonioAtual = fiiTotal + caixinhaAtual + contasTotal;
+  const metaPatrimonio  = +(cfg('metaPatrimonio', 500000));
+
+  // Renda passiva FII
+  const rendaFiiAtual = fii.reduce((s,f) => s + (+(f.shares||0) * +(f.dividends_per_share||0)), 0);
+  const metaRendaFii  = metaRenda * 0.1; // 10% da meta mensal
+
+  // Parcelas
+  const totalParcelas = fii.length > 0
+    ? (ss.totalParcelas || 9775.46)
+    : 9775.46;
+  // Pegar de _saudeScores se existir, senão usar fixo
+  const parcelasRestantes = +(ss.totalParcelasRestante || ss.parcelasRestante || 9775.46);
+  const parcelasQuitadas  = Math.max(0, 15000 - parcelasRestantes); // estimativa total orig ~15k
+
+  // ── Aporte mensal médio (para timeline) ─────────────────────────────────
+  const meses3Aporte = mesesComDados.slice(-3);
+  const mediaAporte  = meses3Aporte.length
+    ? meses3Aporte.reduce((s,m) => s + Math.max(0, +(m.entradas||0) - +(m.saidas||0) - +(m.investido||0)), 0) / meses3Aporte.length
+    : 1500;
+
+  // ── Definição dos 6 cards ────────────────────────────────────────────────
+  function corMeta(pct){
+    if(pct >= 0.8) return '#22c55e';
+    if(pct >= 0.4) return '#fbbf24';
+    return '#f43f5e';
+  }
+  function badgeClass(pct){
+    if(pct >= 0.8) return 'meta-badge meta-badge-green';
+    if(pct >= 0.4) return 'meta-badge meta-badge-yellow';
+    return 'meta-badge meta-badge-red';
+  }
+  function statusLabel(pct){
+    if(pct >= 1)   return 'Atingida ✅';
+    if(pct >= 0.8) return 'Quase lá 🔄';
+    if(pct >= 0.4) return 'Em progresso 🔄';
+    return 'Atenção ⚠️';
+  }
+
+  const pctReserva   = metaReserva > 0 ? Math.min(1, caixinhaAtual / metaReserva) : 0;
+  const pctRenda     = metaRenda   > 0 ? Math.min(1, mediaRenda    / metaRenda)   : 0;
+  const pctDiaria    = metaDiaria  > 0 ? Math.min(1, rendaDiaria   / metaDiaria)  : 0;
+  const pctPatrimonio= metaPatrimonio > 0 ? Math.min(1, patrimonioAtual / metaPatrimonio) : 0;
+  const pctFii       = metaRendaFii   > 0 ? Math.min(1, rendaFiiAtual   / metaRendaFii)   : 0;
+  const parcelasTotal= Math.max(parcelasRestantes, parcelasQuitadas + parcelasRestantes);
+  const pctParcelas  = parcelasTotal > 0 ? Math.min(1, parcelasQuitadas / parcelasTotal) : 0;
+
+  function cardHTML(icon, titulo, pct, atual, meta, sub, extraSub){
+    const cor    = corMeta(pct);
+    const pctPx  = Math.round(pct * 100);
+    const falta  = Math.max(0, meta - atual);
+    return `
+    <div class="meta-card" style="border-color:${cor}22">
+      <div class="meta-card-header">
+        <div class="meta-card-title">${icon} ${titulo}</div>
+        <span class="${badgeClass(pct)}">${statusLabel(pct)}</span>
+      </div>
+      <div>
+        <div class="meta-valor-atual" style="color:${cor}">${brl(atual)}</div>
+        <div class="meta-de">de ${brl(meta)} meta</div>
+      </div>
+      <div class="meta-progress-wrap">
+        <div class="meta-progress-bar-bg">
+          <div class="meta-progress-bar-fill" style="width:${pctPx}%;background:${cor}"></div>
+        </div>
+        <div class="meta-progress-label">${pctPx}% · ${brl(atual)} de ${brl(meta)}</div>
+      </div>
+      <div class="meta-sub">${sub}${falta > 0 ? ` · faltam ${brl(falta)}` : ' · Meta atingida!'}</div>
+      ${extraSub ? `<div class="meta-sub">${extraSub}</div>` : ''}
+    </div>`;
+  }
+
+  // Card especial para parcelas (invertido: mais = melhor)
+  function cardParcelasHTML(pct, restante, sub, extraSub){
+    const cor    = corMeta(pct);
+    const pctPx  = Math.round(pct * 100);
+    return `
+    <div class="meta-card" style="border-color:${cor}22">
+      <div class="meta-card-header">
+        <div class="meta-card-title">💳 Quitação de Parcelas</div>
+        <span class="${badgeClass(pct)}">${statusLabel(pct)}</span>
+      </div>
+      <div>
+        <div class="meta-valor-atual" style="color:${cor}">${brl(restante)}</div>
+        <div class="meta-de">restante · meta R$0 (quitar tudo)</div>
+      </div>
+      <div class="meta-progress-wrap">
+        <div class="meta-progress-bar-bg">
+          <div class="meta-progress-bar-fill" style="width:${pctPx}%;background:${cor}"></div>
+        </div>
+        <div class="meta-progress-label">${pctPx}% quitado · ${brl(restante)} restante</div>
+      </div>
+      <div class="meta-sub">${sub}</div>
+      ${extraSub ? `<div class="meta-sub">${extraSub}</div>` : ''}
+    </div>`;
+  }
+
+  // ── Parcelas: meses para quitar ──────────────────────────────────────────
+  const parcelaMensal = 1412;
+  const mesesParaParcelas = parcelaMensal > 0 ? Math.ceil(parcelasRestantes / parcelaMensal) : 0;
+
+  grid.innerHTML =
+    cardHTML('🛡️', 'Reserva de Emergência', pctReserva, caixinhaAtual, metaReserva,
+      '6 meses de custos fixos') +
+    cardHTML('💰', 'Renda Mensal', pctRenda, mediaRenda, metaRenda,
+      'média dos últimos 3 meses') +
+    cardHTML('📅', 'Produtividade Diária', pctDiaria, rendaDiaria, metaDiaria,
+      `média do mês atual · ${diasDecorridos} dias decorridos`) +
+    cardHTML('🏦', 'Patrimônio Total', pctPatrimonio, patrimonioAtual, metaPatrimonio,
+      'FII + Reserva + Contas') +
+    cardHTML('📈', 'Renda Passiva FII', pctFii, rendaFiiAtual, metaRendaFii,
+      'dividendos mensais dos FIIs') +
+    cardParcelasHTML(pctParcelas, parcelasRestantes,
+      `R$${parcelaMensal.toLocaleString('pt-BR')}/mês`,
+      mesesParaParcelas > 0 ? `${mesesParaParcelas} meses para quitar` : 'Quitado!');
+
+  // ── KPIs de resumo ───────────────────────────────────────────────────────
+  const pcts = [pctReserva, pctRenda, pctDiaria, pctPatrimonio, pctFii, pctParcelas];
+  const atingidas  = pcts.filter(p => p >= 1).length;
+  const melhorPct  = Math.round(Math.max(...pcts) * 100);
+  const mesesParaReserva = mediaAporte > 0 && caixinhaAtual < metaReserva
+    ? Math.ceil((metaReserva - caixinhaAtual) / mediaAporte)
+    : 0;
+
+  // Próxima milestone: qual meta está mais próxima sem atingir
+  const proximaMeta = [
+    {pct: pctReserva,    val: metaReserva,    nome: 'Reserva'},
+    {pct: pctRenda,      val: metaRenda,      nome: 'Renda Mensal'},
+    {pct: pctPatrimonio, val: metaPatrimonio, nome: 'Patrimônio'},
+    {pct: pctFii,        val: metaRendaFii,   nome: 'Renda FII'},
+  ].filter(m => m.pct < 1).sort((a,b) => b.pct - a.pct)[0];
+
+  kpiRow.innerHTML = `
+    <div class="meta-kpi">
+      <div class="meta-kpi-label">Metas atingidas</div>
+      <div class="meta-kpi-val" style="color:${atingidas>0?'#22c55e':'var(--text)'}">${atingidas}/6</div>
+    </div>
+    <div class="meta-kpi">
+      <div class="meta-kpi-label">Melhor meta</div>
+      <div class="meta-kpi-val" style="color:${corMeta(melhorPct/100)}">${melhorPct}%</div>
+    </div>
+    <div class="meta-kpi">
+      <div class="meta-kpi-label">Próxima milestone</div>
+      <div class="meta-kpi-val" style="color:#38bdf8">${proximaMeta ? brl(proximaMeta.val) + ' · ' + proximaMeta.nome : '—'}</div>
+    </div>`;
+
+  // ── Linha do tempo ───────────────────────────────────────────────────────
+  const mesesParaReservaStr = mesesParaReserva > 0
+    ? `${mesesParaReserva} meses (aporte médio ${brl(mediaAporte)}/mês)`
+    : caixinhaAtual >= metaReserva ? 'Reserva completa ✅' : '—';
+  const mesesParaFii = rendaFiiAtual < metaRendaFii && rendaFiiAtual > 0
+    ? '— depende de aportes e valorização'
+    : rendaFiiAtual >= metaRendaFii ? 'Meta atingida ✅' : '—';
+  const mesesParaPatrimonio = patrimonioAtual < metaPatrimonio && mediaAporte > 0
+    ? `${Math.ceil((metaPatrimonio - patrimonioAtual) / mediaAporte)} meses (aporte médio ${brl(mediaAporte)}/mês)`
+    : patrimonioAtual >= metaPatrimonio ? 'Meta atingida ✅' : '—';
+
+  tl.innerHTML = `
+    <div class="meta-timeline-title">📅 Linha do Tempo Estimada</div>
+    <div class="meta-timeline-row">
+      <span style="color:var(--muted)">🛡️ Reserva de Emergência</span>
+      <span style="font-weight:600">${mesesParaReservaStr}</span>
+    </div>
+    <div class="meta-timeline-row">
+      <span style="color:var(--muted)">💳 Quitação de Parcelas</span>
+      <span style="font-weight:600">${mesesParaParcelas > 0 ? mesesParaParcelas + ' meses (R$' + parcelaMensal.toLocaleString('pt-BR') + '/mês)' : 'Quitado ✅'}</span>
+    </div>
+    <div class="meta-timeline-row">
+      <span style="color:var(--muted)">🏦 Patrimônio Total</span>
+      <span style="font-weight:600">${mesesParaPatrimonio}</span>
+    </div>
+    <div class="meta-timeline-row">
+      <span style="color:var(--muted)">📈 Renda FII R$2.000/mês</span>
+      <span style="font-weight:600">${mesesParaFii}</span>
+    </div>`;
 }
 
 // ══ RELATÓRIO MENSAL ══════════════════════════════════════════════════════
@@ -4237,15 +4496,19 @@ function _fillProjetado(fluxoData, accounts){
 
 // ══ TAB SWITCHING ═════════════════════════════════════════════════════════════
 function switchTab(tab){
+  _activeTab = tab;
   document.getElementById('tabGeral').style.display=tab==='geral'?'':'none';
   document.getElementById('tabInv').style.display=tab==='inv'?'':'none';
   document.getElementById('tabSaude').style.display=tab==='saude'?'':'none';
+  document.getElementById('tabMetas').style.display=tab==='metas'?'':'none';
   document.getElementById('tabBtnGeral').classList.toggle('active',tab==='geral');
   document.getElementById('tabBtnInv').classList.toggle('active',tab==='inv');
   document.getElementById('tabBtnSaude').classList.toggle('active',tab==='saude');
+  document.getElementById('tabBtnMetas').classList.toggle('active',tab==='metas');
   if(tab==='inv')   { buildInvCharts(_invFiiRows, _invQuotes); _fillInvCashflow(); }
   if(tab==='geral') { fillCatBreakdown(_catsObj); buildCharts(_monthly, _catsObj); }
   if(tab==='saude') { buildSaudeCharts(_monthly, _catsObj); fillSaudeMetricas(_cmRow, _monthly, _invFiiRows, _invAccounts, _fcRows); fillSaudeRecomendacoes(); }
+  if(tab==='metas') { fillMetas(); }
   if(Date.now()-_lastRefreshTs > 90000) refreshDashboard();
 }
 
