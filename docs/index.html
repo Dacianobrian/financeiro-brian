@@ -1479,7 +1479,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
         <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:14px">🎯 Distribuição de Gastos — Regra 50·30·20</div>
         <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">
           <div style="position:relative;width:160px;height:160px;flex-shrink:0">
-            <canvas id="chartSaude5030" style="width:160px!important;height:160px!important"></canvas>
+            <canvas id="chartSaude5030" width="160" height="160" style="width:160px!important;height:160px!important"></canvas>
           </div>
           <div id="saude5030Legend" style="flex:1;min-width:160px"></div>
         </div>
@@ -2841,7 +2841,7 @@ function buildSaudeCharts(monthly, catsObj){
         }]
       },
       options:{
-        responsive:false, cutout:'70%',
+        responsive:false, maintainAspectRatio:true, cutout:'70%',
         plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed.toFixed(1)}%`}}}
       }
     });
