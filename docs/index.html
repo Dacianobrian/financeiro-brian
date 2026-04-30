@@ -1499,21 +1499,29 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     </div>
   </div>
 
-  <!-- Gráficos -->
+  <!-- Gráfico Poupança -->
   <div class="section" style="margin-top:16px">
-    <div class="grid g2">
-      <div class="card">
-        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:14px">📊 Taxa de Poupança por Mês</div>
-        <div class="chart-wrap" style="height:220px"><canvas id="chartSaudePoupanca"></canvas></div>
-      </div>
-      <div class="card">
-        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:14px">🎯 Distribuição de Gastos — Regra 50·30·20</div>
-        <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">
-          <div style="position:relative;width:160px;height:160px;flex-shrink:0">
-            <canvas id="chartSaude5030" width="160" height="160" style="width:160px!important;height:160px!important"></canvas>
-          </div>
-          <div id="saude5030Legend" style="flex:1;min-width:160px"></div>
+    <div class="card">
+      <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:14px">📊 Taxa de Poupança por Mês</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="chartSaudePoupanca"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Regra 50·30·20 — destaque próprio -->
+  <div class="section" style="margin-top:16px">
+    <div class="card" style="padding:24px">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">🎯 Distribuição de Gastos — Regra 50·30·20</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:20px">Onde vai cada real da sua renda · <strong style="color:var(--muted2)">50% necessidades · 30% desejos · 20% investimentos</strong></div>
+
+      <!-- 3 stat pills no topo -->
+      <div id="dist5030Pills" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px"></div>
+
+      <!-- Donut + legenda expandida -->
+      <div style="display:flex;gap:32px;align-items:center;flex-wrap:wrap">
+        <div style="position:relative;width:220px;height:220px;flex-shrink:0">
+          <canvas id="chartSaude5030" width="220" height="220" style="width:220px!important;height:220px!important"></canvas>
         </div>
+        <div id="saude5030Legend" style="flex:1;min-width:220px"></div>
       </div>
     </div>
   </div>
@@ -2883,38 +2891,72 @@ function buildSaudeCharts(monthly, catsObj){
         labels:['Necessidades','Desejos','Investimentos'],
         datasets:[{
           data:[+pctNec.toFixed(1), +pctDes.toFixed(1), +pctInv.toFixed(1)],
-          backgroundColor:['rgba(251,191,36,.8)','rgba(244,63,94,.7)','rgba(34,197,94,.8)'],
+          backgroundColor:['rgba(251,191,36,.85)','rgba(244,63,94,.75)','rgba(34,197,94,.85)'],
           borderColor:['#fbbf24','#f43f5e','#22c55e'],
-          borderWidth:1.5, hoverOffset:6
+          borderWidth:2, hoverOffset:10
         }]
       },
       options:{
-        responsive:false, maintainAspectRatio:true, cutout:'70%',
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed.toFixed(1)}%`}}}
+        responsive:false, maintainAspectRatio:true, cutout:'68%',
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${c.parsed.toFixed(1)}% (${brl(c.dataIndex===0?totNec:c.dataIndex===1?totDes:totInv)})`}}}
       }
     });
   }
 
-  // Legenda 50-30-20
+  // Pills de destaque (3 stat boxes)
+  const pills = document.getElementById('dist5030Pills');
+  if(pills){
+    const defs = [
+      {cor:'#fbbf24',bg:'rgba(251,191,36,.1)',icon:'🏠',label:'Necessidades',pct:pctNec,val:totNec,ideal:50},
+      {cor:'#f43f5e',bg:'rgba(244,63,94,.1)', icon:'🎉',label:'Desejos',     pct:pctDes,val:totDes,ideal:30},
+      {cor:'#22c55e',bg:'rgba(34,197,94,.1)', icon:'📈',label:'Investimentos',pct:pctInv,val:totInv,ideal:20},
+    ];
+    pills.innerHTML = defs.map(d=>{
+      const diff = d.pct - d.ideal;
+      const ok   = d.label==='Investimentos' ? diff>=0 : diff<=0;
+      const sinal= diff>0?`▲${diff.toFixed(0)}%`:`▼${Math.abs(diff).toFixed(0)}%`;
+      return `<div style="flex:1;min-width:150px;background:${d.bg};border:1.5px solid ${d.cor}33;border-radius:14px;padding:16px 18px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${d.icon} ${d.label}</div>
+        <div style="font-size:28px;font-weight:900;color:${d.cor};letter-spacing:-1px;line-height:1">${d.pct.toFixed(1)}%</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">${brl(d.val)} · meta ${d.ideal}%</div>
+        <div style="font-size:11px;font-weight:700;color:${ok?'#22c55e':'#f43f5e'};margin-top:2px">${diff===0?'Na meta ✅':ok?sinal+' acima':'Falta '+sinal}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Legenda expandida com barra de progresso vs meta
   const legend = document.getElementById('saude5030Legend');
   if(legend){
     const rows = [
-      {cor:'#fbbf24',label:'Necessidades',real:pctNec,ideal:50},
-      {cor:'#f43f5e',label:'Desejos',    real:pctDes,ideal:30},
-      {cor:'#22c55e',label:'Investimentos',real:pctInv,ideal:20},
+      {cor:'#fbbf24',label:'Necessidades', desc:'Aluguel, saúde, alimentação, transporte…', real:pctNec, ideal:50, val:totNec},
+      {cor:'#f43f5e',label:'Desejos',      desc:'Restaurantes, lazer, assinaturas…',        real:pctDes, ideal:30, val:totDes},
+      {cor:'#22c55e',label:'Investimentos',desc:'FIIs, RDB, reserva de emergência…',         real:pctInv, ideal:20, val:totInv},
     ];
     legend.innerHTML = rows.map(r=>{
       const diff = r.real - r.ideal;
-      const sinal = diff>0?`<span style="color:${r.label==='Investimentos'?'#22c55e':'#f43f5e'}">▲${diff.toFixed(0)}%</span>`:diff<0?`<span style="color:${r.label==='Investimentos'?'#f43f5e':'#22c55e'}">▼${Math.abs(diff).toFixed(0)}%</span>`:'';
-      return`<div class="dist-legend-row">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div class="dist-dot" style="background:${r.cor}"></div>
-          <span style="font-size:12px;font-weight:600">${r.label}</span>
+      const ok   = r.label==='Investimentos' ? diff>=0 : diff<=0;
+      const diffTxt = diff>0
+        ? `<span style="color:${ok?'#22c55e':'#f43f5e'}">▲${diff.toFixed(0)}% acima</span>`
+        : diff<0
+        ? `<span style="color:${ok?'#22c55e':'#f43f5e'}">▼${Math.abs(diff).toFixed(0)}% abaixo</span>`
+        : `<span style="color:#22c55e">Na meta ✅</span>`;
+      const barPct = Math.min(100, (r.real/r.ideal)*100);
+      return `<div class="dist-legend-row" style="flex-direction:column;align-items:flex-start;gap:6px;padding:12px 0">
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="dist-dot" style="background:${r.cor};width:12px;height:12px;border-radius:4px"></div>
+            <span style="font-size:13px;font-weight:700">${r.label}</span>
+            <span style="font-size:10px;color:var(--muted)">${r.desc}</span>
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:12px">
+            <span style="font-size:20px;font-weight:900;color:${r.cor}">${r.real.toFixed(1)}%</span>
+            <span style="font-size:10px;color:var(--muted);margin-left:6px">meta ${r.ideal}% · ${brl(r.val)}</span>
+          </div>
         </div>
-        <div style="text-align:right">
-          <span style="font-size:13px;font-weight:700;color:${r.cor}">${r.real.toFixed(1)}%</span>
-          <span style="font-size:10px;color:var(--muted);margin-left:5px">meta ${r.ideal}% ${sinal}</span>
+        <div style="width:100%;background:var(--surface2);border-radius:4px;height:6px;overflow:hidden">
+          <div style="width:${barPct}%;background:${r.cor};height:100%;border-radius:4px;transition:width .6s"></div>
         </div>
+        <div style="font-size:11px">${diffTxt} da meta de ${r.ideal}%</div>
       </div>`;
     }).join('');
   }
