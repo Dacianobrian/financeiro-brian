@@ -476,21 +476,23 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .meta-badge-green{background:rgba(34,197,94,.18);color:#22c55e}
 .meta-badge-yellow{background:rgba(251,191,36,.18);color:#fbbf24}
 .meta-badge-red{background:rgba(244,63,94,.18);color:#f43f5e}
-.meta-valor-atual{font-size:22px;font-weight:900;letter-spacing:-.5px;line-height:1}
-.meta-de{font-size:11px;color:var(--muted);margin-top:2px}
-.meta-progress-wrap{display:flex;flex-direction:column;gap:4px}
-.meta-progress-bar-bg{height:8px;border-radius:4px;background:var(--surface2);overflow:hidden}
-.meta-progress-bar-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.meta-valor-atual{font-size:26px;font-weight:900;letter-spacing:-.8px;line-height:1}
+.meta-de{font-size:11px;color:var(--muted);margin-top:3px}
+.meta-progress-wrap{display:flex;flex-direction:column;gap:5px;margin-top:4px}
+.meta-progress-bar-bg{height:10px;border-radius:5px;background:var(--surface2);overflow:hidden}
+.meta-progress-bar-fill{height:100%;border-radius:5px;transition:width .7s cubic-bezier(.4,0,.2,1)}
 .meta-progress-label{font-size:11px;color:var(--muted)}
-.meta-sub{font-size:11px;color:var(--muted);margin-top:2px}
-.meta-kpi-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+.meta-sub{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5}
+.meta-falta{font-size:12px;font-weight:600;margin-top:4px}
+.meta-kpi-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
 .meta-kpi{background:var(--surface);border-radius:12px;padding:14px 18px;flex:1;min-width:140px;border:1px solid var(--border)}
 .meta-kpi-label{font-size:11px;color:var(--muted);margin-bottom:4px}
 .meta-kpi-val{font-size:18px;font-weight:800;color:var(--text)}
-.meta-timeline{background:var(--surface);border-radius:12px;padding:16px;border:1px solid var(--border);margin-top:4px}
+.meta-timeline{background:var(--surface);border-radius:12px;padding:16px;border:1px solid var(--border);margin-top:16px}
 .meta-timeline-title{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
-.meta-timeline-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.meta-timeline-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;gap:8px}
 .meta-timeline-row:last-child{border-bottom:none}
+.meta-prazo-chip{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(56,189,248,.15);color:#38bdf8;white-space:nowrap}
 
 /* ── Print ────────────────────────────────────────────────── */
 @media print{
@@ -4035,210 +4037,173 @@ function fillMetas(){
   const tl     = document.getElementById('metaTimeline');
   if(!grid) return;
 
-  // ── Coleta de dados ──────────────────────────────────────────────────────
-  const cm  = _cmRow || {};
-  const monthly = _monthly || [];
-  const fii = _invFiiRows || [];
+  const fii      = _invFiiRows || [];
   const accounts = _invAccounts || [];
-  const ss  = _saudeScores || {};
+  const ss       = _saudeScores || {};
+  const monthly  = _monthly || [];
 
-  // Reserva
+  // ── Reserva de Emergência ─────────────────────────────────────────────────
   const caixinhaAtual = +(ss.caixinhaVal || 0);
   const mediaDespesas = +(ss.mediaDespesas || 0);
   const metaReserva   = mediaDespesas > 0 ? mediaDespesas * 6 : 72269;
+  const pctReserva    = metaReserva > 0 ? Math.min(1, caixinhaAtual / metaReserva) : 0;
 
-  // Renda mensal — média últimos 3 meses com dados
-  const mesesComDados = monthly.filter(m => +(m.entradas||0) > 0);
-  const ultimos3 = mesesComDados.slice(-3);
-  const mediaRenda = ultimos3.length
-    ? ultimos3.reduce((s,m) => s + +(m.entradas||0), 0) / ultimos3.length
-    : +(cm.entradas||0);
-  const metaRenda = +(cm.meta_mensal || 20000);
-
-  // Produtividade diária
-  const diasDecorridos = new Date().getDate() || 1;
-  const rendaDiaria    = +(cm.entradas||0) / diasDecorridos;
-  const metaDiaria     = +(cm.meta_diario || 800);
-
-  // Patrimônio total
-  const fiiTotal   = fii.reduce((s,f) => s + (+(f.shares||0) * +(f.avg_price||0)), 0);
-  const contasTotal= accounts
-    .filter(a => !/(caixinha|rdb)/i.test(a.type||''))
+  // ── Patrimônio Total (meta: R$100.000 em 12 meses = abr/2027) ────────────
+  const fiiTotal      = fii.reduce((s,f) => s + (+(f.shares||0) * +(f.price||f.avg_price||0)), 0);
+  const contasTotal   = accounts
+    .filter(a => !/(caixinha|rdb)/i.test((a.type||'')+(a.name||'')))
     .reduce((s,a) => s + +(a.balance||0), 0);
   const patrimonioAtual = fiiTotal + caixinhaAtual + contasTotal;
-  const metaPatrimonio  = +(cfg('metaPatrimonio', 500000));
+  const metaPatrimonio  = 100000;
+  const pctPatrimonio   = metaPatrimonio > 0 ? Math.min(1, patrimonioAtual / metaPatrimonio) : 0;
+  // Prazo: 12 meses a partir de mai/2026 = abr/2027
+  const prazoPat = 'Abr/2027';
+  const mesesRestPatrimonio = 12;
 
-  // Renda passiva FII
-  const rendaFiiAtual = fii.reduce((s,f) => s + (+(f.shares||0) * +(f.dividends_per_share||0)), 0);
-  const metaRendaFii  = metaRenda * 0.1; // 10% da meta mensal
+  // ── Renda Passiva: FII dividendos + Caixinha rendimento (0.84%/mês ≈ CDI) ─
+  const rendaFii       = fii.reduce((s,f) => s + (+(f.shares||0) * +(f.dividends_per_share||0)), 0);
+  const rendaCaixinha  = caixinhaAtual * 0.0084; // ~100% CDI ≈ 0.84%/mês
+  const rendaPassivaAtual = rendaFii + rendaCaixinha;
+  const metaRendaPassiva  = 1000;
+  const pctRendaPassiva   = metaRendaPassiva > 0 ? Math.min(1, rendaPassivaAtual / metaRendaPassiva) : 0;
 
-  // Parcelas
-  const totalParcelas = fii.length > 0
-    ? (ss.totalParcelas || 9775.46)
-    : 9775.46;
-  // Pegar de _saudeScores se existir, senão usar fixo
-  const parcelasRestantes = +(ss.totalParcelasRestante || ss.parcelasRestante || 9775.46);
-  const parcelasQuitadas  = Math.max(0, 15000 - parcelasRestantes); // estimativa total orig ~15k
+  // ── Aporte médio últimos 3 meses (para estimativas) ──────────────────────
+  const mesesComDados = monthly.filter(m => +(m.entradas||0) > 0);
+  const ultimos3 = mesesComDados.slice(-3);
+  const mediaEntradas3 = ultimos3.length
+    ? ultimos3.reduce((s,m) => s + +(m.entradas||0), 0) / ultimos3.length : 0;
 
-  // ── Aporte mensal médio (para timeline) ─────────────────────────────────
-  const meses3Aporte = mesesComDados.slice(-3);
-  const mediaAporte  = meses3Aporte.length
-    ? meses3Aporte.reduce((s,m) => s + Math.max(0, +(m.entradas||0) - +(m.saidas||0) - +(m.investido||0)), 0) / meses3Aporte.length
-    : 1500;
-
-  // ── Definição dos 6 cards ────────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────────────────
   function corMeta(pct){
     if(pct >= 0.8) return '#22c55e';
     if(pct >= 0.4) return '#fbbf24';
     return '#f43f5e';
   }
-  function badgeClass(pct){
-    if(pct >= 0.8) return 'meta-badge meta-badge-green';
-    if(pct >= 0.4) return 'meta-badge meta-badge-yellow';
-    return 'meta-badge meta-badge-red';
-  }
-  function statusLabel(pct){
-    if(pct >= 1)   return 'Atingida ✅';
-    if(pct >= 0.8) return 'Quase lá 🔄';
-    if(pct >= 0.4) return 'Em progresso 🔄';
-    return 'Atenção ⚠️';
+  function badge(pct){
+    const cls = pct>=1?'green':pct>=0.4?'yellow':'red';
+    const txt = pct>=1?'Atingida ✅':pct>=0.8?'Quase lá 🔄':pct>=0.4?'Em progresso 🔄':'Atenção ⚠️';
+    return `<span class="meta-badge meta-badge-${cls}">${txt}</span>`;
   }
 
-  const pctReserva   = metaReserva > 0 ? Math.min(1, caixinhaAtual / metaReserva) : 0;
-  const pctRenda     = metaRenda   > 0 ? Math.min(1, mediaRenda    / metaRenda)   : 0;
-  const pctDiaria    = metaDiaria  > 0 ? Math.min(1, rendaDiaria   / metaDiaria)  : 0;
-  const pctPatrimonio= metaPatrimonio > 0 ? Math.min(1, patrimonioAtual / metaPatrimonio) : 0;
-  const pctFii       = metaRendaFii   > 0 ? Math.min(1, rendaFiiAtual   / metaRendaFii)   : 0;
-  const parcelasTotal= Math.max(parcelasRestantes, parcelasQuitadas + parcelasRestantes);
-  const pctParcelas  = parcelasTotal > 0 ? Math.min(1, parcelasQuitadas / parcelasTotal) : 0;
-
-  function cardHTML(icon, titulo, pct, atual, meta, sub, extraSub){
-    const cor    = corMeta(pct);
-    const pctPx  = Math.round(pct * 100);
-    const falta  = Math.max(0, meta - atual);
+  function cardHTML({icon, titulo, pct, valorAtual, meta, formatAtual, formatMeta, sub1, sub2, prazo}){
+    const cor   = corMeta(pct);
+    const pctPx = Math.round(pct * 100);
+    const falta = meta - (typeof valorAtual === 'number' ? valorAtual : 0);
     return `
-    <div class="meta-card" style="border-color:${cor}22">
+    <div class="meta-card" style="border-color:${cor}40;background:linear-gradient(145deg,var(--surface),var(--surface2))">
       <div class="meta-card-header">
-        <div class="meta-card-title">${icon} ${titulo}</div>
-        <span class="${badgeClass(pct)}">${statusLabel(pct)}</span>
+        <div class="meta-card-title"><span style="font-size:18px">${icon}</span> ${titulo}</div>
+        ${badge(pct)}
       </div>
-      <div>
-        <div class="meta-valor-atual" style="color:${cor}">${brl(atual)}</div>
-        <div class="meta-de">de ${brl(meta)} meta</div>
+      <div style="margin-top:4px">
+        <div class="meta-valor-atual" style="color:${cor}">${formatAtual}</div>
+        <div class="meta-de">meta: ${formatMeta}${prazo?` · prazo ${prazo}`:''}</div>
       </div>
       <div class="meta-progress-wrap">
         <div class="meta-progress-bar-bg">
-          <div class="meta-progress-bar-fill" style="width:${pctPx}%;background:${cor}"></div>
+          <div class="meta-progress-bar-fill" style="width:${pctPx}%;background:linear-gradient(90deg,${cor}99,${cor})"></div>
         </div>
-        <div class="meta-progress-label">${pctPx}% · ${brl(atual)} de ${brl(meta)}</div>
+        <div class="meta-progress-label">${pctPx}% concluído</div>
       </div>
-      <div class="meta-sub">${sub}${falta > 0 ? ` · faltam ${brl(falta)}` : ' · Meta atingida!'}</div>
-      ${extraSub ? `<div class="meta-sub">${extraSub}</div>` : ''}
+      ${falta > 0 ? `<div class="meta-falta" style="color:${cor}">Faltam ${brl(falta)}</div>` : `<div class="meta-falta" style="color:#22c55e">🎉 Meta atingida!</div>`}
+      <div class="meta-sub">${sub1}</div>
+      ${sub2 ? `<div class="meta-sub">${sub2}</div>` : ''}
     </div>`;
   }
-
-  // Card especial para parcelas (invertido: mais = melhor)
-  function cardParcelasHTML(pct, restante, sub, extraSub){
-    const cor    = corMeta(pct);
-    const pctPx  = Math.round(pct * 100);
-    return `
-    <div class="meta-card" style="border-color:${cor}22">
-      <div class="meta-card-header">
-        <div class="meta-card-title">💳 Quitação de Parcelas</div>
-        <span class="${badgeClass(pct)}">${statusLabel(pct)}</span>
-      </div>
-      <div>
-        <div class="meta-valor-atual" style="color:${cor}">${brl(restante)}</div>
-        <div class="meta-de">restante · meta R$0 (quitar tudo)</div>
-      </div>
-      <div class="meta-progress-wrap">
-        <div class="meta-progress-bar-bg">
-          <div class="meta-progress-bar-fill" style="width:${pctPx}%;background:${cor}"></div>
-        </div>
-        <div class="meta-progress-label">${pctPx}% quitado · ${brl(restante)} restante</div>
-      </div>
-      <div class="meta-sub">${sub}</div>
-      ${extraSub ? `<div class="meta-sub">${extraSub}</div>` : ''}
-    </div>`;
-  }
-
-  // ── Parcelas: meses para quitar ──────────────────────────────────────────
-  const parcelaMensal = 1412;
-  const mesesParaParcelas = parcelaMensal > 0 ? Math.ceil(parcelasRestantes / parcelaMensal) : 0;
 
   grid.innerHTML =
-    cardHTML('🛡️', 'Reserva de Emergência', pctReserva, caixinhaAtual, metaReserva,
-      '6 meses de custos fixos') +
-    cardHTML('💰', 'Renda Mensal', pctRenda, mediaRenda, metaRenda,
-      'média dos últimos 3 meses') +
-    cardHTML('📅', 'Produtividade Diária', pctDiaria, rendaDiaria, metaDiaria,
-      `média do mês atual · ${diasDecorridos} dias decorridos`) +
-    cardHTML('🏦', 'Patrimônio Total', pctPatrimonio, patrimonioAtual, metaPatrimonio,
-      'FII + Reserva + Contas') +
-    cardHTML('📈', 'Renda Passiva FII', pctFii, rendaFiiAtual, metaRendaFii,
-      'dividendos mensais dos FIIs') +
-    cardParcelasHTML(pctParcelas, parcelasRestantes,
-      `R$${parcelaMensal.toLocaleString('pt-BR')}/mês`,
-      mesesParaParcelas > 0 ? `${mesesParaParcelas} meses para quitar` : 'Quitado!');
+    cardHTML({
+      icon:'🛡️', titulo:'Reserva de Emergência',
+      pct: pctReserva,
+      valorAtual: caixinhaAtual, meta: metaReserva,
+      formatAtual: brl(caixinhaAtual),
+      formatMeta: brl(metaReserva),
+      sub1: `6 meses de custos fixos · ${brl(mediaDespesas)}/mês`,
+      sub2: `Caixinha Nubank · ${(pctReserva*100).toFixed(0)}% do objetivo`
+    }) +
+    cardHTML({
+      icon:'🏦', titulo:'Patrimônio Total',
+      pct: pctPatrimonio,
+      valorAtual: patrimonioAtual, meta: metaPatrimonio,
+      formatAtual: brl(patrimonioAtual),
+      formatMeta: brl(metaPatrimonio),
+      prazo: prazoPat,
+      sub1: `FII ${brl(fiiTotal)} · Reserva ${brl(caixinhaAtual)} · Contas ${brl(contasTotal)}`,
+      sub2: `${mesesRestPatrimonio} meses para o prazo`
+    }) +
+    cardHTML({
+      icon:'📈', titulo:'Renda Passiva Mensal',
+      pct: pctRendaPassiva,
+      valorAtual: rendaPassivaAtual, meta: metaRendaPassiva,
+      formatAtual: `${brl(rendaPassivaAtual)}/mês`,
+      formatMeta: `${brl(metaRendaPassiva)}/mês`,
+      sub1: `FII ${brl(rendaFii)}/mês · Caixinha ~${brl(rendaCaixinha)}/mês`,
+      sub2: `Dividendos + rendimento RDB Nubank`
+    });
 
-  // ── KPIs de resumo ───────────────────────────────────────────────────────
-  const pcts = [pctReserva, pctRenda, pctDiaria, pctPatrimonio, pctFii, pctParcelas];
-  const atingidas  = pcts.filter(p => p >= 1).length;
-  const melhorPct  = Math.round(Math.max(...pcts) * 100);
-  const mesesParaReserva = mediaAporte > 0 && caixinhaAtual < metaReserva
-    ? Math.ceil((metaReserva - caixinhaAtual) / mediaAporte)
-    : 0;
-
-  // Próxima milestone: qual meta está mais próxima sem atingir
-  const proximaMeta = [
-    {pct: pctReserva,    val: metaReserva,    nome: 'Reserva'},
-    {pct: pctRenda,      val: metaRenda,      nome: 'Renda Mensal'},
-    {pct: pctPatrimonio, val: metaPatrimonio, nome: 'Patrimônio'},
-    {pct: pctFii,        val: metaRendaFii,   nome: 'Renda FII'},
-  ].filter(m => m.pct < 1).sort((a,b) => b.pct - a.pct)[0];
+  // ── KPIs de resumo ────────────────────────────────────────────────────────
+  const pcts     = [pctReserva, pctPatrimonio, pctRendaPassiva];
+  const atingidas = pcts.filter(p => p >= 1).length;
+  const melhorPct = Math.round(Math.max(...pcts) * 100);
+  const proxima   = [
+    {pct:pctReserva,    label:'Reserva',   val:metaReserva},
+    {pct:pctPatrimonio, label:'Patrimônio', val:metaPatrimonio},
+    {pct:pctRendaPassiva,label:'Renda Passiva', val:metaRendaPassiva},
+  ].filter(m=>m.pct<1).sort((a,b)=>b.pct-a.pct)[0];
 
   kpiRow.innerHTML = `
     <div class="meta-kpi">
-      <div class="meta-kpi-label">Metas atingidas</div>
-      <div class="meta-kpi-val" style="color:${atingidas>0?'#22c55e':'var(--text)'}">${atingidas}/6</div>
+      <div class="meta-kpi-label">🎯 Metas atingidas</div>
+      <div class="meta-kpi-val" style="color:${atingidas>0?'#22c55e':'var(--text)'}">${atingidas}/3</div>
     </div>
     <div class="meta-kpi">
-      <div class="meta-kpi-label">Melhor meta</div>
+      <div class="meta-kpi-label">🏆 Melhor progresso</div>
       <div class="meta-kpi-val" style="color:${corMeta(melhorPct/100)}">${melhorPct}%</div>
     </div>
     <div class="meta-kpi">
-      <div class="meta-kpi-label">Próxima milestone</div>
-      <div class="meta-kpi-val" style="color:#38bdf8">${proximaMeta ? brl(proximaMeta.val) + ' · ' + proximaMeta.nome : '—'}</div>
+      <div class="meta-kpi-label">⚡ Mais próxima</div>
+      <div class="meta-kpi-val" style="color:#38bdf8;font-size:14px">${proxima ? proxima.label+' · '+(proxima.pct*100).toFixed(0)+'%' : 'Todas atingidas ✅'}</div>
     </div>`;
 
-  // ── Linha do tempo ───────────────────────────────────────────────────────
-  const mesesParaReservaStr = mesesParaReserva > 0
-    ? `${mesesParaReserva} meses (aporte médio ${brl(mediaAporte)}/mês)`
-    : caixinhaAtual >= metaReserva ? 'Reserva completa ✅' : '—';
-  const mesesParaFii = rendaFiiAtual < metaRendaFii && rendaFiiAtual > 0
-    ? '— depende de aportes e valorização'
-    : rendaFiiAtual >= metaRendaFii ? 'Meta atingida ✅' : '—';
-  const mesesParaPatrimonio = patrimonioAtual < metaPatrimonio && mediaAporte > 0
-    ? `${Math.ceil((metaPatrimonio - patrimonioAtual) / mediaAporte)} meses (aporte médio ${brl(mediaAporte)}/mês)`
-    : patrimonioAtual >= metaPatrimonio ? 'Meta atingida ✅' : '—';
+  // ── Linha do tempo ────────────────────────────────────────────────────────
+  // Reserva: quanto sobra por mês para a caixinha (estimativa conservadora)
+  const aporteMensal = Math.max(2000, mediaEntradas3 * 0.20); // mínimo 20% da renda
+  const mesesParaReserva = caixinhaAtual < metaReserva && aporteMensal > 0
+    ? Math.ceil((metaReserva - caixinhaAtual) / aporteMensal) : 0;
+
+  // Patrimônio: quanto valoriza/cresce por mês
+  const crescPatrimonio = patrimonioAtual < metaPatrimonio && aporteMensal > 0
+    ? Math.ceil((metaPatrimonio - patrimonioAtual) / aporteMensal) : 0;
+
+  function addMeses(n){
+    const d = new Date();
+    d.setMonth(d.getMonth() + n);
+    return d.toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
+  }
 
   tl.innerHTML = `
-    <div class="meta-timeline-title">📅 Linha do Tempo Estimada</div>
+    <div class="meta-timeline-title">📅 Estimativa de Prazo</div>
     <div class="meta-timeline-row">
       <span style="color:var(--muted)">🛡️ Reserva de Emergência</span>
-      <span style="font-weight:600">${mesesParaReservaStr}</span>
+      <span style="display:flex;align-items:center;gap:8px">
+        <span style="font-weight:600">${mesesParaReserva>0?mesesParaReserva+' meses':'Atingida ✅'}</span>
+        ${mesesParaReserva>0?`<span class="meta-prazo-chip">${addMeses(mesesParaReserva)}</span>`:''}
+      </span>
     </div>
     <div class="meta-timeline-row">
-      <span style="color:var(--muted)">💳 Quitação de Parcelas</span>
-      <span style="font-weight:600">${mesesParaParcelas > 0 ? mesesParaParcelas + ' meses (R$' + parcelaMensal.toLocaleString('pt-BR') + '/mês)' : 'Quitado ✅'}</span>
+      <span style="color:var(--muted)">🏦 Patrimônio ${brl(metaPatrimonio)}</span>
+      <span style="display:flex;align-items:center;gap:8px">
+        <span style="font-weight:600">${crescPatrimonio>0?crescPatrimonio+' meses':'Atingido ✅'}</span>
+        <span class="meta-prazo-chip">Abr/2027</span>
+      </span>
     </div>
     <div class="meta-timeline-row">
-      <span style="color:var(--muted)">🏦 Patrimônio Total</span>
-      <span style="font-weight:600">${mesesParaPatrimonio}</span>
+      <span style="color:var(--muted)">📈 Renda Passiva ${brl(metaRendaPassiva)}/mês</span>
+      <span style="font-weight:600;color:var(--muted)">depende de aportes em FII</span>
     </div>
-    <div class="meta-timeline-row">
-      <span style="color:var(--muted)">📈 Renda FII R$2.000/mês</span>
-      <span style="font-weight:600">${mesesParaFii}</span>
+    <div class="meta-timeline-row" style="border-bottom:none;padding-top:10px;margin-top:4px;border-top:1px solid var(--border)">
+      <span style="color:var(--muted);font-size:10px">* Estimativa com aporte mensal de ${brl(aporteMensal)}</span>
+      <span style="color:var(--muted);font-size:10px">Patrimônio atual: ${brl(patrimonioAtual)}</span>
     </div>`;
 }
 
