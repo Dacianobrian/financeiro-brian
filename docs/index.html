@@ -523,7 +523,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       <div class="set-section-title">🎯 Metas</div>
       <div class="set-row">
         <label class="set-label">Meta de Reserva (R$)</label>
-        <input class="set-input" id="setMetaReserva" type="number" placeholder="60000"/>
+        <input class="set-input" id="setMetaReserva" type="number" placeholder="72269"/>
         <div class="set-hint">Valor alvo da Caixinha Nubank</div>
       </div>
       <div class="set-row">
@@ -858,7 +858,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🏢</span>Portfolio FII</div><div class="kpi-value amt-yellow" id="kpiFii">—</div><div class="kpi-sub" id="kpiFiiSub">valor de mercado</div></div>
     <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💸</span>Dividendos / Mês</div><div class="kpi-value amt-green" id="kpiDiv">—</div><div class="kpi-sub">renda passiva estimada</div></div>
     <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Total Investido</div><div class="kpi-value" style="color:var(--cyan)" id="kpiInv">—</div><div class="kpi-sub">Caixinha + FIIs</div></div>
-    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🎯</span>Meta Reserva · Dez/2027</div><div class="kpi-value amt-yellow" id="kpiMeta">—</div><div class="progress"><div class="progress-fill" id="kpiMetaBar" style="width:0%;background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div><div class="kpi-sub" id="kpiMetaSub">de R$ 60.000</div></div>
+    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🎯</span>Meta Reserva · Dez/2027</div><div class="kpi-value amt-yellow" id="kpiMeta">—</div><div class="progress"><div class="progress-fill" id="kpiMetaBar" style="width:0%;background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div><div class="kpi-sub" id="kpiMetaSub">de R$ 72.269</div></div>
   </div>
 
   <div class="section">
@@ -1688,7 +1688,7 @@ function getBrapiToken(){return cfg('brapiToken','');}
 // ── Settings UI ───────────────────────────────────────────────────────────────
 function openSettings(){
   _loadCfg();
-  document.getElementById('setMetaReserva').value=cfg('metaReserva',60000);
+  document.getElementById('setMetaReserva').value=cfg('metaReserva',72269);
   document.getElementById('setMetaPrazo').value=cfg('metaPrazo','2027-12');
   document.getElementById('setAlertaSaldo').value=cfg('alertaSaldo',500);
   document.getElementById('setBrapiToken').value=cfg('brapiToken','');
@@ -1698,7 +1698,7 @@ function openSettings(){
 function closeSettings(){document.getElementById('settingsOverlay').classList.remove('open');}
 function saveSettings(){
   _cfg={
-    metaReserva:+document.getElementById('setMetaReserva').value||60000,
+    metaReserva:+document.getElementById('setMetaReserva').value||72269,
     metaPrazo:document.getElementById('setMetaPrazo').value||'2027-12',
     alertaSaldo:+document.getElementById('setAlertaSaldo').value||500,
     brapiToken:document.getElementById('setBrapiToken').value.trim(),
@@ -2549,7 +2549,8 @@ function fillKpis(cm, fii, accounts, patrimonio){
   const caixinhaVal=caixinha?+(caixinha.balance||0):0;
   const totInv=fiiTotal+caixinhaVal;
   document.getElementById('kpiInv').textContent=brl(totInv);
-  const metaR=cfg('metaReserva',60000); const metaP=cfg('metaPrazo','2027-12');
+  // Usa meta_reserva do Supabase (goals) se disponível, senão localStorage
+  const metaR=+(cm.meta_reserva||0)||cfg('metaReserva',72269); const metaP=cfg('metaPrazo','2027-12');
   const [metaY,metaM]=metaP.split('-'); const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const metaLabel=metaM?`${meses[+metaM-1]}/${metaY}`:metaP;
   document.getElementById('kpiMeta').textContent=brl(caixinhaVal);
@@ -2563,7 +2564,7 @@ function fillKpis(cm, fii, accounts, patrimonio){
 }
 
 // ── Saúde Financeira ───────────────────────────────────────────────────────────
-function fillSaudeFinanceira(cm, monthly, fii, accounts){
+function fillSaudeFinanceira(cm, monthly, fii, accounts, fixedCosts){
   const entradas  = +(cm.entradas||0);
   const saidas    = +(cm.saidas||0);
   const investido = +(cm.investido||0);
@@ -2577,7 +2578,9 @@ function fillSaudeFinanceira(cm, monthly, fii, accounts){
   const mediaEntradas = ultimos3.length ? ultimos3.reduce((s,m)=>s+(+(m.entradas||0)),0)/ultimos3.length : entradas;
   const mediaSaidas   = ultimos3.length ? ultimos3.reduce((s,m)=>s+(+(m.saidas||0)),0)/ultimos3.length : saidas;
   const mediaInv      = ultimos3.length ? ultimos3.reduce((s,m)=>s+(+(m.investido||0)),0)/ultimos3.length : investido;
-  const mediaDespesas = mediaSaidas > 0 ? mediaSaidas : 1;
+  // Usa custos fixos como base da reserva (mais estável que média de saídas variáveis)
+  const totalFixedCosts = (fixedCosts||[]).reduce((s,c)=>s+(+(c.amount||0)),0);
+  const mediaDespesas = totalFixedCosts > 0 ? totalFixedCosts : (mediaSaidas > 0 ? mediaSaidas : 1);
 
   // ── Score ────────────────────────────────────────────────────────────────
   const taxaAporte = entradas > 0 ? (investido/entradas)*100 : 0;
@@ -2756,10 +2759,10 @@ function fillSaudeMetricas(cm, monthly, fii, accounts, fc){
     },
     {
       icon:'🛡️', label:'Cobertura de Reserva',
-      val:`${mesesReserva.toFixed(1)} meses`, ref:'Ideal: ≥ 6 meses (renda variável)',
+      val:`${mesesReserva.toFixed(1)} meses`, ref:`Ideal: ≥ 6 meses · Meta: ${brl(_saudeScores.mediaDespesas*6)}`,
       pct: Math.min(100,(mesesReserva/6)*100),
       cor: mesesReserva>=6?'#22c55e':mesesReserva>=3?'#fbbf24':'#f43f5e',
-      sub: _saudeScores.caixinhaVal>0?`${brl(_saudeScores.caixinhaVal)} na Caixinha`:''
+      sub: _saudeScores.caixinhaVal>0?`${brl(_saudeScores.caixinhaVal)} na Caixinha · faltam ${brl(Math.max(0,_saudeScores.mediaDespesas*6-_saudeScores.caixinhaVal))}`:''
     },
     {
       icon:'🏢', label:'Renda Passiva / Mês',
@@ -3931,7 +3934,7 @@ async function _doRefresh(){
 
     _cmRow = cmRow; _fcRows = fc||[];
     fillKpis(cmRow, fii, accounts, patRow);
-    fillSaudeFinanceira(cmRow, monthly, fii, accounts);
+    fillSaudeFinanceira(cmRow, monthly, fii, accounts, fc||[]);
     fillSaudeMetricas(cmRow, monthly, fii, accounts, fc||[]);
     fillSaudeRecomendacoes();
     buildSaudeCharts(monthly, catsObj);
