@@ -485,6 +485,36 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .meta-timeline-row:last-child{border-bottom:none}
 .meta-prazo-chip{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(56,189,248,.15);color:#38bdf8;white-space:nowrap}
 
+/* ── Status strip ───────────────────────────────────────────── */
+.status-strip{display:flex;align-items:stretch;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px}
+.status-item{flex:1;padding:8px 16px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:2px;min-width:0}
+.status-item:last-child{border-right:none}
+.status-lbl{font-size:9px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.status-val{font-size:17px;font-weight:800;letter-spacing:-.6px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:700px){.status-item{padding:7px 10px}.status-val{font-size:14px}}
+
+/* ── Tab context badges ──────────────────────────────────────── */
+.tab-ctx{font-size:10px;padding:1px 7px;border-radius:999px;background:rgba(99,102,241,.12);color:var(--blue2);font-weight:700;line-height:1.5;white-space:nowrap;display:inline-block}
+@media(max-width:480px){.tab-ctx{display:none}}
+
+/* ── Category avatar circle ─────────────────────────────────── */
+.cat-av-circle{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-size:10px;font-weight:800;flex-shrink:0;vertical-align:middle;margin-right:6px;line-height:1}
+
+/* ── Score history mini bars ─────────────────────────────────── */
+.score-hist-wrap{display:flex;flex-direction:column;gap:4px;padding-left:16px;border-left:1px solid var(--border)}
+.score-hist-bars{display:flex;align-items:flex-end;gap:5px;height:50px}
+.score-hist-col{display:flex;flex-direction:column;align-items:center;gap:3px}
+.score-hist-bar{width:14px;border-radius:3px 3px 0 0;min-height:4px;transition:height .5s ease}
+.score-hist-mo{font-size:9px;color:var(--muted);text-align:center}
+
+/* ── Spending pace bars ──────────────────────────────────────── */
+.pace-item{display:flex;align-items:center;gap:8px;font-size:11.5px}
+.pace-name{width:96px;flex-shrink:0;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pace-track{flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:visible;position:relative}
+.pace-fill{height:100%;border-radius:4px;transition:width .5s ease;position:relative;z-index:1}
+.pace-marker{position:absolute;top:-3px;width:2px;height:14px;background:rgba(255,255,255,.35);border-radius:1px;z-index:2}
+.pace-pct{width:36px;text-align:right;font-weight:700;flex-shrink:0;font-size:11px}
+
 /* ── KPI Trend & Sparkline ──────────────────────────────────── */
 .kpi-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:4px}
 .kpi-trend{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;display:inline-flex;align-items:center;gap:2px;white-space:nowrap}
@@ -612,10 +642,10 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     <div class="logo-text">Brian <span>Finanças</span></div>
   </div>
   <div class="header-center">
-    <button class="tab-btn active" id="tabBtnGeral" onclick="switchTab('geral')">📊 Visão Geral</button>
-    <button class="tab-btn" id="tabBtnInv" onclick="switchTab('inv')">📈 Investimentos</button>
-    <button class="tab-btn" id="tabBtnSaude" onclick="switchTab('saude')">🩺 Saúde</button>
-    <button class="tab-btn" id="tabBtnMetas" onclick="switchTab('metas')">🎯 Metas</button>
+    <button class="tab-btn active" id="tabBtnGeral" onclick="switchTab('geral')">📊 Visão Geral <span class="tab-ctx" id="tabCtxGeral"></span></button>
+    <button class="tab-btn" id="tabBtnInv" onclick="switchTab('inv')">📈 Investimentos <span class="tab-ctx" id="tabCtxInv"></span></button>
+    <button class="tab-btn" id="tabBtnSaude" onclick="switchTab('saude')">🩺 Saúde <span class="tab-ctx" id="tabCtxSaude"></span></button>
+    <button class="tab-btn" id="tabBtnMetas" onclick="switchTab('metas')">🎯 Metas <span class="tab-ctx" id="tabCtxMetas"></span></button>
   </div>
   <div class="header-right">
     <div class="date-chip" id="headerDate"></div>
@@ -912,6 +942,26 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 <!-- Page -->
 <div class="page">
 
+<!-- Status strip — visível em todas as abas -->
+<div id="statusStrip" class="status-strip" style="display:none">
+  <div class="status-item">
+    <div class="status-lbl">Saldo em Conta</div>
+    <div class="status-val" id="ss-saldo">—</div>
+  </div>
+  <div class="status-item">
+    <div class="status-lbl">Saúde Financeira</div>
+    <div class="status-val" id="ss-score">—</div>
+  </div>
+  <div class="status-item">
+    <div class="status-lbl">Proventos / Mês</div>
+    <div class="status-val" id="ss-provs">—</div>
+  </div>
+  <div class="status-item">
+    <div class="status-lbl">Meta Principal</div>
+    <div class="status-val" id="ss-meta">—</div>
+  </div>
+</div>
+
 <!-- TAB: VISÃO GERAL -->
 <div id="tabGeral">
   <!-- Banner alerta saldo baixo -->
@@ -1079,6 +1129,11 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">🏦 Resumo por Conta</div>
           <div id="relContas" style="display:flex;flex-direction:column;gap:5px"></div>
         </div>
+      </div>
+      <!-- Ritmo de gasto por categoria -->
+      <div id="relPaceWrap" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">🏃 Ritmo de gasto por categoria <span id="relPaceNote" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted)"></span></div>
+        <div id="relPaceSection" style="display:flex;flex-direction:column;gap:7px"></div>
       </div>
     </div>
   </div>
@@ -1653,6 +1708,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     <div class="section-header" style="margin-bottom:12px"><div class="section-title">🩺 Score de Saúde Financeira</div></div>
     <div class="card" style="padding:22px 24px">
       <div style="display:flex;align-items:center;gap:24px;margin-bottom:22px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:16px;flex-shrink:0">
         <div class="saude-gauge-wrap">
           <svg class="saude-gauge-svg" viewBox="0 0 160 160">
             <circle cx="80" cy="80" r="58" fill="none" stroke="var(--border2)" stroke-width="14" stroke-linecap="round"
@@ -1666,6 +1722,13 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
             <span class="saude-score-grade" id="saudeLabel" style="color:#22c55e">pts</span>
           </div>
         </div>
+        <!-- Score history mini bars -->
+        <div class="score-hist-wrap" id="saudeHistWrap" style="display:none">
+          <div style="font-size:9px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Últimos 6 meses</div>
+          <div class="score-hist-bars" id="saudeHistBars"></div>
+          <div id="saudeHistTrend" style="font-size:10px;font-weight:700;margin-top:4px;text-align:center"></div>
+        </div>
+        </div><!-- /gauge+history wrapper -->
         <div class="saude-comp-grid" id="saudeComponentes" style="flex:1;min-width:0">
           <div class="saude-comp-item" style="opacity:.4">Carregando...</div>
         </div>
@@ -2077,9 +2140,10 @@ async function loadTxModal(keepPage=false){
     if(body) body.innerHTML=rows.map(t=>{
       const ac=t.type==='entrada'?'amt-green':t.type==='investido'?'amt-purple':'amt-red';
       const sig=t.type==='entrada'?'+':'-';
+      const catLabel2=t.type==='investido'?'Investimento':(t.category||'Outros');
       return`<tr style="border-bottom:1px solid rgba(30,45,69,.4);font-size:12px">
         <td style="padding:7px 12px;white-space:nowrap;color:var(--muted)">${fmtDate(t.date)}</td>
-        <td style="padding:7px 12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.description||''}">${t.description||'—'}</td>
+        <td style="padding:7px 12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.description||''}">${catAvatar(catLabel2,22)}${t.description||'—'}</td>
         <td style="padding:7px 12px">${catBadge(t.category)}</td>
         <td style="padding:7px 12px;font-size:11px;color:var(--muted2)">${t.account||'—'}</td>
         <td style="padding:7px 12px;text-align:right;font-weight:700" class="${ac}">${sig}${brl(t.amount)}</td>
@@ -2641,6 +2705,80 @@ function bankLogo(name, size=28){
 function catBadge(c){const col=catColor(c);return`<span class="cat" style="background:${col}22;color:${col};border:1px solid ${col}44">${catIcon(c)} ${c||'—'}</span>`}
 function brl(v,plus=false){if(v==null||v==='')return'—';const n=parseFloat(v);const s='R$ '+Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});return(plus&&n>0?'+':'')+s}
 
+const CAT_COLORS={
+  'alimentação':['#22c55e','rgba(34,197,94,.18)'],
+  'alimentacao':['#22c55e','rgba(34,197,94,.18)'],
+  'mercado':['#22c55e','rgba(34,197,94,.18)'],
+  'transporte':['#38bdf8','rgba(56,189,248,.18)'],
+  'uber':['#38bdf8','rgba(56,189,248,.18)'],
+  'investimento':['#a78bfa','rgba(139,92,246,.18)'],
+  'investido':['#a78bfa','rgba(139,92,246,.18)'],
+  'fii':['#a78bfa','rgba(139,92,246,.18)'],
+  'lazer':['#fbbf24','rgba(251,191,36,.18)'],
+  'entretenimento':['#fbbf24','rgba(251,191,36,.18)'],
+  'moradia':['#fb923c','rgba(251,146,60,.18)'],
+  'aluguel':['#fb923c','rgba(251,146,60,.18)'],
+  'saúde':['#34d399','rgba(52,211,153,.18)'],
+  'saude':['#34d399','rgba(52,211,153,.18)'],
+  'educação':['#60a5fa','rgba(96,165,250,.18)'],
+  'educacao':['#60a5fa','rgba(96,165,250,.18)'],
+  'vestuário':['#f472b6','rgba(244,114,182,.18)'],
+  'roupas':['#f472b6','rgba(244,114,182,.18)'],
+  'receita':['#22c55e','rgba(34,197,94,.18)'],
+  'salário':['#22c55e','rgba(34,197,94,.18)'],
+  'comissao':['#22c55e','rgba(34,197,94,.18)'],
+  'comissão':['#22c55e','rgba(34,197,94,.18)'],
+};
+function catAvatar(category, size=26){
+  const key=(category||'outros').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const match=Object.keys(CAT_COLORS).find(k=>key.includes(k));
+  const [color,bg]=match?CAT_COLORS[match]:['#94a3b8','rgba(148,163,184,.18)'];
+  const letter=(category||'?')[0].toUpperCase();
+  return `<span class="cat-av-circle" style="background:${bg};color:${color};width:${size}px;height:${size}px">${letter}</span>`;
+}
+
+function updateStatusBar(accounts, score, fiiMonthlyDiv, metaPct){
+  const strip=document.getElementById('statusStrip');
+  if(!strip) return;
+  const saldo=(accounts||[]).filter(a=>a.type==='corrente').reduce((s,a)=>s+(+a.balance||0),0);
+  const saldoEl=document.getElementById('ss-saldo');
+  if(saldoEl){saldoEl.textContent=brl(saldo);saldoEl.style.color=saldo>=0?'var(--green)':'var(--red)';}
+  const scoreEl=document.getElementById('ss-score');
+  if(scoreEl&&score!=null){
+    scoreEl.textContent=score+' pts';
+    scoreEl.style.color=score>=75?'#22c55e':score>=50?'#fbbf24':'#f43f5e';
+  }
+  const provsEl=document.getElementById('ss-provs');
+  if(provsEl&&fiiMonthlyDiv!=null){provsEl.textContent=brl(fiiMonthlyDiv);provsEl.style.color='#22c55e';}
+  const metaEl=document.getElementById('ss-meta');
+  if(metaEl&&metaPct!=null){
+    metaEl.textContent=Math.round(metaPct*100)+'%';
+    metaEl.style.color=metaPct>=0.8?'#22c55e':metaPct>=0.4?'#fbbf24':'#f43f5e';
+  }
+  strip.style.display='';
+}
+
+function updateTabBadges(monthLabel, nFii, score, metasAting, totalMetas){
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const mes=monthLabel||meses[new Date().getMonth()];
+  const gEl=document.getElementById('tabCtxGeral');
+  if(gEl) gEl.textContent=mes;
+  const iEl=document.getElementById('tabCtxInv');
+  if(iEl&&nFii!=null){iEl.textContent=nFii+' FII'+(nFii!==1?'s':'');iEl.style.background='rgba(251,191,36,.12)';iEl.style.color='#fbbf24';}
+  const sEl=document.getElementById('tabCtxSaude');
+  if(sEl&&score!=null){
+    sEl.textContent=score+' pts';
+    sEl.style.background=score>=75?'rgba(34,197,94,.12)':score>=50?'rgba(251,191,36,.12)':'rgba(244,63,94,.12)';
+    sEl.style.color=score>=75?'#22c55e':score>=50?'#fbbf24':'#f43f5e';
+  }
+  const mEl=document.getElementById('tabCtxMetas');
+  if(mEl&&totalMetas!=null){
+    mEl.textContent=metasAting+'/'+totalMetas;
+    mEl.style.background=metasAting>0?'rgba(34,197,94,.12)':'rgba(99,102,241,.12)';
+    mEl.style.color=metasAting>0?'#22c55e':'var(--blue2)';
+  }
+}
+
 function miniSparkSvg(values, color='#38bdf8', w=64, h=26){
   if(!values||values.length<2) return '';
   const mn=Math.min(...values), mx=Math.max(...values);
@@ -2863,6 +3001,15 @@ function fillKpis(cm, fii, accounts, patrimonio, monthly){
   const metaCard=document.getElementById('kpiMeta')?.closest('.card');
   if(metaCard){const lbl=metaCard.querySelector('.kpi-label');if(lbl)lbl.innerHTML=lbl.innerHTML.replace(/Meta Reserva.*$/,`Meta Reserva · ${metaLabel}`);}
 
+  // Atualiza status strip com dados disponíveis já no fillKpis
+  const _monthlyDiv2=fii.reduce((s,f)=>s+(+(f.shares||0))*(+(f.dividends_per_share||0)),0);
+  const _metaR2=+(cm.meta_reserva||0)||cfg('metaReserva',72269);
+  const _caixinha2=accounts.find(a=>/caixinha|rdb/i.test((a.type||'')+(a.name||'')));
+  const _caixVal2=_caixinha2?+(+_caixinha2.balance||0):0;
+  updateStatusBar(accounts, null, _monthlyDiv2, _metaR2>0?Math.min(1,_caixVal2/_metaR2):null);
+  const _mesAtual2=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][new Date().getMonth()];
+  updateTabBadges(_mesAtual2, fii.length, null, null, null);
+
   // Sparklines + trend badges from monthly history
   const _sparkMonthly = monthly || _monthly;
   if(_sparkMonthly && _sparkMonthly.length >= 2){
@@ -3029,6 +3176,46 @@ function fillSaudeFinanceira(cm, monthly, fii, accounts, fixedCosts){
       ? top4.map(i=>`<div class="saude-ins-item" style="border-left-color:${i.cor}"><span class="saude-ins-icon">${i.icon}</span><div class="saude-ins-txt">${i.txt}</div></div>`).join('')
       : '<div style="color:var(--muted);font-size:12px;grid-column:1/-1">Nenhum insight disponível — adicione mais transações.</div>';
   }
+
+  // ── Score history mini bars ──────────────────────────────────────────────
+  const histWrap = document.getElementById('saudeHistWrap');
+  const histBars = document.getElementById('saudeHistBars');
+  const histTrend = document.getElementById('saudeHistTrend');
+  const mesesHist = (monthly||[]).filter(m=>+(m.entradas||0)>0).slice(-6);
+  if(histBars && mesesHist.length >= 2){
+    const scoresFn = mesesArr => mesesArr.map(m=>{
+      const e=+(m.entradas||0), s=+(m.saidas||0), i=+(m.investido||0);
+      if(e===0) return 0;
+      const tA=e>0?(i/e)*100:0;
+      const pA=Math.min(30,Math.round((tA/20)*30));
+      const tG=e>0?(s/e)*100:100;
+      const pG=tG<=70?25:tG<=80?18:tG<=90?10:tG<=100?4:0;
+      return Math.min(100, pA+pG+5);
+    });
+    const scores = scoresFn(mesesHist);
+    const maxS = Math.max(...scores, 1);
+    const mesesLabels = (monthly||[]).filter(m=>+(m.entradas||0)>0).slice(-6).map(m=>m.month||'');
+    const barColors = scores.map(s=>s>=75?'#22c55e':s>=50?'#fbbf24':'#f43f5e');
+    histBars.innerHTML = scores.map((s,i)=>{
+      const h = Math.max(6, Math.round((s/maxS)*44));
+      return `<div class="score-hist-col"><div class="score-hist-bar" style="height:${h}px;background:${barColors[i]};opacity:${i===scores.length-1?1:.55}"></div><div class="score-hist-mo">${(mesesLabels[i]||'').slice(0,3)}</div></div>`;
+    }).join('');
+    const firstS=scores[0], lastS=scores[scores.length-1];
+    const diff=lastS-firstS;
+    if(histTrend) histTrend.innerHTML=diff>0
+      ?`<span style="color:#22c55e">▲ +${diff.toFixed(0)} pts</span>`
+      :diff<0?`<span style="color:#f43f5e">▼ ${diff.toFixed(0)} pts</span>`
+      :`<span style="color:var(--muted2)">— estável</span>`;
+    if(histWrap) histWrap.style.display='';
+  }
+
+  // ── Atualiza status strip + tab badges ──────────────────────────────────
+  const monthlyDiv = (fii||[]).reduce((s,f)=>s+(+(f.shares||0))*(+(f.dividends_per_share||0)),0);
+  const metaR2 = +(cm.meta_reserva||0)||cfg('metaReserva',72269);
+  const metaPct2 = metaR2>0 ? Math.min(1,caixinhaVal/metaR2) : 0;
+  updateStatusBar(accounts, score, monthlyDiv, metaPct2);
+  const mesAtual=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][new Date().getMonth()];
+  updateTabBadges(mesAtual, (fii||[]).length, score, null, null);
 
   // Salva scores para uso nas outras funções da aba
   _saudeScores = {score,cor,grau,ptAporte,ptGasto,ptReserva,ptFii,ptRegular,
@@ -3505,12 +3692,12 @@ function fillTx(rows){
   rows.forEach(t=>_txMap[t.id]=t);
   tb.innerHTML=rows.slice(0,15).map(t=>{
     const amtCls=t.type==='entrada'?'amt-green':t.type==='investido'?'amt-purple':'amt-red';
-    const dot=t.type==='entrada'?'🟢':t.type==='investido'?'🟣':'🔴';
-    const accLogo=t.account?`<span style="vertical-align:middle;margin-right:3px">${bankLogo(t.account,14)}</span>`:'';
+    const catLabel=t.type==='investido'?'Investimento':(t.category||'Outros');
+    const av=catAvatar(catLabel,24);
     return`<tr style="font-size:12px">
       <td style="white-space:nowrap;color:var(--muted);padding:5px 6px">${fmtDate(t.date)}</td>
       <td style="padding:5px 6px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.description||''}">
-        <span style="margin-right:3px">${dot}</span>${accLogo}${t.description||'—'}
+        ${av}${t.description||'—'}
       </td>
       <td style="padding:5px 6px">${catBadge(t.category)}</td>
       <td style="text-align:right;padding:5px 6px;font-weight:700" class="${amtCls}">${brl(t.amount)}</td>
@@ -4802,6 +4989,9 @@ function fillMetas(){
     {pct:pctRendaPassiva,label:'Renda Passiva', val:metaRendaPassiva},
   ].filter(m=>m.pct<1).sort((a,b)=>b.pct-a.pct)[0];
 
+  // Atualiza badge da aba Metas
+  updateTabBadges(null, null, null, atingidas, pcts.length);
+
   kpiRow.innerHTML = `
     <div class="meta-kpi">
       <div class="meta-kpi-label">🎯 Metas atingidas</div>
@@ -5060,6 +5250,44 @@ async function fillRelatorioMes(){
         </div>
       </div>`;
     }).join(''):'<div style="color:var(--muted);font-size:12px">Sem movimentação</div>';
+
+    // ── Ritmo de gasto por categoria ─────────────────────────────────────
+    const paceWrap = document.getElementById('relPaceWrap');
+    const paceEl   = document.getElementById('relPaceSection');
+    const paceNote = document.getElementById('relPaceNote');
+    const isMesAtualRel = _relMesOffset === 0;
+    if(paceEl && topCats.length > 0){
+      const hoje2 = new Date();
+      const diaAtual = isMesAtualRel ? hoje2.getDate() : ultDia(alvo);
+      const diasMes  = ultDia(alvo);
+      const paceEsperado = diaAtual / diasMes;
+      if(paceNote) paceNote.textContent = isMesAtualRel
+        ? `· dia ${diaAtual} de ${diasMes} (${Math.round(paceEsperado*100)}% do mês decorrido)`
+        : `· mês completo`;
+      const totalCatsSai = topCats.reduce((s,[,v])=>s+v, 0);
+      paceEl.innerHTML = topCats.slice(0,6).map(([cat, gasto])=>{
+        const refMes = totalSai > 0 ? (gasto / totalSai) * totalSai : gasto;
+        const refEst = totalSai > 0 ? (gasto / totalSai) * (totalSai / paceEsperado) : gasto / paceEsperado;
+        const paceRatio = refEst > 0 ? gasto / refEst : 0;
+        const pctBar = Math.min(100, (gasto / (totalSai||1)) * 100);
+        const pctMarcador = Math.min(100, paceEsperado * 100);
+        const color = paceRatio <= 0.85 ? '#22c55e' : paceRatio <= 1.15 ? '#fbbf24' : '#f43f5e';
+        const paceLabel = paceRatio <= 0.85 ? 'ok' : paceRatio <= 1.15 ? '~ok' : 'alto';
+        const av = catAvatar(cat, 20);
+        return `<div class="pace-item">
+          <div class="pace-name" style="display:flex;align-items:center;gap:5px">${av}<span>${cat}</span></div>
+          <div class="pace-track">
+            <div class="pace-fill" style="width:${pctBar.toFixed(1)}%;background:${color}"></div>
+            <div class="pace-marker" style="left:${pctMarcador.toFixed(1)}%"></div>
+          </div>
+          <div class="pace-pct" style="color:${color}">${paceLabel}</div>
+          <div style="font-size:10px;color:var(--muted);width:56px;text-align:right;flex-shrink:0">${brl(gasto)}</div>
+        </div>`;
+      }).join('');
+      if(paceWrap) paceWrap.style.display='';
+    } else {
+      if(paceWrap) paceWrap.style.display='none';
+    }
 
   }catch(e){console.error('Relatório mensal erro:',e);toast('Erro no relatório','err',3000);}
 }
