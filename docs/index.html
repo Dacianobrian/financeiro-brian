@@ -1240,6 +1240,29 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 <!-- TAB: INVESTIMENTOS -->
 <div id="tabInv" style="display:none">
 
+  <!-- Row 0: Ibovespa -->
+  <div class="section">
+    <div class="card" id="ibovCard" style="padding:14px 18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">IBOVESPA</div>
+            <div style="display:flex;align-items:baseline;gap:8px">
+              <span id="ibovVal" style="font-size:22px;font-weight:800;letter-spacing:-1px">—</span>
+              <span id="ibovBadge" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">—</span>
+            </div>
+            <div id="ibovSub" style="font-size:10px;color:var(--muted);margin-top:2px">—</div>
+          </div>
+          <div id="ibovStats" style="display:flex;gap:16px;font-size:11px;color:var(--muted2)"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <canvas id="ibovChart" width="180" height="48" style="display:block"></canvas>
+          <button onclick="loadIbov(true)" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">↻</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Row 1: 4 KPI cards -->
   <div class="section">
     <div class="grid g4">
@@ -1528,6 +1551,36 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           </div>
         </div>
         <div id="simMsg" style="margin-top:10px;font-size:12px;color:var(--muted);text-align:center"></div>
+
+        <!-- Graham / Preço Justo -->
+        <div id="grahamSection" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <span style="font-size:15px">⚖️</span>
+            <div>
+              <div id="grahamTitle" style="font-size:13px;font-weight:700"></div>
+              <div style="font-size:10px;color:var(--muted)">Fórmula de Benjamin Graham: √(22,5 × LPA × VPA)</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px">
+            <div style="background:var(--surface2);border-radius:8px;padding:12px;text-align:center">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Preço Atual</div>
+              <div id="grahamPrecoAtual" style="font-size:16px;font-weight:800">—</div>
+            </div>
+            <div style="background:var(--surface2);border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border2)">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Preço Justo Graham</div>
+              <div id="grahamPrecoJusto" style="font-size:16px;font-weight:800">—</div>
+            </div>
+            <div style="background:var(--surface2);border-radius:8px;padding:12px;text-align:center">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Upside / Downside</div>
+              <div id="grahamUpside" style="font-size:16px;font-weight:800">—</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <div id="grahamBadge" style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px"></div>
+            <div id="grahamDetails" style="font-size:11px;color:var(--muted2)"></div>
+          </div>
+          <div id="grahamNote" style="margin-top:8px;font-size:10px;color:var(--muted);line-height:1.5"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -3635,6 +3688,164 @@ function fillInvFii(rows, quotes, accounts, monthly, divTxs){
     <td style="color:var(--muted2);font-size:11px">100%</td>`;
 }
 
+// ══ IBOVESPA ═════════════════════════════════════════════════════════════════
+const IBOV_CACHE_KEY='ibov_cache_v1';
+let _ibovChart=null;
+
+async function loadIbov(force=false){
+  const TTL=b3IsOpen()?10*60*1000:4*3600*1000;
+  if(!force){
+    try{const r=localStorage.getItem(IBOV_CACHE_KEY);if(r){const{d,ts}=JSON.parse(r);if(Date.now()-ts<TTL){renderIbov(d);return;}}}catch(e){}
+  }
+  const _bt=getBrapiToken(); const tp=_bt?('&token='+_bt):'';
+  try{
+    const r=await fetch(`https://brapi.dev/api/quote/%5EBVSP?range=1d&interval=15m${tp}`);
+    if(!r.ok) return;
+    const j=await r.json();
+    const q=j?.results?.[0]; if(!q) return;
+    const d={
+      price: q.regularMarketPrice,
+      prev:  q.regularMarketPreviousClose,
+      open:  q.regularMarketOpen,
+      chg:   q.regularMarketChange,
+      chgPct:q.regularMarketChangePercent,
+      low:   q.regularMarketDayLow,
+      high:  q.regularMarketDayHigh,
+      time:  q.regularMarketTime,
+      hist:  (q.historicalDataPrice||[]).map(p=>p.close).filter(Boolean)
+    };
+    localStorage.setItem(IBOV_CACHE_KEY,JSON.stringify({d,ts:Date.now()}));
+    renderIbov(d);
+  }catch(e){console.warn('ibov err',e);}
+}
+
+function renderIbov(d){
+  const fmt=v=>v!=null?v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
+  const up=d.chgPct>=0;
+  const valEl=document.getElementById('ibovVal');
+  const badgeEl=document.getElementById('ibovBadge');
+  const subEl=document.getElementById('ibovSub');
+  const statsEl=document.getElementById('ibovStats');
+  if(valEl) valEl.textContent=fmt(d.price)+' pts';
+  if(badgeEl){
+    badgeEl.textContent=(up?'▲ +':'▼ ')+Math.abs(d.chgPct).toFixed(2)+'%';
+    badgeEl.style.cssText=`font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${up?'rgba(16,185,129,.15)':'rgba(239,68,68,.15)'};color:${up?'var(--green)':'var(--red)'}`;
+  }
+  if(subEl) subEl.textContent=`Var: ${up?'+':''}${fmt(d.chg)} pts · Ant: ${fmt(d.prev)} · Abertura: ${fmt(d.open)}`;
+  if(statsEl) statsEl.innerHTML=`
+    <span>Mín: <b>${fmt(d.low)}</b></span>
+    <span>Máx: <b>${fmt(d.high)}</b></span>
+    ${d.time?`<span style="color:var(--muted);font-size:10px">atualizado ${new Date(d.time*1000).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>`:''}`;
+  const canvas=document.getElementById('ibovChart');
+  if(!canvas||!d.hist||d.hist.length<2) return;
+  if(_ibovChart) _ibovChart.destroy();
+  const ctx=canvas.getContext('2d');
+  const mn=Math.min(...d.hist), mx=Math.max(...d.hist);
+  const grad=ctx.createLinearGradient(0,0,0,48);
+  grad.addColorStop(0,up?'rgba(16,185,129,.3)':'rgba(239,68,68,.3)');
+  grad.addColorStop(1,'rgba(0,0,0,0)');
+  _ibovChart=new Chart(ctx,{
+    type:'line',
+    data:{labels:d.hist.map((_,i)=>i),datasets:[{data:d.hist,borderColor:up?'#10b981':'#ef4444',borderWidth:1.5,fill:true,backgroundColor:grad,pointRadius:0,tension:.3}]},
+    options:{responsive:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false,min:mn*0.999,max:mx*1.001}},animation:false}
+  });
+}
+
+// ══ GRAHAM FAIR PRICE ════════════════════════════════════════════════════════
+async function fetchFundamentals(ticker){
+  const KEY=`fund_${ticker}_v1`, TTL=6*3600*1000;
+  try{const r=localStorage.getItem(KEY);if(r){const{d,ts}=JSON.parse(r);if(Date.now()-ts<TTL)return d;}}catch(e){}
+  const _bt=getBrapiToken(); const tp=_bt?('&token='+_bt):'';
+  try{
+    const r=await fetch(`https://brapi.dev/api/quote/${ticker}?fundamental=true${tp}`);
+    if(!r.ok) return null;
+    const j=await r.json();
+    const q=j?.results?.[0]; if(!q) return null;
+    const d={
+      eps:  q.earningsPerShare||null,  // LPA
+      bvps: q.bookValuePerShare||null, // VPA
+      pe:   q.trailingPE||null,
+      pb:   q.priceToBook||null,
+      price:q.regularMarketPrice||null,
+      name: q.longName||q.shortName||ticker
+    };
+    localStorage.setItem(KEY,JSON.stringify({d,ts:Date.now()}));
+    return d;
+  }catch(e){return null;}
+}
+
+function showGrahamAnalysis(ticker, price, fundamentals){
+  const sec=document.getElementById('grahamSection');
+  const titleEl=document.getElementById('grahamTitle');
+  const precoAtualEl=document.getElementById('grahamPrecoAtual');
+  const precoJustoEl=document.getElementById('grahamPrecoJusto');
+  const upsideEl=document.getElementById('grahamUpside');
+  const badgeEl=document.getElementById('grahamBadge');
+  const detailsEl=document.getElementById('grahamDetails');
+  const noteEl=document.getElementById('grahamNote');
+  if(!sec) return;
+
+  titleEl.textContent=`Preço justo do ativo ${ticker} segundo Fórmula de Benjamin Graham`;
+  precoAtualEl.textContent=brl(price);
+
+  const isFii=/11$/.test(ticker.trim());
+
+  if(isFii){
+    // Para FIIs: usa P/VPA
+    const pb=fundamentals?.pb||null;
+    const bvps=fundamentals?.bvps||null;
+    if(bvps&&bvps>0){
+      const fairPrice=bvps; // preço justo = VPA (P/VPA = 1)
+      const upside=(fairPrice-price)/price*100;
+      const up=upside>=0;
+      precoJustoEl.textContent=brl(fairPrice);
+      upsideEl.textContent=(up?'+':'')+upside.toFixed(1)+'%';
+      upsideEl.style.color=up?'var(--green)':'var(--red)';
+      badgeEl.textContent=price<=fairPrice?'✅ Abaixo do VPA — potencial de compra':'⚠️ Acima do VPA — negociado com ágio';
+      badgeEl.style.cssText=`font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;background:${price<=fairPrice?'rgba(16,185,129,.15)':'rgba(251,191,36,.15)'};color:${price<=fairPrice?'var(--green)':'var(--yellow)'}`;
+      const pbVal=pb||(price/bvps);
+      detailsEl.textContent=`P/VPA: ${pbVal.toFixed(2)} · VPA: ${brl(bvps)}`;
+      noteEl.textContent='Para FIIs, o preço justo de referência é o VPA (Valor Patrimonial por Ação). P/VPA < 1 indica desconto sobre o patrimônio.';
+    } else {
+      precoJustoEl.textContent='—';
+      upsideEl.textContent='—';
+      badgeEl.textContent='ℹ️ VPA não disponível via API';
+      badgeEl.style.cssText='font-size:11px;padding:4px 12px;border-radius:20px;background:rgba(99,102,241,.12);color:var(--muted2)';
+      noteEl.textContent='';
+    }
+  } else {
+    // Ações: fórmula Graham √(22.5 × LPA × VPA)
+    const eps=fundamentals?.eps||null;
+    const bvps=fundamentals?.bvps||null;
+    if(eps&&bvps&&eps>0&&bvps>0){
+      const graham=Math.sqrt(22.5*eps*bvps);
+      const upside=(graham-price)/price*100;
+      const up=upside>=0;
+      precoJustoEl.textContent=brl(graham);
+      upsideEl.textContent=(up?'+':'')+upside.toFixed(1)+'%';
+      upsideEl.style.color=up?'var(--green)':'var(--red)';
+      const margin=upside>=(30)?'Alta margem de segurança':upside>=0?'Pequena margem de segurança':'Negociado acima do preço justo';
+      badgeEl.textContent=up?`✅ ${margin}`:`⚠️ ${margin}`;
+      badgeEl.style.cssText=`font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;background:${up?'rgba(16,185,129,.15)':'rgba(239,68,68,.12)'};color:${up?'var(--green)':'var(--red)'}`;
+      detailsEl.textContent=`LPA: ${brl(eps)} · VPA: ${brl(bvps)} · P/L: ${fundamentals?.pe?.toFixed(1)||'—'} · P/VPA: ${fundamentals?.pb?.toFixed(2)||'—'}`;
+      noteEl.textContent='A fórmula de Graham não funciona bem para empresas com LPA negativo ou empresas de tecnologia. Use como referência, não como recomendação de compra/venda.';
+    } else if(eps!==null&&eps<=0){
+      precoJustoEl.textContent='—';
+      upsideEl.textContent='—';
+      badgeEl.textContent='⚠️ LPA negativo — Graham não aplicável';
+      badgeEl.style.cssText='font-size:11px;padding:4px 12px;border-radius:20px;background:rgba(251,191,36,.12);color:var(--yellow)';
+      noteEl.textContent='A fórmula de Graham requer LPA positivo. A empresa pode estar em prejuízo ou em fase de crescimento.';
+    } else {
+      precoJustoEl.textContent='—';
+      upsideEl.textContent='—';
+      badgeEl.textContent='ℹ️ Dados fundamentalistas não disponíveis';
+      badgeEl.style.cssText='font-size:11px;padding:4px 12px;border-radius:20px;background:rgba(99,102,241,.12);color:var(--muted2)';
+      noteEl.textContent='';
+    }
+  }
+  sec.style.display='';
+}
+
 async function simularCompra(){
   const ticker=(document.getElementById('simTicker').value||'').trim().toUpperCase();
   const cotas=+(document.getElementById('simCotas').value||0);
@@ -3701,6 +3912,12 @@ async function simularCompra(){
   document.getElementById('simMsg').textContent=msgs.join('  ·  ');
 
   document.getElementById('simResult').style.display='';
+
+  // Graham analysis — busca fundamentais em paralelo
+  document.getElementById('grahamSection').style.display='none';
+  fetchFundamentals(ticker).then(fund=>{
+    showGrahamAnalysis(ticker, price, fund);
+  });
 }
 
 async function saveCostPerShare(ticker, val){
@@ -4749,7 +4966,7 @@ function switchTab(tab){
   document.getElementById('tabBtnInv').classList.toggle('active',tab==='inv');
   document.getElementById('tabBtnSaude').classList.toggle('active',tab==='saude');
   document.getElementById('tabBtnMetas').classList.toggle('active',tab==='metas');
-  if(tab==='inv')   { buildInvCharts(_invFiiRows, _invQuotes); _fillInvCashflow(); startQuoteAutoRefresh(); }
+  if(tab==='inv')   { buildInvCharts(_invFiiRows, _invQuotes); _fillInvCashflow(); startQuoteAutoRefresh(); loadIbov(); }
   else              { stopQuoteAutoRefresh(); }
   if(tab==='geral') { fillCatBreakdown(_catsObj); buildCharts(_monthly, _catsObj); }
   if(tab==='saude') { buildSaudeCharts(_monthly, _catsObj); fillSaudeMetricas(_cmRow, _monthly, _invFiiRows, _invAccounts, _fcRows); fillSaudeRecomendacoes(); }
