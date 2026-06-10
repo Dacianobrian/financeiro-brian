@@ -1427,7 +1427,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(130,10,209,.08);border:1px solid rgba(130,10,209,.2);border-radius:10px">
         <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#820ad1,#a855f7);display:flex;align-items:center;justify-content:center;font-size:20px">💜</div>
+          <div style="width:40px;height:40px;border-radius:10px;background:#820ad1;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;letter-spacing:-1px">N</div>
           <div>
             <div style="font-weight:700;font-size:14px">Caixinha Nubank</div>
             <div style="display:flex;gap:6px;margin-top:4px">
@@ -2513,6 +2513,23 @@ const CAT_ICON = {'Alimentação':'🍽️','Supermercado':'🛒','Combustível'
 const CAT_COLOR= {'Alimentação':'#f97316','Supermercado':'#84cc16','Combustível':'#64748b','Moradia':'#8b5cf6','Saúde':'#ec4899','Educação':'#06b6d4','Transporte':'#f59e0b','Lazer':'#a855f7','Streaming':'#6366f1','Investimentos':'#10b981','Cartão Bradesco':'#3b82f6','Parcelas':'#ef4444','Anuidade':'#78716c','Impostos / MEI':'#dc2626','Outros':'#475569'};
 function catIcon(c){return CAT_ICON[c]||'📌'}
 function catColor(c){return CAT_COLOR[c]||'#64748b'}
+function tickerLogo(ticker, size=28){
+  const url=`https://raw.githubusercontent.com/thefintz/icones-b3/main/icones/${ticker}.png`;
+  const label=encodeURIComponent(ticker.slice(0,4));
+  const svgFb=`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}'%3E%3Crect width='${size}' height='${size}' rx='5' fill='%231e3358'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='${Math.floor(size*.37)}' font-weight='700' fill='%2338bdf8'%3E${label}%3C/text%3E%3C/svg%3E`;
+  return `<img src="${url}" width="${size}" height="${size}" style="border-radius:5px;object-fit:contain;background:#fff;padding:2px;flex-shrink:0;vertical-align:middle" onerror="this.onerror=null;this.src='${svgFb}';this.style.background='transparent';this.style.padding='0'" alt="${ticker}">`;
+}
+
+function bankLogo(name, size=28){
+  const n=(name||'').toLowerCase();
+  const w=size+'px', br=Math.round(size*.3)+'px', fs=Math.round(size*.52)+'px';
+  if(n.includes('nubank'))
+    return `<div style="width:${w};height:${w};min-width:${w};border-radius:${br};background:#820ad1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:${fs};font-weight:900;color:#fff">N</div>`;
+  if(n.includes('bradesco'))
+    return `<div style="width:${w};height:${w};min-width:${w};border-radius:${br};background:#cc092f;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:${fs};font-weight:900;color:#fff">B</div>`;
+  return `<div style="width:${w};height:${w};min-width:${w};border-radius:${br};background:rgba(99,102,241,.2);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:${fs}">🏦</div>`;
+}
+
 function catBadge(c){const col=catColor(c);return`<span class="cat" style="background:${col}22;color:${col};border:1px solid ${col}44">${catIcon(c)} ${c||'—'}</span>`}
 function brl(v,plus=false){if(v==null||v==='')return'—';const n=parseFloat(v);const s='R$ '+Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});return(plus&&n>0?'+':'')+s}
 function shortBrl(v){const n=parseFloat(v);if(isNaN(n))return'—';if(Math.abs(n)>=1e6)return'R$ '+(n/1e6).toLocaleString('pt-BR',{maximumFractionDigits:1})+'M';if(Math.abs(n)>=1e3)return'R$ '+(n/1e3).toLocaleString('pt-BR',{maximumFractionDigits:1})+'k';return brl(n)}
@@ -3133,6 +3150,10 @@ function _renderCatGrid(el, entries, total, showBudget=true){
   }
   el.innerHTML=entries.map(([cat,val])=>{
     const color=catColor(cat); const icon=CAT_ICON[cat]||'📌';
+    const catL=cat.toLowerCase();
+    const catLogo=(catL.includes('bradesco')||catL.includes('nubank'))
+      ?`<span style="vertical-align:middle;margin-right:4px">${bankLogo(cat,15)}</span>`
+      :`<span style="margin-right:3px">${icon}</span>`;
     const budget=showBudget?+(_catBudgets[cat]||0):0;
     if(budget>0){
       const pctB=Math.min(120,(val/budget)*100);
@@ -3140,7 +3161,7 @@ function _renderCatGrid(el, entries, total, showBudget=true){
       const resto=budget-val;
       return`<div style="display:flex;flex-direction:column;gap:4px">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:6px">
-          <span style="font-size:12px;font-weight:600;color:var(--text)">${icon} ${cat}</span>
+          <span style="font-size:12px;font-weight:600;color:var(--text);display:inline-flex;align-items:center">${catLogo}${cat}</span>
           <span style="font-size:11px;font-weight:700;white-space:nowrap;color:${pctB>=100?'var(--red)':'var(--text)'}">${brl(val)}<span style="font-size:10px;color:var(--muted);font-weight:400"> / ${brl(budget)}</span></span>
         </div>
         <div style="height:7px;background:var(--border);border-radius:3px;overflow:hidden">
@@ -3261,7 +3282,7 @@ function fillAccounts(accounts, patrimonio){
     const alertaBadge=isBaixo?`<span style="display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#fbbf24;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);border-radius:4px;padding:1px 6px;">⚠ SALDO BAIXO</span>`:'';
     const borderColor=isBaixo?'rgba(251,191,36,.5)':st.border;
     return`<div class="card" style="border:1px solid ${borderColor};background:${st.bg}${isBaixo?';box-shadow:0 0 0 1px rgba(251,191,36,.2)':''}">
-      <div class="kpi-label" style="margin-bottom:8px"><span class="kpi-icon" style="background:${st.bg}">${ico}</span><span style="color:${st.color};font-weight:600;font-size:11px">${st.label}</span>${alertaBadge}</div>
+      <div class="kpi-label" style="margin-bottom:8px;gap:8px">${bankLogo(key,30)}<span style="color:${st.color};font-weight:600;font-size:11px">${st.label}</span>${alertaBadge}</div>
       <div style="font-size:11px;color:var(--muted2);font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">${a.type}</div>
       <div class="kpi-value" style="color:${isBaixo?'#fbbf24':st.color};font-size:22px">${brl(a.balance)}</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
@@ -3296,10 +3317,11 @@ function fillTx(rows){
   tb.innerHTML=rows.slice(0,15).map(t=>{
     const amtCls=t.type==='entrada'?'amt-green':t.type==='investido'?'amt-purple':'amt-red';
     const dot=t.type==='entrada'?'🟢':t.type==='investido'?'🟣':'🔴';
+    const accLogo=t.account?`<span style="vertical-align:middle;margin-right:3px">${bankLogo(t.account,14)}</span>`:'';
     return`<tr style="font-size:12px">
       <td style="white-space:nowrap;color:var(--muted);padding:5px 6px">${fmtDate(t.date)}</td>
-      <td style="padding:5px 6px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.description||''}">
-        <span style="margin-right:4px">${dot}</span>${t.description||'—'}
+      <td style="padding:5px 6px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.description||''}">
+        <span style="margin-right:3px">${dot}</span>${accLogo}${t.description||'—'}
       </td>
       <td style="padding:5px 6px">${catBadge(t.category)}</td>
       <td style="text-align:right;padding:5px 6px;font-weight:700" class="${amtCls}">${brl(t.amount)}</td>
@@ -3593,7 +3615,7 @@ function fillInvFii(rows, quotes, accounts, monthly, divTxs){
     </td>`;
 
     return`<tr>
-      <td><span style="font-weight:700;color:var(--blue2);letter-spacing:.5px">${f.ticker}</span>${nextDiv}</td>
+      <td style="white-space:nowrap"><div style="display:flex;align-items:center;gap:7px">${tickerLogo(f.ticker,26)}<div><span style="font-weight:700;color:var(--blue2);letter-spacing:.5px">${f.ticker}</span>${nextDiv}</div></div></td>
       <td>${ftypeBadge(f.fund_type)}</td>
       <td style="color:var(--muted2)">${shares}</td>
       ${pmCell}
@@ -5340,7 +5362,7 @@ function renderPlanned(rows, listId, totalId, type){
     else if(r.due_date)    parts.push(`<span>${fmtDate(r.due_date)}</span>`);
     else                   parts.push(`<span style="color:var(--muted)">sem data</span>`);
     if(r.category)         parts.push(`<span>${r.category}</span>`);
-    if(r.account)          parts.push(`<span>${r.account}</span>`);
+    if(r.account)          parts.push(`<span style="display:inline-flex;align-items:center;gap:3px">${bankLogo(r.account,12)}${r.account}</span>`);
 
     const divider = idx > 0 ? `<div style="height:1px;background:var(--border);margin:0 -1px"></div>` : '';
 
@@ -5399,9 +5421,8 @@ async function loadFcList(){
 function renderFcList(){
   const el=document.getElementById('fcList');
   if(!_fcData.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">Nenhum custo fixo cadastrado</div>';return}
-  const accIcon={'Bradesco Conta Corrente':'🏦','Cartão Bradesco':'💳','Nubank':'🟣','Cartão Nubank':'💜'};
   el.innerHTML=_fcData.map(c=>{
-    const accBadge=c.account?`<span style="font-size:10px;padding:1px 7px;border-radius:4px;background:rgba(56,189,248,.1);color:var(--blue2);white-space:nowrap">${accIcon[c.account]||''} ${c.account}</span>`:'';
+    const accBadge=c.account?`<span style="font-size:10px;padding:1px 7px;border-radius:4px;background:rgba(56,189,248,.08);color:var(--blue2);white-space:nowrap;display:inline-flex;align-items:center;gap:4px">${bankLogo(c.account,14)} ${c.account}</span>`:'';
     const catBadge=c.category?`<span style="font-size:10px;padding:1px 7px;border-radius:4px;background:rgba(167,139,250,.1);color:var(--purple)">${c.category}</span>`:'';
     return`<div style="display:flex;align-items:center;gap:8px;background:#0a1220;border:1px solid #1e2d45;border-radius:8px;padding:8px 12px">
       <span style="min-width:28px;height:24px;background:rgba(99,102,241,.15);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#818cf8">${c.due_day||'?'}</span>
