@@ -81,12 +81,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .btn-green:hover{background:linear-gradient(135deg,#15803d,#16a34a);box-shadow:0 4px 14px rgba(34,197,94,.45);transform:translateY(-1px)}
 
 /* ── Layout ── */
-.page{max-width:1440px;margin:0 auto;padding:20px 24px}
-.section{margin-top:20px}
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.section-title{font-size:12px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.9px;display:flex;align-items:center;gap:8px}
-.section-title::before{content:'';width:2px;height:12px;background:linear-gradient(180deg,var(--blue),var(--cyan));border-radius:2px;display:inline-block}
-.grid{display:grid;gap:14px}
+.page{max-width:1440px;margin:0 auto;padding:14px 20px}
+.section{margin-top:12px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.section-title{font-size:11px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.9px;display:flex;align-items:center;gap:6px}
+.section-title::before{content:'';width:2px;height:10px;background:var(--blue);border-radius:2px;display:inline-block}
+.grid{display:grid;gap:10px}
 .g4{grid-template-columns:repeat(4,1fr)}
 .g3{grid-template-columns:repeat(3,1fr)}
 .g2{grid-template-columns:1fr 1fr}
@@ -113,10 +113,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
   .header-right .btn:nth-child(n+4){display:none}
   .header-right .btn:nth-last-child(-n+3){display:flex}
 }
-.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;box-shadow:var(--shadow);transition:border-color var(--dur-normal),box-shadow var(--dur-normal)}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,248,.45),transparent);opacity:0;transition:opacity var(--dur-normal)}
-.card:hover::before{opacity:1}
-.card:hover{border-color:var(--border2);box-shadow:0 4px 28px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.04)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;overflow:hidden;transition:border-color var(--dur-normal)}
+.card:hover{border-color:var(--border2)}
 /* ── Accent card variants (colored top border) ── */
 .card-blue{border-top:2px solid var(--blue)!important;background:linear-gradient(180deg,rgba(56,189,248,.04) 0%,var(--surface) 60%)!important}
 .card-green{border-top:2px solid var(--green)!important;background:linear-gradient(180deg,rgba(34,197,94,.04) 0%,var(--surface) 60%)!important}
@@ -1383,6 +1381,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           <th>Ativo</th>
           <th>Segmento</th>
           <th>Cotas</th>
+          <th>P.M.</th>
           <th>Cotação</th>
           <th>Total</th>
           <th>P&amp;L</th>
@@ -1390,7 +1389,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           <th>Renda/Mês</th>
           <th>% Carteira</th>
         </tr></thead>
-        <tbody id="invTblFii"><tr><td colspan="9" class="empty">Carregando...</td></tr></tbody>
+        <tbody id="invTblFii"><tr><td colspan="10" class="empty">Carregando...</td></tr></tbody>
         <tfoot><tr id="invTblFiiFoot"></tr></tfoot>
       </table></div>
     </div>
@@ -1485,6 +1484,57 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       <div class="inv-cf-result">
         <span class="inv-cf-result-label">⚡ Disponível para investir</span>
         <span class="inv-cf-result-val" id="invCfDisponivel">—</span>
+      </div>
+    </div>
+  </div>
+  <!-- Simulador de Compra -->
+  <div class="section">
+    <div class="card">
+      <div class="section-header" style="margin-bottom:12px">
+        <div class="section-title">🧮 Simulador de Compra</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:14px">
+        <div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Ticker</div>
+          <input id="simTicker" type="text" placeholder="ex: MXRF11" maxlength="10"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--text);outline:none;text-transform:uppercase"
+            oninput="this.value=this.value.toUpperCase()">
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Cotas</div>
+          <input id="simCotas" type="number" min="1" placeholder="100"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--text);outline:none">
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Preço/cota <span id="simPriceHint" style="color:var(--blue2);font-size:9px;text-transform:none"></span></div>
+          <input id="simPreco" type="number" step="0.01" min="0" placeholder="auto"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--text);outline:none">
+        </div>
+        <button class="btn btn-primary" style="padding:8px 18px;font-size:13px" onclick="simularCompra()">Simular</button>
+      </div>
+      <div id="simResult" style="display:none">
+        <div style="border-top:1px solid var(--border);padding-top:12px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+          <div style="background:var(--surface2);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Custo Total</div>
+            <div id="simCusto" style="font-size:16px;font-weight:800;color:var(--text)">—</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Nova Renda/Mês</div>
+            <div id="simRenda" style="font-size:16px;font-weight:800;color:var(--green)">—</div>
+            <div id="simRendaDelta" style="font-size:10px;color:var(--muted);margin-top:2px"></div>
+          </div>
+          <div style="background:var(--surface2);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px">DY Médio Cart.</div>
+            <div id="simDy" style="font-size:16px;font-weight:800;color:var(--blue2)">—</div>
+            <div id="simDyDelta" style="font-size:10px;color:var(--muted);margin-top:2px"></div>
+          </div>
+          <div style="background:var(--surface2);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px">% da Carteira</div>
+            <div id="simPct" style="font-size:16px;font-weight:800;color:var(--purple)">—</div>
+            <div id="simPctBar" style="height:4px;background:var(--border);border-radius:2px;margin-top:6px"><div id="simPctFill" style="height:100%;background:var(--purple);border-radius:2px;width:0%"></div></div>
+          </div>
+        </div>
+        <div id="simMsg" style="margin-top:10px;font-size:12px;color:var(--muted);text-align:center"></div>
       </div>
     </div>
   </div>
@@ -3406,7 +3456,7 @@ async function refreshFiiQuotes(fiiRows){
 function fillInvFii(rows, quotes, accounts, monthly, divTxs){
   const tb=document.getElementById('invTblFii');
   const ft=document.getElementById('invTblFiiFoot');
-  if(!rows||!rows.length){ if(tb) tb.innerHTML=`<tr><td colspan="8" class="empty">—</td></tr>`; return; }
+  if(!rows||!rows.length){ if(tb) tb.innerHTML=`<tr><td colspan="10" class="empty">—</td></tr>`; return; }
 
   // ── Calculations ─────────────────────────────────────────────────────────
   let fiiMarket=0, fiiBasis=0, totalCotas=0, totalRenda=0, dyWeighted=0;
@@ -3534,10 +3584,19 @@ function fillInvFii(rows, quotes, accounts, monthly, divTxs){
       <span style="font-size:11px;color:var(--muted2);white-space:nowrap">${cartPct.toFixed(1)}%</span>
     </div>`;
 
+    const pmVal=+(f.cost_per_share||0);
+    const pmCell=`<td style="text-align:right">
+      <input type="number" step="0.01" value="${pmVal||''}" placeholder="—"
+        style="width:64px;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--muted2);font-size:12px;text-align:right;outline:none;padding:1px 2px"
+        onchange="saveCostPerShare('${f.ticker}',+this.value)"
+        title="Preço médio de compra">
+    </td>`;
+
     return`<tr>
       <td><span style="font-weight:700;color:var(--blue2);letter-spacing:.5px">${f.ticker}</span>${nextDiv}</td>
       <td>${ftypeBadge(f.fund_type)}</td>
       <td style="color:var(--muted2)">${shares}</td>
+      ${pmCell}
       <td style="color:var(--muted2)">${brl(price)}${changeHtml}</td>
       <td class="amt-yellow">${brl(val)}</td>
       ${plCell}
@@ -3549,12 +3608,87 @@ function fillInvFii(rows, quotes, accounts, monthly, divTxs){
 
   if(ft) ft.innerHTML=`
     <td style="color:var(--muted)">TOTAL</td><td></td>
-    <td style="font-weight:700;color:var(--muted2)">${totalCotas}</td><td></td>
+    <td style="font-weight:700;color:var(--muted2)">${totalCotas}</td><td></td><td></td>
     <td class="amt-yellow">${brl(fiiMarket)}</td>
     <td class="${ganhoCapital>=0?'amt-green':'amt-red'}" style="font-weight:700">${ganhoCapital>=0?'+':''}${brl(ganhoCapital)}<div style="font-size:10px">${varPct>=0?'+':''}${varPct.toFixed(1)}%</div></td>
     <td class="amt-green">${pct(avgDy)}</td>
     <td class="amt-green">${brl(totalRenda)}</td>
     <td style="color:var(--muted2);font-size:11px">100%</td>`;
+}
+
+async function simularCompra(){
+  const ticker=(document.getElementById('simTicker').value||'').trim().toUpperCase();
+  const cotas=+(document.getElementById('simCotas').value||0);
+  if(!ticker||cotas<=0){ alert('Preencha o ticker e a quantidade de cotas.'); return; }
+
+  const hint=document.getElementById('simPriceHint');
+  hint.textContent='buscando...';
+
+  let price=+(document.getElementById('simPreco').value||0);
+  let dy=0;
+
+  // try live quote from _invQuotes first, then brapi
+  const liveQ=_invQuotes&&_invQuotes[ticker];
+  if(liveQ){ price=liveQ.price; dy=liveQ.dy||0; }
+  else {
+    try{
+      const r=await fetch(`https://brapi.dev/api/quote/${ticker}?fundamental=false`);
+      const j=await r.json();
+      const q=j?.results?.[0];
+      if(q?.regularMarketPrice){ price=q.regularMarketPrice; hint.textContent=`R$ ${brl(price)}`; }
+    }catch(e){}
+  }
+
+  // find existing row for this ticker
+  const existing=(_invFiiRows||[]).find(r=>r.ticker===ticker);
+  if(!price && existing) price=+(existing.price||0);
+  if(!price){ alert('Não foi possível buscar o preço. Preencha manualmente.'); hint.textContent=''; return; }
+  if(!dy && existing) dy=+(existing.dy||0);
+
+  hint.textContent=`R$ ${brl(price)}`;
+
+  const custo=cotas*price;
+  const novaRenda=custo*dy/100/12;
+
+  // current portfolio state
+  let curMarket=0, curRenda=0, curDyW=0;
+  (_invFiiRows||[]).forEach(f=>{
+    const q=_invQuotes&&_invQuotes[f.ticker];
+    const p=q?q.price:+(f.price||0);
+    const d=q?q.dy:+(f.dy||0);
+    const v=(+(f.shares||0))*p;
+    curMarket+=v; curRenda+=v*d/100/12; curDyW+=v*d;
+  });
+
+  const newMarket=curMarket+custo;
+  const newRenda=curRenda+novaRenda;
+  const newDyW=curDyW+custo*dy;
+  const newDy=newMarket>0?newDyW/newMarket:0;
+  const oldDy=curMarket>0?curDyW/curMarket:0;
+  const pctCart=newMarket>0?custo/newMarket*100:0;
+
+  document.getElementById('simCusto').textContent=brl(custo);
+  document.getElementById('simRenda').textContent=brl(newRenda);
+  document.getElementById('simRendaDelta').textContent=`+${brl(novaRenda)}/mês neste ativo`;
+  document.getElementById('simDy').textContent=pct(newDy);
+  document.getElementById('simDyDelta').textContent=`era ${pct(oldDy)} → ${newDy>=oldDy?'▲':'▼'}${Math.abs(newDy-oldDy).toFixed(2)}%`;
+  document.getElementById('simPct').textContent=pctCart.toFixed(1)+'%';
+  document.getElementById('simPctFill').style.width=Math.min(pctCart,100).toFixed(1)+'%';
+
+  const msgs=[];
+  if(pctCart>20) msgs.push('⚠️ Concentração alta (>20% da carteira)');
+  if(dy>0 && dy<6) msgs.push('ℹ️ DY abaixo de 6% a.a.');
+  if(dy>=10) msgs.push('✅ DY atrativo');
+  document.getElementById('simMsg').textContent=msgs.join('  ·  ');
+
+  document.getElementById('simResult').style.display='';
+}
+
+async function saveCostPerShare(ticker, val){
+  if(!ticker||isNaN(val)||val<=0) return;
+  await sbPatch('fii_portfolio',{ticker:`eq.${ticker}`},{cost_per_share:val});
+  const row=_invFiiRows.find(r=>r.ticker===ticker);
+  if(row){ row.cost_per_share=val; fillInvFii(_invFiiRows,_invQuotes,_invAccounts,_monthly,_divTxs); }
 }
 
 // ── CDI / Caixinha rendimento ───────────────────────────────────────────────
