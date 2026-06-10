@@ -845,10 +845,10 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px;margin-bottom:14px">
       <div style="font-size:11px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px" id="fcFormTitle">Novo Custo Fixo</div>
       <input type="hidden" id="fcEditId" value="">
-      <div style="display:grid;grid-template-columns:1fr 120px 80px;gap:8px;align-items:end">
+      <div style="display:grid;grid-template-columns:1fr 120px 70px;gap:8px;align-items:end;margin-bottom:8px">
         <div>
           <label style="display:block;font-size:10px;color:var(--muted2);margin-bottom:4px">DESCRIÇÃO</label>
-          <input id="fcDesc" type="text" placeholder="Ex: Internet" style="width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;font-family:var(--font)"/>
+          <input id="fcDesc" type="text" placeholder="Ex: Internet, Aluguel…" style="width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;font-family:var(--font)"/>
         </div>
         <div>
           <label style="display:block;font-size:10px;color:var(--muted2);margin-bottom:4px">VALOR (R$)</label>
@@ -857,6 +857,32 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
         <div>
           <label style="display:block;font-size:10px;color:var(--muted2);margin-bottom:4px">DIA VENC.</label>
           <input id="fcDay" type="number" min="1" max="31" placeholder="15" style="width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;font-family:var(--font)"/>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end">
+        <div>
+          <label style="display:block;font-size:10px;color:var(--muted2);margin-bottom:4px">DÉBITO EM</label>
+          <select id="fcAccount" style="width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;font-family:var(--font)">
+            <option value="">— selecionar —</option>
+            <option value="Bradesco Conta Corrente">🏦 Bradesco Conta Corrente</option>
+            <option value="Cartão Bradesco">💳 Cartão Bradesco</option>
+            <option value="Nubank">🟣 Nubank</option>
+            <option value="Cartão Nubank">💜 Cartão Nubank</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:10px;color:var(--muted2);margin-bottom:4px">CATEGORIA</label>
+          <select id="fcCategory" style="width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;font-family:var(--font)">
+            <option value="">— automático —</option>
+            <option value="Moradia">🏠 Moradia</option>
+            <option value="Saúde">🏥 Saúde</option>
+            <option value="Streaming">🎵 Streaming</option>
+            <option value="Transporte">🚗 Transporte</option>
+            <option value="Educação">📚 Educação</option>
+            <option value="Impostos / MEI">🏛️ Impostos / MEI</option>
+            <option value="Cartão Bradesco">💳 Cartão Bradesco</option>
+            <option value="Outros">📌 Outros</option>
+          </select>
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-top:10px">
@@ -5239,7 +5265,21 @@ async function loadFcList(){
 function renderFcList(){
   const el=document.getElementById('fcList');
   if(!_fcData.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">Nenhum custo fixo cadastrado</div>';return}
-  el.innerHTML=_fcData.map(c=>`<div style="display:flex;align-items:center;gap:8px;background:#0a1220;border:1px solid #1e2d45;border-radius:8px;padding:8px 12px"><span style="min-width:28px;height:24px;background:rgba(99,102,241,.15);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#818cf8">${c.due_day||'?'}</span><span style="flex:1;font-size:13px;font-weight:500">${c.description}</span><span style="font-size:13px;font-weight:700;color:var(--red)">${brl(c.amount)}</span><button onclick="editFc(${c.id})" style="background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#818cf8;border-radius:6px;padding:4px 9px;font-size:11px;cursor:pointer">✏️</button><button onclick="deleteFc(${c.id},'${c.description.replace(/'/g,"\\'")}')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171;border-radius:6px;padding:4px 9px;font-size:11px;cursor:pointer">🗑</button></div>`).join('');
+  const accIcon={'Bradesco Conta Corrente':'🏦','Cartão Bradesco':'💳','Nubank':'🟣','Cartão Nubank':'💜'};
+  el.innerHTML=_fcData.map(c=>{
+    const accBadge=c.account?`<span style="font-size:10px;padding:1px 7px;border-radius:4px;background:rgba(56,189,248,.1);color:var(--blue2);white-space:nowrap">${accIcon[c.account]||''} ${c.account}</span>`:'';
+    const catBadge=c.category?`<span style="font-size:10px;padding:1px 7px;border-radius:4px;background:rgba(167,139,250,.1);color:var(--purple)">${c.category}</span>`:'';
+    return`<div style="display:flex;align-items:center;gap:8px;background:#0a1220;border:1px solid #1e2d45;border-radius:8px;padding:8px 12px">
+      <span style="min-width:28px;height:24px;background:rgba(99,102,241,.15);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#818cf8">${c.due_day||'?'}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.description}</div>
+        <div style="display:flex;gap:4px;margin-top:3px;flex-wrap:wrap">${accBadge}${catBadge}</div>
+      </div>
+      <span style="font-size:13px;font-weight:700;color:var(--red);white-space:nowrap">${brl(c.amount)}</span>
+      <button onclick="editFc(${c.id})" style="background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#818cf8;border-radius:6px;padding:4px 9px;font-size:11px;cursor:pointer;flex-shrink:0">✏️</button>
+      <button onclick="deleteFc(${c.id},'${c.description.replace(/'/g,"\\'")}')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171;border-radius:6px;padding:4px 9px;font-size:11px;cursor:pointer;flex-shrink:0">🗑</button>
+    </div>`;
+  }).join('');
 }
 function editFc(id){
   const c=_fcData.find(x=>x.id===id);if(!c)return;
@@ -5247,14 +5287,20 @@ function editFc(id){
   document.getElementById('fcDesc').value=c.description;
   document.getElementById('fcAmount').value=c.amount;
   document.getElementById('fcDay').value=c.due_day||'';
+  document.getElementById('fcAccount').value=c.account||'';
+  document.getElementById('fcCategory').value=c.category||'';
   document.getElementById('fcFormTitle').textContent='Editar Custo Fixo';
   document.getElementById('fcSaveBtn').textContent='💾 Salvar';
   document.getElementById('fcCancelBtn').style.display='block';
   document.getElementById('fcDesc').focus();
 }
 function cancelFcEdit(){
-  document.getElementById('fcEditId').value='';document.getElementById('fcDesc').value='';
-  document.getElementById('fcAmount').value='';document.getElementById('fcDay').value='';
+  document.getElementById('fcEditId').value='';
+  document.getElementById('fcDesc').value='';
+  document.getElementById('fcAmount').value='';
+  document.getElementById('fcDay').value='';
+  document.getElementById('fcAccount').value='';
+  document.getElementById('fcCategory').value='';
   document.getElementById('fcFormTitle').textContent='Novo Custo Fixo';
   document.getElementById('fcSaveBtn').textContent='+ Adicionar';
   document.getElementById('fcCancelBtn').style.display='none';
@@ -5265,11 +5311,14 @@ async function saveFc(){
   const desc=document.getElementById('fcDesc').value.trim();
   const amount=parseFloat(document.getElementById('fcAmount').value)||0;
   const due_day=parseInt(document.getElementById('fcDay').value)||null;
+  const account=document.getElementById('fcAccount').value||null;
+  const category=document.getElementById('fcCategory').value||null;
   const resp=document.getElementById('fcResp');
   if(!desc){resp.style.color='#f87171';resp.textContent='Descrição obrigatória';return}
+  const payload={description:desc,amount,due_day,account,category};
   try{
-    if(id) await sbPatch('fixed_costs',{id:`eq.${id}`},{description:desc,amount,due_day});
-    else await sbPost('fixed_costs',{description:desc,amount,due_day,type:'saida'});
+    if(id) await sbPatch('fixed_costs',{id:`eq.${id}`},payload);
+    else await sbPost('fixed_costs',{...payload,type:'saida'});
     resp.style.color='#34d399';resp.textContent=id?'✓ Atualizado!':'✓ Adicionado!';
     cancelFcEdit();await loadFcList();refreshDashboard();
     setTimeout(()=>resp.textContent='',2000);
