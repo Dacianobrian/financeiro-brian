@@ -1323,7 +1323,11 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       <div class="card">
         <div class="inv10-chart-header">
           <div class="inv10-chart-title">Evolução dos Aportes 2026</div>
-          <span id="invFiiUpdated" style="font-size:10px;color:var(--muted)"></span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span id="invMktStatus" style="font-size:10px;font-weight:600"></span>
+            <span id="invFiiUpdated" style="font-size:10px;color:var(--muted)"></span>
+            <button id="invRefreshBtn" onclick="forceRefreshQuotes()" title="Atualizar cotações" style="background:none;border:1px solid var(--border2);border-radius:6px;padding:2px 8px;font-size:10px;color:var(--muted2);cursor:pointer;display:flex;align-items:center;gap:4px;font-family:var(--font)"><span id="invRefreshIcon">↻</span> Atualizar</button>
+          </div>
         </div>
         <div class="chart-wrap" style="height:240px"><canvas id="chartInvEvol"></canvas></div>
       </div>
@@ -3230,17 +3234,42 @@ function fillTx(rows){
 
 // ══ FII COTAÇÕES LIVE ════════════════════════════════════════════════════════
 const FII_CACHE_KEY = 'fii_quotes_v2';
-const FII_CACHE_TTL = 4 * 60 * 60 * 1000; // 4 horas
+const FII_CACHE_TTL_OPEN   = 15 * 60 * 1000;  // 15 min durante pregão
+const FII_CACHE_TTL_CLOSED =  4 * 60 * 60 * 1000; // 4h fora do pregão
+let _quoteTimer = null;
 
-async function fetchFiiQuotes(tickers){
-  // Verificar cache
-  try{
-    const raw = localStorage.getItem(FII_CACHE_KEY);
-    if(raw){
-      const {data, ts} = JSON.parse(raw);
-      if(Date.now() - ts < FII_CACHE_TTL) return data;
-    }
-  }catch(e){}
+function b3IsOpen(){
+  const now = new Date();
+  const brt = new Date(now.toLocaleString('en-US',{timeZone:'America/Sao_Paulo'}));
+  const day = brt.getDay(); // 0=dom,6=sab
+  if(day===0||day===6) return false;
+  const hm = brt.getHours()*60+brt.getMinutes();
+  return hm>=600 && hm<1100; // 10:00–18:20
+}
+
+function updateMktStatusBadge(){
+  const el=document.getElementById('invMktStatus');
+  if(!el) return;
+  if(b3IsOpen()){
+    el.textContent='🟢 Pregão aberto';
+    el.style.color='var(--green)';
+  } else {
+    el.textContent='⚫ Pregão fechado';
+    el.style.color='var(--muted)';
+  }
+}
+
+async function fetchFiiQuotes(tickers, forceRefresh=false){
+  const ttl = b3IsOpen() ? FII_CACHE_TTL_OPEN : FII_CACHE_TTL_CLOSED;
+  if(!forceRefresh){
+    try{
+      const raw = localStorage.getItem(FII_CACHE_KEY);
+      if(raw){
+        const {data, ts} = JSON.parse(raw);
+        if(Date.now() - ts < ttl) return data;
+      }
+    }catch(e){}
+  }
 
   const tickerList = tickers.join(',');
   const _bt=getBrapiToken(); const tokenParam=_bt?('&token='+_bt):'';
@@ -3266,6 +3295,35 @@ async function fetchFiiQuotes(tickers){
     localStorage.setItem(FII_CACHE_KEY, JSON.stringify({data, ts: Date.now()}));
     return data;
   }catch(e){ console.warn('brapi.dev error:', e); return null; }
+}
+
+async function forceRefreshQuotes(){
+  if(!_invFiiRows.length) return;
+  const btn=document.getElementById('invRefreshIcon');
+  if(btn){ btn.style.animation='spin 1s linear infinite'; btn.style.display='inline-block'; }
+  localStorage.removeItem(FII_CACHE_KEY);
+  const quotes = await refreshFiiQuotes(_invFiiRows);
+  if(quotes){
+    _invQuotes = quotes;
+    buildInvCharts(_invFiiRows, quotes);
+  }
+  if(btn){ btn.style.animation=''; }
+}
+
+function startQuoteAutoRefresh(){
+  stopQuoteAutoRefresh();
+  updateMktStatusBadge();
+  if(!b3IsOpen()) return; // só inicia timer durante pregão
+  _quoteTimer = setInterval(async()=>{
+    if(_activeTab!=='inv'||!_invFiiRows.length) return;
+    const quotes = await refreshFiiQuotes(_invFiiRows);
+    if(quotes){ _invQuotes=quotes; buildInvCharts(_invFiiRows,quotes); }
+    updateMktStatusBadge();
+  }, FII_CACHE_TTL_OPEN);
+}
+
+function stopQuoteAutoRefresh(){
+  if(_quoteTimer){ clearInterval(_quoteTimer); _quoteTimer=null; }
 }
 
 async function autoCreateDividendEntries(fiiRows, quotes){
@@ -4512,7 +4570,8 @@ function switchTab(tab){
   document.getElementById('tabBtnInv').classList.toggle('active',tab==='inv');
   document.getElementById('tabBtnSaude').classList.toggle('active',tab==='saude');
   document.getElementById('tabBtnMetas').classList.toggle('active',tab==='metas');
-  if(tab==='inv')   { buildInvCharts(_invFiiRows, _invQuotes); _fillInvCashflow(); }
+  if(tab==='inv')   { buildInvCharts(_invFiiRows, _invQuotes); _fillInvCashflow(); startQuoteAutoRefresh(); }
+  else              { stopQuoteAutoRefresh(); }
   if(tab==='geral') { fillCatBreakdown(_catsObj); buildCharts(_monthly, _catsObj); }
   if(tab==='saude') { buildSaudeCharts(_monthly, _catsObj); fillSaudeMetricas(_cmRow, _monthly, _invFiiRows, _invAccounts, _fcRows); fillSaudeRecomendacoes(); }
   if(tab==='metas') { fillMetas(); }
