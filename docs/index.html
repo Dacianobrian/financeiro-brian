@@ -3735,23 +3735,37 @@ function updateMktStatusBadge(){
 
 async function fetchFiiQuotes(tickers, forceRefresh=false){
   const ttl = b3IsOpen() ? FII_CACHE_TTL_OPEN : FII_CACHE_TTL_CLOSED;
-  if(!forceRefresh){
-    try{
-      const raw = localStorage.getItem(FII_CACHE_KEY);
-      if(raw){
-        const {data, ts} = JSON.parse(raw);
-        if(Date.now() - ts < ttl) return data;
-      }
-    }catch(e){}
-  }
+  let cachedData = null;
+  try{
+    const raw = localStorage.getItem(FII_CACHE_KEY);
+    if(raw){
+      const {data, ts} = JSON.parse(raw);
+      cachedData = {data, ts};
+      if(!forceRefresh && Date.now() - ts < ttl) return data; // cache válido
+    }
+  }catch(e){}
+
+  // Mostra loading no badge de status
+  const mktEl=document.getElementById('invMktStatus');
+  const prevTxt=mktEl?mktEl.textContent:'';
+  if(mktEl) mktEl.textContent='⏳ Buscando cotações...';
 
   const tickerList = tickers.join(',');
   const _bt=getBrapiToken(); const tokenParam=_bt?('&token='+_bt):'';
   try{
     const resp = await fetch(`https://brapi.dev/api/quote/${tickerList}?dividends=true${tokenParam}`);
-    if(!resp.ok) return null;
+    if(!resp.ok){
+      console.warn('brapi.dev status:', resp.status);
+      if(resp.status===429) toast('Limite de cotações atingido — use um token brapi.dev gratuito nas configurações','err',5000);
+      else if(resp.status>=500) toast('Serviço de cotações temporariamente indisponível','err',4000);
+      if(mktEl) updateMktStatusBadge();
+      return cachedData?.data || null; // retorna cache antigo se tiver
+    }
     const json = await resp.json();
-    if(!json.results) return null;
+    if(!json.results){
+      if(mktEl) updateMktStatusBadge();
+      return cachedData?.data || null;
+    }
 
     const data = {};
     json.results.forEach(r=>{
@@ -3767,9 +3781,22 @@ async function fetchFiiQuotes(tickers, forceRefresh=false){
           .slice(0,18)
       };
     });
-    localStorage.setItem(FII_CACHE_KEY, JSON.stringify({data, ts: Date.now()}));
+    const tsNow = Date.now();
+    localStorage.setItem(FII_CACHE_KEY, JSON.stringify({data, ts: tsNow}));
+    // Atualiza timestamp na UI
+    const updEl=document.getElementById('invFiiUpdated');
+    if(updEl){
+      const hm=new Date(tsNow).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      updEl.textContent=`Atualizado às ${hm}`;
+    }
+    if(mktEl) updateMktStatusBadge();
     return data;
-  }catch(e){ console.warn('brapi.dev error:', e); return null; }
+  }catch(e){
+    console.warn('brapi.dev error:', e);
+    toast('Erro ao buscar cotações — verifique conexão','err',4000);
+    if(mktEl) updateMktStatusBadge();
+    return cachedData?.data || null;
+  }
 }
 
 async function forceRefreshQuotes(){
@@ -3789,11 +3816,18 @@ async function forceRefreshQuotes(){
 function startQuoteAutoRefresh(){
   stopQuoteAutoRefresh();
   updateMktStatusBadge();
-  if(!b3IsOpen()) return; // só inicia timer durante pregão
+  // Sempre faz fetch inicial quando a aba é aberta (mercado aberto ou fechado)
+  if(_invFiiRows.length && _activeTab==='inv'){
+    refreshFiiQuotes(_invFiiRows).then(q=>{
+      if(q){ _invQuotes=q; buildInvCharts(_invFiiRows,q); showProvAlertBanner(_invFiiRows,q); }
+    }).catch(()=>{});
+  }
+  // Timer de atualização automática: só durante o pregão (15 min)
+  if(!b3IsOpen()) return;
   _quoteTimer = setInterval(async()=>{
     if(_activeTab!=='inv'||!_invFiiRows.length) return;
     const quotes = await refreshFiiQuotes(_invFiiRows);
-    if(quotes){ _invQuotes=quotes; buildInvCharts(_invFiiRows,quotes); }
+    if(quotes){ _invQuotes=quotes; buildInvCharts(_invFiiRows,quotes); showProvAlertBanner(_invFiiRows,quotes); }
     updateMktStatusBadge();
   }, FII_CACHE_TTL_OPEN);
 }
