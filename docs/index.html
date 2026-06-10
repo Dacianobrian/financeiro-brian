@@ -538,6 +538,62 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 /* ── Proventos upcoming banner ───────────────────────────────── */
 .prov-alert{margin-bottom:0;padding:10px 16px;border-radius:10px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);color:var(--green);font-size:12px;font-weight:600;display:flex;align-items:center;gap:10px}
 
+/* ── Transaction Drawer ─────────────────────────────────────────────────── */
+.tx-drawer{position:fixed;right:0;top:0;height:100%;width:340px;max-width:96vw;background:var(--surface);border-left:1px solid var(--border2);z-index:620;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;box-shadow:-8px 0 40px rgba(0,0,0,.6);padding:22px 20px;display:flex;flex-direction:column;gap:0}
+.tx-drawer.open{transform:translateX(0)}
+.tx-drawer-overlay{display:none;position:fixed;inset:0;z-index:619;background:rgba(0,0,0,.4);backdrop-filter:blur(2px)}
+.tx-drawer-overlay.open{display:block}
+.tx-drawer-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.tx-drawer-title{font-size:14px;font-weight:700;color:var(--text)}
+.tx-drawer-close{background:none;border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:16px;cursor:pointer;padding:2px 10px;line-height:1.4;transition:.1s}
+.tx-drawer-close:hover{color:var(--text);border-color:var(--muted)}
+.tx-drawer-amount{font-size:34px;font-weight:800;letter-spacing:-1.5px;margin-bottom:16px;line-height:1}
+.tx-drawer-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(29,34,48,.7);font-size:12.5px}
+.tx-drawer-row:last-of-type{border-bottom:none}
+.tx-drawer-lbl{color:var(--muted2)}
+.tx-drawer-val{font-weight:600;color:var(--text);text-align:right;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx-drawer-actions{display:flex;gap:8px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}
+/* ── FAB ─────────────────────────────────────────────────────────────────── */
+.fab{position:fixed;bottom:24px;right:24px;z-index:560;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#0284c7,#2dd4bf);color:#fff;font-size:26px;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(56,189,248,.55);display:flex;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s;line-height:1}
+.fab:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(56,189,248,.7)}
+.fab:active{transform:scale(.95)}
+.fab-overlay{display:none;position:fixed;inset:0;z-index:580;background:rgba(0,0,0,.5);backdrop-filter:blur(4px)}
+.fab-overlay.open{display:block}
+.fab-panel{position:fixed;bottom:24px;right:24px;z-index:590;background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:18px;width:320px;max-width:96vw;box-shadow:0 16px 60px rgba(0,0,0,.7);display:none;animation:fabIn .2s ease}
+.fab-panel.open{display:block}
+@keyframes fabIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+.fab-tabs{display:flex;gap:3px;background:var(--surface2);border-radius:8px;padding:3px;margin-bottom:14px;border:1px solid var(--border)}
+.fab-tab{flex:1;text-align:center;font-size:11px;padding:5px 2px;border-radius:6px;font-weight:600;cursor:pointer;color:var(--muted);transition:.12s;user-select:none}
+.fab-tab.active-saida{background:rgba(244,63,94,.15);color:var(--red)}
+.fab-tab.active-entrada{background:rgba(34,197,94,.15);color:var(--green)}
+.fab-tab.active-investido{background:rgba(167,139,250,.15);color:var(--purple)}
+.fab-amount-input{font-size:32px;font-weight:800;letter-spacing:-1.5px;text-align:center;padding:6px 0;border:none;background:transparent;color:var(--text);font-family:var(--font);width:100%;outline:none}
+.fab-cats{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0}
+.fab-cat{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--muted2);cursor:pointer;transition:.1s;background:transparent}
+.fab-cat:hover{border-color:var(--blue);color:var(--text)}
+.fab-cat.selected{background:rgba(56,189,248,.12);border-color:var(--blue);color:var(--blue2)}
+/* ── FII Detail inline row ─────────────────────────────────────────────── */
+.fii-row-clickable{cursor:pointer;transition:background .1s}
+.fii-detail-tr td{padding:0!important;border-bottom:1px solid var(--border2)!important;background:rgba(56,189,248,.03)!important}
+.fii-detail-inner{padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.fii-det-metric{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;min-width:96px}
+.fii-det-lbl{font-size:9px;color:var(--muted2);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.fii-det-val{font-size:14px;font-weight:800;letter-spacing:-.3px;line-height:1.2}
+.fii-det-divs{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;flex:1;min-width:180px}
+.fii-det-div-row{display:flex;justify-content:space-between;font-size:11px;padding:2px 0;color:var(--muted2)}
+.fii-det-div-row span:last-child{font-weight:600;color:var(--green)}
+/* ── Alertas inteligentes ───────────────────────────────────────────────── */
+.alerta-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);cursor:default}
+.alerta-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.alerta-title{font-size:12.5px;font-weight:600;color:var(--text);line-height:1.3}
+.alerta-sub{font-size:11px;color:var(--muted2);margin-top:2px;line-height:1.4}
+/* ── Comparativo mês a mês ──────────────────────────────────────────────── */
+.comp-mo-row{display:flex;align-items:center;gap:8px;padding:4px 0}
+.comp-mo-lbl{width:88px;font-size:11px;color:var(--muted2);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.comp-mo-bars{flex:1;display:flex;flex-direction:column;gap:2px}
+.comp-mo-bar-wrap{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.comp-mo-bar-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.comp-mo-vals{display:flex;justify-content:space-between;font-size:9.5px;margin-top:1px}
 /* ── Print ────────────────────────────────────────────────── */
 @media print{
   body{background:#fff!important;color:#000!important}
@@ -964,6 +1020,16 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 
 <!-- TAB: VISÃO GERAL -->
 <div id="tabGeral">
+  <!-- Alertas inteligentes -->
+  <div id="alertasPanel" style="display:none" class="section">
+    <div class="card" style="padding:14px">
+      <div class="section-header" style="margin-bottom:10px">
+        <div class="section-title">🔔 Alertas &amp; Atenção</div>
+        <span id="alertaCount" style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(244,63,94,.12);color:var(--red)"></span>
+      </div>
+      <div id="alertasList" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+  </div>
   <!-- Banner alerta saldo baixo -->
   <div id="saldoBanner" style="display:none;margin:0 0 10px;padding:10px 16px;border-radius:10px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35);color:#fbbf24;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px">
     <span style="font-size:18px">⚠️</span>
@@ -1078,6 +1144,8 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
           <div class="section-title">📊 Relatório Mensal — <span id="relMesLabel" style="color:var(--blue2);font-weight:700;text-transform:none;letter-spacing:0">...</span></div>
           <div style="display:flex;gap:5px;align-items:center">
+            <button onclick="exportTxCsv()" title="Exportar transações CSV" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:var(--green);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font)">⬇ CSV</button>
+            <button onclick="exportResumoJson()" title="Exportar resumo JSON" style="background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);color:var(--blue2);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font)">⬇ JSON</button>
             <select id="relMesYear" onchange="relMesJumpYear(+this.value)" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:12px;padding:5px 10px;outline:none;cursor:pointer;font-family:var(--font)"></select>
             <button onclick="relMesNav(-1)" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted2);border-radius:8px;padding:5px 11px;font-size:15px;cursor:pointer;line-height:1;font-weight:300">‹</button>
             <button onclick="relMesNav(0)" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">Hoje</button>
@@ -1134,6 +1202,17 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       <div id="relPaceWrap" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
         <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">🏃 Ritmo de gasto por categoria <span id="relPaceNote" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted)"></span></div>
         <div id="relPaceSection" style="display:flex;flex-direction:column;gap:7px"></div>
+      </div>
+      <!-- Comparativo mês a mês por categoria -->
+      <div id="relComparativoWrap" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">📊 Comparativo por categoria
+          <span id="relCompLabel" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted)"></span>
+          <span style="display:inline-flex;align-items:center;gap:12px;margin-left:10px;font-weight:400;text-transform:none;letter-spacing:0;font-size:10.5px">
+            <span><span id="compDot0" style="display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle;background:#38bdf8"></span><span id="compMo0">Ant.</span></span>
+            <span><span id="compDot1" style="display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle;background:#818cf8"></span><span id="compMo1">Atual</span></span>
+          </span>
+        </div>
+        <div id="relComparativoSection" style="display:flex;flex-direction:column;gap:4px"></div>
       </div>
     </div>
   </div>
@@ -3694,14 +3773,14 @@ function fillTx(rows){
     const amtCls=t.type==='entrada'?'amt-green':t.type==='investido'?'amt-purple':'amt-red';
     const catLabel=t.type==='investido'?'Investimento':(t.category||'Outros');
     const av=catAvatar(catLabel,24);
-    return`<tr style="font-size:12px">
+    return`<tr style="font-size:12px;cursor:pointer" onclick="openTxDrawer(${t.id})">
       <td style="white-space:nowrap;color:var(--muted);padding:5px 6px">${fmtDate(t.date)}</td>
       <td style="padding:5px 6px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.description||''}">
         ${av}${t.description||'—'}
       </td>
       <td style="padding:5px 6px">${catBadge(t.category)}</td>
       <td style="text-align:right;padding:5px 6px;font-weight:700" class="${amtCls}">${brl(t.amount)}</td>
-      <td style="padding:5px 4px;width:20px"><span onclick="openEditTx(${t.id})" style="cursor:pointer;color:var(--muted2);font-size:11px" title="Editar">✏️</span></td>
+      <td style="padding:5px 4px;width:20px" onclick="event.stopPropagation();openEditTx(${t.id})"><span style="cursor:pointer;color:var(--muted2);font-size:11px" title="Editar">✏️</span></td>
     </tr>`;
   }).join('');
 }
@@ -4026,7 +4105,7 @@ function fillInvFii(rows, quotes, accounts, monthly, divTxs){
         title="Preço médio de compra">
     </td>`;
 
-    return`<tr>
+    return`<tr class="fii-row-clickable" onclick="toggleFiiDetail('${f.ticker}',this)">
       <td style="white-space:nowrap"><div style="display:flex;align-items:center;gap:7px">${tickerLogo(f.ticker,26,q?.logo||'')}<div><span style="font-weight:700;color:var(--blue2);letter-spacing:.5px">${f.ticker}</span>${nextDiv}</div></div></td>
       <td>${ftypeBadge(f.fund_type)}</td>
       <td style="color:var(--muted2)">${shares}</td>
@@ -4847,6 +4926,7 @@ async function _doRefresh(){
     fillAccounts(accounts, patRow);
     buildCharts(monthly, catsObj);
     fillTx(txs);
+    fillAlertasPanel(cmRow, null, fii, null, accounts, null);
     fillCustos(fc);
     fillSubscriptions(subs||[]);
     fillInstallments(insts||[]);
@@ -4877,6 +4957,7 @@ async function _doRefresh(){
         fillInvFii(fii, quotes, accounts, monthly, divTxs);
         buildInvCharts(fii, quotes);
         fillProventos(fii, quotes, divTxs).catch(()=>{});
+        fillAlertasPanel(cmRow, {byCat:catsObj}, fii, quotes, accounts, null);
       }
     }).catch(()=>{});
     if(_activeTab==='metas') fillMetas();
@@ -5322,6 +5403,10 @@ async function fillRelatorioMes(){
     } else {
       if(paceWrap) paceWrap.style.display='none';
     }
+
+    // ── Comparativo mês a mês por categoria ──────────────────────────────
+    const txAnt=allTx.filter(t=>t.date>=blocos[2].start&&t.date<=blocos[2].end);
+    fillComparativoMes(txAlvo, txAnt, blocos[2].label, blocos[3].label);
 
   }catch(e){console.error('Relatório mensal erro:',e);toast('Erro no relatório','err',3000);}
 }
@@ -7435,6 +7520,370 @@ function _updateTitleAlerts(fixedCosts, installments){
   (fixedCosts||[]).forEach(c=>{if(checkDay(c.due_day)) alerts.push(c.description||'Custo fixo');});
   document.title=alerts.length>0?`(${alerts.length} ⚠) Financeiro Brian`:'Brian · Controle Financeiro';
 }
+
+// ══ TRANSACTION DRAWER ═══════════════════════════════════════════════════════
+function openTxDrawer(id){
+  const t=_txMap[id]; if(!t) return;
+  const amtCls=t.type==='entrada'?'var(--green)':t.type==='investido'?'var(--purple)':'var(--red)';
+  const sign=t.type==='entrada'?'+ ':'− ';
+  const catLabel=t.type==='investido'?'Investimento':(t.category||'Outros');
+  const av=catAvatar(catLabel,28);
+  const rows=[
+    ['Data', fmtDate(t.date)],
+    ['Tipo', t.type==='entrada'?'Entrada':t.type==='investido'?'Investimento':'Saída'],
+    ['Categoria', catLabel],
+    ['Conta', t.account||'—'],
+    t.description?['Descrição', t.description]:null,
+    t.notes?['Obs.', t.notes]:null,
+  ].filter(Boolean);
+  document.getElementById('txDrawerContent').innerHTML=`
+    <div class="tx-drawer-amount" style="color:${amtCls}">${sign}${brl(t.amount)}</div>
+    <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:6px">${av}${t.description||'Sem descrição'}</div>
+    ${rows.map(([l,v])=>`<div class="tx-drawer-row"><span class="tx-drawer-lbl">${l}</span><span class="tx-drawer-val">${v}</span></div>`).join('')}
+    <div class="tx-drawer-actions">
+      <button onclick="openEditTx(${id});closeTxDrawer()" style="flex:1;padding:8px;border-radius:9px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);color:#818cf8;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer">✏️ Editar</button>
+      <button onclick="closeTxDrawer()" style="flex:1;padding:8px;border-radius:9px;background:var(--surface2);border:1px solid var(--border2);color:var(--muted2);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer">Fechar</button>
+    </div>`;
+  document.getElementById('txDrawer').classList.add('open');
+  document.getElementById('txDrawerOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeTxDrawer(){
+  document.getElementById('txDrawer').classList.remove('open');
+  document.getElementById('txDrawerOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+// ══ FAB QUICK-ADD ════════════════════════════════════════════════════════════
+let _fabType='saida';
+const FAB_CATS={
+  saida:['Alimentação','Transporte','Lazer','Moradia','Saúde','Educação','Outros'],
+  entrada:['Salário','Freelance','Dividendos','Outros'],
+  investido:['FII','Ação','Renda Fixa','Caixinha','Outros']
+};
+function openFab(){
+  _fabType='saida';
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('fabDate').value=today;
+  document.getElementById('fabAmount').value='';
+  document.getElementById('fabDesc').value='';
+  document.getElementById('fabResp').textContent='';
+  _renderFabCats(); _renderFabTabs();
+  document.getElementById('fabOverlay').classList.add('open');
+  document.getElementById('fabPanel').classList.add('open');
+  document.getElementById('fabBtn').style.display='none';
+  setTimeout(()=>document.getElementById('fabAmount').focus(),80);
+}
+function closeFab(){
+  document.getElementById('fabOverlay').classList.remove('open');
+  document.getElementById('fabPanel').classList.remove('open');
+  document.getElementById('fabBtn').style.display='flex';
+}
+function setFabType(type, el){
+  _fabType=type;
+  _renderFabTabs(el);
+  _renderFabCats();
+  document.getElementById('fabSubmitBtn').textContent='Lançar '+(type==='saida'?'Saída':type==='entrada'?'Entrada':'Investimento');
+  document.getElementById('fabSubmitBtn').style.background=type==='saida'?'linear-gradient(135deg,#dc2626,#f43f5e)':type==='entrada'?'linear-gradient(135deg,#15803d,#22c55e)':'linear-gradient(135deg,#6d28d9,#a78bfa)';
+}
+function _renderFabTabs(){
+  document.querySelectorAll('.fab-tab').forEach(t=>{
+    t.className='fab-tab';
+    if((t.textContent==='Saída'&&_fabType==='saida')||(t.textContent==='Entrada'&&_fabType==='entrada')||(t.textContent==='Investimento'&&_fabType==='investido'))
+      t.classList.add('active-'+_fabType);
+  });
+}
+function _renderFabCats(){
+  const el=document.getElementById('fabCats'); if(!el) return;
+  el.innerHTML=FAB_CATS[_fabType].map(c=>`<div class="fab-cat" onclick="this.closest('.fab-cats').querySelectorAll('.fab-cat').forEach(x=>x.classList.remove('selected'));this.classList.add('selected')">${c}</div>`).join('');
+}
+async function submitFab(){
+  const amount=parseFloat(document.getElementById('fabAmount').value);
+  if(!amount||amount<=0){toast('Informe o valor','err',2000);return;}
+  const desc=document.getElementById('fabDesc').value.trim()||null;
+  const date=document.getElementById('fabDate').value;
+  const account=document.getElementById('fabAccount').value;
+  const selCat=document.querySelector('#fabCats .fab-cat.selected');
+  const category=selCat?selCat.textContent:'Outros';
+  const btn=document.getElementById('fabSubmitBtn');
+  const resp=document.getElementById('fabResp');
+  btn.disabled=true; btn.textContent='Salvando...'; resp.textContent='';
+  try{
+    await sbPost('transactions',{type:_fabType,amount,description:desc,date,account,category});
+    resp.style.color='var(--green)'; resp.textContent='✓ Lançado com sucesso!';
+    setTimeout(()=>{closeFab();refreshDashboard();},900);
+  }catch(e){
+    resp.style.color='var(--red)'; resp.textContent='Erro ao salvar';
+    btn.disabled=false; btn.textContent='Tentar novamente';
+  }
+}
+
+// ══ FII DETAIL PANEL ═════════════════════════════════════════════════════════
+const _fiiDetailOpen={};
+function toggleFiiDetail(ticker,trEl){
+  const existingId='fii-detail-'+ticker;
+  const existing=document.getElementById(existingId);
+  if(existing){
+    existing.remove();
+    delete _fiiDetailOpen[ticker];
+    return;
+  }
+  _fiiDetailOpen[ticker]=true;
+  const q=_invQuotes&&_invQuotes[ticker];
+  const row=_invFiiRows&&_invFiiRows.find(r=>r.ticker===ticker);
+  if(!row) return;
+  const price=q?q.price:+(row.price||0);
+  const costBase=+(row.cost_per_share||row.price||0);
+  const shares=+(row.shares||0);
+  const dy=q?q.dy:+(row.dy||0);
+  const val=shares*price;
+  const renda=val*dy/100/12;
+  const plVal=costBase>0&&q?(price-costBase)*shares:null;
+  const plPct=costBase>0&&q?(price-costBase)/costBase*100:null;
+  const pvp=q&&row.nav?price/row.nav:null;
+
+  const metrics=[
+    {l:'Cotação',v:brl(price),c:q?.change!=null?(q.change>=0?'var(--green)':'var(--red)'):null,s:q?.change!=null?`${q.change>=0?'▲':'▼'}${Math.abs(q.change).toFixed(2)}%`:null},
+    {l:'Cotas',v:shares},
+    {l:'Total',v:brl(val),c:'var(--yellow)'},
+    {l:'DY 12m',v:dy?pct(dy):'—',c:dy>=0?'var(--green)':'var(--red)'},
+    {l:'Renda/Mês',v:brl(renda),c:'var(--green)'},
+    plVal!=null?{l:'P&L',v:(plVal>=0?'+':'')+brl(plVal),c:plVal>=0?'var(--green)':'var(--red)',s:plPct!=null?(plPct>=0?'+':'')+plPct.toFixed(1)+'%':null}:null,
+    pvp!=null?{l:'P/VP',v:pvp.toFixed(2)+'x',c:pvp<1?'var(--green)':'var(--muted2)'}:null,
+  ].filter(Boolean);
+
+  const divs=q?.dividends?.slice(0,5)||[];
+  const divsHtml=divs.length?divs.map(d=>`<div class="fii-det-div-row"><span>${fmtDate(d.paymentDate)}</span><span>${brl(d.rate)}/cota</span></div>`).join('')
+    :'<div style="color:var(--muted);font-size:11px">Sem dados de proventos</div>';
+
+  const newTr=document.createElement('tr');
+  newTr.id=existingId; newTr.className='fii-detail-tr';
+  const cols=trEl?trEl.cells.length:10;
+  newTr.innerHTML=`<td colspan="${cols}">
+    <div class="fii-detail-inner">
+      ${metrics.map(m=>`<div class="fii-det-metric">
+        <div class="fii-det-lbl">${m.l}</div>
+        <div class="fii-det-val" style="${m.c?'color:'+m.c:''}">${m.v}${m.s?`<div style="font-size:10px;opacity:.7">${m.s}</div>`:''}</div>
+      </div>`).join('')}
+      <div class="fii-det-divs" style="flex:1;min-width:200px">
+        <div class="fii-det-lbl" style="margin-bottom:6px">Próximos Proventos</div>
+        ${divsHtml}
+      </div>
+    </div>
+  </td>`;
+  if(trEl) trEl.insertAdjacentElement('afterend',newTr);
+}
+
+// ══ ALERTAS INTELIGENTES ══════════════════════════════════════════════════════
+function fillAlertasPanel(cm, monthly, fiiRows, quotes, accounts, metas){
+  const panel=document.getElementById('alertasPanel');
+  const list=document.getElementById('alertasList');
+  const countEl=document.getElementById('alertaCount');
+  if(!panel||!list) return;
+  const items=[];
+  const hoje=new Date();
+  const diaAtual=hoje.getDate();
+  const diasMes=new Date(hoje.getFullYear(),hoje.getMonth()+1,0).getDate();
+  const paceEsperado=diaAtual/diasMes;
+
+  // 1. Gastos por categoria acima do ritmo
+  if(monthly&&monthly.byCat&&cm){
+    const totalSai=cm.saidas||0;
+    Object.entries(monthly.byCat||{}).forEach(([cat,gasto])=>{
+      if(!gasto) return;
+      const refEst=totalSai>0?(gasto/totalSai)*(totalSai/paceEsperado):gasto/paceEsperado;
+      const ratio=refEst>0?gasto/refEst:0;
+      if(ratio>1.2){
+        const over=Math.round((ratio-1)*100);
+        items.push({color:'var(--red)',title:`${cat} ${over}% acima do ritmo`,sub:`R$ ${brl(gasto)} gastos — esperado R$ ${brl(refEst)} até dia ${diaAtual}`,priority:3});
+      }
+    });
+  }
+
+  // 2. Saldo baixo
+  if(accounts){
+    const corrente=accounts.filter(a=>a.type==='corrente');
+    corrente.forEach(a=>{
+      const bal=+(a.balance||0);
+      if(bal>0&&bal<500){
+        items.push({color:'var(--yellow)',title:`Saldo baixo: ${a.name||a.account_key}`,sub:`R$ ${brl(bal)} em conta — abaixo de R$ 500`,priority:2});
+      }
+    });
+  }
+
+  // 3. Proventos próximos (≤10 dias)
+  if(fiiRows&&quotes){
+    const fimMes=new Date(hoje.getFullYear(),hoje.getMonth()+1,0);
+    const diasFim=Math.round((fimMes-hoje)/(1000*60*60*24));
+    if(diasFim<=10){
+      let totalProv=0;
+      fiiRows.forEach(f=>{
+        const q=quotes[f.ticker];
+        const d=q?.dividends?.[0];
+        if(d&&d.paymentDate){
+          const pay=new Date(d.paymentDate);
+          if(pay>=hoje&&pay<=fimMes) totalProv+=(+(f.shares||0))*(+(d.rate||0));
+        }
+      });
+      if(totalProv>0) items.push({color:'var(--green)',title:`Proventos a receber — ${diasFim}d`,sub:`Estimativa: R$ ${brl(totalProv)} até fim do mês`,priority:1});
+    }
+  }
+
+  // 4. Metas com prazo próximo
+  if(metas){
+    metas.forEach(m=>{
+      if(!m.prazo) return;
+      const diff=Math.round((new Date(m.prazo)-hoje)/(1000*60*60*24));
+      if(diff>=0&&diff<=30){
+        const pct_=m.meta>0?m.atual/m.meta*100:0;
+        items.push({color:'var(--yellow)',title:`Meta "${m.titulo||m.nome}" vence em ${diff}d`,sub:`${pct_.toFixed(0)}% concluída — R$ ${brl(+(m.meta||0)-(m.atual||0))} faltando`,priority:2});
+      }
+    });
+  }
+
+  if(!items.length){panel.style.display='none';return;}
+  items.sort((a,b)=>b.priority-a.priority);
+  list.innerHTML=items.slice(0,6).map(i=>`
+    <div class="alerta-item">
+      <div class="alerta-dot" style="background:${i.color}"></div>
+      <div><div class="alerta-title">${i.title}</div><div class="alerta-sub">${i.sub}</div></div>
+    </div>`).join('');
+  if(countEl) countEl.textContent=items.length;
+  panel.style.display='';
+}
+
+// ══ EXPORT CSV / JSON ════════════════════════════════════════════════════════
+function _downloadBlob(content, filename, mime){
+  const blob=new Blob([content],{type:mime});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+async function exportTxCsv(){
+  toast('Preparando CSV...','info',2000);
+  const hoje=new Date(); const ym=`${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+  try{
+    const rows=await sbGet('transactions',{select:'*',date:`gte.${ym}-01`,limit:2000});
+    const cols=['id','date','type','description','category','amount','account'];
+    const header=cols.join(';');
+    const lines=rows.map(r=>cols.map(c=>{
+      const v=r[c]??'';
+      return typeof v==='string'&&v.includes(';')?`"${v}"`:v;
+    }).join(';'));
+    _downloadBlob([header,...lines].join('\n'),'transacoes_'+ym+'.csv','text/csv;charset=utf-8');
+    toast('CSV exportado!','ok',2500);
+  }catch(e){toast('Erro ao exportar','err',3000);}
+}
+function exportResumoJson(){
+  const hoje=new Date();
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const mesLabel=`${meses[hoje.getMonth()]}/${hoje.getFullYear()}`;
+  const resumo={
+    gerado:hoje.toISOString(),
+    mes:mesLabel,
+    kpis:{
+      entradas:_cmRow?.entradas??null,
+      saidas:_cmRow?.saidas??null,
+      investido:_cmRow?.investido??null,
+      saldo_contas:(_invAccounts||[]).reduce((s,a)=>s+(+a.balance||0),0)
+    },
+    portfolio_fii:{
+      n_ativos:(_invFiiRows||[]).length,
+      valor_mercado:(_invFiiRows||[]).reduce((s,f)=>{const q=_invQuotes?.[f.ticker];return s+(+(f.shares||0))*(q?q.price:+(f.price||0));},0)
+    },
+    saude_score:_saudeScores?.score??null,
+    exportado_por:'Brian Finanças'
+  };
+  _downloadBlob(JSON.stringify(resumo,null,2),'resumo_'+mesLabel.replace('/','_')+'.json','application/json');
+  toast('JSON exportado!','ok',2500);
+}
+
+// ══ COMPARATIVO MÊS A MÊS ════════════════════════════════════════════════════
+function fillComparativoMes(txAlvo, txAnt, labelAnt, labelAtual){
+  const wrap=document.getElementById('relComparativoWrap');
+  const sec=document.getElementById('relComparativoSection');
+  if(!wrap||!sec) return;
+
+  const byCat0={}, byCat1={};
+  txAnt.filter(t=>t.type==='saida').forEach(t=>{const c=t.category||'Outros';byCat0[c]=(byCat0[c]||0)+(+t.amount||0);});
+  txAlvo.filter(t=>t.type==='saida').forEach(t=>{const c=t.category||'Outros';byCat1[c]=(byCat1[c]||0)+(+t.amount||0);});
+  const allCats=[...new Set([...Object.keys(byCat0),...Object.keys(byCat1)])];
+  if(!allCats.length){wrap.style.display='none';return;}
+
+  allCats.sort((a,b)=>(byCat1[b]||0)-(byCat1[a]||0));
+  const maxVal=Math.max(...allCats.map(c=>Math.max(byCat0[c]||0,byCat1[c]||0)),1);
+
+  const el0=document.getElementById('compMo0'); if(el0) el0.textContent=labelAnt;
+  const el1=document.getElementById('compMo1'); if(el1) el1.textContent=labelAtual;
+
+  sec.innerHTML=allCats.slice(0,8).map(cat=>{
+    const v0=byCat0[cat]||0, v1=byCat1[cat]||0;
+    const w0=Math.min(100,(v0/maxVal)*100).toFixed(1);
+    const w1=Math.min(100,(v1/maxVal)*100).toFixed(1);
+    const diff=v0>0?((v1-v0)/v0*100):null;
+    const diffColor=diff!=null?(diff>10?'var(--red)':diff<-10?'var(--green)':'var(--muted2)'):'var(--muted2)';
+    const diffHtml=diff!=null?`<span style="color:${diffColor};font-size:10px;font-weight:600">${diff>0?'▲':'▼'}${Math.abs(diff).toFixed(0)}%</span>`:'';
+    return`<div class="comp-mo-row">
+      <div class="comp-mo-lbl">${cat}</div>
+      <div class="comp-mo-bars">
+        <div class="comp-mo-bar-wrap"><div class="comp-mo-bar-fill" style="width:${w0}%;background:#38bdf8"></div></div>
+        <div class="comp-mo-bar-wrap"><div class="comp-mo-bar-fill" style="width:${w1}%;background:#818cf8"></div></div>
+        <div class="comp-mo-vals"><span style="color:#38bdf8">${brl(v0)}</span><span style="color:#818cf8">${brl(v1)}</span>${diffHtml}</div>
+      </div>
+    </div>`;
+  }).join('');
+  wrap.style.display='';
+}
 </script>
+
+<!-- ══ TRANSACTION DRAWER ══ -->
+<div class="tx-drawer-overlay" id="txDrawerOverlay" onclick="closeTxDrawer()"></div>
+<div class="tx-drawer" id="txDrawer">
+  <div class="tx-drawer-header">
+    <div class="tx-drawer-title">Detalhe da Transação</div>
+    <button class="tx-drawer-close" onclick="closeTxDrawer()">✕</button>
+  </div>
+  <div id="txDrawerContent">
+    <div style="color:var(--muted);text-align:center;padding:24px">Carregando...</div>
+  </div>
+</div>
+
+<!-- ══ FAB QUICK-ADD ══ -->
+<div class="fab-overlay" id="fabOverlay" onclick="closeFab()"></div>
+<div class="fab-panel" id="fabPanel">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <div style="font-size:13px;font-weight:700;color:var(--text)">Lançar transação</div>
+    <button onclick="closeFab()" style="background:none;border:1px solid var(--border2);border-radius:7px;color:var(--muted);font-size:14px;cursor:pointer;padding:2px 9px;line-height:1.4">✕</button>
+  </div>
+  <div class="fab-tabs" id="fabTabs">
+    <div class="fab-tab active-saida" onclick="setFabType('saida',this)">Saída</div>
+    <div class="fab-tab" onclick="setFabType('entrada',this)">Entrada</div>
+    <div class="fab-tab" onclick="setFabType('investido',this)">Investimento</div>
+  </div>
+  <input class="fab-amount-input" id="fabAmount" type="number" placeholder="0,00" min="0" step="0.01"/>
+  <div class="field" style="margin-bottom:10px">
+    <label>Descrição</label>
+    <input type="text" id="fabDesc" class="field input" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:8px 12px;outline:none" placeholder="Ex: Mercado, Salário..."/>
+  </div>
+  <div style="font-size:10px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Categoria</div>
+  <div class="fab-cats" id="fabCats"></div>
+  <div class="field-row" style="margin-bottom:12px">
+    <div class="field">
+      <label>Data</label>
+      <input type="date" id="fabDate" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:8px 12px;outline:none"/>
+    </div>
+    <div class="field">
+      <label>Conta</label>
+      <select id="fabAccount" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:8px 12px;outline:none">
+        <option value="Nubank">Nubank</option>
+        <option value="Bradesco">Bradesco</option>
+      </select>
+    </div>
+  </div>
+  <button id="fabSubmitBtn" onclick="submitFab()" style="width:100%;padding:10px;border-radius:10px;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#dc2626,#f43f5e);color:#fff;transition:.15s">Lançar Saída</button>
+  <div id="fabResp" style="font-size:11.5px;margin-top:6px;min-height:14px;text-align:center;color:var(--muted)"></div>
+</div>
+<button class="fab" id="fabBtn" onclick="openFab()" title="Lançar transação">＋</button>
+
 </body>
 </html>
