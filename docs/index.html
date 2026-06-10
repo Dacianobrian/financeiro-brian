@@ -38,7 +38,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13.5px;padding-bottom:100px;min-height:100vh;-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13.5px;min-height:100vh;-webkit-font-smoothing:antialiased}
 ::selection{background:rgba(56,189,248,.3)}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--surface)}
@@ -196,13 +196,6 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .field-row .field{flex:1}
 .modal-preview{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-family:monospace;font-size:11.5px;color:var(--muted2);word-break:break-all}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end}
-.terminal{position:fixed;bottom:0;left:0;right:0;z-index:300;background:rgba(6,8,14,.97);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border-top:1px solid rgba(56,189,248,.12);padding:10px 28px 12px;box-shadow:0 -4px 32px rgba(0,0,0,.5)}
-.terminal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,248,.35),transparent)}
-.terminal-form{display:flex;align-items:center;gap:10px}
-.term-prompt{font-size:13px;font-weight:700;color:var(--blue2);font-family:monospace;flex-shrink:0;user-select:none;opacity:.8;letter-spacing:.5px}
-.term-input{flex:1;background:rgba(20,24,31,.6);border:1px solid rgba(37,45,62,.8);border-radius:8px;color:var(--text);font-family:monospace;font-size:13px;padding:8px 16px;outline:none;transition:border-color var(--dur-fast),box-shadow var(--dur-fast)}
-.term-input:focus{border-color:rgba(56,189,248,.5);box-shadow:0 0 0 3px rgba(56,189,248,.08)}
-.term-input::placeholder{color:var(--muted)}
 .term-resp{margin-top:4px;font-family:monospace;font-size:11.5px;min-height:16px;transition:color var(--dur-normal);padding-left:28px;letter-spacing:.1px}
 .term-resp.ok{color:var(--green)}
 .term-resp.err{color:var(--red)}
@@ -1427,7 +1420,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(130,10,209,.08);border:1px solid rgba(130,10,209,.2);border-radius:10px">
         <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:40px;height:40px;border-radius:10px;background:#820ad1;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;letter-spacing:-1px">N</div>
+          <div style="width:40px;height:40px;border-radius:10px;background:#820ad1;overflow:hidden;display:flex;align-items:center;justify-content:center"><img src="https://logo.clearbit.com/nubank.com.br" width="32" height="32" style="object-fit:cover;border-radius:6px" onerror="this.parentElement.innerHTML='N';this.parentElement.style.cssText+='font-size:22px;font-weight:900;color:#fff'" alt="Nubank"></div>
           <div>
             <div style="font-weight:700;font-size:14px">Caixinha Nubank</div>
             <div style="display:flex;gap:6px;margin-top:4px">
@@ -1633,16 +1626,6 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 </div><!-- /page -->
 
 <!-- Terminal -->
-<div class="terminal">
-  <form class="terminal-form" id="termForm" onsubmit="sendCmd(event)">
-    <span class="term-prompt">›</span>
-    <input class="term-input" id="termInput" type="text" autocomplete="off"
-      placeholder="08/04/2026 - 5,00 corrente - compra no mercado  ·  entrada - 3500,00 nubank - comissão  ·  ajuda"/>
-    <button class="btn btn-primary" type="submit">Enviar</button>
-    <button class="btn btn-ghost" type="button" onclick="document.getElementById('termInput').value=''">✕</button>
-  </form>
-  <div class="term-resp info" id="termResp">Digite um comando. Use <b>ajuda</b> para ver todos os comandos.</div>
-</div>
 
 <!-- ══ IMPORT MODAL ══ -->
 <div class="imp-overlay" id="impOverlay" style="display:none" onclick="if(event.target===this)closeImportModal()">
@@ -2458,7 +2441,7 @@ function showApp(){
   document.getElementById('headerDate').textContent =
     new Date().toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
   refreshDashboard();
-  setTimeout(()=>document.getElementById('termInput').focus(), 200);
+
   ['mData','mValor','mConta','mDesc'].forEach(id=>{
     const el = document.getElementById(id);
     if(el){ el.addEventListener('input',updatePreview); el.addEventListener('change',updatePreview); }
@@ -2513,21 +2496,31 @@ const CAT_ICON = {'Alimentação':'🍽️','Supermercado':'🛒','Combustível'
 const CAT_COLOR= {'Alimentação':'#f97316','Supermercado':'#84cc16','Combustível':'#64748b','Moradia':'#8b5cf6','Saúde':'#ec4899','Educação':'#06b6d4','Transporte':'#f59e0b','Lazer':'#a855f7','Streaming':'#6366f1','Investimentos':'#10b981','Cartão Bradesco':'#3b82f6','Parcelas':'#ef4444','Anuidade':'#78716c','Impostos / MEI':'#dc2626','Outros':'#475569'};
 function catIcon(c){return CAT_ICON[c]||'📌'}
 function catColor(c){return CAT_COLOR[c]||'#64748b'}
-function tickerLogo(ticker, size=28){
-  const url=`https://raw.githubusercontent.com/thefintz/icones-b3/main/icones/${ticker}.png`;
+function tickerLogo(ticker, size=28, logoUrl=''){
   const label=encodeURIComponent(ticker.slice(0,4));
   const svgFb=`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}'%3E%3Crect width='${size}' height='${size}' rx='5' fill='%231e3358'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='${Math.floor(size*.37)}' font-weight='700' fill='%2338bdf8'%3E${label}%3C/text%3E%3C/svg%3E`;
-  return `<img src="${url}" width="${size}" height="${size}" style="border-radius:5px;object-fit:contain;background:#fff;padding:2px;flex-shrink:0;vertical-align:middle" onerror="this.onerror=null;this.src='${svgFb}';this.style.background='transparent';this.style.padding='0'" alt="${ticker}">`;
+  const src=logoUrl||`https://raw.githubusercontent.com/thefintz/icones-b3/main/icones/${ticker}.png`;
+  const bg=logoUrl?'transparent':'#fff';
+  const pad=logoUrl?'0':'2px';
+  return `<img src="${src}" width="${size}" height="${size}" style="border-radius:5px;object-fit:contain;background:${bg};padding:${pad};flex-shrink:0;vertical-align:middle" onerror="this.onerror=null;this.src='${svgFb}';this.style.background='transparent';this.style.padding='0'" alt="${ticker}">`;
 }
 
+const BANK_LOGOS={
+  nubank:'https://logo.clearbit.com/nubank.com.br',
+  bradesco:'https://logo.clearbit.com/bradesco.com.br'
+};
 function bankLogo(name, size=28){
   const n=(name||'').toLowerCase();
-  const w=size+'px', br=Math.round(size*.3)+'px', fs=Math.round(size*.52)+'px';
-  if(n.includes('nubank'))
-    return `<div style="width:${w};height:${w};min-width:${w};border-radius:${br};background:#820ad1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:${fs};font-weight:900;color:#fff">N</div>`;
-  if(n.includes('bradesco'))
-    return `<div style="width:${w};height:${w};min-width:${w};border-radius:${br};background:#cc092f;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:${fs};font-weight:900;color:#fff">B</div>`;
-  return `<div style="width:${w};height:${w};min-width:${w};border-radius:${br};background:rgba(99,102,241,.2);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:${fs}">🏦</div>`;
+  const w=size+'px', br=Math.round(size*.22)+'px';
+  let logoUrl='', bg='rgba(99,102,241,.2)', fallback='🏦';
+  if(n.includes('nubank')){   logoUrl=BANK_LOGOS.nubank;   bg='#820ad1'; }
+  if(n.includes('bradesco')){ logoUrl=BANK_LOGOS.bradesco; bg='#cc092f'; }
+  if(logoUrl){
+    const svgFb=`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}'%3E%3Crect width='${size}' height='${size}' rx='${Math.round(size*.22)}' fill='${encodeURIComponent(bg)}'/%3E%3C/svg%3E`;
+    return `<img src="${logoUrl}" width="${size}" height="${size}" style="border-radius:${br};object-fit:cover;flex-shrink:0;vertical-align:middle;display:inline-block" onerror="this.onerror=null;this.src='${svgFb}'" alt="">`;
+  }
+  const fs=Math.round(size*.52)+'px';
+  return `<div style="width:${w};height:${w};min-width:${w};border-radius:${br};background:${bg};display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:${fs}">${fallback}</div>`;
 }
 
 function catBadge(c){const col=catColor(c);return`<span class="cat" style="background:${col}22;color:${col};border:1px solid ${col}44">${catIcon(c)} ${c||'—'}</span>`}
@@ -3331,7 +3324,7 @@ function fillTx(rows){
 }
 
 // ══ FII COTAÇÕES LIVE ════════════════════════════════════════════════════════
-const FII_CACHE_KEY = 'fii_quotes_v2';
+const FII_CACHE_KEY = 'fii_quotes_v3';
 const FII_CACHE_TTL_OPEN   = 15 * 60 * 1000;  // 15 min durante pregão
 const FII_CACHE_TTL_CLOSED =  4 * 60 * 60 * 1000; // 4h fora do pregão
 let _quoteTimer = null;
@@ -3384,6 +3377,7 @@ async function fetchFiiQuotes(tickers, forceRefresh=false){
         price: r.regularMarketPrice || 0,
         change: r.regularMarketChangePercent || 0,
         dy: r.dividendYield || 0,
+        logo: r.logourl || '',
         dividends: (r.dividendsData?.cashDividends || [])
           .filter(d => { if(!d.paymentDate) return false; const ago90=new Date(); ago90.setDate(ago90.getDate()-90); return new Date(d.paymentDate)>=ago90; })
           .sort((a,b) => new Date(a.paymentDate)-new Date(b.paymentDate))
@@ -3615,7 +3609,7 @@ function fillInvFii(rows, quotes, accounts, monthly, divTxs){
     </td>`;
 
     return`<tr>
-      <td style="white-space:nowrap"><div style="display:flex;align-items:center;gap:7px">${tickerLogo(f.ticker,26)}<div><span style="font-weight:700;color:var(--blue2);letter-spacing:.5px">${f.ticker}</span>${nextDiv}</div></div></td>
+      <td style="white-space:nowrap"><div style="display:flex;align-items:center;gap:7px">${tickerLogo(f.ticker,26,q?.logo||'')}<div><span style="font-weight:700;color:var(--blue2);letter-spacing:.5px">${f.ticker}</span>${nextDiv}</div></div></td>
       <td>${ftypeBadge(f.fund_type)}</td>
       <td style="color:var(--muted2)">${shares}</td>
       ${pmCell}
@@ -4940,47 +4934,6 @@ async function parseCommand(cmd){
   return{success:false,message:`Comando não reconhecido: '${verb}'. Digite 'ajuda'.`};
 }
 
-// ══ TERMINAL ══════════════════════════════════════════════════════════════════
-// ── Terminal: histórico ↑↓ ────────────────────────────────────────────────
-const _termHistory=(()=>{try{return JSON.parse(localStorage.getItem('termHistory')||'[]');}catch(e){return[];}})();
-let _termHIdx=-1;
-
-(function initTermHistory(){
-  const inp=document.getElementById('termInput');
-  if(!inp) return;
-  inp.addEventListener('keydown',e=>{
-    if(e.key==='ArrowUp'){
-      e.preventDefault();
-      if(_termHistory.length===0) return;
-      _termHIdx=Math.min(_termHIdx+1,_termHistory.length-1);
-      inp.value=_termHistory[_termHIdx]||'';
-      setTimeout(()=>inp.setSelectionRange(inp.value.length,inp.value.length),0);
-    } else if(e.key==='ArrowDown'){
-      e.preventDefault();
-      _termHIdx=Math.max(_termHIdx-1,-1);
-      inp.value=_termHIdx<0?'':(_termHistory[_termHIdx]||'');
-    }
-  });
-})();
-
-async function sendCmd(e){
-  e.preventDefault();
-  const inp=document.getElementById('termInput');
-  const cmd=inp.value.trim();
-  if(!cmd)return;
-  // Salva no histórico
-  if(_termHistory[0]!==cmd){_termHistory.unshift(cmd);if(_termHistory.length>50)_termHistory.pop();}
-  try{localStorage.setItem('termHistory',JSON.stringify(_termHistory));}catch(e){}
-  _termHIdx=-1;
-  const resp=document.getElementById('termResp');
-  resp.className='term-resp info'; resp.innerHTML='⟳ Executando...';
-  try{
-    const d=await parseCommand(cmd);
-    resp.className='term-resp '+(d.success?'ok':'err');
-    resp.innerHTML=(d.success?'✓ ':'✗ ')+d.message.replace(/\n/g,'<br>');
-    if(d.success){inp.value='';await refreshDashboard()}
-  }catch(err){resp.className='term-resp err';resp.innerHTML='✗ Erro: '+err.message}
-}
 
 // ══ MODAL LANÇAMENTO ══════════════════════════════════════════════════════════
 let _mTipo='saida';
