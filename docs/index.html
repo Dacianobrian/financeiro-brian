@@ -1293,6 +1293,38 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     </div>
   </div>
 
+  <!-- ── Patrimônio Sparkline + Heatmap ── -->
+  <div class="section drag-section" id="ds-sparkline-heatmap" style="margin-bottom:14px" draggable="true">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+      <span class="drag-handle" title="Arrastar seção">⠿</span>
+      <span class="section-title" style="margin-bottom:0">📈 Evolução</span>
+    </div>
+    <div class="card" style="padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;gap:4px">
+          <button id="spm-patrimonio" class="hm-filter-btn hmf-active" onclick="sparkMetric('patrimonio')">Patrimônio</button>
+          <button id="spm-gastos"     class="hm-filter-btn"            onclick="sparkMetric('gastos')">Gastos</button>
+          <button id="spm-entradas"   class="hm-filter-btn"            onclick="sparkMetric('entradas')">Entradas</button>
+        </div>
+        <div style="display:flex;gap:4px">
+          <button id="spp-3"   class="hm-filter-btn"            onclick="sparkPeriod(3)">3M</button>
+          <button id="spp-6"   class="hm-filter-btn"            onclick="sparkPeriod(6)">6M</button>
+          <button id="spp-12"  class="hm-filter-btn hmf-active" onclick="sparkPeriod(12)">12M</button>
+          <button id="spp-24"  class="hm-filter-btn"            onclick="sparkPeriod(24)">24M</button>
+          <button id="spp-all" class="hm-filter-btn"            onclick="sparkPeriod('all')">Tudo</button>
+        </div>
+      </div>
+      <div id="patrimSparkStats" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px"></div>
+      <div style="height:100px;position:relative"><canvas id="chartPatrimSpark"></canvas></div>
+    </div>
+    <!-- Elementos hidden para compatibilidade com heatmap JS -->
+    <div style="display:none">
+      <span id="heatmapLabel"></span>
+      <div id="heatmapWrap"></div>
+      <div id="heatmapSummary"></div>
+    </div>
+  </div>
+
   <!-- Projeção de Caixa -->
   <div class="section" style="margin-top:14px">
     <div class="card" style="padding:0;overflow:hidden">
@@ -1344,38 +1376,6 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   <span id="totalSaidaPrev" style="display:none"></span>
   <div id="listEntrada" style="display:none"></div>
   <div id="listSaida" style="display:none"></div>
-
-  <!-- ── Patrimônio Sparkline + Heatmap ── -->
-  <div class="section drag-section" id="ds-sparkline-heatmap" style="margin-bottom:14px" draggable="true">
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
-      <span class="drag-handle" title="Arrastar seção">⠿</span>
-      <span class="section-title" style="margin-bottom:0">📈 Evolução</span>
-    </div>
-    <div class="card" style="padding:16px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div style="display:flex;gap:4px">
-          <button id="spm-patrimonio" class="hm-filter-btn hmf-active" onclick="sparkMetric('patrimonio')">Patrimônio</button>
-          <button id="spm-gastos"     class="hm-filter-btn"            onclick="sparkMetric('gastos')">Gastos</button>
-          <button id="spm-entradas"   class="hm-filter-btn"            onclick="sparkMetric('entradas')">Entradas</button>
-        </div>
-        <div style="display:flex;gap:4px">
-          <button id="spp-3"   class="hm-filter-btn"            onclick="sparkPeriod(3)">3M</button>
-          <button id="spp-6"   class="hm-filter-btn"            onclick="sparkPeriod(6)">6M</button>
-          <button id="spp-12"  class="hm-filter-btn hmf-active" onclick="sparkPeriod(12)">12M</button>
-          <button id="spp-24"  class="hm-filter-btn"            onclick="sparkPeriod(24)">24M</button>
-          <button id="spp-all" class="hm-filter-btn"            onclick="sparkPeriod('all')">Tudo</button>
-        </div>
-      </div>
-      <div id="patrimSparkStats" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px"></div>
-      <div style="height:100px;position:relative"><canvas id="chartPatrimSpark"></canvas></div>
-    </div>
-    <!-- Elementos hidden para compatibilidade com heatmap JS -->
-    <div style="display:none">
-      <span id="heatmapLabel"></span>
-      <div id="heatmapWrap"></div>
-      <div id="heatmapSummary"></div>
-    </div>
-  </div>
 
   <!-- 📅 Calendário Unificado: gastos reais + projeção de caixa -->
   <div class="section drag-section" id="ds-cashflow-cal" draggable="true">
@@ -1576,41 +1576,19 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   </div>
 
 
-  <!-- ── Análise Anual ── -->
-  <div class="section drag-section" id="ds-anual" style="margin-top:24px" draggable="true">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div class="section-title">📅 Análise Anual — <span id="anoYearLabel" style="color:var(--blue2);font-weight:700;text-transform:none;letter-spacing:0">...</span></div>
-      <div id="anoYearPills" style="display:flex;gap:5px;flex-wrap:wrap"></div>
-    </div>
-    <div class="grid g4">
-      <div class="card card-green"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Entradas <span class="ano-lbl"></span></div><div class="kpi-value" id="anoEntradas">—</div><div class="kpi-sub" id="anoEntradasSub">acumulado</div></div>
-      <div class="card card-red"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(239,68,68,.15)">📤</span>Saídas <span class="ano-lbl"></span></div><div class="kpi-value" id="anoSaidas">—</div><div class="kpi-sub" id="anoSaidasSub">acumulado</div></div>
-      <div class="card" style="border-top:2px solid var(--cyan)!important;background:linear-gradient(180deg,rgba(45,212,191,.04) 0%,var(--surface) 60%)!important"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Investido <span class="ano-lbl"></span></div><div class="kpi-value" id="anoInvestido">—</div><div class="kpi-sub" id="anoInvestidoSub">acumulado</div></div>
-      <div class="card card-purple"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(139,92,246,.15)">📊</span>Taxa de Poupança</div><div class="kpi-value" id="anoRate">—</div><div class="kpi-sub">do total de entradas</div></div>
-      <div id="anoCmpRow" style="display:none;font-size:12px;color:var(--muted);grid-column:1/-1;padding:4px 0;gap:8px;flex-wrap:wrap"></div>
-    </div>
-  </div>
-  <div class="section">
-    <div class="card">
-      <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:14px">📊 Fluxo Mensal — Entradas vs Saídas vs Investido</div>
-      <div class="chart-wrap" style="height:280px"><canvas id="chartFluxoAno"></canvas></div>
-    </div>
-  </div>
-  <div class="section">
-    <div class="grid g3">
-      <div class="card" style="grid-column:span 2">
-        <div class="section-header" style="margin-bottom:10px"><div class="section-title">📋 Resumo por Mês</div></div>
-        <div class="table-wrap"><table>
-          <thead><tr><th>Mês</th><th style="text-align:right">Entradas</th><th style="text-align:right">Saídas</th><th style="text-align:right">Investido</th><th style="text-align:right">Saldo</th></tr></thead>
-          <tbody id="tblMeses"><tr><td colspan="5" class="empty">—</td></tr></tbody>
-          <tfoot><tr id="tblMesesFoot"></tr></tfoot>
-        </table></div>
-      </div>
-      <div class="card">
-        <div style="font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:12px">🍩 Despesas por Categoria <span class="ano-lbl"></span></div>
-        <div class="chart-wrap" style="height:320px"><canvas id="chartCatAno"></canvas></div>
-      </div>
-    </div>
+  <!-- IDs ocultos para JS de análise anual não quebrar -->
+  <div style="display:none">
+    <span id="anoYearLabel"></span>
+    <div id="anoYearPills"></div>
+    <span id="anoEntradas"></span><span id="anoEntradasSub"></span>
+    <span id="anoSaidas"></span><span id="anoSaidasSub"></span>
+    <span id="anoInvestido"></span><span id="anoInvestidoSub"></span>
+    <span id="anoRate"></span>
+    <div id="anoCmpRow"></div>
+    <span class="ano-lbl"></span>
+    <canvas id="chartFluxoAno"></canvas>
+    <canvas id="chartCatAno"></canvas>
+    <table><tbody id="tblMeses"></tbody><tfoot><tr id="tblMesesFoot"></tr></tfoot></table>
   </div>
 </div><!-- /tabGeral -->
 
