@@ -1379,7 +1379,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     </div>
   </div>
 
-  <!-- Transações + Custos Fixos + Assinaturas -->
+  <!-- Transações + Custos Fixos + Contas Variáveis -->
   <div class="section">
     <div class="grid g3">
       <div class="card">
@@ -1407,7 +1407,37 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           <tbody id="tblCustos"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
         </table></div>
       </div>
+      <!-- Contas Variáveis -->
       <div class="card">
+        <div class="section-header" style="margin-bottom:12px">
+          <div class="section-title">📊 Contas Variáveis</div>
+          <div id="varTotalLabel" style="font-size:13px;font-weight:700;color:var(--orange)"></div>
+        </div>
+        <div style="font-size:10px;color:var(--muted2);margin-bottom:10px" id="varMesLabel"></div>
+        <div id="varGrid" style="display:flex;flex-direction:column;gap:6px">
+          <div style="color:var(--muted);font-size:13px">Carregando...</div>
+        </div>
+        <div id="varVsMes" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Parcelamentos + Assinaturas -->
+  <div class="section drag-section" id="ds-parcelamentos" draggable="true">
+    <div class="grid" style="grid-template-columns:1fr auto;gap:14px;align-items:start">
+      <div class="card">
+        <div class="section-header" style="margin-bottom:16px">
+          <div class="section-title">💳 Parcelamentos</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div id="instTotalLabel" style="font-size:13px;font-weight:700;color:var(--red)"></div>
+            <button onclick="openInstModal()" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;">＋ Adicionar</button>
+          </div>
+        </div>
+        <div id="instGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">
+          <div style="color:var(--muted);font-size:13px">Carregando...</div>
+        </div>
+      </div>
+      <div class="card" style="min-width:240px;max-width:320px">
         <div class="section-header" style="margin-bottom:14px">
           <div class="section-title">📱 Assinaturas</div>
           <div style="display:flex;align-items:center;gap:10px">
@@ -1418,22 +1448,6 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
         <div id="subsGrid" style="display:flex;flex-direction:column;gap:8px">
           <div style="color:var(--muted);font-size:13px">Carregando...</div>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Parcelamentos -->
-  <div class="section drag-section" id="ds-parcelamentos" draggable="true">
-    <div class="card">
-      <div class="section-header" style="margin-bottom:16px">
-        <div class="section-title">💳 Parcelamentos</div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <div id="instTotalLabel" style="font-size:13px;font-weight:700;color:var(--red)"></div>
-          <button onclick="openInstModal()" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;">＋ Adicionar</button>
-        </div>
-      </div>
-      <div id="instGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">
-        <div style="color:var(--muted);font-size:13px">Carregando...</div>
       </div>
     </div>
   </div>
@@ -5348,6 +5362,90 @@ function fillCustos(rows){
   document.getElementById('totalFixo').textContent=`Total: ${brl(total)}/mês`;
 }
 
+function fillContasVariaveis(txs, fc, monthly){
+  const grid=document.getElementById('varGrid');
+  const totalEl=document.getElementById('varTotalLabel');
+  const mesEl=document.getElementById('varMesLabel');
+  const vsEl=document.getElementById('varVsMes');
+  if(!grid) return;
+
+  const now=new Date();
+  const ym=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const ymPrev=now.getMonth()===0
+    ?`${now.getFullYear()-1}-12`
+    :`${now.getFullYear()}-${String(now.getMonth()).padStart(2,'0')}`;
+
+  // Categorias de custo fixo para excluir
+  const fixedDescs=new Set((fc||[]).map(r=>(r.description||'').toLowerCase().trim()));
+  const fixedCats=new Set((fc||[]).map(r=>(r.category||'').toLowerCase().trim()));
+
+  const isSaidaVariavel=t=>{
+    if(t.type!=='saida') return false;
+    const desc=(t.description||'').toLowerCase().trim();
+    const cat=(t.category||'').toLowerCase().trim();
+    // Exclui se bate com um custo fixo exato
+    if(fixedDescs.has(desc)) return false;
+    // Exclui categorias tipicamente fixas
+    const fixedCatNames=['aluguel','financiamento','empréstimo','seguro','condomínio','investimento'];
+    if(fixedCatNames.some(fc=>cat.includes(fc))) return false;
+    return true;
+  };
+
+  const curTxs=(txs||[]).filter(t=>t.date&&t.date.startsWith(ym)&&isSaidaVariavel(t));
+  const prevTxs=(txs||[]).filter(t=>t.date&&t.date.startsWith(ymPrev)&&isSaidaVariavel(t));
+
+  const sumByCat=(arr)=>{
+    const m={};
+    arr.forEach(t=>{ const c=t.category||'Outros'; m[c]=(m[c]||0)+(+(t.amount||0)); });
+    return m;
+  };
+  const curByCat=sumByCat(curTxs);
+  const curTotal=Object.values(curByCat).reduce((a,b)=>a+b,0);
+  const prevTotal=Object.values(sumByCat(prevTxs)).reduce((a,b)=>a+b,0);
+
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  mesEl.textContent=`${meses[now.getMonth()]} ${now.getFullYear()} · ${curTxs.length} transação(ões)`;
+  totalEl.textContent=curTotal>0?`${brl(curTotal)}/mês`:'R$ 0';
+
+  if(!curTxs.length){
+    grid.innerHTML=`<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px 0">Sem gastos variáveis este mês</div>`;
+    vsEl.innerHTML='';
+    return;
+  }
+
+  // Top categorias ordenadas
+  const sorted=Object.entries(curByCat).sort((a,b)=>b[1]-a[1]);
+  const maxVal=sorted[0][1];
+  const CAT_COLORS=['var(--orange)','var(--blue)','var(--purple)','var(--cyan)','var(--yellow)','var(--pink)','var(--green)'];
+
+  grid.innerHTML=sorted.slice(0,7).map(([cat,val],i)=>{
+    const pct=maxVal>0?Math.round(val/maxVal*100):0;
+    const color=CAT_COLORS[i%CAT_COLORS.length];
+    return`<div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+        <span style="font-size:11px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%">${cat}</span>
+        <span style="font-size:11px;font-weight:700;color:${color};white-space:nowrap">${brl(val)}</span>
+      </div>
+      <div style="height:4px;background:var(--border2);border-radius:2px">
+        <div style="height:100%;width:${pct}%;background:${color};border-radius:2px;transition:width .4s ease"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  if(sorted.length>7){
+    const rest=sorted.slice(7).reduce((s,[,v])=>s+v,0);
+    grid.innerHTML+=`<div style="font-size:11px;color:var(--muted);margin-top:2px">+ ${sorted.length-7} outras categorias · ${brl(rest)}</div>`;
+  }
+
+  // Vs mês anterior
+  if(prevTotal>0){
+    const diff=curTotal-prevTotal;
+    const pctDiff=Math.abs(diff/prevTotal*100).toFixed(1);
+    const up=diff>0;
+    vsEl.innerHTML=`vs mês anterior: <strong style="color:${up?'var(--red)':'var(--green)'}">${up?'▲ +':'▼ '}${brl(Math.abs(diff))} (${pctDiff}%)</strong>`;
+  } else vsEl.innerHTML='';
+}
+
 let _anoYear = new Date().getFullYear();
 
 function _updateAnoPills(){
@@ -5536,6 +5634,7 @@ async function _doRefresh(){
     fillTx(txs);
     fillAlertasPanel(cmRow, null, fii, null, accounts, null);
     fillCustos(fc);
+    fillContasVariaveis(txs, fc, monthly);
     fillSubscriptions(subs||[]);
     fillInstallments(insts||[]);
     _updateTitleAlerts(fc, insts);
