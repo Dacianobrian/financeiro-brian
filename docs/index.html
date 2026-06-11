@@ -20,21 +20,20 @@
 <script>if(typeof pdfjsLib!=='undefined') pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 <style>
 :root{
-  --bg:#08090d;--surface:#0f1117;--surface2:#14181f;--border:#1d2230;--border2:#252d3e;
-  --text:#eef0f6;--muted:#505870;--muted2:#8892a8;
+  /* ── Dark Slate — modo noturno suave ── */
+  --bg:#13151f;--surface:#1a1d2d;--surface2:#20233a;--border:#2a2e4a;--border2:#353960;
+  --text:#e8eaf4;--muted:#656e90;--muted2:#9aa3be;
   --blue:#38bdf8;--blue2:#7dd3fc;
   --green:#22c55e;--red:#f43f5e;--purple:#a78bfa;--yellow:#fbbf24;--orange:#fb923c;
   --cyan:#2dd4bf;--pink:#f472b6;--font:'Inter',sans-serif;--nu:#820ad1;--bradesco:#cc092f;--r:14px;
-  --shadow:0 1px 6px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.03);
-  --glow-blue:rgba(56,189,248,.15);--glow-green:rgba(34,197,94,.12);--glow-red:rgba(244,63,94,.12);
-  /* Ponto 6 — Animation timing system */
+  --shadow:0 1px 8px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.04);
+  --glow-blue:rgba(56,189,248,.18);--glow-green:rgba(34,197,94,.15);--glow-red:rgba(244,63,94,.15);
   --dur-fast:150ms;--dur-normal:250ms;--dur-slow:400ms;
-  /* Ponto 3 — Alias para substituir hardcoded */
-  --surface-input:#0d1218;--border-input:#1e2d45;
-  --accent-blue-bg:rgba(56,189,248,.08);
-  --accent-green-bg:rgba(34,197,94,.08);
-  --accent-red-bg:rgba(244,63,94,.08);
-  --accent-purple-bg:rgba(167,139,250,.08);
+  --surface-input:#171929;--border-input:#2d3a58;
+  --accent-blue-bg:rgba(56,189,248,.09);
+  --accent-green-bg:rgba(34,197,94,.09);
+  --accent-red-bg:rgba(244,63,94,.09);
+  --accent-purple-bg:rgba(167,139,250,.09);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -60,7 +59,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .login-err{color:var(--red);font-size:12px;margin-top:8px;min-height:16px;text-align:center}
 
 /* ── Header ── */
-.header{position:sticky;top:0;z-index:200;background:rgba(8,9,13,.93);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid rgba(29,34,48,.9);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.header{position:sticky;top:0;z-index:200;background:rgba(19,21,31,.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid rgba(42,46,74,.9);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .logo{display:flex;align-items:center;gap:10px}
 .logo-icon{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#0ea5e9,#2dd4bf);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 0 16px rgba(56,189,248,.35)}
 .logo-text{font-size:16px;font-weight:700;letter-spacing:-.3px}
