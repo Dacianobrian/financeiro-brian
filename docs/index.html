@@ -132,10 +132,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .mini-stat{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:2px}
 .mini-stat-label{font-size:10px;color:var(--muted2);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 .mini-stat-val{font-size:18px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
-.kpi-label{font-size:11px;font-weight:500;color:var(--muted2);text-transform:none;letter-spacing:0;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.kpi-label{font-size:11px;font-weight:600;color:var(--muted2);text-transform:none;letter-spacing:0;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .kpi-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
-.kpi-value{font-size:26px;font-weight:800;letter-spacing:-1.2px;line-height:1;font-variant-numeric:tabular-nums}
+.kpi-value{font-size:26px;font-weight:800;letter-spacing:-1.2px;line-height:1;font-variant-numeric:tabular-nums;color:var(--text)}
+.kpi-value.kpi-neg{color:var(--red)!important}
 .kpi-sub{font-size:11px;color:var(--muted2);margin-top:5px;display:flex;align-items:center;gap:4px}
+/* Card labels get accent color */
+.card-blue .kpi-label{color:var(--blue)!important}
+.card-green .kpi-label{color:var(--green)!important}
+.card-red .kpi-label{color:var(--red)!important}
+.card-purple .kpi-label{color:var(--purple)!important}
 .trend{font-size:10px;font-weight:600;padding:2px 6px;border-radius:5px}
 .bank{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:.3px}
 .bank-nu{background:rgba(130,10,209,.2);color:#c084fc;border:1px solid rgba(130,10,209,.3)}
@@ -1128,7 +1134,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   <div class="grid g4" style="margin-bottom:14px">
     <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🏢</span>Portfolio FII</div><div class="kpi-value amt-yellow" id="kpiFii">—</div><div class="kpi-sub" id="kpiFiiSub">valor de mercado</div></div>
     <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💸</span>Dividendos / Mês</div><div class="kpi-value amt-green" id="kpiDiv">—</div><div class="kpi-sub">renda passiva estimada</div></div>
-    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Total Investido</div><div class="kpi-value" style="color:var(--cyan)" id="kpiInv">—</div><div class="kpi-sub">Caixinha + FIIs</div></div>
+    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Total Investido</div><div class="kpi-value" id="kpiInv">—</div><div class="kpi-sub">Caixinha + FIIs</div></div>
     <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🎯</span>Meta Reserva · Dez/2027</div><div class="kpi-value amt-yellow" id="kpiMeta">—</div><div class="progress"><div class="progress-fill" id="kpiMetaBar" style="width:0%;background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div><div class="kpi-sub" id="kpiMetaSub">de R$ 72.269</div></div>
   </div>
 
@@ -1143,7 +1149,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       </div>
       <div class="card card-green">
         <div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Entradas</div>
-        <div class="kpi-value amt-green" id="kpiEntradas">—</div>
+        <div class="kpi-value" id="kpiEntradas">—</div>
         <div class="kpi-bottom">
           <div class="kpi-sub">mês atual</div>
           <div id="kpiEntradasBottom" style="display:flex;align-items:center;gap:6px"></div>
@@ -1151,7 +1157,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       </div>
       <div class="card card-red">
         <div class="kpi-label"><span class="kpi-icon" style="background:rgba(239,68,68,.15)">📤</span>Saídas</div>
-        <div class="kpi-value amt-red" id="kpiSaidas">—</div>
+        <div class="kpi-value" id="kpiSaidas">—</div>
         <div class="progress" id="kpiSaidasProg" style="display:none;margin:6px 0 2px"><div class="progress-fill" id="kpiSaidasBar" style="width:0%"></div></div>
         <div class="kpi-bottom">
           <div class="kpi-sub" id="kpiSaidasSub">mês atual</div>
@@ -1160,7 +1166,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       </div>
       <div class="card card-purple">
         <div class="kpi-label"><span class="kpi-icon" style="background:rgba(139,92,246,.15)">📈</span>Investido</div>
-        <div class="kpi-value amt-purple" id="kpiInvestido">—</div>
+        <div class="kpi-value" id="kpiInvestido">—</div>
         <div class="kpi-bottom">
           <div class="kpi-sub">mês atual</div>
           <div id="kpiInvestidoBottom" style="display:flex;align-items:center;gap:6px"></div>
@@ -1285,12 +1291,12 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
         </div>
         <div class="card" style="padding:14px;background:rgba(139,92,246,.07);border-color:rgba(139,92,246,.25)">
           <div class="kpi-label" style="color:var(--muted)">📈 Investido</div>
-          <div class="kpi-value" style="color:#a78bfa;font-size:20px" id="relInv">R$ 0,00</div>
+          <div class="kpi-value" style="font-size:20px" id="relInv">R$ 0,00</div>
           <div id="relInvVar" style="font-size:11px;margin-top:4px;color:var(--muted)"></div>
         </div>
         <div class="card" style="padding:14px;background:rgba(99,102,241,.07);border-color:rgba(99,102,241,.25)">
           <div class="kpi-label" style="color:var(--muted)">🎯 Taxa Poupança</div>
-          <div class="kpi-value" style="color:var(--blue2);font-size:20px" id="relTaxa">0%</div>
+          <div class="kpi-value" style="font-size:20px" id="relTaxa">0%</div>
           <div id="relTaxaVar" style="font-size:11px;margin-top:4px;color:var(--muted)"></div>
         </div>
       </div>
@@ -1396,10 +1402,10 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       <div id="anoYearPills" style="display:flex;gap:5px;flex-wrap:wrap"></div>
     </div>
     <div class="grid g4">
-      <div class="card card-green"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Entradas <span class="ano-lbl"></span></div><div class="kpi-value amt-green" id="anoEntradas">—</div><div class="kpi-sub" id="anoEntradasSub">acumulado</div></div>
-      <div class="card card-red"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(239,68,68,.15)">📤</span>Saídas <span class="ano-lbl"></span></div><div class="kpi-value amt-red" id="anoSaidas">—</div><div class="kpi-sub" id="anoSaidasSub">acumulado</div></div>
-      <div class="card" style="border-top:2px solid var(--cyan)!important;background:linear-gradient(180deg,rgba(45,212,191,.04) 0%,var(--surface) 60%)!important"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Investido <span class="ano-lbl"></span></div><div class="kpi-value" style="color:var(--cyan)" id="anoInvestido">—</div><div class="kpi-sub" id="anoInvestidoSub">acumulado</div></div>
-      <div class="card card-purple"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(139,92,246,.15)">📊</span>Taxa de Poupança</div><div class="kpi-value amt-purple" id="anoRate">—</div><div class="kpi-sub">do total de entradas</div></div>
+      <div class="card card-green"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</span>Entradas <span class="ano-lbl"></span></div><div class="kpi-value" id="anoEntradas">—</div><div class="kpi-sub" id="anoEntradasSub">acumulado</div></div>
+      <div class="card card-red"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(239,68,68,.15)">📤</span>Saídas <span class="ano-lbl"></span></div><div class="kpi-value" id="anoSaidas">—</div><div class="kpi-sub" id="anoSaidasSub">acumulado</div></div>
+      <div class="card" style="border-top:2px solid var(--cyan)!important;background:linear-gradient(180deg,rgba(45,212,191,.04) 0%,var(--surface) 60%)!important"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Investido <span class="ano-lbl"></span></div><div class="kpi-value" id="anoInvestido">—</div><div class="kpi-sub" id="anoInvestidoSub">acumulado</div></div>
+      <div class="card card-purple"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(139,92,246,.15)">📊</span>Taxa de Poupança</div><div class="kpi-value" id="anoRate">—</div><div class="kpi-sub">do total de entradas</div></div>
       <div id="anoCmpRow" style="display:none;font-size:12px;color:var(--muted);grid-column:1/-1;padding:4px 0;gap:8px;flex-wrap:wrap"></div>
     </div>
   </div>
@@ -1773,7 +1779,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
         </div>
         <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
           <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Rend. Ano est.</div>
-          <div style="font-size:14px;font-weight:700;color:#c084fc" id="invRfAnnual">—</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text)" id="invRfAnnual">—</div>
         </div>
       </div>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
@@ -3143,7 +3149,7 @@ function fillKpis(cm, fii, accounts, patrimonio, monthly){
   const saldoConta = accounts.filter(a=>a.type==='corrente').reduce((s,a)=>s+(+a.balance||0),0);
   const el=document.getElementById('kpiSaldo');
   el.textContent=brl(saldoConta);
-  el.style.color=saldoConta>=0?'var(--green)':'var(--red)';
+  el.style.color=saldoConta<0?'var(--red)':'var(--text)';
   document.getElementById('kpiEntradas').textContent=brl(cm.entradas);
   document.getElementById('kpiSaidas').textContent=brl(cm.saidas);
   document.getElementById('kpiInvestido').textContent=brl(cm.investido);
@@ -3833,7 +3839,7 @@ function fillAccounts(accounts, patrimonio){
         </div>
         ${isBaixo?`<span class="acc-alert">⚠ baixo</span>`:''}
       </div>
-      <div class="acc-balance" style="color:${isBaixo?'#fbbf24':st.color}">${brl(a.balance)}</div>
+      <div class="acc-balance" style="color:${isBaixo?'var(--yellow)':\'var(--text)\'}">${brl(a.balance)}</div>
       <div class="acc-footer">
         <span class="kpi-sub">atualizado ${upd}</span>
         <button onclick="sincronizarSaldo(${a.id},'${(a.name||a.type).replace(/'/g,"\\'")}')" title="Recalcular saldo pelas transações" style="font-size:10px;padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer">↻</button>
@@ -3849,7 +3855,7 @@ function fillAccounts(accounts, patrimonio){
           <span class="acc-type-pill">contas + FIIs</span>
         </div>
       </div>
-      <div class="acc-balance" style="color:#a78bfa">${brl(patrimonio.total)}</div>
+      <div class="acc-balance">${brl(patrimonio.total)}</div>
       <div class="acc-footer">
         <span class="kpi-sub" style="color:var(--muted)">contas ${brl(patrimonio.accounts)}</span>
         <span class="kpi-sub" style="color:var(--muted)">FIIs ${brl(patrimonio.fii)}</span>
