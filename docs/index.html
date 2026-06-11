@@ -653,6 +653,11 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .heatmap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
 .hm-cell{aspect-ratio:1;border-radius:3px;cursor:default;position:relative}
 .hm-cell:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--border2);border-radius:5px;padding:3px 7px;font-size:10px;color:var(--text);white-space:nowrap;z-index:10;pointer-events:none}
+.hm-nav-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--muted2);border-radius:6px;width:22px;height:22px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;font-family:var(--font)}
+.hm-nav-btn:hover{color:var(--text);border-color:var(--muted)}
+.hm-filter-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--muted);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:600;cursor:pointer;font-family:var(--font);transition:.1s}
+.hm-filter-btn:hover{color:var(--text)}
+.hmf-active{background:rgba(56,189,248,.12)!important;border-color:rgba(56,189,248,.35)!important;color:var(--blue)!important}
 /* ── Patrimônio sparkline ──────────────────────────────────── */
 .patr-spark-row{display:flex;align-items:center;gap:16px;padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px}
 .patr-spark-stats{display:flex;gap:20px;flex-shrink:0}
@@ -1250,15 +1255,30 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       </div>
       <!-- Heatmap gastos -->
       <div class="card" style="padding:16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em">Gastos diários — <span id="heatmapLabel">mês atual</span></div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:9px;color:var(--muted)">
-            <span>menos</span>
-            <div style="display:flex;gap:2px"><span style="width:10px;height:10px;border-radius:2px;background:var(--surface2);display:inline-block"></span><span style="width:10px;height:10px;border-radius:2px;background:#166534;display:inline-block"></span><span style="width:10px;height:10px;border-radius:2px;background:#16a34a;display:inline-block"></span><span style="width:10px;height:10px;border-radius:2px;background:#22c55e;display:inline-block"></span><span style="width:10px;height:10px;border-radius:2px;background:#f43f5e;display:inline-block"></span></div>
-            <span>mais</span>
+        <!-- Row 1: título + nav -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em">Gastos diários</div>
+          <div style="display:flex;align-items:center;gap:4px">
+            <button onclick="heatmapNav(-1)" class="hm-nav-btn">‹</button>
+            <span id="heatmapLabel" style="font-size:11px;font-weight:600;color:var(--text);min-width:100px;text-align:center">mês atual</span>
+            <button onclick="heatmapNav(1)" class="hm-nav-btn">›</button>
           </div>
         </div>
+        <!-- Row 2: filtros -->
+        <div style="display:flex;gap:5px;margin-bottom:10px">
+          <button id="hmf-all"    class="hm-filter-btn hmf-active" onclick="heatmapFilter('all')">Todos</button>
+          <button id="hmf-gastos" class="hm-filter-btn"            onclick="heatmapFilter('gastos')">Só gastos</button>
+          <button id="hmf-fixos"  class="hm-filter-btn"            onclick="heatmapFilter('fixos')">Só fixos</button>
+        </div>
+        <!-- Legenda -->
+        <div style="display:flex;align-items:center;gap:6px;font-size:9px;color:var(--muted);margin-bottom:8px">
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:#166534;display:inline-block"></span>baixo</span>
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:#22c55e;display:inline-block"></span>médio</span>
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:#f43f5e;display:inline-block"></span>alto</span>
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block"></span>custo fixo</span>
+        </div>
         <div id="heatmapWrap"></div>
+        <div id="heatmapSummary" style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap"></div>
       </div>
     </div>
   </div>
@@ -8103,32 +8123,72 @@ document.addEventListener('keydown',e=>{
 });
 
 // ══ HEATMAP GASTOS ═══════════════════════════════════════════════════════════
+const _heatmapState={year:new Date().getFullYear(),month:new Date().getMonth(),filter:'all'};
+
+function heatmapNav(delta){
+  const hs=_heatmapState;
+  hs.month+=delta;
+  if(hs.month<0){hs.month=11;hs.year--;}
+  if(hs.month>11){hs.month=0;hs.year++;}
+  fillHeatmap(_allTxs);
+}
+function heatmapFilter(f){
+  _heatmapState.filter=f;
+  ['all','gastos','fixos'].forEach(k=>{
+    const b=document.getElementById('hmf-'+k);
+    if(b) b.classList.toggle('hmf-active',k===f);
+  });
+  fillHeatmap(_allTxs);
+}
+
 function fillHeatmap(txs){
   const wrap=document.getElementById('heatmapWrap'); if(!wrap) return;
+  const hs=_heatmapState;
+  const y=hs.year, m=hs.month;
   const now=new Date();
-  const y=now.getFullYear(), m=now.getMonth();
-  const label=now.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  const todayY=now.getFullYear(),todayM=now.getMonth(),todayD=now.getDate();
+  const isCurMonth=y===todayY&&m===todayM;
+
+  const label=new Date(y,m,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
   const lbl=document.getElementById('heatmapLabel'); if(lbl) lbl.textContent=label;
 
   const firstDay=new Date(y,m,1);
   const lastDay=new Date(y,m+1,0);
-  const startDow=firstDay.getDay(); // 0=dom
+  const startDow=firstDay.getDay();
 
-  // aggregate daily spend
-  const dayTotals={};
-  (txs||[]).forEach(t=>{
-    if(t.type!=='saida') return;
-    const d=new Date(t.date+'T12:00:00');
-    if(d.getFullYear()!==y||d.getMonth()!==m) return;
-    const k=d.getDate();
-    dayTotals[k]=(dayTotals[k]||0)+Math.abs(+(t.amount||0));
-  });
+  // ── Transações reais ─────────────────────────────────────────────────────
+  const dayTotals={}, dayTxs={};
+  if(hs.filter!=='fixos'){
+    (txs||_allTxs||[]).forEach(t=>{
+      if(t.type!=='saida') return;
+      const d=new Date(t.date+'T12:00:00');
+      if(d.getFullYear()!==y||d.getMonth()!==m) return;
+      const k=d.getDate();
+      dayTotals[k]=(dayTotals[k]||0)+Math.abs(+(t.amount||0));
+      dayTxs[k]=(dayTxs[k]||0)+1;
+    });
+  }
+
+  // ── Custos fixos + assinaturas por dia ───────────────────────────────────
+  const fcByDay={};
+  if(hs.filter!=='gastos'){
+    const fcList=[...(_fcRows||[]),...((_fluxoData&&_fluxoData.subs)||[])];
+    fcList.forEach(c=>{
+      const dd=+(c.due_day||0); if(!dd) return;
+      if(!fcByDay[dd]) fcByDay[dd]={total:0,items:[]};
+      fcByDay[dd].total+=+(c.amount||0);
+      const tag=/assinatura|streaming|mensalid/i.test(c.description||'')?'📺':'📌';
+      fcByDay[dd].items.push(`${tag} ${c.description||'Custo fixo'} ${c.amount>0?'('+brl(c.amount)+')':''}`);
+    });
+  }
+
+  // ── Escala de cor ────────────────────────────────────────────────────────
   const vals=Object.values(dayTotals);
   const maxVal=vals.length?Math.max(...vals):1;
-  const p75=vals.length?vals.sort((a,b)=>a-b)[Math.floor(vals.length*.75)]:maxVal;
+  const p75=vals.length?[...vals].sort((a,b)=>a-b)[Math.floor(vals.length*.75)]:maxVal;
 
   function cellColor(v){
-    if(!v) return 'var(--surface2)';
+    if(!v) return null;
     const r=v/maxVal;
     if(r>0.8) return '#f43f5e';
     if(r>0.5||v>p75) return '#22c55e';
@@ -8138,14 +8198,57 @@ function fillHeatmap(txs){
 
   const dows=['D','S','T','Q','Q','S','S'];
   let html=`<div class="heatmap-dows">${dows.map(d=>`<div class="heatmap-dow">${d}</div>`).join('')}</div><div class="heatmap-grid">`;
+
   for(let i=0;i<startDow;i++) html+=`<div class="hm-cell" style="background:transparent"></div>`;
+
   for(let d=1;d<=lastDay.getDate();d++){
     const v=dayTotals[d]||0;
-    const tip=`${String(d).padStart(2,'0')}/${String(m+1).padStart(2,'0')}: ${brl(v)}`;
-    html+=`<div class="hm-cell" style="background:${cellColor(v)}" data-tip="${tip}"></div>`;
+    const fc=fcByDay[d];
+    const isFuture=y>todayY||(y===todayY&&m>todayM)||(isCurMonth&&d>todayD);
+    const isToday=isCurMonth&&d===todayD;
+
+    // tooltip
+    const dd=String(d).padStart(2,'0'), mm=String(m+1).padStart(2,'0');
+    const parts=[`${dd}/${mm}`];
+    if(v>0) parts.push(`gasto: ${brl(v)}${dayTxs[d]>1?' ('+dayTxs[d]+'tx)':''}`);
+    if(fc) parts.push(`fixos: ${brl(fc.total)}`);
+    if(fc&&fc.items.length) parts.push(fc.items.slice(0,2).join(', ')+(fc.items.length>2?'…':''));
+    const tip=parts.join(' · ');
+
+    // background
+    let bg='var(--surface2)';
+    if(hs.filter==='fixos'){
+      bg=fc?`rgba(56,189,248,${Math.min(.75,0.15+fc.total/4000)})`:'transparent';
+    } else {
+      const c=cellColor(v);
+      if(c) bg=c;
+      else if(isFuture) bg='transparent';
+    }
+
+    // border for today
+    const todayStyle=isToday?'box-shadow:0 0 0 2px var(--blue);':'';
+    // day label (show day number)
+    const dayNum=`<span style="position:absolute;top:1px;left:2px;font-size:7px;color:rgba(255,255,255,.45);line-height:1;font-weight:600">${d}</span>`;
+    // fc dot
+    const fcDot=fc?`<span style="position:absolute;bottom:2px;right:2px;width:4px;height:4px;border-radius:50%;background:var(--blue);opacity:.95"></span>`:'';
+
+    html+=`<div class="hm-cell" style="background:${bg};${todayStyle}" data-tip="${tip}">${dayNum}${fcDot}</div>`;
   }
   html+='</div>';
   wrap.innerHTML=html;
+
+  // ── Sumário ───────────────────────────────────────────────────────────────
+  const sumEl=document.getElementById('heatmapSummary');
+  if(sumEl){
+    const totSpent=Object.values(dayTotals).reduce((a,b)=>a+b,0);
+    const totFc=Object.values(fcByDay).reduce((a,f)=>a+f.total,0);
+    const activeDays=Object.keys(dayTotals).length;
+    const avgDay=activeDays>0?(totSpent/activeDays):0;
+    const parts=[];
+    if(totSpent>0) parts.push(`<span style="font-size:10px;color:var(--muted)">💸 <strong style="color:var(--text)">${brl(totSpent)}</strong> em ${activeDays} dias · média ${brl(avgDay)}/dia</span>`);
+    if(totFc>0) parts.push(`<span style="font-size:10px;color:var(--muted)">📅 <strong style="color:var(--blue2)">${brl(totFc)}</strong> em fixos</span>`);
+    sumEl.innerHTML=parts.join('');
+  }
 }
 
 // ══ PATRIMÔNIO SPARKLINE ═════════════════════════════════════════════════════
