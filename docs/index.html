@@ -393,6 +393,23 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .inv-cf-item:last-child{border-bottom:none}
 .inv-cf-item-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
 .kpi-saldo-upcoming{font-size:10px;color:var(--muted2);margin-top:4px;display:flex;align-items:center;gap:5px}
+/* ── Cashflow Calendar ───────────────────────────────────────────────────── */
+.cf-cal-wrap{overflow-x:auto;padding-bottom:4px}
+.cf-cal-months{display:flex;gap:14px;min-width:max-content}
+.cf-cal-month{flex-shrink:0;width:224px}
+.cf-cal-title{font-size:11px;font-weight:800;color:var(--muted2);text-align:center;margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px}
+.cf-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cf-cal-dow{font-size:8.5px;color:var(--muted);text-align:center;padding:2px 0;font-weight:700}
+.cf-cal-cell{border-radius:4px;padding:3px 2px 2px;text-align:center;min-height:34px;display:flex;flex-direction:column;justify-content:space-between;cursor:default;transition:filter .12s}
+.cf-cal-cell:hover{filter:brightness(1.15)}
+.cf-cal-cell.empty{background:transparent!important}
+.cf-cal-cell.cf-past{opacity:.35}
+.cf-cal-day{font-size:9.5px;font-weight:600;line-height:1.1}
+.cf-cal-bal{font-size:7.5px;font-weight:800;line-height:1;margin-top:1px;white-space:nowrap}
+.cf-cal-today .cf-cal-day{text-decoration:underline;font-weight:900}
+.cf-cal-legend{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.cf-leg{display:flex;align-items:center;gap:3px;font-size:9px;color:var(--muted)}
+.cf-leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
 
 
 /* ── Saúde Financeira ─────────────────────────────────────── */
@@ -1934,6 +1951,27 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       </div>
     </div>
   </div>
+  <!-- Calendário de Fluxo de Caixa -->
+  <div class="section">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="section-title">📅 Calendário de Caixa</div>
+        <div style="font-size:9px;color:var(--muted);padding:2px 8px;border-radius:20px;border:1px solid var(--border)">projeção 3 meses</div>
+      </div>
+      <div class="cf-cal-legend">
+        <div class="cf-leg"><div class="cf-leg-dot" style="background:#166534"></div>+R$5k</div>
+        <div class="cf-leg"><div class="cf-leg-dot" style="background:#15803d"></div>+R$3k</div>
+        <div class="cf-leg"><div class="cf-leg-dot" style="background:#16a34a"></div>+R$1k</div>
+        <div class="cf-leg"><div class="cf-leg-dot" style="background:#4ade80"></div>+R$500</div>
+        <div class="cf-leg"><div class="cf-leg-dot" style="background:#fbbf24"></div>&lt;R$500</div>
+        <div class="cf-leg"><div class="cf-leg-dot" style="background:#f97316"></div>&lt;R$0</div>
+        <div class="cf-leg"><div class="cf-leg-dot" style="background:#dc2626"></div>deficit</div>
+      </div>
+      <div class="cf-cal-wrap">
+        <div id="cfCalMonths" class="cf-cal-months"></div>
+      </div>
+    </div>
+  </div>
   <!-- Simulador de Compra -->
   <div class="section">
     <div class="card">
@@ -3083,6 +3121,99 @@ function _fillInvCashflow(){
     upTxt.style.color='var(--red)';
     upEl.style.display='flex';
   } else if(upEl){ upEl.style.display='none'; }
+
+  buildCashflowCalendar();
+}
+
+// ══ CALENDÁRIO DE FLUXO DE CAIXA ═══════════════════════════════════════════
+function buildCashflowCalendar(){
+  const el=document.getElementById('cfCalMonths');
+  if(!el||!_fluxoData||!_invAccounts) return;
+  const {fixedCosts,subs,insts}=_fluxoData;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const todayTime=today.getTime();
+
+  // Saldo atual conta corrente
+  const saldoCC=(_invAccounts||[]).filter(a=>a.type==='corrente').reduce((s,a)=>s+(+a.balance||0),0);
+
+  // Gastos recorrentes por dia do mês (dom = day of month)
+  const outByDom={};
+  const addOut=(dom,amt)=>{ outByDom[dom]=(outByDom[dom]||0)+amt; };
+  (fixedCosts||[]).forEach(c=>addOut(+c.due_day||10,+c.amount||0));
+  (subs||[]).filter(s=>s.active!==false).forEach(s=>addOut(+s.billing_day||10,+s.amount||0));
+  const totalInst=(insts||[]).filter(i=>i.active!==false).reduce((s,i)=>s+(+i.installment_amount||0),0);
+  if(totalInst>0) addOut(10,totalInst);
+
+  // Receitas planejadas por data
+  const incByDate={};
+  ((_fluxoData.planned)||[]).forEach(p=>{
+    if(!p.amount||p.confirmed||p.type!=='entrada') return;
+    if(p.recorrente&&p.recorrencia_dia){
+      for(let m=0;m<3;m++){
+        const d=new Date(today.getFullYear(),today.getMonth()+m,+p.recorrencia_dia);
+        if(d>=today){ const k=d.toISOString().substring(0,10); incByDate[k]=(incByDate[k]||0)+(+p.amount); }
+      }
+    } else if(p.due_date){
+      const k=p.due_date.substring(0,10); incByDate[k]=(incByDate[k]||0)+(+p.amount);
+    }
+  });
+
+  // Cor por nível de saldo
+  const balCol=v=>{
+    if(v>=5000) return{bg:'#166534',tx:'#bbf7d0'};
+    if(v>=3000) return{bg:'#15803d',tx:'#dcfce7'};
+    if(v>=1500) return{bg:'#16a34a',tx:'#f0fdf4'};
+    if(v>=500)  return{bg:'#4ade80',tx:'#14532d'};
+    if(v>=200)  return{bg:'#fbbf24',tx:'#431407'};
+    if(v>=0)    return{bg:'#fb923c',tx:'#7c2d12'};
+    if(v>=-500) return{bg:'#ef4444',tx:'#fff'};
+    return            {bg:'#991b1b',tx:'#fca5a5'};
+  };
+
+  const shortV=v=>{
+    const a=Math.abs(v),s=v<0?'-':'+';
+    if(a>=10000) return s+(a/1000).toFixed(0)+'k';
+    if(a>=1000)  return s+(a/1000).toFixed(1)+'k';
+    return s+a.toFixed(0);
+  };
+
+  const ptM=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const dows=['D','S','T','Q','Q','S','S'];
+  let running=saldoCC, html='';
+
+  for(let mi=0;mi<3;mi++){
+    const mD=new Date(today.getFullYear(),today.getMonth()+mi,1);
+    const yr=mD.getFullYear(),mn=mD.getMonth();
+    const dim=new Date(yr,mn+1,0).getDate();
+    html+=`<div class="cf-cal-month"><div class="cf-cal-title">${ptM[mn]} ${yr}</div><div class="cf-cal-grid">`;
+    dows.forEach(d=>html+=`<div class="cf-cal-dow">${d}</div>`);
+    for(let e=0;e<mD.getDay();e++) html+=`<div class="cf-cal-cell empty"></div>`;
+
+    for(let day=1;day<=dim;day++){
+      const cd=new Date(yr,mn,day);
+      const isToday=cd.getTime()===todayTime;
+      const isPast=cd<today;
+      const ds=`${yr}-${String(mn+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+
+      if(!isPast){
+        running-=(outByDom[day]||0);
+        running+=(incByDate[ds]||0);
+      }
+
+      if(isPast){
+        html+=`<div class="cf-cal-cell cf-past" style="background:var(--surface2)"><div class="cf-cal-day" style="color:var(--muted)">${day}</div><div class="cf-cal-bal" style="color:var(--muted)">—</div></div>`;
+      } else {
+        const{bg,tx}=balCol(running);
+        const events=[];
+        if(outByDom[day]) events.push(`-${brl(outByDom[day])}`);
+        if(incByDate[ds]) events.push(`+${brl(incByDate[ds])}`);
+        const tip=`${day}/${mn+1}: ${brl(running)}${events.length?' ('+events.join(', ')+')':''}`;
+        html+=`<div class="cf-cal-cell${isToday?' cf-cal-today':''}" style="background:${bg}" title="${tip}"><div class="cf-cal-day" style="color:${tx}">${day}</div><div class="cf-cal-bal" style="color:${tx}">${shortV(running)}</div></div>`;
+      }
+    }
+    html+=`</div></div>`;
+  }
+  el.innerHTML=html;
 }
 
 // ══ GRÁFICO PATRIMÔNIO HISTÓRICO ═══════════════════════════════════════════════
