@@ -1764,11 +1764,19 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
         </div>
         <div class="inv10-subs">
           <div class="inv10-sub">
-            <span class="inv10-sub-label">Valor investido</span>
+            <span class="inv10-sub-label">FIIs &amp; Ações</span>
+            <span class="inv10-sub-val" id="inv10ValorFii">—</span>
+          </div>
+          <div class="inv10-sub">
+            <span class="inv10-sub-label">Renda Fixa (caixinha)</span>
             <span class="inv10-sub-val" id="inv10ValorInv">—</span>
           </div>
           <div class="inv10-sub">
-            <span class="inv10-sub-label">Variação hoje</span>
+            <span class="inv10-sub-label">Conta corrente</span>
+            <span class="inv10-sub-val" id="inv10ContaCC">—</span>
+          </div>
+          <div class="inv10-sub" style="border-top:1px solid var(--border);padding-top:5px;margin-top:2px">
+            <span class="inv10-sub-label">Variação hoje (FIIs)</span>
             <span class="inv10-sub-val" id="inv10Hoje">—</span>
           </div>
         </div>
@@ -4705,8 +4713,9 @@ function fillInvFii(rows, quotes, accounts, monthly, divTxs){
 
   const caixinha=(accounts||[]).find(a=>/caixinha|rdb/i.test((a.type||'')+(a.name||'')));
   const caixVal=caixinha?+(caixinha.balance||0):0;
+  const correVal=(accounts||[]).filter(a=>a.type==='corrente').reduce((s,a)=>s+(+(a.balance||0)),0);
 
-  const patrimTotal=fiiMarket+caixVal;
+  const patrimTotal=fiiMarket+caixVal+correVal;
   const valorInvTotal=fiiBasis+caixVal;
 
   const divArr=divTxs||_divTxs||[];
@@ -4722,7 +4731,9 @@ function fillInvFii(rows, quotes, accounts, monthly, divTxs){
   const set=(id,val)=>{ const el=document.getElementById(id); if(el) el.textContent=val; };
 
   set('inv10PatTotal', brl(patrimTotal));
-  set('inv10ValorInv', brl(valorInvTotal));
+  set('inv10ValorFii', brl(fiiMarket));
+  set('inv10ValorInv', brl(caixVal));
+  set('inv10ContaCC', brl(correVal));
 
   // Variation badge
   const varBadge=document.getElementById('inv10VarBadge');
