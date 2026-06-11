@@ -1531,9 +1531,10 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       <div class="card">
         <div class="section-header" style="margin-bottom:10px">
           <div class="section-title">💰 Aportes Planejados</div>
-          <div style="display:flex;align-items:center;gap:8px">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             <div id="aportesTotalLabel" style="font-size:13px;font-weight:700;color:#a78bfa"></div>
-            <button onclick="openAportesModal()" style="background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);color:#a78bfa;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;">＋ Adicionar</button>
+            <button onclick="openNegociacaoModal()" style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#34d399;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;">⇄ Compra/Venda</button>
+            <button onclick="openAportesModal()" style="background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);color:#a78bfa;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;">＋ Aporte</button>
           </div>
         </div>
         <div id="aportesGrid" style="display:flex;flex-direction:column;gap:6px">
@@ -1625,6 +1626,42 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     </div>
   </div>
 </div><!-- /tabGeral -->
+
+<!-- Modal Negociação (Compra/Venda) -->
+<div class="modal-overlay" id="modalNegociacao" onclick="if(event.target===this)closeNegociacaoModal()">
+  <div class="modal" style="max-width:420px;width:95%">
+    <div class="modal-title">⇄ Compra / Venda de Ativos<button class="modal-close" onclick="closeNegociacaoModal()">✕</button></div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button id="negTipoCompra" onclick="setNegTipo('compra')" style="flex:1;padding:8px;border-radius:8px;border:2px solid #34d399;background:rgba(16,185,129,.15);color:#34d399;font-weight:700;cursor:pointer">📈 Comprar</button>
+      <button id="negTipoVenda" onclick="setNegTipo('venda')" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-weight:600;cursor:pointer">📉 Vender</button>
+    </div>
+    <label style="font-size:12px;color:var(--muted);font-weight:600">Ativo</label>
+    <select id="negAtivo" onchange="negOnAtivoChange()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:13px;margin:4px 0 12px"></select>
+    <div id="negSharesRow">
+      <div style="display:flex;gap:10px">
+        <div style="flex:1">
+          <label style="font-size:12px;color:var(--muted);font-weight:600">Quantidade (cotas)</label>
+          <input id="negQtd" type="number" min="0.001" step="any" oninput="negCalcTotal()" placeholder="0" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:13px;margin:4px 0 12px;box-sizing:border-box"/>
+        </div>
+        <div style="flex:1">
+          <label style="font-size:12px;color:var(--muted);font-weight:600">Preço unitário</label>
+          <input id="negPreco" type="number" min="0" step="any" oninput="negCalcTotal()" placeholder="0,00" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:13px;margin:4px 0 12px;box-sizing:border-box"/>
+        </div>
+      </div>
+    </div>
+    <div id="negAmountRow" style="display:none">
+      <label style="font-size:12px;color:var(--muted);font-weight:600">Valor (R$)</label>
+      <input id="negAmount" type="number" min="0" step="any" oninput="negCalcTotal()" placeholder="0,00" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:13px;margin:4px 0 12px;box-sizing:border-box"/>
+    </div>
+    <div id="negTotalRow" style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:10px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:12px;color:var(--muted);font-weight:600">Total</span>
+      <span id="negTotalVal" style="font-size:20px;font-weight:800;color:#34d399">R$ 0,00</span>
+    </div>
+    <div id="negCCInfo" style="font-size:11px;color:var(--muted);margin-bottom:12px;text-align:center"></div>
+    <div id="negResp" style="font-size:12px;min-height:18px;margin-bottom:8px;text-align:center"></div>
+    <button onclick="saveNegociacao()" style="width:100%;background:linear-gradient(135deg,#059669,#34d399);color:#fff;border:none;border-radius:10px;padding:11px;font-size:14px;font-weight:700;cursor:pointer">Confirmar</button>
+  </div>
+</div>
 
 <!-- Modal Parcelamento -->
 <div class="modal-overlay" id="instModalOverlay" onclick="if(event.target===this)closeInstModal()">
@@ -3224,6 +3261,28 @@ function buildCashflowCalendar(){
       const k=p.due_date.substring(0,10); map[k]=(map[k]||0)+(+p.amount);
     }
   });
+
+  // Projeção de receita mensal baseada no histórico (_monthly + _allTxs)
+  let avgMonthlyIncome = 0;
+  const histMonths = (_monthly||[]).filter(m=>+(m.entradas||0)>0).slice(-3);
+  if(histMonths.length) avgMonthlyIncome = histMonths.reduce((s,m)=>s+(+(m.entradas||0)),0)/histMonths.length;
+  // Dia mais frequente de entrada nos últimos 3 meses
+  let projIncDay = 5;
+  const incDayFreq = {};
+  const threeMonthsAgo = new Date(today.getFullYear(), today.getMonth()-3, 1);
+  (_allTxs||[]).filter(t=>t.type==='entrada'&&t.date&&new Date(t.date+'T00:00:00')>=threeMonthsAgo)
+    .forEach(t=>{ const d=new Date(t.date+'T00:00:00').getDate(); incDayFreq[d]=(incDayFreq[d]||0)+1; });
+  const freqE=Object.entries(incDayFreq);
+  if(freqE.length) projIncDay=+freqE.sort((a,b)=>b[1]-a[1])[0][0];
+  if(avgMonthlyIncome>0){
+    for(let mi=0;mi<3;mi++){
+      const d=new Date(today.getFullYear(),today.getMonth()+mi,projIncDay);
+      if(d>=today){
+        const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        incByDate[k]=(incByDate[k]||0)+avgMonthlyIncome;
+      }
+    }
+  }
 
   // Cor por nível de saldo
   const balCol=v=>{
@@ -5998,7 +6057,7 @@ async function _doRefresh(){
       sbGet('fixed_costs', {select:'*', order:'due_day.asc.nullslast,id.asc'}),
       sbGet('accounts', {select:'*', order:'bank.asc,type.asc'}),
       sbRpc('get_patrimonio_breakdown'),
-      sbGet('transactions', {select:'amount,date,description', category:'ilike.*Dividend*', date:`gte.${new Date().getFullYear()}-01-01`, type:'eq.entrada'}),
+      sbGet('transactions', {select:'amount,date,description,category', or:`(category.ilike.*Dividend*,category.ilike.*Provento*,category.ilike.*Rendimento*,category.ilike.*JCP*,description.ilike.*Dividend*,description.ilike.*Provento*,description.ilike.*JCP*)`, date:`gte.${new Date().getFullYear()-1}-01-01`, type:'eq.entrada'}),
       sbGet('subscriptions', {select:'*', active:'eq.true', order:'billing_day.asc.nullslast,name.asc'}),
       sbGet('installments', {select:'*', active:'eq.true', order:'installment_amount.desc'}),
       sbGet('planned_entries', {select:'*', order:'confirmed.asc,due_date.asc.nullslast,id.desc'}),
@@ -7423,6 +7482,163 @@ async function deleteAporte(id,name){
   _renderAportesModalList();
   if(_fluxoData) _fluxoData.plannedInv=_plannedInvData;
   _fillInvCashflow();
+}
+
+// ══ NEGOCIAÇÃO (COMPRA / VENDA) ════════════════════════════════════════════════
+let _negTipo = 'compra';
+
+function openNegociacaoModal(){
+  const sel = document.getElementById('negAtivo');
+  if(!sel) return;
+  const caixinha = (_invAccounts||[]).find(a=>a.type==='caixinha');
+  let opts = [];
+  if(caixinha) opts.push(`<option value="__caixinha__">🏦 Caixinha Nubank (${brl(+(caixinha.balance||0))})</option>`);
+  (_invFiiRows||[]).forEach(r=>opts.push(`<option value="${r.ticker}">${r.ticker} — ${+(r.shares||0)} cotas @ ${brl(+(r.price||0))}</option>`));
+  sel.innerHTML = opts.join('');
+  document.getElementById('negQtd').value='';
+  document.getElementById('negPreco').value='';
+  document.getElementById('negAmount').value='';
+  document.getElementById('negTotalVal').textContent='R$ 0,00';
+  document.getElementById('negCCInfo').textContent='';
+  document.getElementById('negResp').textContent='';
+  setNegTipo('compra');
+  negOnAtivoChange();
+  document.getElementById('modalNegociacao').classList.add('open');
+}
+function closeNegociacaoModal(){ document.getElementById('modalNegociacao').classList.remove('open'); }
+
+function setNegTipo(tipo){
+  _negTipo=tipo;
+  const cb=document.getElementById('negTipoCompra'), vb=document.getElementById('negTipoVenda');
+  if(tipo==='compra'){
+    cb.style.cssText='flex:1;padding:8px;border-radius:8px;border:2px solid #34d399;background:rgba(16,185,129,.15);color:#34d399;font-weight:700;cursor:pointer';
+    vb.style.cssText='flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-weight:600;cursor:pointer';
+  } else {
+    vb.style.cssText='flex:1;padding:8px;border-radius:8px;border:2px solid #f87171;background:rgba(239,68,68,.15);color:#f87171;font-weight:700;cursor:pointer';
+    cb.style.cssText='flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-weight:600;cursor:pointer';
+  }
+  const totalRow=document.getElementById('negTotalRow');
+  if(totalRow) totalRow.style.background=tipo==='compra'?'rgba(16,185,129,.08)':'rgba(239,68,68,.08)';
+  const totalVal=document.getElementById('negTotalVal');
+  if(totalVal) totalVal.style.color=tipo==='compra'?'#34d399':'#f87171';
+  negCalcTotal();
+}
+
+function negOnAtivoChange(){
+  const ativo=document.getElementById('negAtivo')?.value;
+  const isCx=ativo==='__caixinha__';
+  document.getElementById('negSharesRow').style.display=isCx?'none':'';
+  document.getElementById('negAmountRow').style.display=isCx?'':'none';
+  if(!isCx && ativo){
+    const row=(_invFiiRows||[]).find(r=>r.ticker===ativo);
+    if(row){ document.getElementById('negPreco').value=(+(row.price||0)).toFixed(2); }
+  }
+  negCalcTotal();
+}
+
+function negCalcTotal(){
+  const ativo=document.getElementById('negAtivo')?.value;
+  const isCx=ativo==='__caixinha__';
+  let total=0;
+  if(isCx) total=parseFloat(document.getElementById('negAmount')?.value)||0;
+  else {
+    const q=parseFloat(document.getElementById('negQtd')?.value)||0;
+    const p=parseFloat(document.getElementById('negPreco')?.value)||0;
+    total=q*p;
+  }
+  const tv=document.getElementById('negTotalVal');
+  if(tv) tv.textContent=brl(total);
+  const cc=(_invAccounts||[]).find(a=>a.type==='corrente');
+  const ccBal=cc?+(cc.balance||0):0;
+  const info=document.getElementById('negCCInfo');
+  if(info && total>0){
+    const after=_negTipo==='compra'?ccBal-total:ccBal+total;
+    info.textContent=`Conta Corrente: ${brl(ccBal)} → ${brl(after)}`;
+    info.style.color=after<0?'#f87171':after<500?'#fbbf24':'var(--muted)';
+  } else if(info) info.textContent='';
+}
+
+async function saveNegociacao(){
+  const ativo=document.getElementById('negAtivo')?.value;
+  const resp=document.getElementById('negResp');
+  if(!ativo){resp.style.color='#f87171';resp.textContent='Selecione um ativo';return;}
+  const isCx=ativo==='__caixinha__';
+  let total=0, qtd=0, preco=0;
+  if(isCx){
+    total=parseFloat(document.getElementById('negAmount')?.value)||0;
+    if(!total||total<=0){resp.style.color='#f87171';resp.textContent='Informe o valor';return;}
+  } else {
+    qtd=parseFloat(document.getElementById('negQtd')?.value)||0;
+    preco=parseFloat(document.getElementById('negPreco')?.value)||0;
+    total=qtd*preco;
+    if(!qtd||qtd<=0){resp.style.color='#f87171';resp.textContent='Informe a quantidade';return;}
+    if(!preco||preco<=0){resp.style.color='#f87171';resp.textContent='Informe o preço';return;}
+  }
+  const cc=(_invAccounts||[]).find(a=>a.type==='corrente');
+  if(!cc){resp.style.color='#f87171';resp.textContent='Conta corrente não encontrada';return;}
+  if(_negTipo==='compra'&&(+(cc.balance||0))<total){
+    const ok=await _confirm('Saldo insuficiente',`CC tem ${brl(+(cc.balance||0))} mas compra é ${brl(total)}. Confirmar mesmo assim?`);
+    if(!ok)return;
+  }
+  try{
+    resp.textContent='⏳ Processando...';
+    // Atualiza saldo CC
+    const newCC=_negTipo==='compra'?(+(cc.balance||0))-total:(+(cc.balance||0))+total;
+    await sbPatch('accounts',{id:`eq.${cc.id}`},{balance:newCC,updated_at:new Date().toISOString()});
+    cc.balance=newCC;
+    if(isCx){
+      // Atualiza saldo caixinha
+      const cx=(_invAccounts||[]).find(a=>a.type==='caixinha');
+      if(cx){
+        const newCx=_negTipo==='compra'?(+(cx.balance||0))+total:(+(cx.balance||0))-total;
+        await sbPatch('accounts',{id:`eq.${cx.id}`},{balance:newCx,updated_at:new Date().toISOString()});
+        cx.balance=newCx;
+      }
+    } else {
+      const row=(_invFiiRows||[]).find(r=>r.ticker===ativo);
+      if(_negTipo==='compra'){
+        if(row){
+          const oldCost=(+(row.shares||0))*(+(row.cost_per_share||0));
+          const newShares=(+(row.shares||0))+qtd;
+          const newCost=(oldCost+total)/newShares;
+          await sbPatch('fii_portfolio',{ticker:`eq.${ativo}`},{shares:newShares,cost_per_share:newCost,price:preco});
+          row.shares=newShares; row.cost_per_share=newCost; row.price=preco;
+        } else {
+          await sbPost('fii_portfolio',{ticker:ativo,shares:qtd,price:preco,cost_per_share:preco});
+          _invFiiRows.push({ticker:ativo,shares:qtd,price:preco,cost_per_share:preco});
+        }
+      } else {
+        if(row){
+          const newShares=Math.max(0,(+(row.shares||0))-qtd);
+          if(newShares<0.001){
+            await sbDelete('fii_portfolio',{ticker:`eq.${ativo}`});
+            _invFiiRows=_invFiiRows.filter(r=>r.ticker!==ativo);
+          } else {
+            await sbPatch('fii_portfolio',{ticker:`eq.${ativo}`},{shares:newShares,price:preco});
+            row.shares=newShares; row.price=preco;
+          }
+        }
+      }
+    }
+    // Loga transação
+    const desc=isCx
+      ?(_negTipo==='compra'?'Aporte Caixinha':'Resgate Caixinha')
+      :(_negTipo==='compra'?`Compra ${ativo} ${qtd}x@${brl(preco)}`:`Venda ${ativo} ${qtd}x@${brl(preco)}`);
+    await sbPost('transactions',{
+      type:_negTipo==='compra'?'investido':'entrada',
+      description:desc,
+      amount:total,
+      category:isCx?'Investimentos':(_negTipo==='compra'?'Compra Ativo':'Venda Ativo'),
+      account:'Nubank',
+      date:new Date().toISOString().substring(0,10)
+    });
+    resp.style.color='#34d399';
+    resp.textContent=_negTipo==='compra'?'✓ Compra registrada!':'✓ Venda registrada!';
+    toast(desc,'ok');
+    fillInvFii(_invFiiRows,_invQuotes,_invAccounts,_monthly,_divTxs);
+    _fillInvCashflow();
+    setTimeout(()=>{closeNegociacaoModal();},1600);
+  }catch(e){ resp.style.color='#f87171'; resp.textContent='✗ '+e.message; }
 }
 
 // ══ EXCEL EXPORT ══════════════════════════════════════════════════════════════
