@@ -1247,11 +1247,27 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       <span class="section-title" style="margin-bottom:0">📈 Evolução &amp; Gastos</span>
     </div>
     <div class="grid" style="grid-template-columns:1fr 1fr;gap:14px">
-      <!-- Sparkline patrimônio 12m -->
+      <!-- Sparkline patrimônio / gastos -->
       <div class="card" style="padding:16px">
-        <div style="font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Patrimônio — últimos 12 meses</div>
-        <div id="patrimSparkStats" style="display:flex;gap:20px;margin-bottom:10px"></div>
-        <div style="height:90px;position:relative"><canvas id="chartPatrimSpark"></canvas></div>
+        <!-- Row 1: título + toggle métrica -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em">Evolução</div>
+          <div style="display:flex;gap:4px">
+            <button id="spm-patrimonio" class="hm-filter-btn hmf-active" onclick="sparkMetric('patrimonio')">Patrimônio</button>
+            <button id="spm-gastos"     class="hm-filter-btn"            onclick="sparkMetric('gastos')">Gastos</button>
+            <button id="spm-entradas"   class="hm-filter-btn"            onclick="sparkMetric('entradas')">Entradas</button>
+          </div>
+        </div>
+        <!-- Row 2: filtros período -->
+        <div style="display:flex;gap:4px;margin-bottom:10px">
+          <button id="spp-3"   class="hm-filter-btn"            onclick="sparkPeriod(3)">3M</button>
+          <button id="spp-6"   class="hm-filter-btn"            onclick="sparkPeriod(6)">6M</button>
+          <button id="spp-12"  class="hm-filter-btn hmf-active" onclick="sparkPeriod(12)">12M</button>
+          <button id="spp-24"  class="hm-filter-btn"            onclick="sparkPeriod(24)">24M</button>
+          <button id="spp-all" class="hm-filter-btn"            onclick="sparkPeriod('all')">Tudo</button>
+        </div>
+        <div id="patrimSparkStats" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px"></div>
+        <div style="height:100px;position:relative"><canvas id="chartPatrimSpark"></canvas></div>
       </div>
       <!-- Heatmap gastos -->
       <div class="card" style="padding:16px">
@@ -8253,56 +8269,130 @@ function fillHeatmap(txs){
 
 // ══ PATRIMÔNIO SPARKLINE ═════════════════════════════════════════════════════
 let _chartPatrimSpark=null;
+const _sparkState={period:12,metric:'patrimonio'};
+
+function sparkPeriod(p){
+  _sparkState.period=p;
+  ['3','6','12','24','all'].forEach(k=>{
+    const b=document.getElementById('spp-'+k);
+    if(b) b.classList.toggle('hmf-active',String(k)===String(p));
+  });
+  fillPatrimSparkline(_monthly);
+}
+function sparkMetric(m){
+  _sparkState.metric=m;
+  ['patrimonio','gastos','entradas'].forEach(k=>{
+    const b=document.getElementById('spm-'+k);
+    if(b) b.classList.toggle('hmf-active',k===m);
+  });
+  fillPatrimSparkline(_monthly);
+}
+
 function fillPatrimSparkline(monthly){
   const stats=document.getElementById('patrimSparkStats');
   const canvas=document.getElementById('chartPatrimSpark');
   if(!canvas||!monthly||!monthly.length) return;
 
-  // get last 12 months sorted ascending
   const sorted=[...monthly].sort((a,b)=>a.year!==b.year?a.year-b.year:a.month-b.month);
-  const last12=sorted.slice(-12);
-  if(!last12.length) return;
+  const n=_sparkState.period==='all'?sorted.length:+_sparkState.period;
+  const slice=sorted.slice(-n);
+  if(!slice.length) return;
 
-  // patrimônio = entradas cumulativas - saídas (proxy: saldo acumulado)
-  // we use "saldo" field if available, otherwise entradas - saidas
-  const labels=last12.map(m=>m.label||(m.month+'/'+m.year));
-  const vals=last12.map(m=>+(m.patrimonio||m.saldo||((m.entradas||0)-(m.saidas||0)+(m.investido||0)))||0);
+  const metric=_sparkState.metric;
+  const labels=slice.map(m=>{
+    const mo=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][m.month-1]||m.month;
+    return `${mo}/${String(m.year).slice(-2)}`;
+  });
+
+  const vals=slice.map(m=>{
+    if(metric==='gastos')   return +(m.saidas||0);
+    if(metric==='entradas') return +(m.entradas||0);
+    return +(m.patrimonio||m.saldo||((+m.entradas||0)-(+m.saidas||0)+(+m.investido||0)))||0;
+  });
 
   const first=vals[0]||0, last=vals[vals.length-1]||0;
   const delta=last-first;
   const deltaPct=first>0?((delta/first)*100).toFixed(1):0;
-  const color=delta>=0?'var(--green)':'var(--red)';
 
+  // cores por métrica
+  const palette={
+    patrimonio:{line:'#22c55e',grad:'rgba(34,197,94,.28)',neg:'#f43f5e',negGrad:'rgba(244,63,94,.25)'},
+    gastos:    {line:'#f43f5e',grad:'rgba(244,63,94,.22)',neg:'#22c55e',negGrad:'rgba(34,197,94,.2)'},
+    entradas:  {line:'#38bdf8',grad:'rgba(56,189,248,.22)',neg:'#38bdf8',negGrad:'rgba(56,189,248,.1)'},
+  };
+  const pal=palette[metric]||palette.patrimonio;
+  const isNeg=metric==='patrimonio'?delta<0:false;
+  const lineColor=isNeg?pal.neg:pal.line;
+  const gradTop=isNeg?pal.negGrad:pal.grad;
+  const deltaColor=metric==='gastos'?(delta>0?'var(--red)':'var(--green)'):(delta>=0?'var(--green)':'var(--red)');
+
+  // stats labels
+  const periodLabel=_sparkState.period==='all'?`${slice.length}M`:_sparkState.period+'M';
   if(stats){
-    stats.innerHTML=`
-      <div class="patr-spark-stat"><div class="patr-spark-lbl">Patrimônio atual</div><div class="patr-spark-val" style="color:var(--cyan)">${brl(last)}</div></div>
-      <div class="patr-spark-stat"><div class="patr-spark-lbl">Var. 12 meses</div><div class="patr-spark-val" style="color:${color}">${delta>=0?'+':''}${brl(delta)}</div></div>
-      <div class="patr-spark-stat"><div class="patr-spark-lbl">Crescimento</div><div class="patr-spark-val" style="color:${color}">${delta>=0?'+':''}${deltaPct}%</div></div>`;
+    if(metric==='patrimonio'){
+      stats.innerHTML=`
+        <div class="patr-spark-stat"><div class="patr-spark-lbl">Atual</div><div class="patr-spark-val">${brl(last)}</div></div>
+        <div class="patr-spark-stat"><div class="patr-spark-lbl">Var. ${periodLabel}</div><div class="patr-spark-val" style="color:${deltaColor}">${delta>=0?'+':''}${brl(delta)}</div></div>
+        <div class="patr-spark-stat"><div class="patr-spark-lbl">Crescimento</div><div class="patr-spark-val" style="color:${deltaColor}">${delta>=0?'+':''}${deltaPct}%</div></div>`;
+    } else if(metric==='gastos'){
+      const total=vals.reduce((a,b)=>a+b,0);
+      const avg=slice.length?total/slice.length:0;
+      const best=Math.min(...vals.filter(v=>v>0));
+      stats.innerHTML=`
+        <div class="patr-spark-stat"><div class="patr-spark-lbl">Total ${periodLabel}</div><div class="patr-spark-val">${brl(total)}</div></div>
+        <div class="patr-spark-stat"><div class="patr-spark-lbl">Média/mês</div><div class="patr-spark-val">${brl(avg)}</div></div>
+        <div class="patr-spark-stat"><div class="patr-spark-lbl">Melhor mês</div><div class="patr-spark-val" style="color:var(--green)">${brl(best===Infinity?0:best)}</div></div>`;
+    } else {
+      const total=vals.reduce((a,b)=>a+b,0);
+      const avg=slice.length?total/slice.length:0;
+      const best=Math.max(...vals);
+      stats.innerHTML=`
+        <div class="patr-spark-stat"><div class="patr-spark-lbl">Total ${periodLabel}</div><div class="patr-spark-val">${brl(total)}</div></div>
+        <div class="patr-spark-stat"><div class="patr-spark-lbl">Média/mês</div><div class="patr-spark-val">${brl(avg)}</div></div>
+        <div class="patr-spark-stat"><div class="patr-spark-lbl">Melhor mês</div><div class="patr-spark-val" style="color:var(--green)">${brl(best)}</div></div>`;
+    }
   }
 
   if(_chartPatrimSpark) _chartPatrimSpark.destroy();
-  const gradBg=canvas.getContext('2d').createLinearGradient(0,0,0,90);
-  gradBg.addColorStop(0,delta>=0?'rgba(34,197,94,.3)':'rgba(244,63,94,.3)');
+  const ctx=canvas.getContext('2d');
+  const gradBg=ctx.createLinearGradient(0,0,0,100);
+  gradBg.addColorStop(0,gradTop);
   gradBg.addColorStop(1,'rgba(0,0,0,0)');
 
+  const showPoints=slice.length<=12;
   _chartPatrimSpark=new Chart(canvas,{
     type:'line',
     data:{
       labels,
       datasets:[{
         data:vals,tension:.4,fill:true,
-        borderColor:delta>=0?'#22c55e':'#f43f5e',
-        backgroundColor:gradBg,
-        borderWidth:2,pointRadius:2,
-        pointBackgroundColor:delta>=0?'#22c55e':'#f43f5e'
+        borderColor:lineColor,backgroundColor:gradBg,
+        borderWidth:2,
+        pointRadius:showPoints?3:0,
+        pointHoverRadius:5,
+        pointBackgroundColor:lineColor
       }]
     },
     options:{
       responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${brl(c.parsed.y)}`}}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            label:c=>`${c.label}: ${brl(c.parsed.y)}`,
+            title:()=>''
+          },
+          padding:8,displayColors:false
+        }
+      },
       scales:{
-        x:{display:false},
-        y:{display:false,min:Math.min(...vals)*0.95}
+        x:{
+          display:slice.length<=24,
+          ticks:{color:'var(--muted)',font:{size:9},maxRotation:0,maxTicksLimit:6},
+          grid:{display:false},
+          border:{display:false}
+        },
+        y:{display:false,min:metric==='patrimonio'?Math.min(...vals)*0.97:0}
       }
     }
   });
