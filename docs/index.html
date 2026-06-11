@@ -1937,6 +1937,22 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           </div>
           <div id="grahamNote" style="margin-top:8px;font-size:10px;color:var(--muted);line-height:1.5"></div>
         </div>
+
+        <!-- Indicadores Fundamentalistas -->
+        <div id="fundSection" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:15px">📊</span>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--text)">Indicadores Fundamentalistas</div>
+                <div style="font-size:10px;color:var(--muted)" id="fundCompanyName"></div>
+              </div>
+            </div>
+            <div id="fundScoreBadge" style="font-size:12px;font-weight:800;padding:5px 14px;border-radius:20px"></div>
+          </div>
+          <div id="fundMetricsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:12px"></div>
+          <div id="fundRecommendation" style="padding:12px 14px;border-radius:10px;font-size:12px;line-height:1.6"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -4490,7 +4506,7 @@ function renderIbov(d){
 
 // ══ GRAHAM FAIR PRICE ════════════════════════════════════════════════════════
 async function fetchFundamentals(ticker){
-  const KEY=`fund_${ticker}_v1`, TTL=6*3600*1000;
+  const KEY=`fund_${ticker}_v2`, TTL=6*3600*1000;
   try{const r=localStorage.getItem(KEY);if(r){const{d,ts}=JSON.parse(r);if(Date.now()-ts<TTL)return d;}}catch(e){}
   const _bt=getBrapiToken(); const tp=_bt?('&token='+_bt):'';
   try{
@@ -4499,16 +4515,151 @@ async function fetchFundamentals(ticker){
     const j=await r.json();
     const q=j?.results?.[0]; if(!q) return null;
     const d={
-      eps:  q.earningsPerShare||null,  // LPA
-      bvps: q.bookValuePerShare||null, // VPA
-      pe:   q.trailingPE||null,
-      pb:   q.priceToBook||null,
-      price:q.regularMarketPrice||null,
-      name: q.longName||q.shortName||ticker
+      eps:            q.earningsPerShare||null,       // LPA
+      bvps:           q.bookValuePerShare||null,       // VPA
+      pe:             q.trailingPE||null,              // P/L
+      pb:             q.priceToBook||null,             // P/VP
+      roe:            q.returnOnEquity||null,          // ROE (decimal, ex: 0.15 = 15%)
+      debtToEquity:   q.debtToEquity||null,           // Dívida/PL (100 = 1x)
+      currentRatio:   q.currentRatio||null,           // Liquidez corrente
+      revenueGrowth:  q.revenueGrowth||null,          // Crescimento receita (decimal)
+      earningsGrowth: q.earningsGrowth||null,         // Crescimento lucro (decimal)
+      profitMargin:   q.profitMargins||null,          // Margem líquida
+      price:          q.regularMarketPrice||null,
+      name:           q.longName||q.shortName||ticker,
+      sector:         q.sector||null,
     };
     localStorage.setItem(KEY,JSON.stringify({d,ts:Date.now()}));
     return d;
   }catch(e){return null;}
+}
+
+function showFundamentalsAnalysis(ticker, fund){
+  const sec=document.getElementById('fundSection');
+  if(!sec) return;
+  if(!fund){ sec.style.display='none'; return; }
+
+  const isFii=/11$/.test(ticker.trim());
+  document.getElementById('fundCompanyName').textContent=fund.name+(fund.sector?` · ${fund.sector}`:'');
+
+  const pct=v=>v!=null?(v*100).toFixed(1)+'%':'—';
+  const num=v=>v!=null?v.toFixed(2):'—';
+
+  // ── Definição dos indicadores com benchmarks ───────────────────────────────
+  const metrics=[];
+
+  if(!isFii){
+    // P/L
+    if(fund.pe!=null) metrics.push({
+      label:'P/L', val:fund.pe.toFixed(1), raw:fund.pe,
+      hint:'Preço / Lucro',
+      score: fund.pe>0&&fund.pe<=15?2 : fund.pe>0&&fund.pe<=25?1 : 0,
+      ref:'ideal ≤ 15',
+      color: fund.pe>0&&fund.pe<=15?'green' : fund.pe>0&&fund.pe<=25?'yellow':'red'
+    });
+    // ROE
+    if(fund.roe!=null){const roe=fund.roe*100; metrics.push({
+      label:'ROE', val:pct(fund.roe), raw:roe,
+      hint:'Retorno sobre PL',
+      score: roe>=20?2 : roe>=12?1 : 0,
+      ref:'ideal ≥ 15%',
+      color: roe>=20?'green' : roe>=12?'yellow':'red'
+    });}
+    // Dívida/PL
+    if(fund.debtToEquity!=null){const de=fund.debtToEquity/100; metrics.push({
+      label:'Dív/PL', val:de.toFixed(2)+'x', raw:de,
+      hint:'Dívida bruta / Patrimônio',
+      score: de<=0.5?2 : de<=1.5?1 : 0,
+      ref:'ideal < 1x',
+      color: de<=0.5?'green' : de<=1.5?'yellow':'red'
+    });}
+    // Liquidez
+    if(fund.currentRatio!=null) metrics.push({
+      label:'Liquidez', val:num(fund.currentRatio)+'x', raw:fund.currentRatio,
+      hint:'Liquidez corrente',
+      score: fund.currentRatio>=2?2 : fund.currentRatio>=1?1 : 0,
+      ref:'ideal ≥ 1,5',
+      color: fund.currentRatio>=2?'green' : fund.currentRatio>=1?'yellow':'red'
+    });
+    // Crescimento lucro
+    if(fund.earningsGrowth!=null){const eg=fund.earningsGrowth*100; metrics.push({
+      label:'Cresc. Lucro', val:pct(fund.earningsGrowth), raw:eg,
+      hint:'Crescimento do lucro YoY',
+      score: eg>=15?2 : eg>=0?1 : 0,
+      ref:'ideal ≥ 10%',
+      color: eg>=15?'green' : eg>=0?'yellow':'red'
+    });}
+    // Cresc. Receita
+    if(fund.revenueGrowth!=null){const rg=fund.revenueGrowth*100; metrics.push({
+      label:'Cresc. Receita', val:pct(fund.revenueGrowth), raw:rg,
+      hint:'Crescimento da receita YoY',
+      score: rg>=15?2 : rg>=0?1 : 0,
+      ref:'ideal ≥ 10%',
+      color: rg>=15?'green' : rg>=0?'yellow':'red'
+    });}
+    // Margem líquida
+    if(fund.profitMargin!=null){const pm=fund.profitMargin*100; metrics.push({
+      label:'Margem Liq.', val:pct(fund.profitMargin), raw:pm,
+      hint:'Margem líquida',
+      score: pm>=20?2 : pm>=10?1 : 0,
+      ref:'ideal ≥ 15%',
+      color: pm>=20?'green' : pm>=10?'yellow':'red'
+    });}
+  } else {
+    // FIIs: P/VP e DY implícito
+    if(fund.pb!=null) metrics.push({
+      label:'P/VP', val:num(fund.pb)+'x', raw:fund.pb,
+      hint:'Preço / Valor Patrimonial',
+      score: fund.pb<=1?2 : fund.pb<=1.2?1 : 0,
+      ref:'ideal ≤ 1',
+      color: fund.pb<=1?'green' : fund.pb<=1.2?'yellow':'red'
+    });
+    if(fund.pe!=null) metrics.push({
+      label:'P/L', val:fund.pe.toFixed(1), raw:fund.pe,
+      hint:'P/FFO estimado',
+      score: fund.pe>0&&fund.pe<=12?2 : fund.pe>0&&fund.pe<=18?1 : 0,
+      ref:'ideal ≤ 12',
+      color: fund.pe>0&&fund.pe<=12?'green' : fund.pe>0&&fund.pe<=18?'yellow':'red'
+    });
+  }
+
+  if(!metrics.length){ sec.style.display='none'; return; }
+
+  const colorMap={green:'var(--green)',yellow:'var(--yellow)',red:'var(--red)'};
+  const bgMap={green:'rgba(34,197,94,.1)',yellow:'rgba(251,191,36,.1)',red:'rgba(244,63,94,.1)'};
+  const borderMap={green:'rgba(34,197,94,.25)',yellow:'rgba(251,191,36,.25)',red:'rgba(244,63,94,.2)'};
+
+  document.getElementById('fundMetricsGrid').innerHTML=metrics.map(m=>`
+    <div style="background:${bgMap[m.color]};border:1px solid ${borderMap[m.color]};border-radius:10px;padding:12px;text-align:center">
+      <div style="font-size:9px;color:var(--muted2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">${m.label}</div>
+      <div style="font-size:18px;font-weight:800;color:${colorMap[m.color]};letter-spacing:-.5px">${m.val}</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:3px">${m.ref}</div>
+      <div style="font-size:9px;color:var(--muted2);margin-top:1px">${m.hint}</div>
+    </div>`).join('');
+
+  // Score geral
+  const totalScore=metrics.reduce((s,m)=>s+m.score,0);
+  const maxScore=metrics.length*2;
+  const pctScore=maxScore>0?Math.round(totalScore/maxScore*100):0;
+  const grade=pctScore>=75?{txt:'Ótimo',c:'var(--green)',bg:'rgba(34,197,94,.12)',br:'rgba(34,197,94,.3)'}
+             :pctScore>=50?{txt:'Regular',c:'var(--yellow)',bg:'rgba(251,191,36,.1)',br:'rgba(251,191,36,.28)'}
+             :{txt:'Fraco',c:'var(--red)',bg:'rgba(244,63,94,.1)',br:'rgba(244,63,94,.22)'};
+
+  document.getElementById('fundScoreBadge').innerHTML=`Score ${pctScore}/100 — ${grade.txt}`;
+  document.getElementById('fundScoreBadge').style.cssText=`font-size:12px;font-weight:800;padding:5px 14px;border-radius:20px;background:${grade.bg};border:1px solid ${grade.br};color:${grade.c}`;
+
+  const greens=metrics.filter(m=>m.color==='green').length;
+  const reds=metrics.filter(m=>m.color==='red').length;
+  const rec=greens>=Math.ceil(metrics.length*0.6)?
+    {icon:'✅',txt:`${ticker} apresenta fundamentos sólidos. ${greens} de ${metrics.length} indicadores no nível ideal. Pode ser uma boa oportunidade considerando o preço atual.`,c:'var(--green)',bg:'rgba(34,197,94,.07)',br:'rgba(34,197,94,.2)'}:
+    reds>=Math.ceil(metrics.length*0.5)?
+    {icon:'⚠️',txt:`${ticker} apresenta fundamentos fracos. ${reds} de ${metrics.length} indicadores abaixo do ideal. Aguardar melhora operacional antes de comprar.`,c:'var(--red)',bg:'rgba(244,63,94,.07)',br:'rgba(244,63,94,.18)'}:
+    {icon:'⏸️',txt:`${ticker} tem fundamentos mistos. Analise os indicadores em vermelho individualmente e compare com concorrentes do setor antes de decidir.`,c:'var(--yellow)',bg:'rgba(251,191,36,.07)',br:'rgba(251,191,36,.2)'};
+
+  document.getElementById('fundRecommendation').style.cssText=`padding:12px 14px;border-radius:10px;font-size:12px;line-height:1.6;background:${rec.bg};border:1px solid ${rec.br};color:${rec.c}`;
+  document.getElementById('fundRecommendation').innerHTML=`${rec.icon} <strong>${rec.txt}</strong><br><span style="color:var(--muted);font-size:10px">Análise automatizada com base em benchmarks de mercado. Não constitui recomendação de investimento.</span>`;
+
+  sec.style.display='';
 }
 
 function showGrahamAnalysis(ticker, price, fundamentals){
@@ -4650,10 +4801,12 @@ async function simularCompra(){
 
   document.getElementById('simResult').style.display='';
 
-  // Graham analysis — busca fundamentais em paralelo
+  // Graham + Fundamentals — busca em paralelo
   document.getElementById('grahamSection').style.display='none';
+  document.getElementById('fundSection').style.display='none';
   fetchFundamentals(ticker).then(fund=>{
     showGrahamAnalysis(ticker, price, fund);
+    showFundamentalsAnalysis(ticker, fund);
   });
 }
 
