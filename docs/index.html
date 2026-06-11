@@ -2644,9 +2644,9 @@ async function loadTxModal(keepPage=false){
     if(nextBtn){ nextBtn.disabled=!hasNext; nextBtn.style.opacity=!hasNext?'.35':'1'; }
     rows.forEach(t=>_txMap[t.id]=t);
     if(body) body.innerHTML=rows.map(t=>{
-      const ac=t.type==='entrada'?'amt-green':t.type==='investido'?'amt-purple':'amt-red';
-      const sig=t.type==='entrada'?'+':'-';
-      const catLabel2=t.type==='investido'?'Investimento':(t.category||'Outros');
+      const ac=t.type==='entrada'?'amt-green':t.type==='investido'?'amt-purple':t.type==='transferencia'?'amt-yellow':'amt-red';
+      const sig=t.type==='entrada'?'+':t.type==='transferencia'?'↔':'-';
+      const catLabel2=t.type==='investido'?'Investimento':t.type==='transferencia'?'Transferência Interna':(t.category||'Outros');
       return`<tr style="border-bottom:1px solid rgba(30,45,69,.4);font-size:12px">
         <td style="padding:7px 12px;white-space:nowrap;color:var(--muted)">${fmtDate(t.date)}</td>
         <td style="padding:7px 12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.description||''}">${catAvatar(catLabel2,22)}${t.description||'—'}</td>
