@@ -2290,11 +2290,7 @@ function _renderProjecao(dias){
     const acc=s.card||'corrente nubank';
     _addMonthly(`${s.emoji||''}${s.name}`,-(+s.amount),s.billing_day,'sub',s.category,s.id,acc,'saida');
   });
-  (insts||[]).forEach(i=>{
-    if(!i.installment_amount) return;
-    const acc=i.card||'cartão bradesco';
-    _addMonthly(i.description,-(+i.installment_amount),_getDueDay(i.card||''),'inst',i.category,i.id,acc,'saida');
-  });
+  // parcelas do cartão são omitidas da projeção — aparecem agrupadas no custo fixo da fatura
   (planned||[]).forEach(p=>{
     if(!p.amount||p.confirmed) return;
     const sign=p.type==='entrada'?+(+p.amount):-(+p.amount);
@@ -4139,25 +4135,46 @@ async function loadIbov(force=false){
     try{const r=localStorage.getItem(IBOV_CACHE_KEY);if(r){const{d,ts}=JSON.parse(r);if(Date.now()-ts<TTL){renderIbov(d);return;}}}catch(e){}
   }
   const _bt=getBrapiToken(); const tp=_bt?('&token='+_bt):'';
+  const ibovEl=document.getElementById('ibovVal');
+  if(ibovEl) ibovEl.textContent='...';
+
+  // Tenta primeiro com dados intraday; fallback sem range/interval (free tier)
+  const urls=[
+    `https://brapi.dev/api/quote/%5EBVSP?range=1d&interval=15m${tp}`,
+    `https://brapi.dev/api/quote/%5EBVSP${tp?'?'+tp.slice(1):''}`,
+  ];
+  for(const url of urls){
+    try{
+      const r=await fetch(url,{signal:AbortSignal.timeout?AbortSignal.timeout(8000):undefined});
+      if(!r.ok) continue;
+      const j=await r.json();
+      const q=j?.results?.[0]; if(!q) continue;
+      if(!q.regularMarketPrice) continue;
+      const d={
+        price: q.regularMarketPrice,
+        prev:  q.regularMarketPreviousClose,
+        open:  q.regularMarketOpen,
+        chg:   q.regularMarketChange,
+        chgPct:q.regularMarketChangePercent,
+        low:   q.regularMarketDayLow,
+        high:  q.regularMarketDayHigh,
+        time:  q.regularMarketTime,
+        hist:  (q.historicalDataPrice||[]).map(p=>p.close).filter(Boolean)
+      };
+      localStorage.setItem(IBOV_CACHE_KEY,JSON.stringify({d,ts:Date.now()}));
+      renderIbov(d);
+      return;
+    }catch(e){ console.warn('ibov tentativa falhou',e); }
+  }
+  // Se ambas falharam, tenta cache antigo
   try{
-    const r=await fetch(`https://brapi.dev/api/quote/%5EBVSP?range=1d&interval=15m${tp}`);
-    if(!r.ok) return;
-    const j=await r.json();
-    const q=j?.results?.[0]; if(!q) return;
-    const d={
-      price: q.regularMarketPrice,
-      prev:  q.regularMarketPreviousClose,
-      open:  q.regularMarketOpen,
-      chg:   q.regularMarketChange,
-      chgPct:q.regularMarketChangePercent,
-      low:   q.regularMarketDayLow,
-      high:  q.regularMarketDayHigh,
-      time:  q.regularMarketTime,
-      hist:  (q.historicalDataPrice||[]).map(p=>p.close).filter(Boolean)
-    };
-    localStorage.setItem(IBOV_CACHE_KEY,JSON.stringify({d,ts:Date.now()}));
-    renderIbov(d);
-  }catch(e){console.warn('ibov err',e);}
+    const r=localStorage.getItem(IBOV_CACHE_KEY);
+    if(r){const{d}=JSON.parse(r);renderIbov(d);return;}
+  }catch(e){}
+  // Mostra erro visível
+  const subEl=document.getElementById('ibovSub');
+  if(ibovEl) ibovEl.textContent='—';
+  if(subEl) subEl.textContent='Sem dados · Adicione um token brapi.dev nas configurações';
 }
 
 function renderIbov(d){
@@ -4431,7 +4448,20 @@ async function fillProventos(fiiRows, quotes, existingDivTxs){
   if(provHoje) provHoje.textContent=totalHoje>0?`+${brl(totalHoje)} hoje`:'';
 
   if(!allDivs.length){
-    panel.innerHTML=`<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">Nenhum dado de proventos encontrado.<br><span style="font-size:11px;opacity:.7">Verifique o token brapi.dev ou aguarde a próxima atualização.</span></div>`;
+    // Verifica se as cotações vieram mas sem dividendData (sem token)
+    const semDivData=fiiRows.every(f=>!quotes[f.ticker]?.dividends?.length);
+    const hasBrapiToken=!!getBrapiToken();
+    if(semDivData&&!hasBrapiToken){
+      panel.innerHTML=`<div style="padding:16px;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);border-radius:10px">
+        <div style="font-size:13px;font-weight:700;color:var(--yellow);margin-bottom:6px">🔑 Token brapi.dev necessário para agenda de proventos</div>
+        <div style="font-size:12px;color:var(--muted2);line-height:1.6">O plano gratuito da brapi.dev sem token não retorna dados de dividendos.<br>
+        Crie um token gratuito em <b>brapi.dev</b> → copie o token → cole nas <b>Configurações</b> do sistema.<br>
+        Com o token, a agenda de proventos (próximos e recebidos) fica disponível.</div>
+        <button onclick="document.getElementById('settingsOverlay').style.display='flex'" style="margin-top:10px;padding:6px 16px;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.4);color:var(--yellow);border-radius:8px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer">⚙️ Abrir Configurações</button>
+      </div>`;
+    } else {
+      panel.innerHTML=`<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">Nenhum provento encontrado nos últimos 90 dias.<br><span style="font-size:11px;opacity:.7">Aguarde a próxima atualização das cotações.</span></div>`;
+    }
     return;
   }
 
