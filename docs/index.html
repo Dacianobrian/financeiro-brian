@@ -136,6 +136,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .kpi-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
 .kpi-value{font-size:26px;font-weight:800;letter-spacing:-1.2px;line-height:1;font-variant-numeric:tabular-nums;color:var(--text)}
 .kpi-value.kpi-neg{color:var(--red)!important}
+/* Yellow/purple on big values → white; only green/red stay semantic */
+.kpi-value.amt-yellow,.kpi-value.amt-purple{color:var(--text)!important}
+/* FII table: market value column neutral */
+td.amt-yellow{color:var(--text)!important;font-weight:600}
+/* Goals: value text white */
+.meta-valor-atual{color:var(--text)!important}
+/* Goals: kpi val white */
+.meta-kpi-val{color:var(--text)!important}
 .kpi-sub{font-size:11px;color:var(--muted2);margin-top:5px;display:flex;align-items:center;gap:4px}
 /* Card labels get accent color */
 .card-blue .kpi-label{color:var(--blue)!important}
@@ -1132,10 +1140,10 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   </div>
 
   <div class="grid g4" style="margin-bottom:14px">
-    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🏢</span>Portfolio FII</div><div class="kpi-value amt-yellow" id="kpiFii">—</div><div class="kpi-sub" id="kpiFiiSub">valor de mercado</div></div>
+    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🏢</span>Portfolio FII</div><div class="kpi-value" id="kpiFii">—</div><div class="kpi-sub" id="kpiFiiSub">valor de mercado</div></div>
     <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(16,185,129,.15)">💸</span>Dividendos / Mês</div><div class="kpi-value amt-green" id="kpiDiv">—</div><div class="kpi-sub">renda passiva estimada</div></div>
     <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(6,182,212,.15)">💎</span>Total Investido</div><div class="kpi-value" id="kpiInv">—</div><div class="kpi-sub">Caixinha + FIIs</div></div>
-    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🎯</span>Meta Reserva · Dez/2027</div><div class="kpi-value amt-yellow" id="kpiMeta">—</div><div class="progress"><div class="progress-fill" id="kpiMetaBar" style="width:0%;background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div><div class="kpi-sub" id="kpiMetaSub">de R$ 72.269</div></div>
+    <div class="card"><div class="kpi-label"><span class="kpi-icon" style="background:rgba(245,158,11,.15)">🎯</span>Meta Reserva · Dez/2027</div><div class="kpi-value" id="kpiMeta">—</div><div class="progress"><div class="progress-fill" id="kpiMetaBar" style="width:0%;background:linear-gradient(90deg,var(--blue),var(--cyan))"></div></div><div class="kpi-sub" id="kpiMetaSub">de R$ 72.269</div></div>
   </div>
 
   <div class="section">
@@ -1276,12 +1284,12 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px" id="relMesKpis">
         <div class="card" style="padding:14px;background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.25)">
           <div class="kpi-label" style="color:var(--muted)">💚 Entradas</div>
-          <div class="kpi-value amt-green" id="relEnt" style="font-size:20px">R$ 0,00</div>
+          <div class="kpi-value" id="relEnt" style="font-size:20px">R$ 0,00</div>
           <div id="relEntVar" style="font-size:11px;margin-top:4px;color:var(--muted)"></div>
         </div>
         <div class="card" style="padding:14px;background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.25)">
           <div class="kpi-label" style="color:var(--muted)">🔴 Saídas</div>
-          <div class="kpi-value amt-red" id="relSai" style="font-size:20px">R$ 0,00</div>
+          <div class="kpi-value" id="relSai" style="font-size:20px">R$ 0,00</div>
           <div id="relSaiVar" style="font-size:11px;margin-top:4px;color:var(--muted)"></div>
         </div>
         <div class="card" style="padding:14px">
@@ -1857,8 +1865,8 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           </div>
           <div style="background:var(--surface2);border-radius:8px;padding:12px;text-align:center">
             <div style="font-size:10px;color:var(--muted);margin-bottom:4px">% da Carteira</div>
-            <div id="simPct" style="font-size:16px;font-weight:800;color:var(--purple)">—</div>
-            <div id="simPctBar" style="height:4px;background:var(--border);border-radius:2px;margin-top:6px"><div id="simPctFill" style="height:100%;background:var(--purple);border-radius:2px;width:0%"></div></div>
+            <div id="simPct" style="font-size:16px;font-weight:800;color:var(--text)">—</div>
+            <div id="simPctBar" style="height:4px;background:var(--border2);border-radius:2px;margin-top:6px"><div id="simPctFill" style="height:100%;background:var(--blue);border-radius:2px;width:0%"></div></div>
           </div>
         </div>
         <div id="simMsg" style="margin-top:10px;font-size:12px;color:var(--muted);text-align:center"></div>
@@ -3294,11 +3302,11 @@ function fillSaudeFinanceira(cm, monthly, fii, accounts, fixedCosts){
 
   // ── Componentes (cards) ──────────────────────────────────────────────────
   const comps = [
-    {icon:'📈', label:'Taxa de Aporte',       pts:ptAporte,  max:30, val:`${taxaAporte.toFixed(1)}% da renda`,      cor:ptAporte>=24?'#22c55e':ptAporte>=15?'#fbbf24':'#f43f5e'},
-    {icon:'🎯', label:'Controle de Gastos',   pts:ptGasto,   max:25, val:`${taxaGasto.toFixed(1)}% em despesas`,     cor:ptGasto>=20?'#22c55e':ptGasto>=12?'#fbbf24':'#f43f5e'},
-    {icon:'🛡️', label:'Reserva Emergência',   pts:ptReserva, max:25, val:`${mesesReserva.toFixed(1)} meses cobertos`,cor:ptReserva>=20?'#22c55e':ptReserva>=10?'#fbbf24':'#f43f5e'},
-    {icon:'🏢', label:'Diversificação FII',   pts:ptFii,     max:10, val:`${nFii} fundo${nFii!==1?'s':''}`,          cor:ptFii>=8?'#22c55e':ptFii>=5?'#fbbf24':'#f43f5e'},
-    {icon:'🔁', label:'Regularidade Aportes', pts:ptRegular, max:10, val:`${mesesComAporte}/${ultimos3.length||3} meses`,cor:ptRegular>=8?'#22c55e':ptRegular>=5?'#fbbf24':'#f43f5e'},
+    {icon:'📈', label:'Taxa de Aporte',       pts:ptAporte,  max:30, val:`${taxaAporte.toFixed(1)}% da renda`,      cor:ptAporte>=24?'#22c55e':ptAporte>=15?'var(--muted2)':'var(--red)'},
+    {icon:'🎯', label:'Controle de Gastos',   pts:ptGasto,   max:25, val:`${taxaGasto.toFixed(1)}% em despesas`,     cor:ptGasto>=20?'#22c55e':ptGasto>=12?'var(--muted2)':'var(--red)'},
+    {icon:'🛡️', label:'Reserva Emergência',   pts:ptReserva, max:25, val:`${mesesReserva.toFixed(1)} meses cobertos`,cor:ptReserva>=20?'#22c55e':ptReserva>=10?'var(--muted2)':'var(--red)'},
+    {icon:'🏢', label:'Diversificação FII',   pts:ptFii,     max:10, val:`${nFii} fundo${nFii!==1?'s':''}`,          cor:ptFii>=8?'#22c55e':ptFii>=5?'var(--muted2)':'var(--red)'},
+    {icon:'🔁', label:'Regularidade Aportes', pts:ptRegular, max:10, val:`${mesesComAporte}/${ultimos3.length||3} meses`,cor:ptRegular>=8?'#22c55e':ptRegular>=5?'var(--muted2)':'var(--red)'},
   ];
   const compEl = document.getElementById('saudeComponentes');
   if(compEl) compEl.innerHTML = comps.map(c=>`
@@ -3317,7 +3325,7 @@ function fillSaudeFinanceira(cm, monthly, fii, accounts, fixedCosts){
   if(mediaEntradas>0 && entradas>0){
     const varRenda = ((entradas-mediaEntradas)/mediaEntradas)*100;
     if(varRenda < -20)
-      insights.push({icon:'⚠️', cor:'#fbbf24', txt:`<strong>Renda ${Math.abs(varRenda).toFixed(0)}% abaixo da sua média</strong> dos últimos meses. Se os custos fixos continuarem iguais, vão comprometer uma fatia maior da renda.`});
+      insights.push({icon:'⚠️', cor:'var(--muted2)', txt:`<strong>Renda ${Math.abs(varRenda).toFixed(0)}% abaixo da sua média</strong> dos últimos meses. Se os custos fixos continuarem iguais, vão comprometer uma fatia maior da renda.`});
     else if(varRenda > 30)
       insights.push({icon:'🚀', cor:'#22c55e', txt:`<strong>Renda ${varRenda.toFixed(0)}% acima da sua média!</strong> Ótimo momento para reforçar a reserva de emergência ou aumentar o aporte.`});
   }
@@ -5199,7 +5207,7 @@ function fillMetas(){
         </div>
       </div>
       <div style="margin-top:4px">
-        <div class="meta-valor-atual" style="color:${cor}">${formatAtual}</div>
+        <div class="meta-valor-atual">${formatAtual}</div>
         <div class="meta-de">meta: ${formatMeta}</div>
         ${etaChip}
       </div>
@@ -5269,7 +5277,7 @@ function fillMetas(){
     </div>
     <div class="meta-kpi">
       <div class="meta-kpi-label">🏆 Melhor progresso</div>
-      <div class="meta-kpi-val" style="color:${corMeta(melhorPct/100)}">${melhorPct}%</div>
+      <div class="meta-kpi-val">${melhorPct}%</div>
     </div>
     <div class="meta-kpi">
       <div class="meta-kpi-label">⚡ Mais próxima</div>
