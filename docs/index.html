@@ -1905,15 +1905,23 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     <div class="card inv-cf-card" style="padding:0">
       <div class="inv-cf-header">
         <span class="inv-cf-title"><span style="font-size:18px">💸</span> Caixa Disponível para Investir</span>
-        <span style="font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:var(--blue2);font-weight:600">30 DIAS</span>
+        <span style="font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:var(--blue2);font-weight:600">MÊS ATUAL</span>
       </div>
       <div class="inv-cf-row">
-        <span class="inv-cf-label">💳 Saldo em conta corrente</span>
+        <span class="inv-cf-label">🏦 Saldo em conta corrente</span>
         <span class="inv-cf-val" id="invCfSaldo" style="color:var(--text)">—</span>
       </div>
       <div class="inv-cf-row">
-        <span class="inv-cf-label">📤 Saídas previstas (30d)</span>
-        <span class="inv-cf-val" id="invCfSaidas" style="color:var(--red)">—</span>
+        <span class="inv-cf-label">📋 Custos Fixos do mês</span>
+        <span class="inv-cf-val" id="invCfFixos" style="color:var(--red)">—</span>
+      </div>
+      <div class="inv-cf-row">
+        <span class="inv-cf-label">📊 Gastos Variáveis (mês)</span>
+        <span class="inv-cf-val" id="invCfVariaveis" style="color:var(--orange)">—</span>
+      </div>
+      <div class="inv-cf-row" id="invCfCartaoRow">
+        <span class="inv-cf-label">💳 Cartão / Parcelamentos</span>
+        <span class="inv-cf-val" id="invCfCartao" style="color:var(--red)">—</span>
       </div>
       <div class="inv-cf-row">
         <span class="inv-cf-label">📥 Receitas previstas (30d)</span>
@@ -2986,54 +2994,92 @@ function _fillInvCashflow(){
   if(!_fluxoData||!_invAccounts) return;
   const {fixedCosts,subs,insts,planned}=_fluxoData;
   const today=new Date(); today.setHours(0,0,0,0);
-  const limit=new Date(today); limit.setDate(today.getDate()+30);
+  const ym=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
 
-  // Reutiliza a mesma lógica de coleta da projeção
-  const items=[];
-  const _addM=(label,amt,day,source)=>{
-    let d=new Date(today.getFullYear(),today.getMonth(),+day);
-    if(d<today) d=new Date(today.getFullYear(),today.getMonth()+1,+day);
-    if(d<=limit) items.push({label,amt,date:new Date(d),source});
-  };
-  (fixedCosts||[]).forEach(c=>{ if(c.amount&&c.due_day) _addM(c.description,-(+c.amount),c.due_day,'fix'); });
-  (subs||[]).forEach(s=>{ if(s.amount&&s.billing_day) _addM(`${s.emoji||''}${s.name}`,-(+s.amount),s.billing_day,'sub'); });
-  (insts||[]).forEach(i=>{ if(i.installment_amount) _addM(i.description,-(+i.installment_amount),(fixedCosts||[]).find(c=>c.due_day&&/fatura/i.test(c.description||''))?.due_day||10,'inst'); });
-  (planned||[]).forEach(p=>{
-    if(!p.amount||p.confirmed) return;
-    const sign=p.type==='entrada'?+(+p.amount):-(+p.amount);
-    if(p.recorrente&&p.recorrencia_dia){ _addM(p.description,sign,p.recorrencia_dia,'planned'); }
-    else if(p.due_date){const d=new Date(p.due_date+'T00:00:00');if(d>=today&&d<=limit)items.push({label:p.description,amt:sign,date:d,source:'planned'});}
-  });
-
-  const saldoCC=(_invAccounts||[]).filter(a=>a.type==='corrente').reduce((s,a)=>s+(+a.balance||0),0);
-  const totalOut=Math.abs(items.filter(i=>i.amt<0).reduce((s,i)=>s+i.amt,0));
-  const totalIn=items.filter(i=>i.amt>0).reduce((s,i)=>s+i.amt,0);
-  const disponivel=saldoCC-totalOut+totalIn;
-
-  // Preenche card de investimentos
   const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  setEl('invCfSaldo', brl(saldoCC));
-  setEl('invCfSaidas', totalOut>0?`-${brl(totalOut)}`:'—');
-  setEl('invCfEntradas', totalIn>0?`+${brl(totalIn)}`:'—');
-  const dispEl=document.getElementById('invCfDisponivel');
-  if(dispEl){dispEl.textContent=(disponivel>=0?'':'-')+brl(Math.abs(disponivel));dispEl.style.color=disponivel>=0?'var(--green)':'var(--red)';}
 
-  // Top 5 maiores saídas como lista de referência
-  const top5=items.filter(i=>i.amt<0).sort((a,b)=>a.amt-b.amt).slice(0,5);
-  const cfItems=document.getElementById('invCfItems');
-  if(cfItems){
-    const srcColor={fix:'var(--blue)',sub:'var(--cyan)',inst:'var(--purple)',planned:'var(--yellow)'};
-    cfItems.innerHTML=top5.length?top5.map(i=>{
-      const d=`${String(i.date.getDate()).padStart(2,'0')}/${String(i.date.getMonth()+1).padStart(2,'0')}`;
-      return `<div class="inv-cf-item"><span class="inv-cf-item-dot" style="background:${srcColor[i.source]||'var(--muted)'}"></span><span style="flex:1;color:var(--text)">${i.label.length>30?i.label.slice(0,30)+'…':i.label}</span><span style="color:var(--muted);font-size:10px;margin-right:8px">${d}</span><span style="color:var(--red);font-weight:700;font-size:11.5px;font-variant-numeric:tabular-nums">-${brl(Math.abs(i.amt))}</span></div>`;
-    }).join(''):`<div style="padding:6px 0;font-size:11px;color:var(--muted)">Nenhuma saída prevista nos próximos 30 dias</div>`;
+  // ── Saldo conta corrente ──────────────────────────────────────────────────
+  const saldoCC=(_invAccounts||[]).filter(a=>a.type==='corrente').reduce((s,a)=>s+(+a.balance||0),0);
+  setEl('invCfSaldo', brl(saldoCC));
+
+  // ── Custos Fixos do mês (total cadastrado) ────────────────────────────────
+  const totalFixos=(fixedCosts||[]).reduce((s,c)=>s+(+c.amount||0),0);
+  const totalSubs=(subs||[]).reduce((s,s2)=>s+(+s2.amount||0),0);
+  const totalFixosMes=totalFixos+totalSubs;
+  setEl('invCfFixos', totalFixosMes>0?`-${brl(totalFixosMes)}`:'—');
+
+  // ── Gastos Variáveis do mês atual (transações saida) ─────────────────────
+  const fixedDescs=new Set((fixedCosts||[]).map(r=>(r.description||'').toLowerCase().trim()));
+  const isVariavel=t=>{
+    if(t.type!=='saida') return false;
+    const desc=(t.description||'').toLowerCase().trim();
+    if(fixedDescs.has(desc)) return false;
+    const fixedCatNames=['aluguel','financiamento','empréstimo','seguro','condomínio','investimento','cartão','cartao','fatura'];
+    const cat=(t.category||'').toLowerCase();
+    if(fixedCatNames.some(k=>cat.includes(k)||desc.includes(k))) return false;
+    return true;
+  };
+  const varTxs=(_allTxs||[]).filter(t=>t.date&&t.date.startsWith(ym)&&isVariavel(t));
+  const totalVariaveis=varTxs.reduce((s,t)=>s+(+t.amount||0),0);
+  setEl('invCfVariaveis', totalVariaveis>0?`-${brl(totalVariaveis)}`:'—');
+
+  // ── Cartão / Parcelamentos ────────────────────────────────────────────────
+  const totalCartao=(insts||[]).reduce((s,i)=>s+(+i.installment_amount||0),0);
+  const cartaoRow=document.getElementById('invCfCartaoRow');
+  if(totalCartao>0){
+    setEl('invCfCartao', `-${brl(totalCartao)}`);
+    if(cartaoRow) cartaoRow.style.display='';
+  } else {
+    if(cartaoRow) cartaoRow.style.display='none';
   }
 
-  // Sub-métrica no KPI de saldo (dashboard)
+  // ── Receitas previstas (planned entries do tipo entrada, 30d) ─────────────
+  const limit=new Date(today); limit.setDate(today.getDate()+30);
+  const plannedItems=[];
+  (planned||[]).forEach(p=>{
+    if(!p.amount||p.confirmed||p.type!=='entrada') return;
+    if(p.recorrente&&p.recorrencia_dia){
+      let d=new Date(today.getFullYear(),today.getMonth(),+p.recorrencia_dia);
+      if(d<today) d=new Date(today.getFullYear(),today.getMonth()+1,+p.recorrencia_dia);
+      if(d<=limit) plannedItems.push({label:p.description,amt:+(+p.amount),date:d});
+    } else if(p.due_date){
+      const d=new Date(p.due_date+'T00:00:00');
+      if(d>=today&&d<=limit) plannedItems.push({label:p.description,amt:+(+p.amount),date:d});
+    }
+  });
+  const totalIn=plannedItems.reduce((s,i)=>s+i.amt,0);
+  setEl('invCfEntradas', totalIn>0?`+${brl(totalIn)}`:'—');
+
+  // ── Disponível para investir ──────────────────────────────────────────────
+  const disponivel=saldoCC - totalFixosMes - totalVariaveis - totalCartao + totalIn;
+  const dispEl=document.getElementById('invCfDisponivel');
+  if(dispEl){
+    dispEl.textContent=(disponivel>=0?'':'-')+brl(Math.abs(disponivel));
+    dispEl.style.color=disponivel>=0?'var(--green)':'var(--red)';
+  }
+
+  // ── Top itens de referência (fixos + parcelamentos) ───────────────────────
+  const refItems=[];
+  (fixedCosts||[]).forEach(c=>{ if(c.amount) refItems.push({label:c.description,amt:-(+c.amount),source:'fix'}); });
+  (insts||[]).forEach(i=>{ if(i.installment_amount) refItems.push({label:i.description,amt:-(+i.installment_amount),source:'inst'}); });
+  const top5=refItems.sort((a,b)=>a.amt-b.amt).slice(0,5);
+  const cfItems=document.getElementById('invCfItems');
+  if(cfItems){
+    const srcColor={fix:'var(--blue)',sub:'var(--cyan)',inst:'var(--purple)'};
+    cfItems.innerHTML=top5.length?top5.map(i=>`
+      <div class="inv-cf-item">
+        <span class="inv-cf-item-dot" style="background:${srcColor[i.source]||'var(--muted)'}"></span>
+        <span style="flex:1;color:var(--text)">${i.label.length>32?i.label.slice(0,32)+'…':i.label}</span>
+        <span style="color:var(--red);font-weight:700;font-size:11.5px;font-variant-numeric:tabular-nums">-${brl(Math.abs(i.amt))}</span>
+      </div>`).join(''):'';
+  }
+
+  // ── Sub-métrica no KPI de saldo (dashboard) ───────────────────────────────
+  const totalSaidas=totalFixosMes+totalVariaveis+totalCartao;
   const upEl=document.getElementById('kpiUpcoming');
   const upTxt=document.getElementById('kpiUpcomingTxt');
-  if(upEl&&upTxt&&totalOut>0){
-    upTxt.innerHTML=`↓ ${brl(totalOut)} previstos <span style="color:var(--muted)">/ 30d</span>`;
+  if(upEl&&upTxt&&totalSaidas>0){
+    upTxt.innerHTML=`↓ ${brl(totalSaidas)} previstos <span style="color:var(--muted)">/ mês</span>`;
     upTxt.style.color='var(--red)';
     upEl.style.display='flex';
   } else if(upEl){ upEl.style.display='none'; }
