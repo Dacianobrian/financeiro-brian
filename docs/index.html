@@ -1349,78 +1349,54 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   <div class="section drag-section" id="ds-sparkline-heatmap" style="margin-bottom:14px" draggable="true">
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
       <span class="drag-handle" title="Arrastar seção">⠿</span>
-      <span class="section-title" style="margin-bottom:0">📈 Evolução &amp; Gastos</span>
+      <span class="section-title" style="margin-bottom:0">📈 Evolução</span>
     </div>
-    <div class="grid" style="grid-template-columns:1fr 1fr;gap:14px">
-      <!-- Sparkline patrimônio / gastos -->
-      <div class="card" style="padding:16px">
-        <!-- Row 1: título + toggle métrica -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div style="font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em">Evolução</div>
-          <div style="display:flex;gap:4px">
-            <button id="spm-patrimonio" class="hm-filter-btn hmf-active" onclick="sparkMetric('patrimonio')">Patrimônio</button>
-            <button id="spm-gastos"     class="hm-filter-btn"            onclick="sparkMetric('gastos')">Gastos</button>
-            <button id="spm-entradas"   class="hm-filter-btn"            onclick="sparkMetric('entradas')">Entradas</button>
-          </div>
+    <div class="card" style="padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;gap:4px">
+          <button id="spm-patrimonio" class="hm-filter-btn hmf-active" onclick="sparkMetric('patrimonio')">Patrimônio</button>
+          <button id="spm-gastos"     class="hm-filter-btn"            onclick="sparkMetric('gastos')">Gastos</button>
+          <button id="spm-entradas"   class="hm-filter-btn"            onclick="sparkMetric('entradas')">Entradas</button>
         </div>
-        <!-- Row 2: filtros período -->
-        <div style="display:flex;gap:4px;margin-bottom:10px">
+        <div style="display:flex;gap:4px">
           <button id="spp-3"   class="hm-filter-btn"            onclick="sparkPeriod(3)">3M</button>
           <button id="spp-6"   class="hm-filter-btn"            onclick="sparkPeriod(6)">6M</button>
           <button id="spp-12"  class="hm-filter-btn hmf-active" onclick="sparkPeriod(12)">12M</button>
           <button id="spp-24"  class="hm-filter-btn"            onclick="sparkPeriod(24)">24M</button>
           <button id="spp-all" class="hm-filter-btn"            onclick="sparkPeriod('all')">Tudo</button>
         </div>
-        <div id="patrimSparkStats" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px"></div>
-        <div style="height:100px;position:relative"><canvas id="chartPatrimSpark"></canvas></div>
       </div>
-      <!-- Heatmap gastos -->
-      <div class="card" style="padding:16px">
-        <!-- Row 1: título + nav -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div style="font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em">Gastos diários</div>
-          <div style="display:flex;align-items:center;gap:4px">
-            <button onclick="heatmapNav(-1)" class="hm-nav-btn">‹</button>
-            <span id="heatmapLabel" style="font-size:11px;font-weight:600;color:var(--text);min-width:100px;text-align:center">mês atual</span>
-            <button onclick="heatmapNav(1)" class="hm-nav-btn">›</button>
-          </div>
-        </div>
-        <!-- Row 2: filtros -->
-        <div style="display:flex;gap:5px;margin-bottom:10px">
-          <button id="hmf-all"    class="hm-filter-btn hmf-active" onclick="heatmapFilter('all')">Todos</button>
-          <button id="hmf-gastos" class="hm-filter-btn"            onclick="heatmapFilter('gastos')">Só gastos</button>
-          <button id="hmf-fixos"  class="hm-filter-btn"            onclick="heatmapFilter('fixos')">Só fixos</button>
-        </div>
-        <!-- Legenda -->
-        <div style="display:flex;align-items:center;gap:6px;font-size:9px;color:var(--muted);margin-bottom:8px">
-          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:#166534;display:inline-block"></span>baixo</span>
-          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:#22c55e;display:inline-block"></span>médio</span>
-          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:#f43f5e;display:inline-block"></span>alto</span>
-          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block"></span>custo fixo</span>
-        </div>
-        <div id="heatmapWrap"></div>
-        <div id="heatmapSummary" style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap"></div>
-      </div>
+      <div id="patrimSparkStats" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px"></div>
+      <div style="height:100px;position:relative"><canvas id="chartPatrimSpark"></canvas></div>
+    </div>
+    <!-- Elementos hidden para compatibilidade com heatmap JS -->
+    <div style="display:none">
+      <span id="heatmapLabel"></span>
+      <div id="heatmapWrap"></div>
+      <div id="heatmapSummary"></div>
     </div>
   </div>
 
-  <!-- 📅 Calendário de Caixa (projeção 3 meses) -->
+  <!-- 📅 Calendário Unificado: gastos reais + projeção de caixa -->
   <div class="section drag-section" id="ds-cashflow-cal" draggable="true">
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div style="display:flex;align-items:center;gap:6px">
           <span class="drag-handle" title="Arrastar seção">⠿</span>
-          <div class="section-title" style="margin-bottom:0">📅 Calendário de Caixa</div>
+          <div class="section-title" style="margin-bottom:0">📅 Gastos Diários &amp; Projeção de Caixa</div>
         </div>
-        <div style="font-size:9px;color:var(--muted);padding:2px 8px;border-radius:20px;border:1px solid var(--border)">projeção 3 meses</div>
+        <div style="font-size:9px;color:var(--muted);padding:2px 8px;border-radius:20px;border:1px solid var(--border)">3 meses</div>
       </div>
-      <div class="cf-cal-legend">
-        <div class="cf-leg"><div class="cf-leg-dot" style="background:#166534"></div>+R$5k</div>
+      <div class="cf-cal-legend" style="gap:10px">
+        <span style="font-size:9px;color:var(--muted);font-weight:700;letter-spacing:.4px">PASSADO →</span>
+        <div class="cf-leg"><div class="cf-leg-dot" style="background:#166534"></div>baixo</div>
+        <div class="cf-leg"><div class="cf-leg-dot" style="background:#22c55e"></div>médio</div>
+        <div class="cf-leg"><div class="cf-leg-dot" style="background:#f97316"></div>alto</div>
+        <div class="cf-leg"><div class="cf-leg-dot" style="background:#dc2626"></div>muito alto</div>
+        <span style="font-size:9px;color:var(--muted);font-weight:700;letter-spacing:.4px;margin-left:8px">FUTURO →</span>
         <div class="cf-leg"><div class="cf-leg-dot" style="background:#15803d"></div>+R$3k</div>
-        <div class="cf-leg"><div class="cf-leg-dot" style="background:#16a34a"></div>+R$1k</div>
         <div class="cf-leg"><div class="cf-leg-dot" style="background:#4ade80"></div>+R$500</div>
         <div class="cf-leg"><div class="cf-leg-dot" style="background:#fbbf24"></div>&lt;R$500</div>
-        <div class="cf-leg"><div class="cf-leg-dot" style="background:#f97316"></div>&lt;R$0</div>
         <div class="cf-leg"><div class="cf-leg-dot" style="background:#dc2626"></div>deficit</div>
         <div class="cf-leg" style="margin-left:4px"><div style="width:6px;height:6px;border-radius:50%;background:#a78bfa;flex-shrink:0"></div>aporte</div>
       </div>
@@ -3305,7 +3281,27 @@ function buildCashflowCalendar(){
     }
   }
 
-  // Cor por nível de saldo
+  // Gastos reais por data (para dias passados)
+  const spendByDate={};
+  const incomeByDate={};
+  (_allTxs||[]).forEach(t=>{
+    if(!t.date) return;
+    const k=t.date.substring(0,10);
+    if(t.type==='saida')   spendByDate[k]=(spendByDate[k]||0)+(+(t.amount||0));
+    if(t.type==='entrada') incomeByDate[k]=(incomeByDate[k]||0)+(+(t.amount||0));
+  });
+
+  // Cor por gasto do dia (passado)
+  const spendCol=v=>{
+    if(!v)       return{bg:'var(--surface2)',tx:'var(--muted)'};
+    if(v<80)     return{bg:'#166534',tx:'#bbf7d0'};
+    if(v<250)    return{bg:'#22c55e',tx:'#14532d'};
+    if(v<600)    return{bg:'#fbbf24',tx:'#431407'};
+    if(v<1500)   return{bg:'#f97316',tx:'#fff'};
+    return             {bg:'#dc2626',tx:'#fca5a5'};
+  };
+
+  // Cor por saldo projetado (futuro)
   const balCol=v=>{
     if(v>=5000) return{bg:'#166534',tx:'#bbf7d0'};
     if(v>=3000) return{bg:'#15803d',tx:'#dcfce7'};
@@ -3322,6 +3318,11 @@ function buildCashflowCalendar(){
     if(a>=10000) return s+(a/1000).toFixed(0)+'k';
     if(a>=1000)  return s+(a/1000).toFixed(1)+'k';
     return s+a.toFixed(0);
+  };
+  const shortAbs=v=>{
+    if(v>=10000) return '-'+(v/1000).toFixed(0)+'k';
+    if(v>=1000)  return '-'+(v/1000).toFixed(1)+'k';
+    return v>0?'-'+v.toFixed(0):'';
   };
 
   const ptM=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -3349,7 +3350,17 @@ function buildCashflowCalendar(){
       }
 
       if(isPast){
-        html+=`<div class="cf-cal-cell cf-past" style="background:var(--surface2)"><div class="cf-cal-day" style="color:var(--muted)">${day}</div><div class="cf-cal-bal" style="color:var(--muted)">—</div></div>`;
+        // Dia passado: cor por gasto real
+        const spend=spendByDate[ds]||0;
+        const inc=incomeByDate[ds]||0;
+        const{bg,tx}=spendCol(spend);
+        const label=spend>0?shortAbs(spend):(inc>0?`+${shortAbs(-inc).replace('-','')||brl(inc).replace('R$','').trim()}`:'');
+        // dot azul se tinha custo fixo
+        const hasFixo=(fixedCosts||[]).some(c=>+c.due_day===day)||
+                      (subs||[]).filter(s=>s.active!==false).some(s=>+s.billing_day===day);
+        const fixoDot=hasFixo?`<div style="width:4px;height:4px;border-radius:50%;background:#60a5fa;margin:0 auto;margin-top:1px"></div>`:'';
+        const tip=`${day}/${mn+1}${spend>0?' gasto: '+brl(spend):''}${inc>0?' receita: '+brl(inc):''}${!spend&&!inc?' sem mov.':''}`;
+        html+=`<div class="cf-cal-cell" style="background:${bg};opacity:0.8" title="${tip}"><div class="cf-cal-day" style="color:${tx}">${day}</div><div class="cf-cal-bal" style="color:${tx};font-size:7px">${label}</div>${fixoDot}</div>`;
       } else {
         const{bg,tx}=balCol(running);
         const events=[];
@@ -3357,7 +3368,7 @@ function buildCashflowCalendar(){
         if(expByDate[ds]) events.push(`proj -${brl(expByDate[ds])}`);
         if(incByDate[ds]) events.push(`+${brl(incByDate[ds])}`);
         if(aportByDom[day]) events.push(`💰 aporte -${brl(aportByDom[day])}`);
-        const tip=`${day}/${mn+1}: ${brl(running)}${events.length?' ('+events.join(', ')+')':''}`;
+        const tip=`${day}/${mn+1}: saldo ${brl(running)}${events.length?' ('+events.join(', ')+')':''}`;
         const aporteDot=aportByDom[day]?`<div style="width:4px;height:4px;border-radius:50%;background:#a78bfa;margin:0 auto;margin-top:1px"></div>`:'';
         html+=`<div class="cf-cal-cell${isToday?' cf-cal-today':''}" style="background:${bg}" title="${tip}"><div class="cf-cal-day" style="color:${tx}">${day}</div><div class="cf-cal-bal" style="color:${tx}">${shortV(running)}</div>${aporteDot}</div>`;
       }
