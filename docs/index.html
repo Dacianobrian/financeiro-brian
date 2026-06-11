@@ -20,20 +20,20 @@
 <script>if(typeof pdfjsLib!=='undefined') pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 <style>
 :root{
-  /* ── Dark Slate — modo noturno suave ── */
-  --bg:#13151f;--surface:#1a1d2d;--surface2:#20233a;--border:#2a2e4a;--border2:#353960;
-  --text:#e8eaf4;--muted:#656e90;--muted2:#9aa3be;
+  /* ── Dark Neutral — cinza puro sem tinte azul ── */
+  --bg:#111113;--surface:#1c1c1f;--surface2:#242427;--border:#2e2e33;--border2:#3d3d43;
+  --text:#e8e8ea;--muted:#6e6e76;--muted2:#98989f;
   --blue:#38bdf8;--blue2:#7dd3fc;
   --green:#22c55e;--red:#f43f5e;--purple:#a78bfa;--yellow:#fbbf24;--orange:#fb923c;
   --cyan:#2dd4bf;--pink:#f472b6;--font:'Inter',sans-serif;--nu:#820ad1;--bradesco:#cc092f;--r:14px;
-  --shadow:0 1px 8px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.04);
-  --glow-blue:rgba(56,189,248,.18);--glow-green:rgba(34,197,94,.15);--glow-red:rgba(244,63,94,.15);
+  --shadow:0 1px 8px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.03);
+  --glow-blue:rgba(56,189,248,.15);--glow-green:rgba(34,197,94,.12);--glow-red:rgba(244,63,94,.12);
   --dur-fast:150ms;--dur-normal:250ms;--dur-slow:400ms;
-  --surface-input:#171929;--border-input:#2d3a58;
-  --accent-blue-bg:rgba(56,189,248,.09);
-  --accent-green-bg:rgba(34,197,94,.09);
-  --accent-red-bg:rgba(244,63,94,.09);
-  --accent-purple-bg:rgba(167,139,250,.09);
+  --surface-input:#161618;--border-input:#333338;
+  --accent-blue-bg:rgba(56,189,248,.07);
+  --accent-green-bg:rgba(34,197,94,.07);
+  --accent-red-bg:rgba(244,63,94,.07);
+  --accent-purple-bg:rgba(167,139,250,.07);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -59,7 +59,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .login-err{color:var(--red);font-size:12px;margin-top:8px;min-height:16px;text-align:center}
 
 /* ── Header ── */
-.header{position:sticky;top:0;z-index:200;background:rgba(19,21,31,.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid rgba(42,46,74,.9);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.header{position:sticky;top:0;z-index:200;background:rgba(17,17,19,.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid rgba(46,46,51,.9);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .logo{display:flex;align-items:center;gap:10px}
 .logo-icon{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#0ea5e9,#2dd4bf);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 0 16px rgba(56,189,248,.35)}
 .logo-text{font-size:16px;font-weight:700;letter-spacing:-.3px}
@@ -248,7 +248,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .imp-badge-err{background:rgba(239,68,68,.15);color:var(--red)}
 .imp-table{width:100%;border-collapse:collapse;font-size:12px}
 .imp-table th{background:var(--surface2);color:var(--muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;padding:8px 10px;text-align:left;position:sticky;top:0}
-.imp-table td{padding:7px 10px;border-bottom:1px solid rgba(30,45,69,.5)}
+.imp-table td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04)}
 .imp-table tr.dup-row td{opacity:.45}
 .imp-table tr.dup-row td:first-child::before{content:'⚠ ';font-size:10px}
 .imp-cat-sel{background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:11px;padding:2px 6px;font-family:var(--font)}
@@ -595,12 +595,12 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 .comp-mo-vals{display:flex;justify-content:space-between;font-size:9.5px;margin-top:1px}
 /* ── Tema Claro ─────────────────────────────────────────────────────────── */
 [data-theme="light"]{
-  --bg:#eef0f8;--surface:#ffffff;--surface2:#f4f5fc;--border:#dde1f0;--border2:#c8cde3;
-  --text:#1a1d2d;--muted:#7b82a0;--muted2:#5c6480;
-  --surface-input:#f8f9fe;--border-input:#c8cde3;
+  --bg:#f5f5f5;--surface:#ffffff;--surface2:#f0f0f0;--border:#e0e0e0;--border2:#c8c8cc;
+  --text:#18181b;--muted:#6e6e76;--muted2:#52525b;
+  --surface-input:#fafafa;--border-input:#d4d4d8;
   --shadow:0 1px 4px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);
 }
-[data-theme="light"] .header{background:rgba(238,240,248,.97)!important;border-bottom-color:rgba(200,205,227,.9)!important}
+[data-theme="light"] .header{background:rgba(245,245,245,.97)!important;border-bottom-color:rgba(224,224,224,.9)!important}
 [data-theme="light"] .card{box-shadow:0 1px 4px rgba(0,0,0,.06)}
 [data-theme="light"] tbody tr:nth-child(even){background:rgba(0,0,0,.025)}
 [data-theme="light"] tbody tr:hover{background:rgba(56,189,248,.08)}
@@ -1071,7 +1071,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       </div>
       <div style="display:flex;gap:8px;margin-top:10px">
         <button onclick="saveFc()" style="flex:1;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer" id="fcSaveBtn">+ Adicionar</button>
-        <button onclick="cancelFcEdit()" id="fcCancelBtn" style="display:none;background:rgba(100,116,139,.15);border:1px solid #253550;color:#94a3b8;border-radius:8px;padding:9px 14px;font-size:13px;cursor:pointer">Cancelar</button>
+        <button onclick="cancelFcEdit()" id="fcCancelBtn" style="display:none;background:rgba(110,110,118,.15);border:1px solid var(--border2);color:#98989f;border-radius:8px;padding:9px 14px;font-size:13px;cursor:pointer">Cancelar</button>
       </div>
       <div id="fcResp" style="font-size:12px;margin-top:8px;min-height:14px;color:#34d399"></div>
     </div>
@@ -2751,7 +2751,7 @@ function buildPatrimHistChart(monthly, baseBalance=0){
   _chartPatrimHist=new Chart(ctx,{
     type:'line',
     data:{labels,datasets:[{label:'Saldo acumulado',data,borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.08)',fill:true,tension:.4,pointRadius:3,pointHoverRadius:6,pointBackgroundColor:'#38bdf8'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'R$ '+c.parsed.y.toLocaleString('pt-BR',{minimumFractionDigits:2})}}},scales:{x:{grid:{color:'rgba(29,34,48,.8)'},ticks:{color:'#505870',font:{size:10}}},y:{grid:{color:'rgba(29,34,48,.8)'},ticks:{color:'#505870',font:{size:10},callback:v=>'R$ '+v.toLocaleString('pt-BR',{maximumFractionDigits:0})}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'R$ '+c.parsed.y.toLocaleString('pt-BR',{minimumFractionDigits:2})}}},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6e6e76',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6e6e76',font:{size:10},callback:v=>'R$ '+v.toLocaleString('pt-BR',{maximumFractionDigits:0})}}}}
   });
 }
 
@@ -2856,9 +2856,9 @@ async function sbRpc(func, params={}){
 
 // ══ FORMATTING ════════════════════════════════════════════════════════════════
 const CAT_ICON = {'Alimentação':'🍽️','Supermercado':'🛒','Combustível':'⛽','Moradia':'🏠','Saúde':'🏥','Educação':'📚','Transporte':'🚗','Lazer':'🎉','Streaming':'🎵','Investimentos':'📈','Cartão Bradesco':'💳','Parcelas':'🔄','Anuidade':'📋','Impostos / MEI':'🏛️','Outros':'📌','Comissão Imobiliária':'🏢','Dividendos FII':'📊','Rendimento RDB/CDB':'💰','Gerenciamento':'📋','Aluguel':'🏠','Salário':'💵','Entrada':'💵'};
-const CAT_COLOR= {'Alimentação':'#f97316','Supermercado':'#84cc16','Combustível':'#64748b','Moradia':'#8b5cf6','Saúde':'#ec4899','Educação':'#06b6d4','Transporte':'#f59e0b','Lazer':'#a855f7','Streaming':'#6366f1','Investimentos':'#10b981','Cartão Bradesco':'#3b82f6','Parcelas':'#ef4444','Anuidade':'#78716c','Impostos / MEI':'#dc2626','Outros':'#475569'};
+const CAT_COLOR= {'Alimentação':'#f97316','Supermercado':'#84cc16','Combustível':'#6e6e76','Moradia':'#8b5cf6','Saúde':'#ec4899','Educação':'#06b6d4','Transporte':'#f59e0b','Lazer':'#a855f7','Streaming':'#6366f1','Investimentos':'#10b981','Cartão Bradesco':'#3b82f6','Parcelas':'#ef4444','Anuidade':'#78716c','Impostos / MEI':'#dc2626','Outros':'#475569'};
 function catIcon(c){return CAT_ICON[c]||'📌'}
-function catColor(c){return CAT_COLOR[c]||'#64748b'}
+function catColor(c){return CAT_COLOR[c]||'#6e6e76'}
 function tickerLogo(ticker, size=28, logoUrl=''){
   const label=encodeURIComponent(ticker.slice(0,4));
   const svgFb=`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}'%3E%3Crect width='${size}' height='${size}' rx='5' fill='%231e3358'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='${Math.floor(size*.37)}' font-weight='700' fill='%2338bdf8'%3E${label}%3C/text%3E%3C/svg%3E`;
@@ -2919,7 +2919,7 @@ const CAT_COLORS={
 function catAvatar(category, size=26){
   const key=(category||'outros').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
   const match=Object.keys(CAT_COLORS).find(k=>key.includes(k));
-  const [color,bg]=match?CAT_COLORS[match]:['#94a3b8','rgba(148,163,184,.18)'];
+  const [color,bg]=match?CAT_COLORS[match]:['#98989f','rgba(148,163,184,.18)'];
   const letter=(category||'?')[0].toUpperCase();
   return `<span class="cat-av-circle" style="background:${bg};color:${color};width:${size}px;height:${size}px">${letter}</span>`;
 }
@@ -3019,7 +3019,7 @@ function ftypeBadge(t){if(!t)return'—';const tl=t.toLowerCase();if(tl.includes
 let chartFluxoAno,chartCatAno;
 let _chartInvEvol=null,_chartInvAtivos=null;
 Chart.defaults.font={family:'Inter',size:11};
-Chart.defaults.color='#64748b';
+Chart.defaults.color='#6e6e76';
 
 function buildCharts(monthly, cats){
   const months=monthly.map(m=>m.month);
@@ -3056,7 +3056,7 @@ function buildCharts(monthly, cats){
         loadTxModal();
       },250);
     },
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+brl(c.raw)+' · clique para ver transações'},title:t=>[t[0].label,'']},},scales:{x:{grid:{color:'rgba(30,45,69,.5)'},ticks:{callback:v=>shortBrl(v),font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10.5}}}}}});
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+brl(c.raw)+' · clique para ver transações'},title:t=>[t[0].label,'']},},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{callback:v=>shortBrl(v),font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10.5}}}}}});
 }
 
 function buildInvCharts(rows, quotes){
@@ -3090,8 +3090,8 @@ function buildInvCharts(rows, quotes){
           tooltip:{callbacks:{label:ctx=>`Aporte: ${brl(ctx.parsed.y)}`}}
         },
         scales:{
-          x:{grid:{color:'rgba(30,45,69,.5)'},ticks:{color:'#64748b',font:{size:11}}},
-          y:{grid:{color:'rgba(30,45,69,.5)'},ticks:{color:'#64748b',font:{size:11},callback:v=>'R$'+v.toLocaleString('pt-BR',{maximumFractionDigits:0})}}
+          x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6e6e76',font:{size:11}}},
+          y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6e6e76',font:{size:11},callback:v=>'R$'+v.toLocaleString('pt-BR',{maximumFractionDigits:0})}}
         }
       }
     });
@@ -3121,7 +3121,7 @@ function buildInvCharts(rows, quotes){
     ];
     const data=[...tickerVals.map(t=>t.val),...(caixVal>0?[caixVal]:[])];
     const colors=[...tickerVals.map((_,i)=>palette[i%palette.length]),...(caixVal>0?['#6366f1']:[])];
-    const borderC=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#13151f';
+    const borderC=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#111113';
 
     _chartInvAtivos=new Chart(ctx2,{
       type:'doughnut',
@@ -3130,7 +3130,7 @@ function buildInvCharts(rows, quotes){
         responsive:true,maintainAspectRatio:true,
         cutout:'62%',
         plugins:{
-          legend:{position:'right',labels:{color:'#94a3b8',font:{size:10},boxWidth:10,padding:8}},
+          legend:{position:'right',labels:{color:'#98989f',font:{size:10},boxWidth:10,padding:8}},
           tooltip:{callbacks:{label:c=>`${c.label}: ${brl(c.parsed)}`}}
         }
       }
@@ -3503,8 +3503,8 @@ function buildSaudeCharts(monthly, catsObj){
         responsive:true, maintainAspectRatio:false,
         plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%`}}},
         scales:{
-          x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#505870',font:{size:11}}},
-          y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#505870',font:{size:11},callback:v=>`${v}%`},min:0,suggestedMax:Math.max(30,...taxas)+5}
+          x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6e6e76',font:{size:11}}},
+          y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6e6e76',font:{size:11},callback:v=>`${v}%`},min:0,suggestedMax:Math.max(30,...taxas)+5}
         }
       }
     });
@@ -3747,7 +3747,7 @@ function _renderCatBar(canvasId, entries, instRef, setInst){
       indexAxis:'y',responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+brl(ctx.raw)}}},
       scales:{
-        x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#8892a8',font:{size:10},callback:v=>v>=1000?'R$'+(v/1000).toFixed(0)+'k':'R$'+v},border:{display:false}},
+        x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6e6e76',font:{size:10},callback:v=>v>=1000?'R$'+(v/1000).toFixed(0)+'k':'R$'+v},border:{display:false}},
         y:{grid:{display:false},ticks:{color:'#eef0f6',font:{size:11,weight:'600'}},border:{display:false}}
       }
     }
@@ -5467,10 +5467,10 @@ async function fillRelatorioMes(){
         },
         options:{
           responsive:true,maintainAspectRatio:false,
-          plugins:{legend:{labels:{color:'#94a3b8',font:{size:11},boxWidth:10}},tooltip:{callbacks:{label:ctx=>' '+brl(ctx.raw)}}},
+          plugins:{legend:{labels:{color:'#98989f',font:{size:11},boxWidth:10}},tooltip:{callbacks:{label:ctx=>' '+brl(ctx.raw)}}},
           scales:{
-            x:{ticks:{color:'#64748b',font:{size:11}},grid:{display:false}},
-            y:{ticks:{color:'#64748b',font:{size:10},callback:v=>v>=1000?'R$'+(v/1000).toFixed(0)+'k':'R$'+v},grid:{color:'rgba(255,255,255,.04)'}}
+            x:{ticks:{color:'#6e6e76',font:{size:11}},grid:{display:false}},
+            y:{ticks:{color:'#6e6e76',font:{size:10},callback:v=>v>=1000?'R$'+(v/1000).toFixed(0)+'k':'R$'+v},grid:{color:'rgba(255,255,255,.04)'}}
           }
         }
       });
