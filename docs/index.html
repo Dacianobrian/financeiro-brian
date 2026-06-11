@@ -1084,8 +1084,6 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           <label style="display:block;font-size:10px;color:var(--muted2);margin-bottom:4px">DÉBITO EM</label>
           <select id="fcAccount" style="width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;font-family:var(--font)">
             <option value="">— selecionar —</option>
-            <option value="Bradesco Conta Corrente">🏦 Bradesco Conta Corrente</option>
-            <option value="Cartão Bradesco">💳 Cartão Bradesco</option>
             <option value="Nubank">🟣 Nubank</option>
             <option value="Cartão Nubank">💜 Cartão Nubank</option>
           </select>
@@ -1161,6 +1159,47 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       <button class="btn btn-ghost" onclick="closeAddVarModal()">Cancelar</button>
       <button class="btn btn-primary" onclick="saveVarExpense()">＋ Adicionar</button>
     </div>
+  </div>
+</div>
+
+<!-- Modal Aportes Planejados -->
+<div class="modal-overlay" id="modalAportes" onclick="if(event.target===this)closeAportesModal()">
+  <div class="modal" style="max-width:500px;width:95%">
+    <div class="modal-title">💰 Aportes Planejados<button class="modal-close" onclick="closeAportesModal()">✕</button></div>
+    <div id="aportesModalList" style="margin-bottom:16px;max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div>
+    <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px" id="aportesFormTitle">Novo Aporte</div>
+      <input type="hidden" id="aportesEditId" value="">
+      <div style="display:grid;grid-template-columns:1fr 110px 70px;gap:8px;align-items:end;margin-bottom:8px">
+        <div>
+          <label style="display:block;font-size:10px;color:var(--muted2);margin-bottom:4px">DESCRIÇÃO</label>
+          <input id="aportesDesc" type="text" placeholder="Ex: Caixinha, HGLG11…" style="width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;font-family:var(--font)"/>
+        </div>
+        <div>
+          <label style="display:block;font-size:10px;color:var(--muted2);margin-bottom:4px">VALOR (R$)</label>
+          <input id="aportesAmount" type="number" step="0.01" min="0" placeholder="0,00" style="width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;font-family:var(--font)"/>
+        </div>
+        <div>
+          <label style="display:block;font-size:10px;color:var(--muted2);margin-bottom:4px">DIA</label>
+          <input id="aportesDay" type="number" min="1" max="31" placeholder="10" style="width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;font-family:var(--font)"/>
+        </div>
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;color:var(--muted2);margin-bottom:4px">DESTINO</label>
+        <select id="aportesDestino" style="width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;font-family:var(--font)">
+          <option value="caixinha">🏦 Caixinha / Renda Fixa</option>
+          <option value="fii">🏢 FII</option>
+          <option value="acao">📈 Ação</option>
+          <option value="outro">📌 Outro</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button onclick="saveAporte()" style="flex:1;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer" id="aportesSaveBtn">+ Adicionar</button>
+        <button onclick="cancelAportesEdit()" id="aportesCancelBtn" style="display:none;background:rgba(110,110,118,.15);border:1px solid var(--border2);color:#98989f;border-radius:8px;padding:9px 14px;font-size:13px;cursor:pointer">Cancelar</button>
+      </div>
+      <div id="aportesResp" style="font-size:12px;margin-top:8px;min-height:14px;color:#34d399"></div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeAportesModal()">Fechar</button></div>
   </div>
 </div>
 
@@ -1445,9 +1484,9 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     </div>
   </div>
 
-  <!-- Transações + Custos Fixos + Contas Variáveis -->
+  <!-- Transações + Custos Fixos + Contas Variáveis + Aportes -->
   <div class="section">
-    <div class="grid g3">
+    <div class="grid g4" id="mainDashGrid">
       <div class="card">
         <div class="section-header" style="margin-bottom:8px">
           <div class="section-title">Últimas Transações</div>
@@ -1488,6 +1527,20 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           <div style="color:var(--muted);font-size:13px">Carregando...</div>
         </div>
         <div id="varVsMes" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)"></div>
+      </div>
+      <!-- Aportes Planejados -->
+      <div class="card">
+        <div class="section-header" style="margin-bottom:10px">
+          <div class="section-title">💰 Aportes Planejados</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="aportesTotalLabel" style="font-size:13px;font-weight:700;color:#a78bfa"></div>
+            <button onclick="openAportesModal()" style="background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);color:#a78bfa;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;">＋ Adicionar</button>
+          </div>
+        </div>
+        <div id="aportesGrid" style="display:flex;flex-direction:column;gap:6px">
+          <div style="color:var(--muted);font-size:13px">Carregando...</div>
+        </div>
+        <div id="aportesTotalBar" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)"></div>
       </div>
     </div>
   </div>
@@ -1966,6 +2019,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
         <div class="cf-leg"><div class="cf-leg-dot" style="background:#fbbf24"></div>&lt;R$500</div>
         <div class="cf-leg"><div class="cf-leg-dot" style="background:#f97316"></div>&lt;R$0</div>
         <div class="cf-leg"><div class="cf-leg-dot" style="background:#dc2626"></div>deficit</div>
+        <div class="cf-leg" style="margin-left:4px"><div style="width:6px;height:6px;border-radius:50%;background:#a78bfa;flex-shrink:0"></div>aporte</div>
       </div>
       <div class="cf-cal-wrap">
         <div id="cfCalMonths" class="cf-cal-months"></div>
@@ -3088,8 +3142,11 @@ function _fillInvCashflow(){
   const totalIn=plannedItems.reduce((s,i)=>s+i.amt,0);
   setEl('invCfEntradas', totalIn>0?`+${brl(totalIn)}`:'—');
 
+  // ── Aportes planejados ────────────────────────────────────────────────────
+  const totalAportes=((_fluxoData.plannedInv)||[]).reduce((s,p)=>s+(+p.amount||0),0);
+
   // ── Disponível para investir ──────────────────────────────────────────────
-  const disponivel=saldoCC - totalFixosMes - totalVariaveis - totalCartao + totalIn;
+  const disponivel=saldoCC - totalFixosMes - totalVariaveis - totalCartao - totalAportes + totalIn;
   const dispEl=document.getElementById('invCfDisponivel');
   if(dispEl){
     dispEl.textContent=(disponivel>=0?'':'-')+brl(Math.abs(disponivel));
@@ -3100,10 +3157,11 @@ function _fillInvCashflow(){
   const refItems=[];
   (fixedCosts||[]).forEach(c=>{ if(c.amount) refItems.push({label:c.description,amt:-(+c.amount),source:'fix'}); });
   (insts||[]).forEach(i=>{ if(i.installment_amount) refItems.push({label:i.description,amt:-(+i.installment_amount),source:'inst'}); });
+  ((_fluxoData.plannedInv)||[]).forEach(p=>{ if(p.amount) refItems.push({label:p.description,amt:-(+p.amount),source:'aport'}); });
   const top5=refItems.sort((a,b)=>a.amt-b.amt).slice(0,5);
   const cfItems=document.getElementById('invCfItems');
   if(cfItems){
-    const srcColor={fix:'var(--blue)',sub:'var(--cyan)',inst:'var(--purple)'};
+    const srcColor={fix:'var(--blue)',sub:'var(--cyan)',inst:'var(--purple)',aport:'#a78bfa'};
     cfItems.innerHTML=top5.length?top5.map(i=>`
       <div class="inv-cf-item">
         <span class="inv-cf-item-dot" style="background:${srcColor[i.source]||'var(--muted)'}"></span>
@@ -3113,7 +3171,7 @@ function _fillInvCashflow(){
   }
 
   // ── Sub-métrica no KPI de saldo (dashboard) ───────────────────────────────
-  const totalSaidas=totalFixosMes+totalVariaveis+totalCartao;
+  const totalSaidas=totalFixosMes+totalVariaveis+totalCartao+totalAportes;
   const upEl=document.getElementById('kpiUpcoming');
   const upTxt=document.getElementById('kpiUpcomingTxt');
   if(upEl&&upTxt&&totalSaidas>0){
@@ -3129,7 +3187,7 @@ function _fillInvCashflow(){
 function buildCashflowCalendar(){
   const el=document.getElementById('cfCalMonths');
   if(!el||!_fluxoData||!_invAccounts) return;
-  const {fixedCosts,subs,insts}=_fluxoData;
+  const {fixedCosts,subs,insts,plannedInv}=_fluxoData;
   const today=new Date(); today.setHours(0,0,0,0);
   const todayTime=today.getTime();
 
@@ -3138,11 +3196,17 @@ function buildCashflowCalendar(){
 
   // Gastos recorrentes por dia do mês (dom = day of month)
   const outByDom={};
+  const aportByDom={};
   const addOut=(dom,amt)=>{ outByDom[dom]=(outByDom[dom]||0)+amt; };
   (fixedCosts||[]).forEach(c=>addOut(+c.due_day||10,+c.amount||0));
   (subs||[]).filter(s=>s.active!==false).forEach(s=>addOut(+s.billing_day||10,+s.amount||0));
   const totalInst=(insts||[]).filter(i=>i.active!==false).reduce((s,i)=>s+(+i.installment_amount||0),0);
   if(totalInst>0) addOut(10,totalInst);
+  (plannedInv||[]).forEach(p=>{
+    const d=+p.due_day||10, a=+p.amount||0;
+    addOut(d,a);
+    aportByDom[d]=(aportByDom[d]||0)+a;
+  });
 
   // Receitas planejadas por data
   const incByDate={};
@@ -3207,8 +3271,10 @@ function buildCashflowCalendar(){
         const events=[];
         if(outByDom[day]) events.push(`-${brl(outByDom[day])}`);
         if(incByDate[ds]) events.push(`+${brl(incByDate[ds])}`);
+        if(aportByDom[day]) events.push(`💰 aporte -${brl(aportByDom[day])}`);
         const tip=`${day}/${mn+1}: ${brl(running)}${events.length?' ('+events.join(', ')+')':''}`;
-        html+=`<div class="cf-cal-cell${isToday?' cf-cal-today':''}" style="background:${bg}" title="${tip}"><div class="cf-cal-day" style="color:${tx}">${day}</div><div class="cf-cal-bal" style="color:${tx}">${shortV(running)}</div></div>`;
+        const aporteDot=aportByDom[day]?`<div style="width:4px;height:4px;border-radius:50%;background:#a78bfa;margin:0 auto;margin-top:1px"></div>`:'';
+        html+=`<div class="cf-cal-cell${isToday?' cf-cal-today':''}" style="background:${bg}" title="${tip}"><div class="cf-cal-day" style="color:${tx}">${day}</div><div class="cf-cal-bal" style="color:${tx}">${shortV(running)}</div>${aporteDot}</div>`;
       }
     }
     html+=`</div></div>`;
@@ -5775,6 +5841,7 @@ let _invFiiRows = [], _invQuotes = null, _invAccounts = [], _monthly = [], _divT
 let _catsObj = {};
 let _cmRow = {entradas:0,saidas:0,investido:0};
 let _fcRows = [];
+let _plannedInvData = [];
 let _saudeScores = {};
 let _activeTab = 'geral';
 let _chartSaudePoupanca = null, _chartSaude5030 = null;
@@ -5829,7 +5896,7 @@ async function _doRefresh(){
   _setRefreshLoading(true);
   Object.keys(_relCache).forEach(k=>delete _relCache[k]);
   try{
-    const [cm, monthly, cats, txs, fii, fc, accounts, pat, divTxs, subs, insts, plannedRows] = await Promise.all([
+    const [cm, monthly, cats, txs, fii, fc, accounts, pat, divTxs, subs, insts, plannedRows, plannedInv] = await Promise.all([
       sbRpc('get_current_month_data'),
       sbRpc('get_monthly_summary', {year_val: new Date().getFullYear()}),
       sbRpc('get_expense_by_category', {year_val: new Date().getFullYear()}),
@@ -5842,6 +5909,7 @@ async function _doRefresh(){
       sbGet('subscriptions', {select:'*', active:'eq.true', order:'billing_day.asc.nullslast,name.asc'}),
       sbGet('installments', {select:'*', active:'eq.true', order:'installment_amount.desc'}),
       sbGet('planned_entries', {select:'*', order:'confirmed.asc,due_date.asc.nullslast,id.desc'}),
+      sbGet('planned_investments', {select:'*', active:'eq.true', order:'due_day.asc,id.asc'}),
     ]);
     const cmRow = cm[0]||{entradas:0,saidas:0,investido:0,meta_diario:70,meta_reserva:10000,meta_mensal:10000};
     const patRow = pat[0]||{accounts:0,fii:0,total:0};
@@ -5871,7 +5939,9 @@ async function _doRefresh(){
     loadPlanned(plannedRows||[]);
     fillAnoTab(monthly, catsObj);
     _prevRows = plannedRows||[];
-    _fluxoData={fixedCosts:fc||[],subs:subs||[],insts:insts||[],planned:(plannedRows||[]).filter(p=>!p.confirmed)};
+    _plannedInvData=plannedInv||[];
+    fillAportes(_plannedInvData);
+    _fluxoData={fixedCosts:fc||[],subs:subs||[],insts:insts||[],planned:(plannedRows||[]).filter(p=>!p.confirmed),plannedInv:plannedInv||[]};
     _fillFluxo(_fluxoDias);
     _fillProjetado(_fluxoData, accounts);
     _renderPrevList();
@@ -7143,6 +7213,122 @@ async function deleteFc(id,name){
   await sbDelete('fixed_costs',{id:`eq.${id}`});
   toast('Custo fixo removido','ok');
   await loadFcList();refreshDashboard();
+}
+
+// ══ APORTES PLANEJADOS ════════════════════════════════════════════════════════
+const _destLabel={caixinha:'🏦 Caixinha',fii:'🏢 FII',acao:'📈 Ação',outro:'📌 Outro'};
+
+function fillAportes(rows){
+  const grid=document.getElementById('aportesGrid');
+  const totalLabel=document.getElementById('aportesTotalLabel');
+  const bar=document.getElementById('aportesTotalBar');
+  if(!grid) return;
+  const total=rows.reduce((s,r)=>s+(+r.amount||0),0);
+  if(totalLabel) totalLabel.textContent=total>0?`-${brl(total)}`:'';
+  if(bar) bar.textContent=rows.length?`${rows.length} aporte${rows.length>1?'s':''} planejado${rows.length>1?'s':''}  •  total ${brl(total)}/mês`:'';
+  if(!rows.length){
+    grid.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:8px">Nenhum aporte cadastrado</div>';
+    return;
+  }
+  grid.innerHTML=rows.map(r=>`
+    <div style="display:flex;align-items:center;gap:8px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.18);border-radius:8px;padding:7px 10px">
+      <span style="min-width:26px;height:22px;background:rgba(139,92,246,.2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#c4b5fd">${r.due_day||'?'}</span>
+      <span style="flex:1;font-size:12.5px;font-weight:500">${r.description}</span>
+      <span style="font-size:10px;color:#a78bfa;background:rgba(139,92,246,.1);border-radius:4px;padding:1px 6px;white-space:nowrap">${_destLabel[r.destination]||r.destination}</span>
+      <span style="font-size:13px;font-weight:700;color:#a78bfa;white-space:nowrap">-${brl(+r.amount)}</span>
+      <button onclick="editAporte(${r.id})" style="background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#818cf8;border-radius:5px;padding:3px 7px;font-size:11px;cursor:pointer;flex-shrink:0">✏️</button>
+      <button onclick="deleteAporte(${r.id},'${(r.description||'').replace(/'/g,"\\'")}')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;border-radius:5px;padding:3px 7px;font-size:11px;cursor:pointer;flex-shrink:0">🗑</button>
+    </div>`).join('');
+}
+
+function openAportesModal(){
+  document.getElementById('modalAportes').classList.add('open');
+  _renderAportesModalList();
+}
+function closeAportesModal(){
+  document.getElementById('modalAportes').classList.remove('open');
+  cancelAportesEdit();
+}
+
+function _renderAportesModalList(){
+  const el=document.getElementById('aportesModalList');
+  if(!el) return;
+  if(!_plannedInvData.length){
+    el.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:8px">Nenhum aporte ainda</div>';
+    return;
+  }
+  el.innerHTML=_plannedInvData.map(r=>`
+    <div style="display:flex;align-items:center;gap:8px;background:#0a1220;border:1px solid #1e2d45;border-radius:8px;padding:8px 12px">
+      <span style="min-width:28px;height:24px;background:rgba(139,92,246,.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#c4b5fd">${r.due_day||'?'}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.description}</div>
+        <div style="font-size:10px;color:#a78bfa;margin-top:2px">${_destLabel[r.destination]||r.destination}</div>
+      </div>
+      <span style="font-size:13px;font-weight:700;color:#a78bfa;white-space:nowrap">-${brl(+r.amount)}</span>
+      <button onclick="editAporte(${r.id})" style="background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#818cf8;border-radius:6px;padding:4px 9px;font-size:11px;cursor:pointer;flex-shrink:0">✏️</button>
+      <button onclick="deleteAporte(${r.id},'${(r.description||'').replace(/'/g,"\\'")}')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171;border-radius:6px;padding:4px 9px;font-size:11px;cursor:pointer;flex-shrink:0">🗑</button>
+    </div>`).join('');
+}
+
+function editAporte(id){
+  const r=_plannedInvData.find(x=>x.id===id);if(!r)return;
+  document.getElementById('aportesEditId').value=id;
+  document.getElementById('aportesDesc').value=r.description;
+  document.getElementById('aportesAmount').value=r.amount;
+  document.getElementById('aportesDay').value=r.due_day||'';
+  document.getElementById('aportesDestino').value=r.destination||'caixinha';
+  document.getElementById('aportesFormTitle').textContent='Editar Aporte';
+  document.getElementById('aportesSaveBtn').textContent='💾 Salvar';
+  document.getElementById('aportesCancelBtn').style.display='block';
+  document.getElementById('aportesDesc').focus();
+}
+
+function cancelAportesEdit(){
+  document.getElementById('aportesEditId').value='';
+  document.getElementById('aportesDesc').value='';
+  document.getElementById('aportesAmount').value='';
+  document.getElementById('aportesDay').value='';
+  document.getElementById('aportesDestino').value='caixinha';
+  document.getElementById('aportesFormTitle').textContent='Novo Aporte';
+  document.getElementById('aportesSaveBtn').textContent='+ Adicionar';
+  document.getElementById('aportesCancelBtn').style.display='none';
+  document.getElementById('aportesResp').textContent='';
+}
+
+async function saveAporte(){
+  const id=document.getElementById('aportesEditId').value;
+  const description=(document.getElementById('aportesDesc').value||'').trim();
+  const amount=parseFloat(document.getElementById('aportesAmount').value)||0;
+  const due_day=parseInt(document.getElementById('aportesDay').value)||10;
+  const destination=document.getElementById('aportesDestino').value||'caixinha';
+  const resp=document.getElementById('aportesResp');
+  if(!description){resp.style.color='#f87171';resp.textContent='Descrição obrigatória';return;}
+  if(!amount||amount<=0){resp.style.color='#f87171';resp.textContent='Valor inválido';return;}
+  const payload={description,amount,due_day,destination,active:true};
+  try{
+    if(id) await sbPatch('planned_investments',{id:`eq.${id}`},payload);
+    else await sbPost('planned_investments',payload);
+    resp.style.color='#34d399';resp.textContent=id?'✓ Atualizado!':'✓ Adicionado!';
+    cancelAportesEdit();
+    _plannedInvData=await sbGet('planned_investments',{select:'*',active:'eq.true',order:'due_day.asc,id.asc'});
+    fillAportes(_plannedInvData);
+    _renderAportesModalList();
+    if(_fluxoData) _fluxoData.plannedInv=_plannedInvData;
+    _fillInvCashflow();
+    setTimeout(()=>resp.textContent='',2000);
+  }catch(e){resp.style.color='#f87171';resp.textContent='✗ '+e.message;}
+}
+
+async function deleteAporte(id,name){
+  const ok=await _confirm(`Remover aporte "${name}"?`,'Esta ação não pode ser desfeita.');
+  if(!ok) return;
+  await sbDelete('planned_investments',{id:`eq.${id}`});
+  toast('Aporte removido','ok');
+  _plannedInvData=await sbGet('planned_investments',{select:'*',active:'eq.true',order:'due_day.asc,id.asc'});
+  fillAportes(_plannedInvData);
+  _renderAportesModalList();
+  if(_fluxoData) _fluxoData.plannedInv=_plannedInvData;
+  _fillInvCashflow();
 }
 
 // ══ EXCEL EXPORT ══════════════════════════════════════════════════════════════
