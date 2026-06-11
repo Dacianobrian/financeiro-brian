@@ -2259,7 +2259,7 @@ function updateTokenStatus(){
         <span style="font-size:15px">✅</span>
         <div style="flex:1">
           <span style="font-size:12px;font-weight:700;color:var(--green)">Token brapi.dev ativo</span>
-          <span style="font-size:11px;color:var(--muted);margin-left:8px">••• ${masked} — cotações ilimitadas · proventos habilitados</span>
+          <span style="font-size:11px;color:var(--muted);margin-left:8px">••• ${masked} — cotações ilimitadas · sem limite de requisições</span>
         </div>
         <button onclick="openTokenModal()" style="background:var(--surface2);border:1px solid var(--border2);color:var(--muted2);border-radius:7px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:var(--font)">Alterar</button>
         <button onclick="clearTokenQuick()" style="background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.25);color:var(--red);border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:var(--font)" title="Remover token">✕</button>
@@ -2270,7 +2270,7 @@ function updateTokenStatus(){
         <span style="font-size:15px">ℹ️</span>
         <div style="flex:1">
           <div style="font-size:12px;font-weight:700;color:var(--blue2)">Cotações funcionando · Token opcional</div>
-          <div style="font-size:11px;color:var(--muted)">Preços e portfólio OK sem token · Token gratuito habilita agenda de proventos e +requisições</div>
+          <div style="font-size:11px;color:var(--muted)">Preços e portfólio OK sem token · Token gratuito remove limite de requisições por IP</div>
         </div>
         <button onclick="openTokenModal()" style="background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);color:var(--blue);border-radius:7px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">⚡ Ativar proventos</button>
       </div>`;
@@ -4100,10 +4100,10 @@ async function fetchFiiQuotes(tickers, forceRefresh=false){
   if(mktEl) mktEl.textContent='⏳ Buscando cotações...';
 
   const _bt=getBrapiToken(); const tokenParam=_bt?('&token='+_bt):'';
-  const dividendsParam=_bt?'&dividends=true':'';
+  // dividends=true requer plano pago — não incluir
   // Plano gratuito brapi.dev: 1 ticker por requisição — faz uma req por ticker e agrega
   const fetchOneTicker = async (ticker) => {
-    const url = `https://brapi.dev/api/quote/${ticker}?fundamental=false${dividendsParam}${tokenParam}`;
+    const url = `https://brapi.dev/api/quote/${ticker}?fundamental=false${tokenParam}`;
     const r = await fetch(url, {signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined});
     if(!r.ok){ console.warn(`brapi ${ticker} status ${r.status}`); return null; }
     const j = await r.json();
