@@ -1293,36 +1293,10 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     </div>
   </div>
 
-  <!-- ── Patrimônio Sparkline + Heatmap ── -->
-  <div class="section drag-section" id="ds-sparkline-heatmap" style="margin-bottom:14px" draggable="true">
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
-      <span class="drag-handle" title="Arrastar seção">⠿</span>
-      <span class="section-title" style="margin-bottom:0">📈 Evolução</span>
-    </div>
-    <div class="card" style="padding:16px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div style="display:flex;gap:4px">
-          <button id="spm-patrimonio" class="hm-filter-btn hmf-active" onclick="sparkMetric('patrimonio')">Patrimônio</button>
-          <button id="spm-gastos"     class="hm-filter-btn"            onclick="sparkMetric('gastos')">Gastos</button>
-          <button id="spm-entradas"   class="hm-filter-btn"            onclick="sparkMetric('entradas')">Entradas</button>
-        </div>
-        <div style="display:flex;gap:4px">
-          <button id="spp-3"   class="hm-filter-btn"            onclick="sparkPeriod(3)">3M</button>
-          <button id="spp-6"   class="hm-filter-btn"            onclick="sparkPeriod(6)">6M</button>
-          <button id="spp-12"  class="hm-filter-btn hmf-active" onclick="sparkPeriod(12)">12M</button>
-          <button id="spp-24"  class="hm-filter-btn"            onclick="sparkPeriod(24)">24M</button>
-          <button id="spp-all" class="hm-filter-btn"            onclick="sparkPeriod('all')">Tudo</button>
-        </div>
-      </div>
-      <div id="patrimSparkStats" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px"></div>
-      <div style="height:100px;position:relative"><canvas id="chartPatrimSpark"></canvas></div>
-    </div>
-    <!-- Elementos hidden para compatibilidade com heatmap JS -->
-    <div style="display:none">
-      <span id="heatmapLabel"></span>
-      <div id="heatmapWrap"></div>
-      <div id="heatmapSummary"></div>
-    </div>
+  <!-- IDs ocultos para JS de sparkline não quebrar -->
+  <div style="display:none">
+    <span id="heatmapLabel"></span><div id="heatmapWrap"></div><div id="heatmapSummary"></div>
+    <div id="patrimSparkStats"></div><canvas id="chartPatrimSpark"></canvas>
   </div>
 
   <!-- Projeção de Caixa -->
