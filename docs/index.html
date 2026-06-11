@@ -1739,26 +1739,6 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   <!-- Token status bar -->
   <div id="invTokenBar" class="section" style="margin-bottom:10px"></div>
 
-  <!-- Row 0: Ibovespa -->
-  <div class="section">
-    <div class="card" id="ibovCard" style="padding:10px 14px">
-      <div style="display:flex;align-items:center;gap:14px">
-        <div style="min-width:0">
-          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:2px">IBOVESPA</div>
-          <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap">
-            <span id="ibovVal" style="font-size:18px;font-weight:800;letter-spacing:-.8px;color:var(--text)">—</span>
-            <span id="ibovBadge" style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:20px">—</span>
-          </div>
-          <div id="ibovSub" style="font-size:9px;color:var(--muted);margin-top:1px">—</div>
-        </div>
-        <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;gap:8px">
-          <canvas id="ibovChart" height="40" style="display:block;max-width:200px;width:100%"></canvas>
-          <button onclick="loadIbov(true)" title="Atualizar" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;flex-shrink:0">↻</button>
-        </div>
-      </div>
-      <div id="ibovStats" style="display:flex;gap:14px;font-size:10px;color:var(--muted2);margin-top:6px;flex-wrap:wrap"></div>
-    </div>
-  </div>
 
   <!-- Banner proventos próximos -->
   <div id="provAlertBanner" style="display:none" class="section">
@@ -3669,7 +3649,7 @@ function buildInvCharts(rows, quotes){
   if(ctx2){
     if(_chartInvAtivos) _chartInvAtivos.destroy();
 
-    const caixinha=(_invAccounts||[]).find(a=>/caixinha/i.test(a.name||''));
+    const caixinha=(_invAccounts||[]).find(a=>/caixinha|rdb/i.test((a.type||'')+(a.name||'')));
     const caixVal=caixinha?+(caixinha.balance||0):0;
 
     // build per-ticker values
@@ -4723,7 +4703,7 @@ function fillInvFii(rows, quotes, accounts, monthly, divTxs){
   const avgDy=fiiMarket>0?dyWeighted/fiiMarket:0;
   const ganhoCapital=fiiMarket-fiiBasis;
 
-  const caixinha=(accounts||[]).find(a=>/caixinha/i.test(a.name||''));
+  const caixinha=(accounts||[]).find(a=>/caixinha|rdb/i.test((a.type||'')+(a.name||'')));
   const caixVal=caixinha?+(caixinha.balance||0):0;
 
   const patrimTotal=fiiMarket+caixVal;
@@ -8721,7 +8701,7 @@ async function _executarImport(rows, skipDup){
     if(totalCaixinhaResgate>0){
       try{
         const accs=await sbGet('accounts',{select:'id,balance,name'});
-        const caixinha=accs.find(a=>/caixinha|rdb/i.test(a.name||''));
+        const caixinha=accs.find(a=>/caixinha|rdb/i.test((a.type||'')+(a.name||'')));
         if(caixinha){
           const novoSaldo=Math.max(0,(+caixinha.balance||0)-totalCaixinhaResgate);
           await sbPatch('accounts',{id:`eq.${caixinha.id}`},{balance:novoSaldo,updated_at:new Date().toISOString()});
