@@ -3872,26 +3872,24 @@ function fillReceita(cmRow, txs, monthly, plannedRows){
   const total=+(cmRow.entradas||0);
   totalEl.textContent=brl(total);
 
-  // Agrupar entradas do mês atual por categoria
+  // Entradas do mês atual — lista individual com edit/delete
   const today=new Date();
   const ym=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
-  const cats={};
-  (txs||[]).filter(t=>t.type==='entrada'&&t.date&&t.date.startsWith(ym)).forEach(t=>{
-    const cat=t.category||'Outros'; cats[cat]=(cats[cat]||0)+(+t.amount||0);
-  });
-  const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const recTxs=(txs||[]).filter(t=>t.type==='entrada'&&t.date&&t.date.startsWith(ym))
+    .sort((a,b)=>b.date.localeCompare(a.date)||(b.amount-a.amount));
 
-  if(!sorted.length){
+  if(!recTxs.length){
     listEl.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:8px">Sem receitas este mês</div>';
   } else {
-    listEl.innerHTML=sorted.map(([cat,amt])=>{
-      const pct=total>0?Math.round(amt/total*100):0;
-      return `<div style="display:flex;align-items:center;gap:8px">
-        <span style="flex:1;font-size:11.5px;color:var(--muted2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cat}</span>
-        <div style="flex:2;height:3px;background:var(--surface2);border-radius:2px;overflow:hidden;flex-shrink:0">
-          <div style="height:100%;width:${pct}%;background:var(--green);border-radius:2px"></div>
-        </div>
-        <span style="font-size:12px;font-weight:700;color:var(--green);white-space:nowrap;min-width:68px;text-align:right">${brl(amt)}</span>
+    listEl.innerHTML=recTxs.map(t=>{
+      const d=(t.date||'').split('-'); const dtLabel=d.length===3?`${d[2]}/${d[1]}`:'—';
+      const desc=t.description||t.category||'Entrada';
+      return `<div style="display:flex;align-items:center;gap:5px;padding:5px 6px;background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.1);border-radius:7px">
+        <span style="font-size:10px;color:var(--muted);white-space:nowrap;min-width:26px">${dtLabel}</span>
+        <span style="flex:1;font-size:11.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${desc}">${desc}</span>
+        <span style="font-size:11px;font-weight:700;color:var(--green);white-space:nowrap">${brl(+t.amount)}</span>
+        <button onclick="openEditTx(${t.id})" title="Editar" style="background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#818cf8;border-radius:5px;padding:2px 6px;font-size:11px;cursor:pointer;flex-shrink:0">✏️</button>
+        <button onclick="deleteTxInline(${t.id},'${desc.replace(/'/g,"\\'")}',this)" title="Excluir" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;border-radius:5px;padding:2px 6px;font-size:11px;cursor:pointer;flex-shrink:0">🗑</button>
       </div>`;
     }).join('');
   }
@@ -4405,7 +4403,7 @@ function _renderCatGrid(el, entries, total, showBudget=true){
       const resto=budget-val;
       return`<div style="display:flex;flex-direction:column;gap:4px">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:6px">
-          <span style="font-size:12px;font-weight:600;color:var(--text);display:inline-flex;align-items:center">${catLogo}${cat}</span>
+          <span style="font-size:12px;font-weight:600;color:var(--text);display:inline-flex;align-items:center;gap:4px">${catLogo}${cat}<span onclick="_renameCat('${cat.replace(/'/g,"\\'")}',event)" title="Renomear categoria" style="font-size:9px;color:var(--muted);cursor:pointer;padding:1px 4px;border-radius:3px;background:var(--surface2)">✏️</span></span>
           <span style="font-size:11px;font-weight:700;white-space:nowrap;color:${pctB>=100?'var(--red)':'var(--text)'}">${brl(val)}<span style="font-size:10px;color:var(--muted);font-weight:400"> / ${brl(budget)}</span></span>
         </div>
         <div style="height:7px;background:var(--border);border-radius:3px;overflow:hidden">
@@ -4422,7 +4420,7 @@ function _renderCatGrid(el, entries, total, showBudget=true){
     const pct=Math.min(100,(val/total)*100);
     return`<div style="display:flex;flex-direction:column;gap:4px">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:6px">
-        <span style="font-size:12px;font-weight:600;color:var(--text)">${icon} ${cat}</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:4px">${icon} ${cat}<span onclick="_renameCat('${cat.replace(/'/g,"\\'")}',event)" title="Renomear categoria" style="font-size:9px;color:var(--muted);cursor:pointer;padding:1px 4px;border-radius:3px;background:var(--surface2)">✏️</span></span>
         <span style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap">${brl(val)} <span style="font-size:10px;color:var(--muted);font-weight:400">${pct.toFixed(1)}%</span></span>
       </div>
       <div style="height:7px;background:var(--border);border-radius:3px;overflow:hidden">
@@ -5901,14 +5899,31 @@ function fillContasVariaveis(txs, fc, monthly){
   grid.innerHTML=sorted.slice(0,7).map(([cat,val],i)=>{
     const pct=maxVal>0?Math.round(val/maxVal*100):0;
     const color=CAT_COLORS[i%CAT_COLORS.length];
+    // Transações dessa categoria (para expandir)
+    const catTxs=curTxs.filter(t=>(t.category||'Outros')===cat).sort((a,b)=>b.date.localeCompare(a.date));
+    const txRows=catTxs.map(t=>{
+      const d=(t.date||'').split('-'); const dl=d.length===3?`${d[2]}/${d[1]}`:'—';
+      const desc=(t.description||'').replace(/'/g,"\\'");
+      return`<div style="display:flex;align-items:center;gap:5px;padding:3px 6px;border-radius:5px;background:rgba(255,255,255,.03)">
+        <span style="font-size:9.5px;color:var(--muted);white-space:nowrap;min-width:24px">${dl}</span>
+        <span style="flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.description||'—'}</span>
+        <span style="font-size:11px;font-weight:700;color:${color};white-space:nowrap">${brl(+t.amount)}</span>
+        <button onclick="openEditTx(${t.id})" title="Editar" style="background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#818cf8;border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;flex-shrink:0">✏️</button>
+        <button onclick="deleteTxInline(${t.id},'${desc}',this)" title="Excluir" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;flex-shrink:0">🗑</button>
+      </div>`;
+    }).join('');
     return`<div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
-        <span style="font-size:11px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%">${cat}</span>
-        <span style="font-size:11px;font-weight:700;color:${color};white-space:nowrap">${brl(val)}</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;cursor:pointer" onclick="this.nextElementSibling.nextElementSibling.style.display=this.nextElementSibling.nextElementSibling.style.display==='none'?'flex':'none'">
+        <span style="font-size:11px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%">${cat} <span style="font-size:9px;color:var(--muted)">(${catTxs.length})</span></span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:11px;font-weight:700;color:${color};white-space:nowrap">${brl(val)}</span>
+          <span style="font-size:9px;color:var(--muted)">▾</span>
+        </div>
       </div>
-      <div style="height:4px;background:var(--border2);border-radius:2px">
+      <div style="height:4px;background:var(--border2);border-radius:2px;margin-bottom:3px">
         <div style="height:100%;width:${pct}%;background:${color};border-radius:2px;transition:width .4s ease"></div>
       </div>
+      <div style="display:none;flex-direction:column;gap:2px;padding:4px 0 2px;border-top:1px solid var(--border)">${txRows}</div>
     </div>`;
   }).join('');
 
@@ -6877,6 +6892,29 @@ function closeModal(){
     document.getElementById('mSubmitBtn').textContent='✓ Registrar';
   }
 }
+async function deleteTxInline(id, desc, btn){
+  const ok=await _confirm(`Excluir "${desc}"?`,'Esta transação será removida permanentemente.');
+  if(!ok) return;
+  try{
+    await sbDelete('transactions',{id:`eq.${id}`});
+    const row=btn?.closest('[style]'); if(row) row.remove();
+    toast('Transação excluída','ok');
+    _refresh();
+  }catch(e){ toast('Erro ao excluir','err'); }
+}
+
+async function _renameCat(oldCat, evt){
+  if(evt) evt.stopPropagation();
+  const newCat=await _prompt(`Novo nome para a categoria:`, oldCat, '✏️ Renomear Categoria');
+  if(!newCat||newCat.trim()===oldCat) return;
+  const name=newCat.trim();
+  try{
+    await sbPatch('transactions',{category:`eq.${oldCat}`},{category:name});
+    toast(`"${oldCat}" → "${name}"`, 'ok');
+    _refresh();
+  }catch(e){ toast('Erro ao renomear','err'); }
+}
+
 function openEditTx(id){
   const tx=_txMap[id]; if(!tx) return;
   _editTxId=id;
