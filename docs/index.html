@@ -2266,13 +2266,13 @@ function updateTokenStatus(){
       </div>`;
   } else {
     bar.innerHTML=`
-      <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.22);border-radius:10px">
-        <span style="font-size:15px">⚡</span>
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(56,189,248,.05);border:1px solid rgba(56,189,248,.18);border-radius:10px">
+        <span style="font-size:15px">ℹ️</span>
         <div style="flex:1">
-          <div style="font-size:12px;font-weight:700;color:var(--yellow)">Token brapi.dev não configurado</div>
-          <div style="font-size:11px;color:var(--muted)">Sem token: limite de ~10 req/dia por IP · agenda de proventos indisponível</div>
+          <div style="font-size:12px;font-weight:700;color:var(--blue2)">Cotações funcionando · Token opcional</div>
+          <div style="font-size:11px;color:var(--muted)">Preços e portfólio OK sem token · Token gratuito habilita agenda de proventos e +requisições</div>
         </div>
-        <button onclick="openTokenModal()" style="background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);color:var(--blue);border-radius:7px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">+ Adicionar token</button>
+        <button onclick="openTokenModal()" style="background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);color:var(--blue);border-radius:7px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">⚡ Ativar proventos</button>
       </div>`;
   }
 }
@@ -2282,11 +2282,25 @@ function openTokenModal(){
   document.getElementById('tokenModalOverlay')?.remove();
   const html=`<div id="tokenModalOverlay" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center" onclick="if(event.target===this)document.getElementById('tokenModalOverlay').remove()">
     <div style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:28px;width:460px;max-width:96vw;box-shadow:0 24px 80px rgba(0,0,0,.8)">
-      <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:6px">⚡ Token brapi.dev</div>
-      <div style="font-size:12px;color:var(--muted2);line-height:1.7;margin-bottom:18px">
-        1. Acesse <strong style="color:var(--blue2)">brapi.dev</strong> e crie uma conta gratuita<br>
-        2. Em <em>Dashboard → Token</em>, copie seu token pessoal<br>
-        3. Cole abaixo — sem limite de req/dia e agenda de proventos ativa
+      <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:4px">⚡ Token brapi.dev</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Gratuito · 2 minutos · habilita agenda de proventos + cotações ilimitadas</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Como obter seu token gratuito</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="width:22px;height:22px;border-radius:50%;background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.3);color:var(--blue);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</span>
+            <div style="flex:1;font-size:12px;color:var(--muted2)">Clique no botão abaixo para abrir o site</div>
+            <button onclick="window.open('https://brapi.dev','_blank')" style="background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);color:var(--blue);border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);white-space:nowrap">Abrir brapi.dev ↗</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="width:22px;height:22px;border-radius:50%;background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.3);color:var(--blue);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</span>
+            <div style="font-size:12px;color:var(--muted2)">Cadastre-se com e-mail e senha (gratuito)</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="width:22px;height:22px;border-radius:50%;background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.3);color:var(--blue);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</span>
+            <div style="font-size:12px;color:var(--muted2)">No painel, copie seu token e cole abaixo</div>
+          </div>
+        </div>
       </div>
       <label style="font-size:11px;font-weight:700;color:var(--muted2);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Token</label>
       <div style="display:flex;gap:8px;margin-bottom:6px">
@@ -4087,11 +4101,13 @@ async function fetchFiiQuotes(tickers, forceRefresh=false){
 
   const tickerList = tickers.join(',');
   const _bt=getBrapiToken(); const tokenParam=_bt?('&token='+_bt):'';
+  // dividends=true só com token — sem token conserva as requisições gratuitas (~15/dia)
+  const dividendsParam=_bt?'&dividends=true':'';
   try{
-    const resp = await fetch(`https://brapi.dev/api/quote/${tickerList}?dividends=true${tokenParam}`);
+    const resp = await fetch(`https://brapi.dev/api/quote/${tickerList}?fundamental=false${dividendsParam}${tokenParam}`);
     if(!resp.ok){
       console.warn('brapi.dev status:', resp.status);
-      if(resp.status===429) toast('Limite de cotações atingido — use um token brapi.dev gratuito nas configurações','err',5000);
+      if(resp.status===429) toast('Limite de cotações atingido — cache em uso. Token gratuito remove limite','warn',5000);
       else if(resp.status>=500) toast('Serviço de cotações temporariamente indisponível','err',4000);
       if(mktEl) updateMktStatusBadge();
       return cachedData?.data || null; // retorna cache antigo se tiver
@@ -4434,7 +4450,7 @@ async function loadIbov(force=false){
   // Mostra erro visível
   const subEl=document.getElementById('ibovSub');
   if(ibovEl) ibovEl.textContent='—';
-  if(subEl) subEl.textContent='Sem dados · Adicione um token brapi.dev nas configurações';
+  if(subEl) subEl.textContent='Sem dados · Verifique conexão ou tente novamente';
 }
 
 function renderIbov(d){
