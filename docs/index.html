@@ -4901,19 +4901,57 @@ async function simularCompra(){
 
   document.getElementById('simResult').style.display='';
 
-  // Graham + Fundamentals — manual tem prioridade, API é fallback
+  // Graham + Fundamentals
   document.getElementById('grahamSection').style.display='none';
   document.getElementById('fundSection').style.display='none';
   const manualFund=getManualFundamentals();
   if(manualFund){
+    // Campos manuais preenchidos — usa direto
     manualFund.price=price;
     if(!manualFund.name) manualFund.name=ticker;
     showGrahamAnalysis(ticker, price, manualFund);
     showFundamentalsAnalysis(ticker, manualFund);
   } else {
+    // Tenta API; pré-preenche o que vier e abre painel para completar
     fetchFundamentals(ticker).then(fund=>{
-      showGrahamAnalysis(ticker, price, fund);
-      showFundamentalsAnalysis(ticker, fund);
+      if(fund){
+        // Pré-preenche campos que a API retornou
+        const set=(id,v)=>{ if(v!=null){const el=document.getElementById(id);if(el&&!el.value)el.value=v;} };
+        set('mEPS', fund.eps);
+        set('mBVPS', fund.bvps);
+        set('mPL',   fund.pe!=null?+fund.pe.toFixed(1):null);
+        set('mROE',  fund.roe!=null?+(fund.roe*100).toFixed(1):null);
+        set('mDE',   fund.debtToEquity!=null?+(fund.debtToEquity/100).toFixed(2):null);
+        set('mLiq',  fund.currentRatio!=null?+fund.currentRatio.toFixed(2):null);
+        set('mEG',   fund.earningsGrowth!=null?+(fund.earningsGrowth*100).toFixed(1):null);
+        set('mRG',   fund.revenueGrowth!=null?+(fund.revenueGrowth*100).toFixed(1):null);
+        set('mPM',   fund.profitMargin!=null?+(fund.profitMargin*100).toFixed(1):null);
+        // Verifica se ainda há campos vazios
+        const empty=['mPL','mROE','mDE','mLiq','mEG','mPM'].filter(id=>!document.getElementById(id)?.value);
+        if(empty.length>0){
+          // Abre o painel automaticamente e mostra aviso
+          const panel=document.getElementById('simFundPanel');
+          const arrow=document.getElementById('simFundArrow');
+          if(panel?.style.display==='none'){ panel.style.display=''; if(arrow) arrow.textContent='▼'; }
+          // Destaca campos vazios em amarelo
+          empty.forEach(id=>{const el=document.getElementById(id);if(el)el.style.borderColor='rgba(251,191,36,.6)';});
+          // Toast orientando
+          const missing=empty.length;
+          toast(`API retornou ${9-missing} de 9 indicadores · Complete os ${missing} campos em amarelo com dados do Fundamentus ou Status Invest`,'warn',6000);
+          // Se já tem o suficiente para análise parcial, mostra mesmo assim
+          showGrahamAnalysis(ticker, price, fund);
+          showFundamentalsAnalysis(ticker, fund);
+        } else {
+          showGrahamAnalysis(ticker, price, fund);
+          showFundamentalsAnalysis(ticker, fund);
+        }
+      } else {
+        // API sem dados — abre painel para preenchimento manual
+        const panel=document.getElementById('simFundPanel');
+        const arrow=document.getElementById('simFundArrow');
+        if(panel?.style.display==='none'){ panel.style.display=''; if(arrow) arrow.textContent='▼'; }
+        toast('Indicadores não encontrados na API · Preencha manualmente com dados do Fundamentus ou Status Invest','warn',6000);
+      }
     });
   }
 }
