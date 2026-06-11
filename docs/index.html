@@ -1487,17 +1487,16 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   <!-- Transações + Custos Fixos + Contas Variáveis + Aportes -->
   <div class="section">
     <div class="grid g4" id="mainDashGrid">
-      <div class="card">
-        <div class="section-header" style="margin-bottom:8px">
-          <div class="section-title">Últimas Transações</div>
-          <button onclick="openTxModal()" style="font-size:11px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:3px 10px;cursor:pointer">Ver todas →</button>
+      <!-- Receita do Mês -->
+      <div class="card" style="border-top:2px solid var(--green)!important;background:linear-gradient(180deg,rgba(34,197,94,.04) 0%,var(--surface) 60%)!important">
+        <div class="section-header" style="margin-bottom:10px">
+          <div class="section-title">💵 Receita do Mês</div>
+          <div id="receitaTotalMes" style="font-size:14px;font-weight:800;color:var(--green)"></div>
         </div>
-        <input class="tx-search" id="txSearch" placeholder="🔍 Buscar transação..." oninput="_debounceTxSearch(this.value)" style="margin-bottom:8px"/>
-        <div class="table-wrap"><table>
-          <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th style="text-align:right">Valor</th></tr></thead>
-          <tbody id="tblTransactions"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
-        </table></div>
-        <div id="txSearchInfo" style="font-size:11px;color:var(--muted);margin-top:6px;text-align:right"></div>
+        <div id="receitaCatList" style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px">
+          <div style="color:var(--muted);font-size:13px">Carregando...</div>
+        </div>
+        <div id="receitaVsMes" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px"></div>
       </div>
       <div class="card">
         <div class="section-header" style="margin-bottom:10px">
@@ -1545,9 +1544,22 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     </div>
   </div>
 
-  <!-- Parcelamentos + Assinaturas -->
+  <!-- Transações + Parcelamentos + Assinaturas -->
   <div class="section drag-section" id="ds-parcelamentos" draggable="true">
-    <div class="grid" style="grid-template-columns:1fr auto;gap:14px;align-items:start">
+    <div class="grid g3" style="align-items:start">
+      <!-- Últimas Transações -->
+      <div class="card">
+        <div class="section-header" style="margin-bottom:8px">
+          <div class="section-title">Últimas Transações</div>
+          <button onclick="openTxModal()" style="font-size:11px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:3px 10px;cursor:pointer">Ver todas →</button>
+        </div>
+        <input class="tx-search" id="txSearch" placeholder="🔍 Buscar transação..." oninput="_debounceTxSearch(this.value)" style="margin-bottom:8px"/>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th style="text-align:right">Valor</th></tr></thead>
+          <tbody id="tblTransactions"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
+        </table></div>
+        <div id="txSearchInfo" style="font-size:11px;color:var(--muted);margin-top:6px;text-align:right"></div>
+      </div>
       <div class="card">
         <div class="section-header" style="margin-bottom:16px">
           <div class="section-title">💳 Parcelamentos</div>
@@ -1560,7 +1572,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           <div style="color:var(--muted);font-size:13px">Carregando...</div>
         </div>
       </div>
-      <div class="card" style="min-width:240px;max-width:320px">
+      <div class="card">
         <div class="section-header" style="margin-bottom:14px">
           <div class="section-title">📱 Assinaturas</div>
           <div style="display:flex;align-items:center;gap:10px">
@@ -3771,6 +3783,61 @@ function fillKpis(cm, fii, accounts, patrimonio, monthly){
   }
 }
 
+// ── Receita do Mês ─────────────────────────────────────────────────────────────
+function fillReceita(cmRow, txs, monthly, plannedRows){
+  const totalEl=document.getElementById('receitaTotalMes');
+  const listEl=document.getElementById('receitaCatList');
+  const vsEl=document.getElementById('receitaVsMes');
+  if(!totalEl||!listEl) return;
+
+  const total=+(cmRow.entradas||0);
+  totalEl.textContent=brl(total);
+
+  // Agrupar entradas do mês atual por categoria
+  const today=new Date();
+  const ym=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+  const cats={};
+  (txs||[]).filter(t=>t.type==='entrada'&&t.date&&t.date.startsWith(ym)).forEach(t=>{
+    const cat=t.category||'Outros'; cats[cat]=(cats[cat]||0)+(+t.amount||0);
+  });
+  const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+
+  if(!sorted.length){
+    listEl.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:8px">Sem receitas este mês</div>';
+  } else {
+    listEl.innerHTML=sorted.map(([cat,amt])=>{
+      const pct=total>0?Math.round(amt/total*100):0;
+      return `<div style="display:flex;align-items:center;gap:8px">
+        <span style="flex:1;font-size:11.5px;color:var(--muted2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cat}</span>
+        <div style="flex:2;height:3px;background:var(--surface2);border-radius:2px;overflow:hidden;flex-shrink:0">
+          <div style="height:100%;width:${pct}%;background:var(--green);border-radius:2px"></div>
+        </div>
+        <span style="font-size:12px;font-weight:700;color:var(--green);white-space:nowrap;min-width:68px;text-align:right">${brl(amt)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  if(!vsEl) return;
+  vsEl.innerHTML='';
+
+  // Comparação com mês anterior
+  if(monthly&&monthly.length>=2){
+    const ms=[...monthly].sort((a,b)=>String(b.month||'').localeCompare(String(a.month||'')));
+    const prev=ms[1]; const prevVal=+(prev&&prev.entradas||0);
+    if(prevVal>0){
+      const diff=total-prevVal; const sign=diff>=0?'+':'';
+      vsEl.innerHTML+=`<span>vs mês ant: <strong style="color:${diff>=0?'var(--green)':'var(--red)'}">${sign}${brl(diff)}</strong></span>`;
+    }
+  }
+
+  // Receitas previstas (planned_entries entrada não confirmadas)
+  const upcoming=(plannedRows||[]).filter(p=>!p.confirmed&&p.type==='entrada');
+  if(upcoming.length){
+    const upTotal=upcoming.reduce((s,p)=>s+(+p.amount||0),0);
+    vsEl.innerHTML+=`<span style="color:var(--blue2)">previstos: +${brl(upTotal)}</span>`;
+  }
+}
+
 // ── Saúde Financeira ───────────────────────────────────────────────────────────
 function fillSaudeFinanceira(cm, monthly, fii, accounts, fixedCosts){
   const entradas  = +(cm.entradas||0);
@@ -5927,6 +5994,7 @@ async function _doRefresh(){
 
     _cmRow = cmRow; _fcRows = fc||[];
     fillKpis(cmRow, fii, accounts, patRow, monthly);
+    fillReceita(cmRow, txs, monthly, plannedRows||[]);
     fillSaudeFinanceira(cmRow, monthly, fii, accounts, fc||[]);
     fillSaudeMetricas(cmRow, monthly, fii, accounts, fc||[]);
     fillSaudeRecomendacoes();
