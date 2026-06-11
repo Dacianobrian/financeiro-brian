@@ -4099,28 +4099,30 @@ async function fetchFiiQuotes(tickers, forceRefresh=false){
   const prevTxt=mktEl?mktEl.textContent:'';
   if(mktEl) mktEl.textContent='⏳ Buscando cotações...';
 
-  const tickerList = tickers.join(',');
   const _bt=getBrapiToken(); const tokenParam=_bt?('&token='+_bt):'';
-  // dividends=true só com token — sem token conserva as requisições gratuitas (~15/dia)
   const dividendsParam=_bt?'&dividends=true':'';
+  // Plano gratuito brapi.dev: 1 ticker por requisição — faz uma req por ticker e agrega
+  const fetchOneTicker = async (ticker) => {
+    const url = `https://brapi.dev/api/quote/${ticker}?fundamental=false${dividendsParam}${tokenParam}`;
+    const r = await fetch(url, {signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined});
+    if(!r.ok){ console.warn(`brapi ${ticker} status ${r.status}`); return null; }
+    const j = await r.json();
+    return j?.results?.[0] || null;
+  };
   try{
-    const resp = await fetch(`https://brapi.dev/api/quote/${tickerList}?fundamental=false${dividendsParam}${tokenParam}`);
-    if(!resp.ok){
-      console.warn('brapi.dev status:', resp.status);
-      if(resp.status===429) toast('Limite de cotações atingido — cache em uso. Token gratuito remove limite','warn',5000);
-      else if(resp.status>=500) toast('Serviço de cotações temporariamente indisponível','err',4000);
-      if(mktEl) updateMktStatusBadge();
-      return cachedData?.data || null; // retorna cache antigo se tiver
-    }
-    const json = await resp.json();
-    if(!json.results){
+    // Busca todos os tickers em paralelo (cada um = 1 req)
+    const results = await Promise.allSettled(tickers.map(t => fetchOneTicker(t)));
+    const anyOk = results.some(r => r.status==='fulfilled' && r.value);
+    if(!anyOk){
       if(mktEl) updateMktStatusBadge();
       return cachedData?.data || null;
     }
 
     const data = {};
-    json.results.forEach(r=>{
-      const ticker = r.symbol.replace('.SA','');
+    results.forEach((res, i) => {
+      if(res.status !== 'fulfilled' || !res.value) return;
+      const r = res.value;
+      const ticker = (r.symbol||tickers[i]).replace('.SA','');
       data[ticker] = {
         price: r.regularMarketPrice || 0,
         change: r.regularMarketChangePercent || 0,
