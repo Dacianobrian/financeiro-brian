@@ -4537,36 +4537,70 @@ async function fetchFiiQuotes(tickers, forceRefresh=false){
     if(raw){
       const {data, ts} = JSON.parse(raw);
       cachedData = {data, ts};
-      if(!forceRefresh && Date.now() - ts < ttl) return data; // cache válido
+      if(!forceRefresh && Date.now() - ts < ttl) return data;
     }
   }catch(e){}
 
-  // Mostra loading no badge de status
   const mktEl=document.getElementById('invMktStatus');
-  const prevTxt=mktEl?mktEl.textContent:'';
   if(mktEl) mktEl.textContent='⏳ Buscando cotações...';
 
+  // ── 1. Tenta brapi.dev ────────────────────────────────────────────────────
   const _bt=getBrapiToken(); const tokenParam=_bt?('&token='+_bt):'';
-  // dividends=true requer plano pago — não incluir
-  // Plano gratuito brapi.dev: 1 ticker por requisição — faz uma req por ticker e agrega
   const fetchOneTicker = async (ticker) => {
     const url = `https://brapi.dev/api/quote/${ticker}?fundamental=false${tokenParam}`;
     const r = await fetch(url, {signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined});
     if(!r.ok){ console.warn(`brapi ${ticker} status ${r.status}`); return null; }
     const j = await r.json();
+    if(j?.error) return null; // ex: MISSING_TOKEN
     return j?.results?.[0] || null;
   };
-  try{
-    // Busca todos os tickers em paralelo (cada um = 1 req)
-    const results = await Promise.allSettled(tickers.map(t => fetchOneTicker(t)));
-    const anyOk = results.some(r => r.status==='fulfilled' && r.value);
-    if(!anyOk){
-      if(mktEl) updateMktStatusBadge();
-      return cachedData?.data || null;
-    }
 
-    const data = {};
-    results.forEach((res, i) => {
+  let brapiResults = null;
+  let brapiOk = false;
+  try{
+    const results = await Promise.allSettled(tickers.map(t => fetchOneTicker(t)));
+    brapiOk = results.some(r => r.status==='fulfilled' && r.value);
+    if(brapiOk) brapiResults = results;
+  }catch(e){ console.warn('brapi.dev error:', e); }
+
+  // ── 2. Fallback Yahoo Finance (via corsproxy.io) ──────────────────────────
+  let yahooMap = null;
+  if(!brapiOk){
+    try{
+      const symbols = tickers.map(t=>t+'.SA').join(',');
+      const yTarget = `https://query2.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols)}&fields=regularMarketPrice,regularMarketChangePercent,trailingAnnualDividendYield`;
+      const yUrl = `https://corsproxy.io/?url=${encodeURIComponent(yTarget)}`;
+      const yr = await fetch(yUrl, {signal: AbortSignal.timeout ? AbortSignal.timeout(12000) : undefined});
+      if(yr.ok){
+        const yj = await yr.json();
+        const list = yj?.quoteResponse?.result || [];
+        if(list.length){
+          yahooMap = {};
+          list.forEach(r=>{
+            const tk = (r.symbol||'').replace('.SA','');
+            if(tk) yahooMap[tk] = {
+              price: r.regularMarketPrice || 0,
+              change: r.regularMarketChangePercent || 0,
+              dy: (r.trailingAnnualDividendYield || 0) * 100,
+              logo: '',
+              dividends: []
+            };
+          });
+        }
+      }
+    }catch(ye){ console.warn('Yahoo Finance fallback erro:', ye); }
+  }
+
+  const anyOk = brapiOk || !!yahooMap;
+  if(!anyOk){
+    if(mktEl) updateMktStatusBadge();
+    return cachedData?.data || null;
+  }
+
+  // ── 3. Monta objeto de dados ──────────────────────────────────────────────
+  const data = yahooMap ? {...yahooMap} : {};
+  if(brapiResults){
+    brapiResults.forEach((res, i) => {
       if(res.status !== 'fulfilled' || !res.value) return;
       const r = res.value;
       const ticker = (r.symbol||tickers[i]).replace('.SA','');
@@ -4581,22 +4615,18 @@ async function fetchFiiQuotes(tickers, forceRefresh=false){
           .slice(0,18)
       };
     });
-    const tsNow = Date.now();
-    localStorage.setItem(FII_CACHE_KEY, JSON.stringify({data, ts: tsNow}));
-    // Atualiza timestamp na UI
-    const updEl=document.getElementById('invFiiUpdated');
-    if(updEl){
-      const hm=new Date(tsNow).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-      updEl.textContent=`Atualizado às ${hm}`;
-    }
-    if(mktEl) updateMktStatusBadge();
-    return data;
-  }catch(e){
-    console.warn('brapi.dev error:', e);
-    toast('Erro ao buscar cotações — verifique conexão','err',4000);
-    if(mktEl) updateMktStatusBadge();
-    return cachedData?.data || null;
   }
+
+  const tsNow = Date.now();
+  localStorage.setItem(FII_CACHE_KEY, JSON.stringify({data, ts: tsNow}));
+  const updEl=document.getElementById('invFiiUpdated');
+  if(updEl){
+    const hm=new Date(tsNow).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const src = yahooMap ? ' (Yahoo Finance)' : '';
+    updEl.textContent=`Atualizado às ${hm}${src}`;
+  }
+  if(mktEl) updateMktStatusBadge();
+  return data;
 }
 
 async function forceRefreshQuotes(){
