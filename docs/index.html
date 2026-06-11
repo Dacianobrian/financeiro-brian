@@ -1587,6 +1587,9 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 <!-- TAB: INVESTIMENTOS -->
 <div id="tabInv" style="display:none">
 
+  <!-- Token status bar -->
+  <div id="invTokenBar" class="section" style="margin-bottom:10px"></div>
+
   <!-- Row 0: Ibovespa -->
   <div class="section">
     <div class="card" id="ibovCard" style="padding:14px 18px">
@@ -2238,10 +2241,106 @@ function saveSettings(){
   };
   localStorage.setItem(_SETTINGS_KEY,JSON.stringify(_cfg));
   closeSettings();
-  // Limpa cache de cotações para usar novo token
   localStorage.removeItem('fii_quotes_v2');
+  localStorage.removeItem('fii_quotes_v3');
   toast('✓ Configurações salvas!','ok');
+  updateTokenStatus();
   refreshDashboard();
+}
+
+// ══ TOKEN BRAPI — acesso rápido ═══════════════════════════════════════════════
+function updateTokenStatus(){
+  const bar=document.getElementById('invTokenBar'); if(!bar) return;
+  const token=getBrapiToken();
+  if(token){
+    const masked=token.length>8?token.slice(0,4)+'••••'+token.slice(-4):token;
+    bar.innerHTML=`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:10px">
+        <span style="font-size:15px">✅</span>
+        <div style="flex:1">
+          <span style="font-size:12px;font-weight:700;color:var(--green)">Token brapi.dev ativo</span>
+          <span style="font-size:11px;color:var(--muted);margin-left:8px">••• ${masked} — cotações ilimitadas · proventos habilitados</span>
+        </div>
+        <button onclick="openTokenModal()" style="background:var(--surface2);border:1px solid var(--border2);color:var(--muted2);border-radius:7px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:var(--font)">Alterar</button>
+        <button onclick="clearTokenQuick()" style="background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.25);color:var(--red);border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:var(--font)" title="Remover token">✕</button>
+      </div>`;
+  } else {
+    bar.innerHTML=`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.22);border-radius:10px">
+        <span style="font-size:15px">⚡</span>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:var(--yellow)">Token brapi.dev não configurado</div>
+          <div style="font-size:11px;color:var(--muted)">Sem token: limite de ~10 req/dia por IP · agenda de proventos indisponível</div>
+        </div>
+        <button onclick="openTokenModal()" style="background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);color:var(--blue);border-radius:7px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">+ Adicionar token</button>
+      </div>`;
+  }
+}
+
+function openTokenModal(){
+  const cur=getBrapiToken();
+  document.getElementById('tokenModalOverlay')?.remove();
+  const html=`<div id="tokenModalOverlay" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center" onclick="if(event.target===this)document.getElementById('tokenModalOverlay').remove()">
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:28px;width:460px;max-width:96vw;box-shadow:0 24px 80px rgba(0,0,0,.8)">
+      <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:6px">⚡ Token brapi.dev</div>
+      <div style="font-size:12px;color:var(--muted2);line-height:1.7;margin-bottom:18px">
+        1. Acesse <strong style="color:var(--blue2)">brapi.dev</strong> e crie uma conta gratuita<br>
+        2. Em <em>Dashboard → Token</em>, copie seu token pessoal<br>
+        3. Cole abaixo — sem limite de req/dia e agenda de proventos ativa
+      </div>
+      <label style="font-size:11px;font-weight:700;color:var(--muted2);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Token</label>
+      <div style="display:flex;gap:8px;margin-bottom:6px">
+        <input id="tokenModalInput" type="text" value="${cur}" placeholder="Cole seu token aqui…" autocomplete="off" spellcheck="false"
+          style="flex:1;padding:11px 14px;background:var(--surface-input);border:1px solid var(--border-input);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;outline:none;letter-spacing:.04em">
+      </div>
+      <div id="tokenModalStatus" style="font-size:11px;color:var(--muted);min-height:16px;margin-bottom:16px"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        ${cur?`<button onclick="clearTokenModal()" style="background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.3);color:var(--red);border-radius:8px;padding:8px 16px;font-size:12px;cursor:pointer;font-family:var(--font)">Remover token</button>`:''}
+        <button onclick="document.getElementById('tokenModalOverlay').remove()" style="background:var(--surface2);border:1px solid var(--border2);color:var(--muted2);border-radius:8px;padding:8px 16px;font-size:12px;cursor:pointer;font-family:var(--font)">Cancelar</button>
+        <button onclick="saveTokenQuick()" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.35);color:var(--green);border-radius:8px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">✓ Salvar</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+  const inp=document.getElementById('tokenModalInput');
+  inp?.focus();
+  inp?.select();
+  // live validation hint
+  inp?.addEventListener('input',()=>{
+    const v=inp.value.trim();
+    const s=document.getElementById('tokenModalStatus');
+    if(!s) return;
+    if(!v) s.textContent='';
+    else if(v.length<10) s.innerHTML='<span style="color:var(--red)">Token muito curto — verifique</span>';
+    else s.innerHTML='<span style="color:var(--green)">✓ Token pronto para salvar</span>';
+  });
+}
+
+function saveTokenQuick(){
+  const val=document.getElementById('tokenModalInput')?.value.trim()||'';
+  _loadCfg();
+  _cfg.brapiToken=val;
+  localStorage.setItem(_SETTINGS_KEY,JSON.stringify(_cfg));
+  localStorage.removeItem('fii_quotes_v2');
+  localStorage.removeItem('fii_quotes_v3');
+  document.getElementById('tokenModalOverlay')?.remove();
+  toast(val?'✓ Token salvo — atualizando cotações…':'Token removido','ok');
+  updateTokenStatus();
+  if(val) refreshDashboard(true);
+}
+
+function clearTokenModal(){
+  document.getElementById('tokenModalInput').value='';
+  saveTokenQuick();
+}
+
+function clearTokenQuick(){
+  _loadCfg(); _cfg.brapiToken='';
+  localStorage.setItem(_SETTINGS_KEY,JSON.stringify(_cfg));
+  localStorage.removeItem('fii_quotes_v2');
+  localStorage.removeItem('fii_quotes_v3');
+  toast('Token removido','ok');
+  updateTokenStatus();
 }
 
 // ══ TOAST ══════════════════════════════════════════════════════════════════════
@@ -5667,7 +5766,7 @@ function switchTab(tab){
   document.getElementById('tabBtnInv').classList.toggle('active',tab==='inv');
   document.getElementById('tabBtnSaude').classList.toggle('active',tab==='saude');
   document.getElementById('tabBtnMetas').classList.toggle('active',tab==='metas');
-  if(tab==='inv')   { buildInvCharts(_invFiiRows, _invQuotes); _fillInvCashflow(); startQuoteAutoRefresh(); loadIbov(); }
+  if(tab==='inv')   { buildInvCharts(_invFiiRows, _invQuotes); _fillInvCashflow(); startQuoteAutoRefresh(); loadIbov(); updateTokenStatus(); }
   else              { stopQuoteAutoRefresh(); }
   if(tab==='geral') { fillCatBreakdown(_catsObj); buildCharts(_monthly, _catsObj); fillHeatmap(_allTxs); fillPatrimSparkline(_monthly); initDrag(); }
   if(tab==='saude') { buildSaudeCharts(_monthly, _catsObj); fillSaudeMetricas(_cmRow, _monthly, _invFiiRows, _invAccounts, _fcRows); fillSaudeRecomendacoes(); }
