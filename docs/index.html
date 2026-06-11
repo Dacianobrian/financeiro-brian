@@ -1261,7 +1261,7 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       <div class="card card-blue">
         <div class="kpi-label"><span class="kpi-icon" style="background:rgba(99,102,241,.15)">🏦</span>Saldo em Conta</div>
         <div class="kpi-value" id="kpiSaldo">—</div>
-        <div class="kpi-sub" id="kpiSaldoSub">Nubank + Bradesco</div>
+        <div class="kpi-sub" id="kpiSaldoSub">Nubank</div>
         <div class="kpi-saldo-upcoming" id="kpiUpcoming" style="display:none"><span id="kpiUpcomingTxt"></span></div>
         <div id="kpiProjetado" style="display:none;margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,.06);font-size:11px;color:var(--muted)">Fim do mês: <span id="kpiProjetadoVal" style="font-weight:700"></span></div>
       </div>
@@ -3187,7 +3187,7 @@ function _fillInvCashflow(){
 function buildCashflowCalendar(){
   const el=document.getElementById('cfCalMonths');
   if(!el||!_fluxoData||!_invAccounts) return;
-  const {fixedCosts,subs,insts,plannedInv}=_fluxoData;
+  const {fixedCosts,subs,insts,plannedInv,plannedAll}=_fluxoData;
   const today=new Date(); today.setHours(0,0,0,0);
   const todayTime=today.getTime();
 
@@ -3208,17 +3208,20 @@ function buildCashflowCalendar(){
     aportByDom[d]=(aportByDom[d]||0)+a;
   });
 
-  // Receitas planejadas por data
-  const incByDate={};
-  ((_fluxoData.planned)||[]).forEach(p=>{
-    if(!p.amount||p.confirmed||p.type!=='entrada') return;
+  // Entradas e saídas planejadas por data (todos os planned_entries, confirmados ou não)
+  const incByDate={}, expByDate={};
+  (plannedAll||[]).forEach(p=>{
+    if(!p.amount) return;
+    const isInc=p.type==='entrada', isExp=p.type==='saida';
+    if(!isInc&&!isExp) return;
+    const map=isInc?incByDate:expByDate;
     if(p.recorrente&&p.recorrencia_dia){
       for(let m=0;m<3;m++){
         const d=new Date(today.getFullYear(),today.getMonth()+m,+p.recorrencia_dia);
-        if(d>=today){ const k=d.toISOString().substring(0,10); incByDate[k]=(incByDate[k]||0)+(+p.amount); }
+        if(d>=today){ const k=d.toISOString().substring(0,10); map[k]=(map[k]||0)+(+p.amount); }
       }
     } else if(p.due_date){
-      const k=p.due_date.substring(0,10); incByDate[k]=(incByDate[k]||0)+(+p.amount);
+      const k=p.due_date.substring(0,10); map[k]=(map[k]||0)+(+p.amount);
     }
   });
 
@@ -3261,6 +3264,7 @@ function buildCashflowCalendar(){
 
       if(!isPast){
         running-=(outByDom[day]||0);
+        running-=(expByDate[ds]||0);
         running+=(incByDate[ds]||0);
       }
 
@@ -3269,7 +3273,8 @@ function buildCashflowCalendar(){
       } else {
         const{bg,tx}=balCol(running);
         const events=[];
-        if(outByDom[day]) events.push(`-${brl(outByDom[day])}`);
+        if(outByDom[day]) events.push(`fixos -${brl(outByDom[day])}`);
+        if(expByDate[ds]) events.push(`proj -${brl(expByDate[ds])}`);
         if(incByDate[ds]) events.push(`+${brl(incByDate[ds])}`);
         if(aportByDom[day]) events.push(`💰 aporte -${brl(aportByDom[day])}`);
         const tip=`${day}/${mn+1}: ${brl(running)}${events.length?' ('+events.join(', ')+')':''}`;
@@ -3715,7 +3720,7 @@ function fillKpis(cm, fii, accounts, patrimonio, monthly){
   // Meta diária no sub do saldo
   const _metaD=+(cm.meta_diario||0);
   const _saldoSub=document.getElementById('kpiSaldoSub');
-  if(_metaD>0&&_saldoSub) _saldoSub.textContent=`Nubank + Bradesco · meta/dia: ${brl(_metaD)}`;
+  if(_metaD>0&&_saldoSub) _saldoSub.textContent=`Nubank · meta/dia: ${brl(_metaD)}`;
   const fiiTotal=fii.reduce((s,f)=>s+(+(f.shares||0))*(+(f.price||0)),0);
   document.getElementById('kpiFii').textContent=brl(fiiTotal);
   document.getElementById('kpiFiiSub').textContent=`${fii.length} fundos`;
@@ -5941,7 +5946,7 @@ async function _doRefresh(){
     _prevRows = plannedRows||[];
     _plannedInvData=plannedInv||[];
     fillAportes(_plannedInvData);
-    _fluxoData={fixedCosts:fc||[],subs:subs||[],insts:insts||[],planned:(plannedRows||[]).filter(p=>!p.confirmed),plannedInv:plannedInv||[]};
+    _fluxoData={fixedCosts:fc||[],subs:subs||[],insts:insts||[],planned:(plannedRows||[]).filter(p=>!p.confirmed),plannedInv:plannedInv||[],plannedAll:plannedRows||[]};
     _fillFluxo(_fluxoDias);
     _fillProjetado(_fluxoData, accounts);
     _renderPrevList();
@@ -8779,6 +8784,14 @@ async function submitFab(){
   btn.disabled=true; btn.textContent='Salvando...'; resp.textContent='';
   try{
     await sbPost('transactions',{type:_fabType,amount,description:desc,date,account,category});
+    if(_fabType==='investido'){
+      const corrente=(_invAccounts||[]).find(a=>a.type==='corrente');
+      if(corrente){
+        const newBal=(+(corrente.balance||0))-amount;
+        await sbPatch('accounts',{id:`eq.${corrente.id}`},{balance:newBal,updated_at:new Date().toISOString()});
+        corrente.balance=newBal;
+      }
+    }
     resp.style.color='var(--green)'; resp.textContent='✓ Lançado com sucesso!';
     setTimeout(()=>{closeFab();refreshDashboard();},900);
   }catch(e){
