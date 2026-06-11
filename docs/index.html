@@ -1592,24 +1592,22 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 
   <!-- Row 0: Ibovespa -->
   <div class="section">
-    <div class="card" id="ibovCard" style="padding:14px 18px">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-        <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
-          <div>
-            <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">IBOVESPA</div>
-            <div style="display:flex;align-items:baseline;gap:8px">
-              <span id="ibovVal" style="font-size:22px;font-weight:800;letter-spacing:-1px">—</span>
-              <span id="ibovBadge" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">—</span>
-            </div>
-            <div id="ibovSub" style="font-size:10px;color:var(--muted);margin-top:2px">—</div>
+    <div class="card" id="ibovCard" style="padding:10px 14px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="min-width:0">
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:2px">IBOVESPA</div>
+          <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap">
+            <span id="ibovVal" style="font-size:18px;font-weight:800;letter-spacing:-.8px;color:var(--text)">—</span>
+            <span id="ibovBadge" style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:20px">—</span>
           </div>
-          <div id="ibovStats" style="display:flex;gap:16px;font-size:11px;color:var(--muted2)"></div>
+          <div id="ibovSub" style="font-size:9px;color:var(--muted);margin-top:1px">—</div>
         </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <canvas id="ibovChart" width="180" height="48" style="display:block"></canvas>
-          <button onclick="loadIbov(true)" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">↻</button>
+        <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;gap:8px">
+          <canvas id="ibovChart" height="40" style="display:block;max-width:200px;width:100%"></canvas>
+          <button onclick="loadIbov(true)" title="Atualizar" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;flex-shrink:0">↻</button>
         </div>
       </div>
+      <div id="ibovStats" style="display:flex;gap:14px;font-size:10px;color:var(--muted2);margin-top:6px;flex-wrap:wrap"></div>
     </div>
   </div>
 
@@ -4416,10 +4414,11 @@ async function loadIbov(force=false){
   const ibovEl=document.getElementById('ibovVal');
   if(ibovEl) ibovEl.textContent='...';
 
-  // Tenta primeiro com dados intraday; fallback sem range/interval (free tier)
+  // interval=1d é o único disponível no plano gratuito; range=1mo dá ~22 pontos para o gráfico
   const urls=[
-    `https://brapi.dev/api/quote/%5EBVSP?range=1d&interval=15m${tp}`,
-    `https://brapi.dev/api/quote/%5EBVSP${tp?'?'+tp.slice(1):''}`,
+    `https://brapi.dev/api/quote/%5EBVSP?range=1mo&interval=1d${tp}`,
+    `https://brapi.dev/api/quote/%5EBVSP?range=5d&interval=1d${tp}`,
+    `https://brapi.dev/api/quote/%5EBVSP${tp?'?token='+token:''}`,
   ];
   for(const url of urls){
     try{
@@ -4428,6 +4427,8 @@ async function loadIbov(force=false){
       const j=await r.json();
       const q=j?.results?.[0]; if(!q) continue;
       if(!q.regularMarketPrice) continue;
+      const hist=(q.historicalDataPrice||[]).map(p=>p.close).filter(Boolean);
+      // Se hist vazio, usa só o preço atual como ponto único
       const d={
         price: q.regularMarketPrice,
         prev:  q.regularMarketPreviousClose,
@@ -4437,7 +4438,7 @@ async function loadIbov(force=false){
         low:   q.regularMarketDayLow,
         high:  q.regularMarketDayHigh,
         time:  q.regularMarketTime,
-        hist:  (q.historicalDataPrice||[]).map(p=>p.close).filter(Boolean)
+        hist:  hist.length>=2 ? hist : (q.regularMarketPreviousClose?[q.regularMarketPreviousClose, q.regularMarketPrice]:[])
       };
       localStorage.setItem(IBOV_CACHE_KEY,JSON.stringify({d,ts:Date.now()}));
       renderIbov(d);
@@ -4477,13 +4478,13 @@ function renderIbov(d){
   if(_ibovChart) _ibovChart.destroy();
   const ctx=canvas.getContext('2d');
   const mn=Math.min(...d.hist), mx=Math.max(...d.hist);
-  const grad=ctx.createLinearGradient(0,0,0,48);
-  grad.addColorStop(0,up?'rgba(16,185,129,.3)':'rgba(239,68,68,.3)');
+  const grad=ctx.createLinearGradient(0,0,0,40);
+  grad.addColorStop(0,up?'rgba(34,197,94,.25)':'rgba(244,63,94,.25)');
   grad.addColorStop(1,'rgba(0,0,0,0)');
   _ibovChart=new Chart(ctx,{
     type:'line',
-    data:{labels:d.hist.map((_,i)=>i),datasets:[{data:d.hist,borderColor:up?'#10b981':'#ef4444',borderWidth:1.5,fill:true,backgroundColor:grad,pointRadius:0,tension:.3}]},
-    options:{responsive:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false,min:mn*0.999,max:mx*1.001}},animation:false}
+    data:{labels:d.hist.map((_,i)=>i),datasets:[{data:d.hist,borderColor:up?'var(--green)':'var(--red)',borderWidth:1.5,fill:true,backgroundColor:grad,pointRadius:0,tension:.4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false,min:mn*0.998,max:mx*1.002}},animation:{duration:400}}
   });
 }
 
