@@ -3839,7 +3839,7 @@ function fillAccounts(accounts, patrimonio){
         </div>
         ${isBaixo?`<span class="acc-alert">⚠ baixo</span>`:''}
       </div>
-      <div class="acc-balance" style="color:${isBaixo?'var(--yellow)':\'var(--text)\'}">${brl(a.balance)}</div>
+      <div class="acc-balance" style="color:${isBaixo?'var(--yellow)':'var(--text)'}">${brl(a.balance)}</div>
       <div class="acc-footer">
         <span class="kpi-sub">atualizado ${upd}</span>
         <button onclick="sincronizarSaldo(${a.id},'${(a.name||a.type).replace(/'/g,"\\'")}')" title="Recalcular saldo pelas transações" style="font-size:10px;padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer">↻</button>
