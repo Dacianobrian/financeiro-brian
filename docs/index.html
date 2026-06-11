@@ -1098,6 +1098,55 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   </div>
 </div>
 
+<!-- Modal Gasto Variável -->
+<div class="modal-overlay" id="modalAddVar" onclick="if(event.target===this)closeAddVarModal()">
+  <div class="modal" style="max-width:420px;width:95%">
+    <div class="modal-title">📊 Novo Gasto Variável<button class="modal-close" onclick="closeAddVarModal()">✕</button></div>
+    <div style="display:flex;flex-direction:column;gap:12px;padding:4px 0 8px">
+      <div>
+        <label style="display:block;font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:600;letter-spacing:.5px">DESCRIÇÃO</label>
+        <input id="varDesc" type="text" placeholder="Ex: Mercado, Farmácia, Combustível…"
+          style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;font-family:var(--font)"
+          oninput="varAutoCategory(this.value)">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label style="display:block;font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:600;letter-spacing:.5px">VALOR (R$)</label>
+          <input id="varAmount" type="number" step="0.01" min="0" placeholder="0,00"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;font-family:var(--font)">
+        </div>
+        <div>
+          <label style="display:block;font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:600;letter-spacing:.5px">DATA</label>
+          <input id="varDate" type="date"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;font-family:var(--font)">
+        </div>
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:600;letter-spacing:.5px">CATEGORIA</label>
+        <select id="varCategory"
+          style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;font-family:var(--font)">
+          <option value="Alimentação">🍽️ Alimentação</option>
+          <option value="Supermercado">🛒 Supermercado</option>
+          <option value="Saúde">🏥 Saúde</option>
+          <option value="Transporte">🚗 Transporte</option>
+          <option value="Combustível">⛽ Combustível</option>
+          <option value="Lazer">🎮 Lazer</option>
+          <option value="Vestuário">👕 Vestuário</option>
+          <option value="Educação">📚 Educação</option>
+          <option value="Streaming">🎵 Streaming</option>
+          <option value="Farmácia">💊 Farmácia</option>
+          <option value="Outros">📌 Outros</option>
+        </select>
+      </div>
+      <div id="varResp" style="font-size:12px;min-height:14px;color:var(--green)"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAddVarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveVarExpense()">＋ Adicionar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Page -->
 <div class="page">
 
@@ -1397,9 +1446,10 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       <div class="card">
         <div class="section-header" style="margin-bottom:10px">
           <div class="section-title">📋 Custos Fixos Mensais</div>
-          <div style="display:flex;align-items:center;gap:10px">
+          <div style="display:flex;align-items:center;gap:8px">
             <div id="totalFixo" style="font-size:13px;font-weight:700;color:var(--red)"></div>
-            <button onclick="openFixedCostModal()" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;">✏️ Editar</button>
+            <button onclick="openFixedCostModal()" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;">✏️ Editar</button>
+            <button onclick="openFixedCostModal()" title="Adicionar custo fixo" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:var(--green);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;">＋</button>
           </div>
         </div>
         <div class="table-wrap"><table>
@@ -1411,7 +1461,10 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
       <div class="card">
         <div class="section-header" style="margin-bottom:12px">
           <div class="section-title">📊 Contas Variáveis</div>
-          <div id="varTotalLabel" style="font-size:13px;font-weight:700;color:var(--orange)"></div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="varTotalLabel" style="font-size:13px;font-weight:700;color:var(--orange)"></div>
+            <button onclick="openAddVarModal()" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:var(--green);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;">＋ Adicionar</button>
+          </div>
         </div>
         <div style="font-size:10px;color:var(--muted2);margin-bottom:10px" id="varMesLabel"></div>
         <div id="varGrid" style="display:flex;flex-direction:column;gap:6px">
@@ -6804,6 +6857,44 @@ function renderPlanned(rows, listId, totalId, type){
 let _fcData=[];
 function openFixedCostModal(){document.getElementById('modalFixos').classList.add('open');loadFcList()}
 function closeFixedCostModal(){document.getElementById('modalFixos').classList.remove('open');cancelFcEdit()}
+
+function openAddVarModal(){
+  document.getElementById('varDesc').value='';
+  document.getElementById('varAmount').value='';
+  document.getElementById('varDate').value=todayStr();
+  document.getElementById('varCategory').value='Outros';
+  document.getElementById('varResp').textContent='';
+  document.getElementById('modalAddVar').classList.add('open');
+  setTimeout(()=>document.getElementById('varDesc').focus(),100);
+}
+function closeAddVarModal(){document.getElementById('modalAddVar').classList.remove('open');}
+
+function varAutoCategory(desc){
+  const cat=autoCategory(desc,'saida');
+  const sel=document.getElementById('varCategory');
+  const opts=[...sel.options].map(o=>o.value);
+  if(opts.includes(cat)) sel.value=cat;
+  else sel.value='Outros';
+}
+
+async function saveVarExpense(){
+  const desc=(document.getElementById('varDesc').value||'').trim();
+  const amount=parseFloat(document.getElementById('varAmount').value);
+  const date=document.getElementById('varDate').value;
+  const category=document.getElementById('varCategory').value;
+  const respEl=document.getElementById('varResp');
+  if(!desc){respEl.style.color='var(--red)';respEl.textContent='Preencha a descrição.';return;}
+  if(!amount||amount<=0){respEl.style.color='var(--red)';respEl.textContent='Preencha o valor.';return;}
+  if(!date){respEl.style.color='var(--red)';respEl.textContent='Preencha a data.';return;}
+  respEl.style.color='var(--muted)';respEl.textContent='Salvando…';
+  try{
+    await sbPost('transactions',{date,type:'saida',amount,description:desc,category});
+    respEl.style.color='var(--green)';respEl.textContent='✓ Gasto adicionado!';
+    setTimeout(()=>{closeAddVarModal();refreshDashboard();},800);
+  }catch(e){
+    respEl.style.color='var(--red)';respEl.textContent='Erro ao salvar. Tente novamente.';
+  }
+}
 async function loadFcList(){
   _fcData=await sbGet('fixed_costs',{select:'*',order:'due_day.asc.nullslast,id.asc'});
   renderFcList();
