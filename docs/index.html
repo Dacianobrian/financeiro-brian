@@ -1454,21 +1454,24 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           <div id="relContas" style="display:flex;flex-direction:column;gap:5px"></div>
         </div>
       </div>
-      <!-- Ritmo de gasto por categoria -->
-      <div id="relPaceWrap" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">🏃 Ritmo de gasto por categoria <span id="relPaceNote" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted)"></span></div>
-        <div id="relPaceSection" style="display:flex;flex-direction:column;gap:7px"></div>
-      </div>
-      <!-- Comparativo mês a mês por categoria -->
-      <div id="relComparativoWrap" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">📊 Comparativo por categoria
-          <span id="relCompLabel" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted)"></span>
-          <span style="display:inline-flex;align-items:center;gap:12px;margin-left:10px;font-weight:400;text-transform:none;letter-spacing:0;font-size:10.5px">
-            <span><span id="compDot0" style="display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle;background:#38bdf8"></span><span id="compMo0">Ant.</span></span>
-            <span><span id="compDot1" style="display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle;background:#818cf8"></span><span id="compMo1">Atual</span></span>
-          </span>
+      <!-- Ritmo + Comparativo lado a lado -->
+      <div id="relPaceComparativoRow" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+        <!-- Ritmo de gasto por categoria -->
+        <div id="relPaceWrap">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">🏃 Ritmo de gasto por categoria <span id="relPaceNote" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted)"></span></div>
+          <div id="relPaceSection" style="display:flex;flex-direction:column;gap:7px"></div>
         </div>
-        <div id="relComparativoSection" style="display:flex;flex-direction:column;gap:4px"></div>
+        <!-- Comparativo mês a mês por categoria -->
+        <div id="relComparativoWrap">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">📊 Comparativo por categoria
+            <span id="relCompLabel" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted)"></span>
+            <span style="display:inline-flex;align-items:center;gap:12px;margin-left:10px;font-weight:400;text-transform:none;letter-spacing:0;font-size:10.5px">
+              <span><span id="compDot0" style="display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle;background:#38bdf8"></span><span id="compMo0">Ant.</span></span>
+              <span><span id="compDot1" style="display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle;background:#818cf8"></span><span id="compMo1">Atual</span></span>
+            </span>
+          </div>
+          <div id="relComparativoSection" style="display:flex;flex-direction:column;gap:4px"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -6525,8 +6528,8 @@ async function _fillRelatorioMultiMonth(n){
     _relSetChart(chartDados);
     _relSetTopCats(txCur,b0.sai);
     _relSetContas(txCur);
-    const pw=document.getElementById('relPaceWrap'),cw=document.getElementById('relComparativoWrap');
-    if(pw)pw.style.display='none'; if(cw)cw.style.display='none';
+    const rowEl2=document.getElementById('relPaceComparativoRow');
+    if(rowEl2) rowEl2.style.display='none';
   }catch(e){console.error('_fillRelatorioMultiMonth erro:',e);}
 }
 
@@ -6552,8 +6555,8 @@ async function _fillRelatorioPeriodo(){
     _relSetChart(chartDados);
     _relSetTopCats(allTx,b0.sai);
     _relSetContas(allTx);
-    const pw=document.getElementById('relPaceWrap'),cw=document.getElementById('relComparativoWrap');
-    if(pw)pw.style.display='none'; if(cw)cw.style.display='none';
+    const rowEl2=document.getElementById('relPaceComparativoRow');
+    if(rowEl2) rowEl2.style.display='none';
   }catch(e){console.error('_fillRelatorioPeriodo erro:',e);}
 }
 
@@ -6732,9 +6735,10 @@ async function fillRelatorioMes(){
           <div style="font-size:10px;color:var(--muted);width:56px;text-align:right;flex-shrink:0">${brl(gasto)}</div>
         </div>`;
       }).join('');
-      if(paceWrap) paceWrap.style.display='';
+      const rowEl=document.getElementById('relPaceComparativoRow');
+      if(rowEl) rowEl.style.display='grid';
     } else {
-      if(paceWrap) paceWrap.style.display='none';
+      if(paceWrap) paceWrap.innerHTML='';
     }
 
     // ── Comparativo mês a mês por categoria ──────────────────────────────
@@ -9483,7 +9487,7 @@ function fillComparativoMes(txAlvo, txAnt, labelAnt, labelAtual){
   txAnt.filter(t=>t.type==='saida').forEach(t=>{const c=t.category||'Outros';byCat0[c]=(byCat0[c]||0)+(+t.amount||0);});
   txAlvo.filter(t=>t.type==='saida').forEach(t=>{const c=t.category||'Outros';byCat1[c]=(byCat1[c]||0)+(+t.amount||0);});
   const allCats=[...new Set([...Object.keys(byCat0),...Object.keys(byCat1)])];
-  if(!allCats.length){wrap.style.display='none';return;}
+  if(!allCats.length){wrap.innerHTML='';return;}
 
   allCats.sort((a,b)=>(byCat1[b]||0)-(byCat1[a]||0));
   const maxVal=Math.max(...allCats.map(c=>Math.max(byCat0[c]||0,byCat1[c]||0)),1);
@@ -9507,7 +9511,8 @@ function fillComparativoMes(txAlvo, txAnt, labelAnt, labelAtual){
       </div>
     </div>`;
   }).join('');
-  wrap.style.display='';
+  const rowEl=document.getElementById('relPaceComparativoRow');
+  if(rowEl) rowEl.style.display='grid';
 }
 
 // ══ THEME TOGGLE ═════════════════════════════════════════════════════════════
