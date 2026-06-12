@@ -1384,21 +1384,38 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   <div class="section drag-section" id="ds-relatorio" draggable="true">
     <div class="card">
       <div style="margin-bottom:16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div class="section-title">📊 Relatório Mensal — <span id="relMesLabel" style="color:var(--blue2);font-weight:700;text-transform:none;letter-spacing:0">...</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div class="section-title">📊 Relatório — <span id="relMesLabel" style="color:var(--blue2);font-weight:700;text-transform:none;letter-spacing:0">...</span></div>
+            <div style="display:flex;gap:4px">
+              <button id="relMode-mes" onclick="setRelMode('mes')" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid transparent;background:linear-gradient(135deg,#0284c7,#2dd4bf);color:#fff;cursor:pointer;font-weight:600;font-family:var(--font)">MÊS</button>
+              <button id="relMode-3m" onclick="setRelMode('3m')" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);cursor:pointer;font-family:var(--font)">3M</button>
+              <button id="relMode-6m" onclick="setRelMode('6m')" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);cursor:pointer;font-family:var(--font)">6M</button>
+              <button id="relMode-periodo" onclick="setRelMode('periodo')" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);cursor:pointer;font-family:var(--font)">PERÍODO</button>
+            </div>
+          </div>
           <div style="display:flex;gap:5px;align-items:center">
             <button onclick="exportTxCsv()" title="Exportar transações CSV" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:var(--green);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font)">⬇ CSV</button>
             <button onclick="exportResumoJson()" title="Exportar resumo JSON" style="background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);color:var(--blue2);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font)">⬇ JSON</button>
-            <select id="relMesYear" onchange="relMesJumpYear(+this.value)" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:12px;padding:5px 10px;outline:none;cursor:pointer;font-family:var(--font)"></select>
-            <button onclick="relMesNav(-1)" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted2);border-radius:8px;padding:5px 11px;font-size:15px;cursor:pointer;line-height:1;font-weight:300">‹</button>
-            <button onclick="relMesNav(0)" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">Hoje</button>
-            <button onclick="relMesNav(1)" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted2);border-radius:8px;padding:5px 11px;font-size:15px;cursor:pointer;line-height:1;font-weight:300">›</button>
+            <div id="relMesMonthNav" style="display:flex;gap:5px;align-items:center">
+              <select id="relMesYear" onchange="relMesJumpYear(+this.value)" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:12px;padding:5px 10px;outline:none;cursor:pointer;font-family:var(--font)"></select>
+              <button onclick="relMesNav(-1)" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted2);border-radius:8px;padding:5px 11px;font-size:15px;cursor:pointer;line-height:1;font-weight:300">‹</button>
+              <button onclick="relMesNav(0)" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">Hoje</button>
+              <button onclick="relMesNav(1)" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted2);border-radius:8px;padding:5px 11px;font-size:15px;cursor:pointer;line-height:1;font-weight:300">›</button>
+            </div>
           </div>
+        </div>
+        <div id="relPeriodoRow" style="display:none;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+          <span style="font-size:12px;color:var(--muted);font-weight:600">De:</span>
+          <input type="date" id="relPeriodoStart" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:5px 10px;font-size:12px;outline:none">
+          <span style="font-size:12px;color:var(--muted);font-weight:600">Até:</span>
+          <input type="date" id="relPeriodoEnd" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:5px 10px;font-size:12px;outline:none">
+          <button onclick="fillRelatorioMes()" style="background:linear-gradient(135deg,#0284c7,#2dd4bf);border:none;color:#fff;border-radius:8px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">Aplicar</button>
         </div>
         <div id="relMesPills" style="display:flex;gap:5px;flex-wrap:wrap"></div>
       </div>
-      <!-- KPIs linha 1: 5 indicadores -->
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px" id="relMesKpis">
+      <!-- KPIs: 4 indicadores -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px" id="relMesKpis">
         <div class="card" style="padding:14px;background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.25)">
           <div class="kpi-label" style="color:var(--muted)">💚 Entradas</div>
           <div class="kpi-value" id="relEnt" style="font-size:20px">R$ 0,00</div>
@@ -1419,12 +1436,8 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           <div class="kpi-value" style="font-size:20px" id="relInv">R$ 0,00</div>
           <div id="relInvVar" style="font-size:11px;margin-top:4px;color:var(--muted)"></div>
         </div>
-        <div class="card" style="padding:14px;background:rgba(99,102,241,.07);border-color:rgba(99,102,241,.25)">
-          <div class="kpi-label" style="color:var(--muted)">🎯 Taxa Poupança</div>
-          <div class="kpi-value" style="font-size:20px" id="relTaxa">0%</div>
-          <div id="relTaxaVar" style="font-size:11px;margin-top:4px;color:var(--muted)"></div>
-        </div>
       </div>
+      <div style="display:none"><span id="relTaxa"></span><span id="relTaxaVar"></span></div>
 
       <!-- Gráfico últimos 4 meses + detalhes -->
       <div style="margin-top:14px;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px;align-items:start">
@@ -6332,6 +6345,27 @@ function fillMetas(){
 
 // ══ RELATÓRIO MENSAL ══════════════════════════════════════════════════════
 let _relMesOffset=0; // 0=mês atual, -1=anterior, +1=próximo
+let _relMode='mes'; // mes | 3m | 6m | periodo
+
+function setRelMode(mode){
+  _relMode=mode;
+  ['mes','3m','6m','periodo'].forEach(m=>{
+    const btn=document.getElementById('relMode-'+m);
+    if(!btn)return;
+    const active=m===mode;
+    btn.style.background=active?'linear-gradient(135deg,#0284c7,#2dd4bf)':'var(--surface2)';
+    btn.style.color=active?'#fff':'var(--muted2)';
+    btn.style.border=active?'1px solid transparent':'1px solid var(--border)';
+    btn.style.fontWeight=active?'600':'400';
+  });
+  const monthNav=document.getElementById('relMesMonthNav');
+  const pills=document.getElementById('relMesPills');
+  const periodoRow=document.getElementById('relPeriodoRow');
+  if(monthNav) monthNav.style.display=mode==='mes'?'flex':'none';
+  if(pills) pills.style.display=mode==='mes'?'flex':'none';
+  if(periodoRow) periodoRow.style.display=mode==='periodo'?'flex':'none';
+  fillRelatorioMes();
+}
 
 function relMesNav(delta){
   if(delta===0) _relMesOffset=0;
@@ -6394,7 +6428,138 @@ function _updateRelMesPills(){
 
 let _relMesChartInst=null;
 
+function _relBrl(v){return (+v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function _relSoma(arr,tipo){return arr.filter(t=>t.type===tipo).reduce((s,t)=>s+(+t.amount||0),0);}
+function _relSomaInv(arr){return arr.filter(t=>t.type==='investido'||t.type==='investimento').reduce((s,t)=>s+(+t.amount||0),0);}
+function _relVar(cur,prv,rev=false){
+  if(!prv) return '';
+  const pct=((cur-prv)/prv)*100, up=pct>=0;
+  const clr=rev?(up?'var(--red)':'var(--green)'):(up?'var(--green)':'var(--red)');
+  return `<span style="color:${clr}">${up?'▲':'▼'} ${Math.abs(pct).toFixed(1)}%</span> vs ${_relBrl(prv)}`;
+}
+function _relSetKpis(b0,b1){
+  document.getElementById('relEnt').textContent=_relBrl(b0.ent);
+  document.getElementById('relSai').textContent=_relBrl(b0.sai);
+  document.getElementById('relSaldo').textContent=_relBrl(b0.saldo);
+  document.getElementById('relSaldo').style.color=b0.saldo>=0?'var(--green)':'var(--red)';
+  document.getElementById('relInv').textContent=_relBrl(b0.inv);
+  document.getElementById('relEntVar').innerHTML=_relVar(b0.ent,b1.ent);
+  document.getElementById('relSaiVar').innerHTML=_relVar(b0.sai,b1.sai,true);
+  document.getElementById('relSaldoVar').innerHTML=_relVar(b0.saldo,b1.saldo);
+  document.getElementById('relInvVar').innerHTML=_relVar(b0.inv,b1.inv);
+}
+function _relSetTopCats(txAlvo,totalSai){
+  const byCat={};
+  txAlvo.filter(t=>t.type==='saida').forEach(t=>{const c=t.category||'Outros';byCat[c]=(byCat[c]||0)+(+t.amount||0);});
+  const topCats=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  document.getElementById('relTopCats').innerHTML=topCats.length?topCats.map(([c,v])=>{
+    const pct=(v/(totalSai||1))*100;
+    return `<div style="font-size:12px;padding:6px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--text)">${c}</span><span style="font-weight:700;color:var(--red)">${_relBrl(v)}</span></div>
+      <div style="color:var(--muted);font-size:10px;margin-top:1px">${pct.toFixed(1)}% das saídas</div>
+      <div style="height:3px;background:rgba(239,68,68,.4);border-radius:2px;margin-top:4px"><div style="width:${Math.min(pct,100)}%;height:100%;background:var(--red);border-radius:2px"></div></div>
+    </div>`;
+  }).join(''):'<div style="color:var(--muted);font-size:12px">Sem gastos</div>';
+}
+function _relSetContas(txAlvo){
+  const byAcc={};
+  txAlvo.forEach(t=>{
+    const a=t.account||'—';
+    if(a.includes(' CC ')) return;
+    if(!byAcc[a]) byAcc[a]={ent:0,sai:0};
+    if(t.type==='entrada') byAcc[a].ent+=+t.amount||0;
+    else if(t.type==='saida') byAcc[a].sai+=+t.amount||0;
+  });
+  const entries=Object.entries(byAcc).sort((a,b)=>(b[1].ent+b[1].sai)-(a[1].ent+a[1].sai));
+  document.getElementById('relContas').innerHTML=entries.length?entries.map(([a,v])=>{
+    const liq=v.ent-v.sai;
+    return `<div style="font-size:12px;padding:7px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
+      <div style="font-weight:600;margin-bottom:4px;color:var(--muted2)">${a}</div>
+      <div style="display:flex;justify-content:space-between">
+        <span class="amt-green">+${_relBrl(v.ent)}</span>
+        <span class="amt-red">-${_relBrl(v.sai)}</span>
+        <span style="font-weight:700;color:${liq>=0?'var(--green)':'var(--red)'}">=${_relBrl(liq)}</span>
+      </div>
+    </div>`;
+  }).join(''):'<div style="color:var(--muted);font-size:12px">Sem movimentação</div>';
+}
+function _relSetChart(dados){
+  const canvas=document.getElementById('relMesChart');
+  if(_relMesChartInst){_relMesChartInst.destroy();_relMesChartInst=null;}
+  if(!canvas||typeof Chart==='undefined') return;
+  _relMesChartInst=new Chart(canvas,{type:'bar',data:{labels:dados.map(b=>b.label),datasets:[
+    {label:'Entradas',data:dados.map(b=>b.ent),backgroundColor:'rgba(16,185,129,.7)',borderRadius:5},
+    {label:'Saídas',data:dados.map(b=>b.sai),backgroundColor:'rgba(239,68,68,.65)',borderRadius:5},
+    {label:'Investido',data:dados.map(b=>b.inv),backgroundColor:'rgba(139,92,246,.65)',borderRadius:5}
+  ]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#98989f',font:{size:11},boxWidth:10}},tooltip:{callbacks:{label:ctx=>' '+_relBrl(ctx.raw)}}},
+    scales:{x:{ticks:{color:'#6e6e76',font:{size:11}},grid:{display:false}},y:{ticks:{color:'#6e6e76',font:{size:10},callback:v=>v>=1000?'R$'+(v/1000).toFixed(0)+'k':'R$'+v},grid:{color:'rgba(255,255,255,.04)'}}}
+  }});
+}
+
+async function _fillRelatorioMultiMonth(n){
+  const hoje=new Date();
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const mesYmd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  const ultDia=d=>new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  const mkB=d=>({d,label:`${meses[d.getMonth()]}/${d.getFullYear().toString().slice(2)}`,start:`${mesYmd(d)}-01`,end:`${mesYmd(d)}-${String(ultDia(d)).padStart(2,'0')}`});
+  const curB=[],prevB=[];
+  for(let i=n-1;i>=0;i--) curB.push(mkB(new Date(hoje.getFullYear(),hoje.getMonth()-i,1)));
+  for(let i=n-1;i>=0;i--) prevB.push(mkB(new Date(hoje.getFullYear(),hoje.getMonth()-n-i,1)));
+  const lb1=`${meses[curB[0].d.getMonth()]}/${curB[0].d.getFullYear().toString().slice(2)}`;
+  const lb2=`${meses[curB[n-1].d.getMonth()]}/${curB[n-1].d.getFullYear().toString().slice(2)}`;
+  document.getElementById('relMesLabel').textContent=`${n}M — ${lb1} a ${lb2}`;
+  _updateRelMesPills();
+  try{
+    const startAll=prevB[0].start, endAll=curB[n-1].end;
+    const ckey=`mm_${startAll}_${endAll}`;
+    let allTx;
+    if(_relCache[ckey]&&Date.now()-_relCache[ckey].ts<60000) allTx=_relCache[ckey].data;
+    else{ allTx=await sbGet('transactions',{select:'*',date:`gte.${startAll}`,limit:5000}).then(r=>r.filter(t=>t.date<=endAll)); _relCache[ckey]={data:allTx,ts:Date.now()}; }
+    const txCur=allTx.filter(t=>t.date>=curB[0].start&&t.date<=curB[n-1].end);
+    const txPrev=allTx.filter(t=>t.date>=prevB[0].start&&t.date<=prevB[n-1].end);
+    const agg=arr=>({ent:_relSoma(arr,'entrada'),sai:_relSoma(arr,'saida'),inv:_relSomaInv(arr),get saldo(){return this.ent-this.sai-this.inv;}});
+    const b0=agg(txCur), b1=agg(txPrev);
+    _relSetKpis(b0,b1);
+    const chartDados=curB.map(b=>{const tx=txCur.filter(t=>t.date>=b.start&&t.date<=b.end);return{label:b.label,ent:_relSoma(tx,'entrada'),sai:_relSoma(tx,'saida'),inv:_relSomaInv(tx)};});
+    _relSetChart(chartDados);
+    _relSetTopCats(txCur,b0.sai);
+    _relSetContas(txCur);
+    const pw=document.getElementById('relPaceWrap'),cw=document.getElementById('relComparativoWrap');
+    if(pw)pw.style.display='none'; if(cw)cw.style.display='none';
+  }catch(e){console.error('_fillRelatorioMultiMonth erro:',e);}
+}
+
+async function _fillRelatorioPeriodo(){
+  const sv=document.getElementById('relPeriodoStart')?.value;
+  const ev=document.getElementById('relPeriodoEnd')?.value;
+  if(!sv||!ev) return;
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const mesYmd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  const ultDia=d=>new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  document.getElementById('relMesLabel').textContent=`${sv.slice(5)} a ${ev.slice(5)}`;
+  _updateRelMesPills();
+  try{
+    const allTx=await sbGet('transactions',{select:'*',date:`gte.${sv}`,limit:5000}).then(r=>r.filter(t=>t.date<=ev));
+    const b0={ent:_relSoma(allTx,'entrada'),sai:_relSoma(allTx,'saida'),inv:_relSomaInv(allTx)};
+    b0.saldo=b0.ent-b0.sai-b0.inv;
+    _relSetKpis(b0,{ent:0,sai:0,inv:0,saldo:0});
+    ['relEntVar','relSaiVar','relSaldoVar','relInvVar'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='';});
+    const blocos=[]; let d=new Date(sv+'T00:00:00');
+    const edD=new Date(ev+'T00:00:00');
+    while(d<=edD){ blocos.push({label:`${meses[d.getMonth()]}/${d.getFullYear().toString().slice(2)}`,start:`${mesYmd(d)}-01`,end:`${mesYmd(d)}-${String(ultDia(d)).padStart(2,'0')}`}); d=new Date(d.getFullYear(),d.getMonth()+1,1); }
+    const chartDados=blocos.map(b=>{const tx=allTx.filter(t=>t.date>=b.start&&t.date<=b.end);return{label:b.label,ent:_relSoma(tx,'entrada'),sai:_relSoma(tx,'saida'),inv:_relSomaInv(tx)};});
+    _relSetChart(chartDados);
+    _relSetTopCats(allTx,b0.sai);
+    _relSetContas(allTx);
+    const pw=document.getElementById('relPaceWrap'),cw=document.getElementById('relComparativoWrap');
+    if(pw)pw.style.display='none'; if(cw)cw.style.display='none';
+  }catch(e){console.error('_fillRelatorioPeriodo erro:',e);}
+}
+
 async function fillRelatorioMes(){
+  if(_relMode==='3m'||_relMode==='6m'){ await _fillRelatorioMultiMonth(_relMode==='3m'?3:6); return; }
+  if(_relMode==='periodo'){ await _fillRelatorioPeriodo(); return; }
   const hoje=new Date();
   const alvo=new Date(hoje.getFullYear(), hoje.getMonth()+_relMesOffset, 1);
   const ant=new Date(alvo.getFullYear(), alvo.getMonth()-1, 1);
@@ -6516,6 +6681,7 @@ async function fillRelatorioMes(){
     const byAcc={};
     txAlvo.forEach(t=>{
       const a=t.account||'—';
+      if(a.includes(' CC ')) return; // exclude credit card accounts
       if(!byAcc[a]) byAcc[a]={ent:0,sai:0};
       if(t.type==='entrada') byAcc[a].ent+=+t.amount||0;
       else if(t.type==='saida') byAcc[a].sai+=+t.amount||0;
