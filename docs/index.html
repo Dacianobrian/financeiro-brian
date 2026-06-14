@@ -102,15 +102,38 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 }
 @media(max-width:700px){.g4,.g2,.g3{grid-template-columns:1fr}}
 @media(max-width:480px){
-  .header{padding:0 10px}
+  /* Header compacto */
+  .header{padding:0 10px;height:54px}
+  /* Tabs — scrolláveis horizontalmente */
+  .header-center{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-shrink:1;min-width:0}
+  .header-center::-webkit-scrollbar{display:none}
   .tab-btn span:not(:first-child){display:none}
-  .tab-btn{padding:6px 8px}
-  .page{padding:12px 12px}
-  .card{padding:14px}
-  .kpi-value{font-size:22px}
+  .tab-btn{padding:6px 9px;height:54px;font-size:12px;flex-shrink:0;white-space:nowrap}
+  /* Botões header — só ícones */
   .btn span:not(.btn-icon){display:none}
   .header-right .btn:nth-child(n+4){display:none}
   .header-right .btn:nth-last-child(-n+3){display:flex}
+  /* Página */
+  .page{padding:12px 12px}
+  .card{padding:14px}
+  .kpi-value{font-size:22px}
+  /* Inputs — 16px evita zoom no iOS */
+  input,textarea,select{font-size:16px!important}
+  /* Modais — fullscreen no mobile */
+  .modal,.modal-content{max-width:100%!important;width:100%!important;border-radius:14px 14px 0 0!important;margin:auto 0 0 0!important;max-height:90vh;overflow-y:auto}
+  .modal-overlay,.imp-modal-overlay{align-items:flex-end!important}
+  /* Command palette — fullscreen */
+  .cmdpal-overlay{padding-top:0!important}
+  .cmdpal-box{width:100%!important;max-width:100%!important;border-radius:14px 14px 0 0!important;position:fixed!important;bottom:0!important;top:auto!important}
+  /* Tabela transações — scroll horizontal */
+  .table-wrap{-webkit-overflow-scrolling:touch}
+  /* Formulário lançamento — campos em coluna */
+  .field{width:100%!important}
+}
+@media(max-width:380px){
+  .tab-btn{padding:5px 7px;font-size:11px}
+  .kpi-value{font-size:20px}
+  .header{padding:0 8px}
 }
 .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;overflow:hidden;transition:border-color var(--dur-normal)}
 .card:hover{border-color:var(--border2)}
