@@ -3553,8 +3553,8 @@ function buildPatrimGeralChart(monthly, accounts){
 
 // ══ HERO PATRIMÔNIO ══════════════════════════════════════════════════════════════
 function fillPatrimonioHero(cm, fii, accounts, monthly, patRow){
-  const acctTotal = +(patRow?.accounts||0) || accounts.reduce((s,a)=>s++(a.balance||0),0);
-  const fiiTotal  = fii.reduce((s,f)=>s++(f.shares||0)*+(f.price||0),0);
+  const acctTotal = +(patRow?.accounts||0) || accounts.reduce((s,a)=>s+(+(a.balance||0)),0);
+  const fiiTotal  = fii.reduce((s,f)=>s+(+(f.shares||0)*+(f.price||0)),0);
   const caixinha  = accounts.find(a=>/(caixinha|rdb)/i.test((a.type||'')+(a.name||'')));
   const caixVal   = caixinha?+(caixinha.balance||0):0;
   const corrVal   = acctTotal - caixVal;
@@ -3566,7 +3566,7 @@ function fillPatrimonioHero(cm, fii, accounts, monthly, patRow){
   // Sparkline + streak via monthly
   const sorted=[...(monthly||[])].filter(m=>m.month).sort((a,b)=>String(a.month).localeCompare(String(b.month)));
   if(sorted.length>=2){
-    const totalFlow=sorted.reduce((s,m)=>s++(m.entradas||0)-+(m.saidas||0)-+(m.investido||0),0);
+    const totalFlow=sorted.reduce((s,m)=>s+(+(m.entradas||0))-(+(m.saidas||0))-(+(m.investido||0)),0);
     let acc=acctTotal-totalFlow;
     const pts=sorted.map(m=>{acc+=+(m.entradas||0)-+(m.saidas||0)-+(m.investido||0);return +acc.toFixed(2);});
     // Trend badge
@@ -3615,10 +3615,10 @@ function fillInsights(cm, fii, accounts, monthly, patRow){
   // 2. Patrimônio crescendo — streak de meses positivos
   let streak=0;
   for(let i=sorted.length-1;i>=0;i--){if(+(sorted[i].entradas||0)>+(sorted[i].saidas||0))streak++;else break;}
-  if(streak>=3) insights.push({icon:'🔥',cor:'#fbbf24',bg:'rgba(251,191,36,.07)',border:'rgba(251,191,36,.2)',titulo:`Patrimônio crescendo há ${streak} meses seguidos`,sub:`Você acumulou ${brl(sorted.slice(-streak).reduce((s,m)=>s++(m.entradas||0)-+(m.saidas||0)-+(m.investido||0),0))} de saldo positivo nesse período.`});
+  if(streak>=3) insights.push({icon:'🔥',cor:'#fbbf24',bg:'rgba(251,191,36,.07)',border:'rgba(251,191,36,.2)',titulo:`Patrimônio crescendo há ${streak} meses seguidos`,sub:`Você acumulou ${brl(sorted.slice(-streak).reduce((s,m)=>s+(+(m.entradas||0))-(+(m.saidas||0))-(+(m.investido||0)),0))} de saldo positivo nesse período.`});
 
   // 3. FII dividendos por dia
-  const monthlyDiv=fii.reduce((s,f)=>s++(f.shares||0)*+(f.dividends_per_share||0),0);
+  const monthlyDiv=fii.reduce((s,f)=>s+(+(f.shares||0)*+(f.dividends_per_share||0)),0);
   if(monthlyDiv>50) insights.push({icon:'⚡',cor:'var(--yellow)',bg:'rgba(251,191,36,.07)',border:'rgba(251,191,36,.2)',titulo:`Seus FIIs rendem ~${brl(monthlyDiv)} por mês`,sub:`Equivale a ${brl(+(monthlyDiv/30).toFixed(2))}/dia em renda passiva enquanto você dorme.`});
 
   // 4. Meta reserva
@@ -3645,10 +3645,10 @@ function fillConquistas(monthly, fii, accounts, cm){
   const posMonths=sorted.filter(m=>+(m.entradas||0)>+(m.saidas||0)).length;
   const caixinha=accounts.find(a=>/(caixinha|rdb)/i.test((a.type||'')+(a.name||'')));
   const caixVal=caixinha?+(caixinha.balance||0):0;
-  const fiiTotal=fii.reduce((s,f)=>s++(f.shares||0)*+(f.price||0),0);
-  const acctTotal=accounts.reduce((s,a)=>s++(a.balance||0),0);
+  const fiiTotal=fii.reduce((s,f)=>s+(+(f.shares||0)*+(f.price||0)),0);
+  const acctTotal=accounts.reduce((s,a)=>s+(+(a.balance||0)),0);
   const total=acctTotal+fiiTotal;
-  const monthlyDiv=fii.reduce((s,f)=>s++(f.shares||0)*+(f.dividends_per_share||0),0);
+  const monthlyDiv=fii.reduce((s,f)=>s+(+(f.shares||0)*+(f.dividends_per_share||0)),0);
   const poupancaMonths=sorted.filter(m=>{const e=+(m.entradas||0);return e>0&&(e-+(m.saidas||0))/e>=0.2;}).length;
 
   // Definição de badges
