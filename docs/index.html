@@ -58,18 +58,30 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .login-btn:hover{opacity:.9;transform:translateY(-1px)}
 .login-err{color:var(--red);font-size:12px;margin-top:8px;min-height:16px;text-align:center}
 
-/* ── Header ── */
-.header{position:sticky;top:0;z-index:200;background:rgba(17,17,19,.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid rgba(46,46,51,.9);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.logo{display:flex;align-items:center;gap:10px}
-.logo-icon{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#0ea5e9,#2dd4bf);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 0 16px rgba(56,189,248,.35)}
-.logo-text{font-size:16px;font-weight:700;letter-spacing:-.3px}
+/* ── Sidebar layout ── */
+.app-layout{display:flex;min-height:100vh}
+.sidebar{width:210px;flex-shrink:0;background:#16161a;border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:100}
+.sb-logo{display:flex;align-items:center;gap:10px;padding:18px 16px 14px;border-bottom:1px solid var(--border)}
+.logo-icon{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#0ea5e9,#2dd4bf);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.logo-text{font-size:15px;font-weight:700;letter-spacing:-.3px}
 .logo-text span{color:var(--blue2)}
-.header-center{display:flex;align-items:center;gap:4px}
-.tab-btn{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:6px 14px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:color var(--dur-fast),border-color var(--dur-fast),background var(--dur-fast);height:60px;display:flex;align-items:center;gap:6px;border-radius:0}
-.tab-btn:hover{color:var(--text);background:rgba(255,255,255,.03)}
-.tab-btn.active{color:var(--blue2);border-bottom-color:var(--blue);font-weight:600}
-.header-right{display:flex;align-items:center;gap:8px}
-.date-chip{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--muted)}
+.sb-nav{display:flex;flex-direction:column;gap:3px;padding:12px 8px;flex:1}
+.sb-section-lbl{font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:8px 8px 4px;margin-top:4px}
+.tab-btn{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;border:none;background:transparent;color:var(--muted);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;text-align:left;width:100%;transition:all var(--dur-fast)}
+.tab-btn:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.tab-btn.active{background:rgba(56,189,248,.1);color:var(--blue2);font-weight:600}
+.tab-btn .tab-icon{font-size:16px;width:22px;text-align:center;flex-shrink:0}
+.sb-footer{padding:10px 8px 16px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.sb-add-btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 12px;border-radius:9px;border:none;background:linear-gradient(135deg,#0284c7,#0891b2);color:#fff;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;width:100%;transition:.15s}
+.sb-add-btn:hover{opacity:.9}
+.sb-mini-btn{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted2);font-family:var(--font);font-size:12px;cursor:pointer;width:100%;transition:.15s}
+.sb-mini-btn:hover{color:var(--text);background:rgba(255,255,255,.04)}
+
+/* ── Topbar ── */
+.topbar{position:sticky;top:0;z-index:200;background:rgba(17,17,19,.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--border);padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-right{display:flex;align-items:center;gap:6px}
+.date-chip{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;color:var(--muted)}
 .btn{border:none;cursor:pointer;border-radius:8px;padding:7px 14px;font-family:var(--font);font-size:12px;font-weight:600;transition:background var(--dur-fast),transform var(--dur-fast),box-shadow var(--dur-fast),border-color var(--dur-fast);letter-spacing:.2px;display:flex;align-items:center;gap:5px}
 .btn:active{transform:translateY(1px)}
 .btn-primary{background:linear-gradient(135deg,#0284c7,#0891b2);color:#fff;box-shadow:0 2px 12px rgba(56,189,248,.3);border-radius:20px}
@@ -79,8 +91,17 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .btn-green{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;box-shadow:0 2px 10px rgba(34,197,94,.3);border-radius:20px}
 .btn-green:hover{background:linear-gradient(135deg,#15803d,#16a34a);box-shadow:0 4px 14px rgba(34,197,94,.45);transform:translateY(-1px)}
 
-/* ── Layout ── */
-.page{max-width:1440px;margin:0 auto;padding:14px 20px}
+/* ── App main area ── */
+.app-main{flex:1;min-width:0;display:flex;flex-direction:column;min-height:100vh}
+
+/* ── Bottom nav (mobile) ── */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;background:rgba(17,17,19,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);height:58px;padding:0}
+.bn-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex:1;padding:5px 0;border:none;border-top:2px solid transparent;background:transparent;color:var(--muted);font-family:var(--font);font-size:10px;font-weight:500;cursor:pointer;height:58px;transition:.15s}
+.bn-item.active{color:var(--blue2);border-top-color:var(--blue)}
+.bn-icon{font-size:19px;line-height:1}
+
+/* ── Page / Layout ── */
+.page{padding:14px 20px}
 .section{margin-top:12px}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .section-title{font-size:11px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.9px;display:flex;align-items:center;gap:6px}
@@ -89,51 +110,46 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .g4{grid-template-columns:repeat(4,1fr)}
 .g3{grid-template-columns:repeat(3,1fr)}
 .g2{grid-template-columns:1fr 1fr}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* ── Responsive breakpoints ── */
 @media(max-width:1200px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr 1fr}}
 @media(max-width:900px){
+  .sidebar{width:170px}
+  .tab-btn{font-size:12px;padding:8px 10px;gap:8px}
+  .tab-btn .tab-icon{font-size:14px}
   .g3{grid-template-columns:1fr 1fr}
-  .header{padding:0 14px;gap:8px}
-  .header-center{gap:0}
-  .tab-btn{padding:6px 10px;font-size:12px}
-  .header-right{gap:5px}
+  .topbar{padding:0 14px}
   .btn{padding:6px 10px;font-size:11px}
-  .logo-text{display:none}
-  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
-@media(max-width:700px){.g4,.g2,.g3{grid-template-columns:1fr}}
-@media(max-width:480px){
-  /* Header compacto */
-  .header{padding:0 10px;height:54px}
-  /* Tabs — scrolláveis horizontalmente */
-  .header-center{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-shrink:1;min-width:0}
-  .header-center::-webkit-scrollbar{display:none}
-  .tab-btn span:not(:first-child){display:none}
-  .tab-btn{padding:6px 9px;height:54px;font-size:12px;flex-shrink:0;white-space:nowrap}
-  /* Botões header — só ícones */
-  .btn span:not(.btn-icon){display:none}
-  .header-right .btn:nth-child(n+4){display:none}
-  .header-right .btn:nth-last-child(-n+3){display:flex}
-  /* Página */
-  .page{padding:12px 12px}
-  .card{padding:14px}
-  .kpi-value{font-size:22px}
-  /* Inputs — 16px evita zoom no iOS */
-  input,textarea,select{font-size:16px!important}
-  /* Modais — fullscreen no mobile */
+@media(max-width:700px){
+  /* Sidebar vira bottom nav */
+  .sidebar{display:none}
+  .bottom-nav{display:flex}
+  .app-main{padding-bottom:60px}
+  .topbar{height:50px;padding:0 14px}
+  /* Grids colapsam */
+  .g4,.g3,.g2{grid-template-columns:1fr 1fr}
+  .page{padding:10px 12px}
+  /* Modais fullscreen */
   .modal,.modal-content{max-width:100%!important;width:100%!important;border-radius:14px 14px 0 0!important;margin:auto 0 0 0!important;max-height:90vh;overflow-y:auto}
   .modal-overlay,.imp-modal-overlay{align-items:flex-end!important}
-  /* Command palette — fullscreen */
-  .cmdpal-overlay{padding-top:0!important}
-  .cmdpal-box{width:100%!important;max-width:100%!important;border-radius:14px 14px 0 0!important;position:fixed!important;bottom:0!important;top:auto!important}
-  /* Tabela transações — scroll horizontal */
-  .table-wrap{-webkit-overflow-scrolling:touch}
-  /* Formulário lançamento — campos em coluna */
+  .cmdpal-box{width:100%!important;max-width:100%!important;border-radius:14px 14px 0 0!important;position:fixed!important;bottom:60px!important;top:auto!important}
   .field{width:100%!important}
 }
-@media(max-width:380px){
-  .tab-btn{padding:5px 7px;font-size:11px}
+@media(max-width:480px){
+  .g4,.g3,.g2{grid-template-columns:1fr}
+  .page{padding:10px 10px}
+  .card{padding:12px}
   .kpi-value{font-size:20px}
-  .header{padding:0 8px}
+  input,textarea,select{font-size:16px!important}
+  .topbar{padding:0 10px}
+  /* Botões topbar — esconder os menos usados */
+  .topbar-right .btn-primary,.topbar-right .btn-ghost:nth-child(n+3){display:none}
+}
+@media(max-width:380px){
+  .kpi-value{font-size:18px}
+  .card{padding:10px}
 }
 .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;overflow:hidden;transition:border-color var(--dur-normal)}
 .card:hover{border-color:var(--border2)}
@@ -654,7 +670,9 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
   --surface-input:#fafafa;--border-input:#d4d4d8;
   --shadow:0 1px 4px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);
 }
-[data-theme="light"] .header{background:rgba(245,245,245,.97)!important;border-bottom-color:rgba(224,224,224,.9)!important}
+[data-theme="light"] .topbar{background:rgba(245,245,245,.97)!important;border-bottom-color:rgba(224,224,224,.9)!important}
+[data-theme="light"] .sidebar{background:#f5f5f5!important;border-right-color:rgba(224,224,224,.9)!important}
+[data-theme="light"] .bottom-nav{background:rgba(245,245,245,.97)!important;border-top-color:rgba(224,224,224,.9)!important}
 [data-theme="light"] .card{box-shadow:0 1px 4px rgba(0,0,0,.06)}
 [data-theme="light"] tbody tr:nth-child(even){background:rgba(0,0,0,.025)}
 [data-theme="light"] tbody tr:hover{background:rgba(56,189,248,.08)}
@@ -815,29 +833,45 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 
 <!-- ══ APP ══ -->
 <div id="appWrap" style="display:none">
+<div class="app-layout">
 
-<header class="header">
-  <div class="logo">
+<!-- ── Sidebar ── -->
+<aside class="sidebar">
+  <div class="sb-logo">
     <div class="logo-icon">💰</div>
     <div class="logo-text">Brian <span>Finanças</span></div>
   </div>
-  <div class="header-center">
-    <button class="tab-btn active" id="tabBtnGeral" onclick="switchTab('geral')">📊 Visão Geral <span class="tab-ctx" id="tabCtxGeral"></span></button>
-    <button class="tab-btn" id="tabBtnInv" onclick="switchTab('inv')">📈 Investimentos <span class="tab-ctx" id="tabCtxInv"></span></button>
-    <button class="tab-btn" id="tabBtnSaude" onclick="switchTab('saude')">🩺 Saúde <span class="tab-ctx" id="tabCtxSaude"></span></button>
-    <button class="tab-btn" id="tabBtnMetas" onclick="switchTab('metas')">🎯 Metas <span class="tab-ctx" id="tabCtxMetas"></span></button>
+  <nav class="sb-nav">
+    <span class="sb-section-lbl">Menu</span>
+    <button class="tab-btn active" id="tabBtnGeral" onclick="switchTab('geral')"><span class="tab-icon">📊</span> Visão Geral <span class="tab-ctx" id="tabCtxGeral"></span></button>
+    <button class="tab-btn" id="tabBtnInv" onclick="switchTab('inv')"><span class="tab-icon">📈</span> Investimentos <span class="tab-ctx" id="tabCtxInv"></span></button>
+    <button class="tab-btn" id="tabBtnSaude" onclick="switchTab('saude')"><span class="tab-icon">🩺</span> Saúde <span class="tab-ctx" id="tabCtxSaude"></span></button>
+    <button class="tab-btn" id="tabBtnMetas" onclick="switchTab('metas')"><span class="tab-icon">🎯</span> Metas</button>
+    <span class="sb-section-lbl">Ferramentas</span>
+    <button class="tab-btn" onclick="openImportModal()"><span class="tab-icon">📥</span> Importar extrato</button>
+    <button class="tab-btn" onclick="exportExcel()"><span class="tab-icon">📊</span> Exportar Excel</button>
+    <button class="tab-btn" onclick="openSettings()"><span class="tab-icon">⚙️</span> Configurações</button>
+  </nav>
+  <div class="sb-footer">
+    <button class="sb-add-btn" onclick="openModal()">＋ Novo lançamento</button>
+    <button class="sb-mini-btn" id="refreshBtn" onclick="refreshDashboard()"><span>↻</span> <span>Atualizar</span> <span id="refreshAge" style="font-size:10px;opacity:.55;margin-left:auto"></span></button>
+    <button class="sb-mini-btn" onclick="doLogout()">⏻ Sair</button>
   </div>
-  <div class="header-right">
+</aside>
+
+<!-- ── Main area ── -->
+<div class="app-main">
+
+<!-- Topbar -->
+<header class="topbar">
+  <div class="topbar-left">
     <div class="date-chip" id="headerDate"></div>
-    <button class="btn btn-ghost" id="refreshBtn" onclick="refreshDashboard()" title="Atualizar tudo"><span id="refreshIcon">↻</span><span id="refreshAge" style="font-size:10px;opacity:.55;margin-left:3px"></span></button>
+    <span id="refreshIcon" style="display:none"></span>
+  </div>
+  <div class="topbar-right">
     <button class="btn btn-green" onclick="openModal()">＋ Lançamento</button>
-    <button class="btn btn-ghost" onclick="openImportModal()" style="border-color:rgba(99,102,241,.4);color:var(--blue2)">📥 Extrato</button>
-    <button class="btn btn-primary" onclick="exportExcel()">⬇ Excel</button>
-    <button class="btn btn-ghost" onclick="window.print()" title="Imprimir / PDF">🖨️</button>
-    <button class="theme-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Alternar tema claro/escuro">🌙</button>
-    <button class="btn btn-ghost notif-bell" id="notifBellBtn" onclick="toggleNotifPanel()" title="Notificações push">🔔<span class="notif-bell-dot" id="notifBellDot"></span></button>
-    <button class="btn btn-ghost" onclick="openSettings()" title="Configurações">⚙️</button>
-    <button class="btn btn-ghost" onclick="doLogout()">⏻</button>
+    <button class="theme-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Alternar tema">🌙</button>
+    <button class="btn btn-ghost notif-bell" id="notifBellBtn" onclick="toggleNotifPanel()" title="Notificações">🔔<span class="notif-bell-dot" id="notifBellDot"></span></button>
   </div>
 </header>
 
@@ -2398,6 +2432,19 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
 </div><!-- /tabMetas -->
 
 </div><!-- /page -->
+
+</div><!-- /app-main -->
+
+<!-- ── Bottom nav (mobile) ── -->
+<nav class="bottom-nav">
+  <button class="bn-item active" id="bnBtnGeral" onclick="switchTab('geral')"><span class="bn-icon">📊</span>Geral</button>
+  <button class="bn-item" id="bnBtnInv" onclick="switchTab('inv')"><span class="bn-icon">📈</span>Invest.</button>
+  <button class="bn-item" id="bnBtnSaude" onclick="switchTab('saude')"><span class="bn-icon">🩺</span>Saúde</button>
+  <button class="bn-item" id="bnBtnMetas" onclick="switchTab('metas')"><span class="bn-icon">🎯</span>Metas</button>
+  <button class="bn-item" onclick="openModal()"><span class="bn-icon">＋</span>Lançar</button>
+</nav>
+
+</div><!-- /app-layout -->
 
 <!-- Terminal -->
 
@@ -7131,10 +7178,13 @@ function switchTab(tab){
   document.getElementById('tabInv').style.display=tab==='inv'?'':'none';
   document.getElementById('tabSaude').style.display=tab==='saude'?'':'none';
   document.getElementById('tabMetas').style.display=tab==='metas'?'':'none';
+  // Sidebar
   document.getElementById('tabBtnGeral').classList.toggle('active',tab==='geral');
   document.getElementById('tabBtnInv').classList.toggle('active',tab==='inv');
   document.getElementById('tabBtnSaude').classList.toggle('active',tab==='saude');
   document.getElementById('tabBtnMetas').classList.toggle('active',tab==='metas');
+  // Bottom nav (mobile)
+  ['Geral','Inv','Saude','Metas'].forEach(k=>{const el=document.getElementById('bnBtn'+k);if(el)el.classList.toggle('active',tab===k.toLowerCase());});
   if(tab==='inv')   { buildInvCharts(_invFiiRows, _invQuotes); _fillInvCashflow(); startQuoteAutoRefresh(); loadIbov(); updateTokenStatus(); }
   else              { stopQuoteAutoRefresh(); }
   if(tab==='geral') { fillCatBreakdown(_catsObj); buildCharts(_monthly, _catsObj); fillHeatmap(_allTxs); fillPatrimSparkline(_monthly); buildCashflowCalendar(); initDrag(); }
