@@ -1267,6 +1267,28 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     <span id="saldoBannerMsg"></span>
   </div>
 
+  <!-- ★ HERO PATRIMÔNIO -->
+  <div class="section" style="margin-bottom:14px">
+    <div class="card" id="heroCard" style="background:linear-gradient(135deg,#0c1520 0%,#18181c 100%);border:0.5px solid rgba(56,189,248,.18);border-radius:14px;padding:18px 22px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Patrimônio Total</div>
+          <div id="heroTotal" style="font-size:38px;font-weight:800;color:var(--text);letter-spacing:-1.5px;line-height:1">—</div>
+          <div id="heroTrendRow" style="display:none;align-items:center;gap:8px;margin-top:8px">
+            <span id="heroBadge" style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px"></span>
+            <span id="heroVs" style="font-size:11px;color:var(--muted)"></span>
+          </div>
+        </div>
+        <div id="heroStreakBox" style="display:none;align-items:center;gap:6px;background:rgba(251,191,36,.08);border:0.5px solid rgba(251,191,36,.2);border-radius:10px;padding:10px 14px">
+          <span style="font-size:22px">🔥</span>
+          <div><div id="heroStreakNum" style="font-size:24px;font-weight:800;color:#fbbf24;line-height:1">0</div><div style="font-size:9px;color:var(--muted)">meses positivos</div></div>
+        </div>
+      </div>
+      <div id="heroBreakdown" style="display:flex;gap:20px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.05);flex-wrap:wrap"></div>
+      <div id="heroSpark" style="display:flex;align-items:flex-end;gap:3px;margin-top:12px;height:22px"></div>
+    </div>
+  </div>
+
   <div class="section" style="margin-bottom:14px">
     <div class="section-header" style="margin-bottom:12px"><div class="section-title">💼 Contas &amp; Patrimônio</div></div>
     <div class="grid g4" id="accountsGrid"><div class="card" style="opacity:.4">carregando...</div></div>
@@ -1312,6 +1334,34 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           <div class="kpi-sub">mês atual</div>
           <div id="kpiInvestidoBottom" style="display:flex;align-items:center;gap:6px"></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ★ INSIGHTS AUTOMÁTICOS -->
+  <div id="insightsSection" class="section" style="display:none;margin-top:10px">
+    <div id="insightsList" style="display:flex;flex-direction:column;gap:7px"></div>
+  </div>
+
+  <!-- ★ CONQUISTAS & STREAKS -->
+  <div id="conquistasSection" class="section" style="display:none;margin-top:10px">
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:15px">🏆</span>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text)">Conquistas</div>
+            <div id="conquistasSubtitle" style="font-size:10px;color:var(--muted)"></div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:10px 14px;border-bottom:1px solid var(--border)">
+        <div style="font-size:9px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Desbloqueadas</div>
+        <div id="conquistasUnlocked" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+      <div style="padding:10px 14px">
+        <div style="font-size:9px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Próximas conquistas</div>
+        <div id="conquistasProgress" style="display:flex;flex-direction:column;gap:8px"></div>
       </div>
     </div>
   </div>
@@ -3499,6 +3549,145 @@ function buildPatrimGeralChart(monthly, accounts){
       }
     }
   });
+}
+
+// ══ HERO PATRIMÔNIO ══════════════════════════════════════════════════════════════
+function fillPatrimonioHero(cm, fii, accounts, monthly, patRow){
+  const acctTotal = +(patRow?.accounts||0) || accounts.reduce((s,a)=>s++(a.balance||0),0);
+  const fiiTotal  = fii.reduce((s,f)=>s++(f.shares||0)*+(f.price||0),0);
+  const caixinha  = accounts.find(a=>/(caixinha|rdb)/i.test((a.type||'')+(a.name||'')));
+  const caixVal   = caixinha?+(caixinha.balance||0):0;
+  const corrVal   = acctTotal - caixVal;
+  const total     = acctTotal + fiiTotal;
+
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('heroTotal', brl(total));
+
+  // Sparkline + streak via monthly
+  const sorted=[...(monthly||[])].filter(m=>m.month).sort((a,b)=>String(a.month).localeCompare(String(b.month)));
+  if(sorted.length>=2){
+    const totalFlow=sorted.reduce((s,m)=>s++(m.entradas||0)-+(m.saidas||0)-+(m.investido||0),0);
+    let acc=acctTotal-totalFlow;
+    const pts=sorted.map(m=>{acc+=+(m.entradas||0)-+(m.saidas||0)-+(m.investido||0);return +acc.toFixed(2);});
+    // Trend badge
+    const last=pts[pts.length-1], prev=pts[pts.length-2];
+    const diff=last-prev, pct=prev?(diff/Math.abs(prev)*100):0;
+    const tr=document.getElementById('heroTrendRow'),b=document.getElementById('heroBadge'),vs=document.getElementById('heroVs');
+    if(tr){tr.style.display='flex';}
+    if(b){b.textContent=(diff>=0?'+':'')+brl(diff)+' ('+pct.toFixed(1)+'%)';b.style.background=diff>=0?'rgba(34,197,94,.12)':'rgba(244,63,94,.12)';b.style.color=diff>=0?'var(--green)':'var(--red)';}
+    if(vs) vs.textContent='vs mês anterior';
+    // Sparkline bars
+    const sp=document.getElementById('heroSpark');
+    if(sp){const mx=Math.max(...pts),mn=Math.min(...pts),rng=mx-mn||1;
+      sp.innerHTML=pts.slice(-12).map((v,i,a)=>{const h=Math.max(8,Math.round(((v-mn)/rng)*100));const isL=i===a.length-1;
+        return`<div style="flex:1;background:${isL?'var(--blue)':'#2e2e33'};border-radius:2px 2px 0 0;height:${h}%;opacity:${isL?1:.55}"></div>`;}).join('');}
+    // Streak
+    let streak=0;
+    for(let i=sorted.length-1;i>=0;i--){if(+(sorted[i].entradas||0)>+(sorted[i].saidas||0))streak++;else break;}
+    if(streak>=2){const sb=document.getElementById('heroStreakBox');if(sb)sb.style.display='flex';set('heroStreakNum',streak);}
+  }
+  // Breakdown
+  const bd=document.getElementById('heroBreakdown');
+  if(bd){
+    const items=[{l:'Contas',v:corrVal,c:'var(--blue2)'},{l:'FIIs',v:fiiTotal,c:'var(--yellow)'},{l:'Caixinha',v:caixVal,c:'var(--green)'}];
+    bd.innerHTML=items.map((it,i)=>`<div style="display:flex;flex-direction:column;gap:2px${i>0?';padding-left:18px;border-left:0.5px solid var(--border)':''}"><div style="font-size:9px;color:var(--muted)">${it.l}</div><div style="font-size:13px;font-weight:700;color:${it.c}">${brl(it.v)}</div></div>`).join('');
+  }
+}
+
+// ══ INSIGHTS AUTOMÁTICOS ═════════════════════════════════════════════════════════
+function fillInsights(cm, fii, accounts, monthly, patRow){
+  const sec=document.getElementById('insightsSection');
+  const list=document.getElementById('insightsList');
+  if(!sec||!list) return;
+  const insights=[];
+  const sorted=[...(monthly||[])].filter(m=>m.month).sort((a,b)=>String(a.month).localeCompare(String(b.month)));
+  const cur=sorted[sorted.length-1], prev=sorted[sorted.length-2];
+
+  // 1. Entradas vs mês passado
+  if(cur&&prev){
+    const dEnt=+(cur.entradas||0)-+(prev.entradas||0);
+    const dSai=+(cur.saidas||0)-+(prev.saidas||0);
+    if(dSai<-100) insights.push({icon:'✅',cor:'var(--green)',bg:'rgba(34,197,94,.07)',border:'rgba(34,197,94,.2)',titulo:`Você gastou ${brl(Math.abs(dSai)) } a menos que no mês passado`,sub:`Saídas: ${brl(+(cur.saidas||0))} vs ${brl(+(prev.saidas||0))} — excelente controle!`});
+    else if(dSai>200) insights.push({icon:'⚠️',cor:'var(--orange)',bg:'rgba(251,146,60,.07)',border:'rgba(251,146,60,.2)',titulo:`Gastos ${brl(dSai)} acima do mês passado`,sub:`Saídas: ${brl(+(cur.saidas||0))} vs ${brl(+(prev.saidas||0))} — vale revisar o que subiu.`});
+    if(dEnt>0) insights.push({icon:'📈',cor:'var(--blue2)',bg:'rgba(56,189,248,.07)',border:'rgba(56,189,248,.2)',titulo:`Receita ${brl(dEnt)} maior que o mês passado`,sub:`${brl(+(cur.entradas||0))} em ${cur.month} vs ${brl(+(prev.entradas||0))} em ${prev.month}.`});
+  }
+
+  // 2. Patrimônio crescendo — streak de meses positivos
+  let streak=0;
+  for(let i=sorted.length-1;i>=0;i--){if(+(sorted[i].entradas||0)>+(sorted[i].saidas||0))streak++;else break;}
+  if(streak>=3) insights.push({icon:'🔥',cor:'#fbbf24',bg:'rgba(251,191,36,.07)',border:'rgba(251,191,36,.2)',titulo:`Patrimônio crescendo há ${streak} meses seguidos`,sub:`Você acumulou ${brl(sorted.slice(-streak).reduce((s,m)=>s++(m.entradas||0)-+(m.saidas||0)-+(m.investido||0),0))} de saldo positivo nesse período.`});
+
+  // 3. FII dividendos por dia
+  const monthlyDiv=fii.reduce((s,f)=>s++(f.shares||0)*+(f.dividends_per_share||0),0);
+  if(monthlyDiv>50) insights.push({icon:'⚡',cor:'var(--yellow)',bg:'rgba(251,191,36,.07)',border:'rgba(251,191,36,.2)',titulo:`Seus FIIs rendem ~${brl(monthlyDiv)} por mês`,sub:`Equivale a ${brl(+(monthlyDiv/30).toFixed(2))}/dia em renda passiva enquanto você dorme.`});
+
+  // 4. Meta reserva
+  const caixinha=accounts.find(a=>/(caixinha|rdb)/i.test((a.type||'')+(a.name||'')));
+  const caixVal=caixinha?+(caixinha.balance||0):0;
+  const metaR=+(cm.meta_reserva||0)||72269;
+  const falta=metaR-caixVal;
+  if(falta>0&&falta<metaR) insights.push({icon:'🎯',cor:'var(--purple)',bg:'rgba(167,139,250,.07)',border:'rgba(167,139,250,.2)',titulo:`Faltam só ${brl(falta)} para sua reserva de emergência`,sub:`${((caixVal/metaR)*100).toFixed(1)}% da meta de ${brl(metaR)} atingida — você está no caminho certo.`});
+
+  if(!insights.length) return;
+  sec.style.display='';
+  list.innerHTML=insights.map(i=>`<div style="display:flex;align-items:flex-start;gap:10px;background:${i.bg};border:0.5px solid ${i.border};border-radius:9px;padding:10px 12px"><span style="font-size:18px;flex-shrink:0;margin-top:1px">${i.icon}</span><div><div style="font-size:12px;font-weight:600;color:${i.cor};margin-bottom:2px">${i.titulo}</div><div style="font-size:11px;color:var(--muted)">${i.sub}</div></div></div>`).join('');
+}
+
+// ══ CONQUISTAS & STREAKS ══════════════════════════════════════════════════════════
+function fillConquistas(monthly, fii, accounts, cm){
+  const sec=document.getElementById('conquistasSection');
+  if(!sec) return;
+  const sorted=[...(monthly||[])].filter(m=>m.month).sort((a,b)=>String(a.month).localeCompare(String(b.month)));
+
+  // Métricas
+  let streak=0;
+  for(let i=sorted.length-1;i>=0;i--){if(+(sorted[i].entradas||0)>+(sorted[i].saidas||0))streak++;else break;}
+  const posMonths=sorted.filter(m=>+(m.entradas||0)>+(m.saidas||0)).length;
+  const caixinha=accounts.find(a=>/(caixinha|rdb)/i.test((a.type||'')+(a.name||'')));
+  const caixVal=caixinha?+(caixinha.balance||0):0;
+  const fiiTotal=fii.reduce((s,f)=>s++(f.shares||0)*+(f.price||0),0);
+  const acctTotal=accounts.reduce((s,a)=>s++(a.balance||0),0);
+  const total=acctTotal+fiiTotal;
+  const monthlyDiv=fii.reduce((s,f)=>s++(f.shares||0)*+(f.dividends_per_share||0),0);
+  const poupancaMonths=sorted.filter(m=>{const e=+(m.entradas||0);return e>0&&(e-+(m.saidas||0))/e>=0.2;}).length;
+
+  // Definição de badges
+  const ALL=[
+    {id:'primeiro_aporte',icon:'💰',label:'Primeiro aporte',cor:'var(--green)',bg:'rgba(34,197,94,.12)',border:'rgba(34,197,94,.25)',check:()=>sorted.some(m=>+(m.investido||0)>0)},
+    {id:'mes_positivo',icon:'📊',label:'Mês positivo',cor:'var(--blue2)',bg:'rgba(56,189,248,.12)',border:'rgba(56,189,248,.25)',check:()=>posMonths>=1},
+    {id:'fii_investidor',icon:'🏢',label:'FII Investidor',cor:'var(--yellow)',bg:'rgba(251,191,36,.12)',border:'rgba(251,191,36,.25)',check:()=>fii.length>0},
+    {id:'streak_3',icon:'🔥',label:'3 meses positivos',cor:'#fb923c',bg:'rgba(251,146,60,.12)',border:'rgba(251,146,60,.25)',check:()=>streak>=3},
+    {id:'streak_6',icon:'🏅',label:'6 meses seguidos',cor:'#fbbf24',bg:'rgba(251,191,36,.12)',border:'rgba(251,191,36,.25)',check:()=>streak>=6},
+    {id:'pat_50k',icon:'💎',label:'Patrimônio R$ 50k',cor:'var(--purple)',bg:'rgba(167,139,250,.12)',border:'rgba(167,139,250,.25)',check:()=>total>=50000},
+    {id:'poupanca_3m',icon:'🌱',label:'Poupar 20% × 3 meses',cor:'var(--green)',bg:'rgba(34,197,94,.12)',border:'rgba(34,197,94,.25)',check:()=>poupancaMonths>=3},
+    {id:'renda_passiva',icon:'⚡',label:'Renda passiva R$ 100+',cor:'var(--yellow)',bg:'rgba(251,191,36,.12)',border:'rgba(251,191,36,.25)',check:()=>monthlyDiv>=100},
+  ];
+
+  // Persistir badges desbloqueados em localStorage
+  let earned=JSON.parse(localStorage.getItem('_badges')||'[]');
+  ALL.forEach(b=>{if(b.check()&&!earned.includes(b.id)) earned.push(b.id);});
+  localStorage.setItem('_badges',JSON.stringify(earned));
+
+  const unlocked=ALL.filter(b=>earned.includes(b.id));
+  const locked=ALL.filter(b=>!earned.includes(b.id));
+
+  if(!unlocked.length&&!locked.length) return;
+  sec.style.display='';
+
+  const sub=document.getElementById('conquistasSubtitle');
+  if(sub) sub.textContent=`${unlocked.length} de ${ALL.length} desbloqueadas · 🔥 ${streak} meses seguidos`;
+
+  const ul=document.getElementById('conquistasUnlocked');
+  if(ul) ul.innerHTML=unlocked.map(b=>`<div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:44px;height:44px;border-radius:10px;background:${b.bg};border:0.5px solid ${b.border};display:flex;align-items:center;justify-content:center;font-size:22px" title="${b.label}">${b.icon}</div><div style="font-size:9px;color:${b.cor};text-align:center;font-weight:600;max-width:52px;line-height:1.2">${b.label}</div></div>`).join('')||'<span style="font-size:12px;color:var(--muted)">Nenhuma ainda — comece a registrar!</span>';
+
+  // Progresso nas próximas conquistas (até 3)
+  const progItems=[];
+  if(streak<12) progItems.push({icon:'🔥',label:`${streak>=6?'12':'6'} meses seguidos`,pct:Math.min(100,Math.round((streak/(streak>=6?12:6))*100)),val:`${streak}/${streak>=6?12:6}`});
+  if(total<75000) progItems.push({icon:'💎',label:'Patrimônio R$ 75k',pct:Math.min(100,Math.round((total/75000)*100)),val:`${((total/75000)*100).toFixed(0)}%`});
+  if(poupancaMonths<6) progItems.push({icon:'🌱',label:'Poupar 20% × 6 meses',pct:Math.min(100,Math.round((poupancaMonths/6)*100)),val:`${poupancaMonths}/6`});
+
+  const pr=document.getElementById('conquistasProgress');
+  if(pr) pr.innerHTML=progItems.slice(0,3).map(p=>`<div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:8px;background:var(--surface2);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:17px;filter:grayscale(.7);opacity:.5">${p.icon}</div><div style="flex:1"><div style="font-size:11px;color:var(--muted2);margin-bottom:3px">${p.label}</div><div style="height:5px;background:var(--border);border-radius:20px;overflow:hidden"><div style="height:100%;width:${p.pct}%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:20px"></div></div></div><span style="font-size:10px;color:var(--muted);font-weight:600;min-width:32px;text-align:right">${p.val}</span></div>`).join('');
 }
 
 // ══ SALDO AUTOMÁTICO POR CONTA ══════════════════════════════════════════════════
@@ -6222,6 +6411,9 @@ async function _doRefresh(){
 
     _cmRow = cmRow; _fcRows = fc||[];
     fillKpis(cmRow, fii, accounts, patRow, monthly);
+    fillPatrimonioHero(cmRow, fii, accounts, monthly, patRow);
+    fillInsights(cmRow, fii, accounts, monthly, patRow);
+    fillConquistas(monthly, fii, accounts, cmRow);
     fillReceita(cmRow, txs, monthly, plannedRows||[]);
     fillSaudeFinanceira(cmRow, monthly, fii, accounts, fc||[]);
     fillSaudeMetricas(cmRow, monthly, fii, accounts, fc||[]);
@@ -6272,6 +6464,10 @@ async function _doRefresh(){
         buildInvCharts(fii, quotes);
         fillProventos(fii, quotes, divTxs).catch(()=>{});
         fillAlertasPanel(cmRow, {byCat:catsObj}, fii, quotes, accounts, null);
+        // Atualiza hero com preços reais dos FIIs
+        fillPatrimonioHero(cmRow, fii, accounts, monthly, patRow);
+        fillInsights(cmRow, fii, accounts, monthly, patRow);
+        fillConquistas(monthly, fii, accounts, cmRow);
       }
     }).catch(()=>{});
     if(_activeTab==='metas') fillMetas();
