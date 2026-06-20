@@ -1322,6 +1322,30 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
     <div id="patrimSparkStats"></div><canvas id="chartPatrimSpark"></canvas>
   </div>
 
+  <!-- Evolução Patrimonial -->
+  <div class="section drag-section" id="ds-patrim-geral" draggable="true" style="margin-top:14px">
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:12px 18px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="drag-handle" title="Arrastar seção">⠿</span>
+          <span style="font-size:14px;font-weight:700;color:var(--text)">📈 Evolução Patrimonial</span>
+          <span style="font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.25);color:var(--purple);font-weight:600">ANO</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="text-align:right">
+            <div id="patrimGeralTotal" style="font-size:18px;font-weight:700;color:var(--text)">—</div>
+            <div id="patrimGeralSub" style="font-size:10px;color:var(--muted)">saldo + investido</div>
+          </div>
+          <div id="patrimGeralTrend" style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;display:none"></div>
+        </div>
+      </div>
+      <div style="padding:14px 18px 10px">
+        <div style="position:relative;height:160px"><canvas id="chartPatrimGeral"></canvas></div>
+        <div id="patrimGeralCards" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Projeção de Caixa -->
   <div class="section" style="margin-top:14px">
     <div class="card" style="padding:0;overflow:hidden">
@@ -1567,7 +1591,18 @@ tfoot td{padding:10px 14px;font-weight:700;border-top:1px solid var(--border2);b
           <div class="section-title">Últimas Transações</div>
           <button onclick="openTxModal()" style="font-size:11px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:3px 10px;cursor:pointer">Ver todas →</button>
         </div>
-        <input class="tx-search" id="txSearch" placeholder="🔍 Buscar transação..." oninput="_debounceTxSearch(this.value)" style="margin-bottom:8px"/>
+        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <input class="tx-search" id="txSearch" placeholder="🔍 Buscar..." oninput="_debounceTxSearch(this.value)" style="flex:1;min-width:120px"/>
+          <select id="txTypeFilter" class="tx-search" style="width:auto;flex-shrink:0" onchange="_applyTxFilters()">
+            <option value="">Todos</option>
+            <option value="entrada">Entradas</option>
+            <option value="saida">Saídas</option>
+            <option value="investido">Investimentos</option>
+          </select>
+          <select id="txCatFilter" class="tx-search" style="width:auto;flex-shrink:0;max-width:130px" onchange="_applyTxFilters()">
+            <option value="">Categoria</option>
+          </select>
+        </div>
         <div class="table-wrap"><table>
           <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th style="text-align:right">Valor</th></tr></thead>
           <tbody id="tblTransactions"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
@@ -2687,24 +2722,26 @@ function _getLearnedCat(desc){
 let _txSearchTimer=null;
 function _debounceTxSearch(q){
   clearTimeout(_txSearchTimer);
-  _txSearchTimer=setTimeout(()=>_runTxSearch(q),350);
+  _txSearchTimer=setTimeout(()=>_applyTxFilters(),350);
 }
-async function _runTxSearch(q){
-  const tb=document.getElementById('tblTransactions');
+function _applyTxFilters(){
+  const q=(document.getElementById('txSearch')?.value||'').trim().toLowerCase();
+  const typeF=(document.getElementById('txTypeFilter')?.value||'');
+  const catF=(document.getElementById('txCatFilter')?.value||'');
   const info=document.getElementById('txSearchInfo');
-  if(!q||q.trim().length<2){
-    fillTx(_allTxs||[]);
-    if(info) info.textContent='';
-    return;
-  }
-  if(tb) tb.innerHTML=`<tr><td colspan="4" class="empty">Buscando...</td></tr>`;
-  try{
-    const params={select:'*',order:'date.desc,id.desc',limit:100,
-      description:`ilike.*${q.trim()}*`};
-    const rows=await sbGet('transactions',params);
-    fillTx(rows);
-    if(info) info.textContent=`${rows.length} resultado${rows.length!==1?'s':''}`;
-  }catch(e){if(tb) tb.innerHTML=`<tr><td colspan="4" class="empty">Erro na busca</td></tr>`;}
+  let rows=(_allTxs||[]);
+  if(typeF) rows=rows.filter(t=>t.type===typeF);
+  if(catF) rows=rows.filter(t=>(t.category||'Outros')===catF);
+  if(q.length>=2) rows=rows.filter(t=>(t.description||'').toLowerCase().includes(q)||(t.category||'').toLowerCase().includes(q));
+  fillTx(rows);
+  if(info) info.textContent=(q||typeF||catF)?`${Math.min(rows.length,15)} de ${rows.length} resultado${rows.length!==1?'s':''}`:'';}
+function _populateTxCatFilter(txs){
+  const sel=document.getElementById('txCatFilter');
+  if(!sel) return;
+  const cats=[...new Set((txs||[]).map(t=>t.category||'Outros').filter(Boolean))].sort();
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Categoria</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  if(cur) sel.value=cur;
 }
 
 // ── Modal "Todas as Transações" ───────────────────────────────────────────────
@@ -3390,6 +3427,77 @@ function buildPatrimHistChart(monthly, baseBalance=0){
     type:'line',
     data:{labels,datasets:[{label:'Saldo acumulado',data,borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.08)',fill:true,tension:.4,pointRadius:3,pointHoverRadius:6,pointBackgroundColor:'#38bdf8'}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'R$ '+c.parsed.y.toLocaleString('pt-BR',{minimumFractionDigits:2})}}},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6e6e76',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6e6e76',font:{size:10},callback:v=>'R$ '+v.toLocaleString('pt-BR',{maximumFractionDigits:0})}}}}
+  });
+}
+
+// ══ EVOLUÇÃO PATRIMONIAL — VISÃO GERAL ═══════════════════════════════════════
+let _chartPatrimGeral=null;
+function buildPatrimGeralChart(monthly, accounts){
+  const ctx=document.getElementById('chartPatrimGeral');
+  if(!ctx||!monthly||!monthly.length) return;
+  const sorted=[...monthly].sort((a,b)=>String(a.month||'').localeCompare(String(b.month||'')));
+  const baseBalance=+(accounts||0);
+  const totalFlow=sorted.reduce((s,m)=>s+(+(m.entradas||0))-(+(m.saidas||0))-(+(m.investido||0)),0);
+  let acc=baseBalance-totalFlow;
+  const labels=[], data=[];
+  sorted.forEach(m=>{
+    acc+=(+(m.entradas||0))-(+(m.saidas||0))-(+(m.investido||0));
+    labels.push((m.month||'').slice(5)); // MM
+    data.push(+acc.toFixed(2));
+  });
+  // Atualiza KPIs do cabeçalho
+  const last=data[data.length-1]||0;
+  const first=data[0]||0;
+  const diff=last-first;
+  const pct=first?((diff/Math.abs(first))*100):0;
+  const totalEl=document.getElementById('patrimGeralTotal');
+  const subEl=document.getElementById('patrimGeralSub');
+  const trendEl=document.getElementById('patrimGeralTrend');
+  if(totalEl) totalEl.textContent=brl(last);
+  if(trendEl){
+    trendEl.style.display='';
+    trendEl.textContent=(diff>=0?'+':'')+brl(diff)+' ('+pct.toFixed(1)+'%)';
+    trendEl.style.background=diff>=0?'rgba(34,197,94,.12)':'rgba(244,63,94,.12)';
+    trendEl.style.color=diff>=0?'var(--green)':'var(--red)';
+  }
+  // Mini cards por mês
+  const cardsEl=document.getElementById('patrimGeralCards');
+  if(cardsEl){
+    const last3=sorted.slice(-3);
+    cardsEl.innerHTML=last3.map((m,i)=>{
+      const saldo=data[data.length-3+i]||0;
+      const ant=i>0?(data[data.length-3+i-1]||0):0;
+      const d=i>0?saldo-ant:0;
+      const c=d>0?'var(--green)':d<0?'var(--red)':'var(--muted)';
+      return`<div style="flex:1;min-width:100px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:3px">${m.month||''}</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text)">${brl(saldo)}</div>
+        ${i>0?`<div style="font-size:10px;color:${c};margin-top:1px">${d>=0?'+':''}${brl(d)}</div>`:''}
+      </div>`;
+    }).join('');
+  }
+  if(_chartPatrimGeral) _chartPatrimGeral.destroy();
+  const maxV=Math.max(...data), minV=Math.min(...data);
+  const range=maxV-minV||1;
+  _chartPatrimGeral=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[{
+      label:'Saldo acumulado',
+      data,
+      backgroundColor:data.map(v=>{
+        const t=(v-minV)/range;
+        return`rgba(${Math.round(56+t*111)},${Math.round(189-t*59)},${Math.round(248-t*120)},0.75)`;
+      }),
+      borderRadius:4,
+      borderSkipped:false
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'R$ '+c.parsed.y.toLocaleString('pt-BR',{minimumFractionDigits:2})}}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#6e6e76',font:{size:10}}},
+        y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6e6e76',font:{size:10},callback:v=>'R$ '+v.toLocaleString('pt-BR',{maximumFractionDigits:0})},display:true}
+      }
+    }
   });
 }
 
@@ -4567,6 +4675,7 @@ function fillTx(rows){
   const tb=document.getElementById('tblTransactions');
   if(!rows||!rows.length){tb.innerHTML=`<tr><td colspan="5" class="empty">Nenhuma transação.</td></tr>`;return}
   rows.forEach(t=>_txMap[t.id]=t);
+  _populateTxCatFilter(_allTxs||rows);
   tb.innerHTML=rows.slice(0,15).map(t=>{
     const amtCls=t.type==='entrada'?'amt-green':t.type==='investido'?'amt-purple':'amt-red';
     const catLabel=t.type==='investido'?'Investimento':(t.category||'Outros');
@@ -6139,6 +6248,7 @@ async function _doRefresh(){
     _renderPrevList();
     _fillInvCashflow();
     buildPatrimHistChart(monthly, patRow.accounts);
+    buildPatrimGeralChart(monthly, patRow.accounts);
     // CDI caixinha — roda sem esperar cotações FII
     const _caixinha=accounts.find(a=>/(caixinha|rdb)/i.test(a.type||''));
     if(_caixinha&&+(+_caixinha.balance||0)>0) fillCaixinhaMetrics(+_caixinha.balance).catch(()=>{});
