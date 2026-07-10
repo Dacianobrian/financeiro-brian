@@ -93,14 +93,19 @@ input,select,button,textarea{font-family:var(--font);}
 .hero-sub{font-size:12px;color:var(--text3);}
 
 /* ── KPI ROW ── */
-.kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
 .kpi-card{border-radius:16px;padding:18px 16px;position:relative;overflow:hidden;}
 .kpi-card.entrada-card{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);}
 .kpi-card.saida-card{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);}
-.kpi-lbl{font-size:11px;color:var(--text3);margin-bottom:8px;font-weight:500;}
+.kpi-card.patrimonio-card{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);}
+.kpi-card.reserva-card{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);}
+.kpi-lbl{font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:500;}
+.kpi-sub{font-size:10px;color:var(--text3);margin-top:4px;}
 .kpi-val{font-size:22px;font-weight:800;letter-spacing:-.5px;}
 .kpi-val.green{color:var(--green);}
 .kpi-val.red{color:var(--red);}
+.kpi-val.blue{color:var(--blue);}
+.kpi-val.purple{color:var(--purple);}
 .kpi-val.neutral{color:var(--text);}
 
 /* ── SECTIONS ── */
@@ -349,10 +354,14 @@ input,select,button,textarea{font-family:var(--font);}
   }
   #pageHome > .hero-card{grid-column:1 / -1;}
   #pageHome > .kpi-row  {grid-column:1 / -1;}
-  /* Section 3 = categorias → col 1 */
-  /* Section 4 = transações → col 2, spans 2 rows */
-  #pageHome > .section:nth-child(4){grid-column:2;grid-row:3 / 5;}
-  /* Section 5 = próximos → col 1 row 4 */
+  /* child 1=hero, 2=kpi patrimônio/reserva, 3=kpi entradas/saidas, 4=categorias, 5=transações, 6=próximos */
+  #pageHome > .hero-card{grid-column:1 / -1;}
+  #pageHome > .kpi-row:nth-child(2){grid-column:1 / -1;}
+  #pageHome > .kpi-row:nth-child(3){grid-column:1 / -1;}
+  /* Section 4 = categorias → col 1 row 4 */
+  /* Section 5 = transações → col 2, rows 4-5 */
+  #pageHome > .section:nth-child(5){grid-column:2;grid-row:4 / 6;}
+  /* Section 6 = próximos → col 1 row 5 */
 
   /* Parcelas 2 columns */
   #pageParcelas{
@@ -554,9 +563,21 @@ input,select,button,textarea{font-family:var(--font);}
       <!-- ── INÍCIO ── -->
       <div id="pageHome" class="page">
         <div class="hero-card">
-          <div class="hero-lbl">Saldo disponível</div>
+          <div class="hero-lbl">Conta corrente</div>
           <div class="hero-val" id="heroSaldo">—</div>
-          <div class="hero-sub" id="heroSub">Carregando...</div>
+          <div class="hero-sub" id="heroSub"></div>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi-card patrimonio-card">
+            <div class="kpi-lbl">Patrimônio total</div>
+            <div class="kpi-val blue" id="kpiPatrimonio">—</div>
+            <div class="kpi-sub" id="kpiPatrimonioSub"></div>
+          </div>
+          <div class="kpi-card reserva-card">
+            <div class="kpi-lbl">Reserva de emergência</div>
+            <div class="kpi-val purple" id="kpiReserva">—</div>
+            <div class="kpi-sub" id="kpiReservaSub"></div>
+          </div>
         </div>
         <div class="kpi-row">
           <div class="kpi-card entrada-card">
@@ -872,16 +893,34 @@ function autoCategory(desc, tipo){
 
 function fillKpis(accounts, entradas, saidas){
   const corrente = (accounts||[]).filter(a=>a.type==='corrente').reduce((s,a)=>s+(+a.balance||0),0);
-  const caixinha = (accounts||[]).filter(a=>/(caixinha|rdb)/i.test((a.type||'')+(a.name||''))).reduce((s,a)=>s+(+a.balance||0),0);
-  const total = corrente + caixinha;
+  const reserva  = (accounts||[]).filter(a=>/(caixinha|rdb|reserva|emergencia)/i.test((a.type||'')+(a.name||''))).reduce((s,a)=>s+(+a.balance||0),0);
+  const total    = (accounts||[]).reduce((s,a)=>s+(+a.balance||0),0);
 
+  // Hero: apenas conta corrente
   const heroEl = document.getElementById('heroSaldo');
   if(heroEl){
-    heroEl.textContent = brl(total);
-    heroEl.style.color = total < 0 ? 'var(--red)' : 'var(--text)';
+    heroEl.textContent = brl(corrente);
+    heroEl.style.color = corrente < 0 ? 'var(--red)' : 'var(--text)';
   }
   const subEl = document.getElementById('heroSub');
-  if(subEl) subEl.textContent = `Corrente ${brl(corrente)} · Reserva ${brl(caixinha)}`;
+  const correnteAccts = (accounts||[]).filter(a=>a.type==='corrente');
+  if(subEl) subEl.textContent = correnteAccts.map(a=>`${a.bank||a.name} ${brl(+a.balance||0)}`).join(' · ');
+
+  // Patrimônio total
+  const patEl = document.getElementById('kpiPatrimonio');
+  if(patEl) patEl.textContent = brl(total);
+  const patSub = document.getElementById('kpiPatrimonioSub');
+  if(patSub) patSub.textContent = `Corrente + Reserva`;
+
+  // Reserva de emergência
+  const resEl = document.getElementById('kpiReserva');
+  if(resEl) resEl.textContent = brl(reserva);
+  const resSub = document.getElementById('kpiReservaSub');
+  if(resSub){
+    const metaReserva = 60000;
+    const pct = Math.min(100, Math.round(reserva / metaReserva * 100));
+    resSub.textContent = `${pct}% da meta (${brl(metaReserva)})`;
+  }
 
   const entEl = document.getElementById('kpiEntradas');
   if(entEl) entEl.textContent = '+' + brl(entradas);
