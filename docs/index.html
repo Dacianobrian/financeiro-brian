@@ -290,16 +290,92 @@ input,select,button,textarea{font-family:var(--font);}
 .cal-drawer-close{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;}
 
 /* ── RESPONSIVE ── */
+
+/* Mobile: sidebar hidden, bottom nav visible */
 @media (max-width:700px) {
   .sidebar{display:none;}
   .bottom-nav{display:block;}
-  .main-wrap{padding-bottom:60px;}
-  .fab{bottom:68px;}
+  .main-wrap{padding-bottom:0;}
+  .fab{bottom:76px;}
   .page{padding:12px 12px 90px;}
   #toastWrap{bottom:76px;}
+  .hero-val{font-size:36px;}
 }
-@media (min-width:700px) {
-  .fab{bottom:24px;}
+
+/* Tablet + Desktop: sidebar visible, bottom nav hidden */
+@media (min-width:701px) {
+  .bottom-nav{display:none !important;}
+  .fab{bottom:28px;right:28px;}
+
+  /* Wider content */
+  .page{padding:20px 28px 40px;max-width:100%;}
+
+  /* Modal centered, not bottom-sheet */
+  .modal-overlay{align-items:center;}
+  .modal{border-radius:20px;max-height:88vh;overflow-y:auto;}
+  /* Drawers/panels: keep off-screen when closed, center when open */
+  .fab-panel.open{
+    border-radius:20px;bottom:auto;top:50%;left:50%;right:auto;
+    transform:translate(-50%,-50%);width:480px;max-width:calc(100vw - 40px);
+  }
+  .tx-drawer.open{
+    border-radius:20px;bottom:auto;top:50%;left:50%;right:auto;
+    transform:translate(-50%,-50%);width:520px;max-width:calc(100vw - 40px);
+  }
+  .cal-drawer.open{
+    border-radius:20px;bottom:auto;top:50%;left:50%;right:auto;
+    transform:translate(-50%,-50%);width:500px;max-width:calc(100vw - 40px);
+  }
+
+  /* Calendar: 3 months side by side, no horizontal scroll */
+  .cal-wrap{overflow-x:visible;flex-wrap:nowrap;}
+  .cal-month{flex:1 1 0;min-width:0;}
+  .cal-day{min-height:56px;}
+  .cal-v{font-size:9px;}
+
+  #toastWrap{bottom:24px;right:24px;}
+}
+
+/* Desktop wide: 2-column home layout */
+@media (min-width:960px) {
+  .sidebar{width:220px;}
+
+  /* Home 2-column grid */
+  #pageHome{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    align-items:start;
+  }
+  #pageHome > .hero-card{grid-column:1 / -1;}
+  #pageHome > .kpi-row  {grid-column:1 / -1;}
+  /* Section 3 = categorias → col 1 */
+  /* Section 4 = transações → col 2, spans 2 rows */
+  #pageHome > .section:nth-child(4){grid-column:2;grid-row:3 / 5;}
+  /* Section 5 = próximos → col 1 row 4 */
+
+  /* Parcelas 2 columns */
+  #pageParcelas{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    align-items:start;
+  }
+  #pageParcelas .filter-row{grid-column:1 / -1;}
+
+  /* Contas page full width */
+  #pageContas .section{max-width:680px;}
+
+  #pageCal{max-width:none;}
+}
+
+/* Extra large: bigger sidebar + more breathing room */
+@media (min-width:1280px) {
+  .sidebar{width:240px;}
+  .page{padding:24px 36px 48px;}
+  .cal-day{min-height:64px;}
+  .cal-d{font-size:12px;}
+  .cal-v{font-size:10px;}
 }
 </style>
 </head>
