@@ -534,15 +534,12 @@ input,select,button,textarea{font-family:var(--font);}
       <!-- ── CALENDÁRIO ── -->
       <div id="pageCal" class="page" style="display:none">
         <div class="cal-legend">
-          <span style="font-size:10px;color:var(--text3);font-weight:700;margin-right:2px">PASSADO</span>
-          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#14532d"></div>entrada</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(248,113,113,.15)"></div>gasto leve</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(248,113,113,.35)"></div>gasto médio</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#7f1d1d"></div>gasto pesado</div>
-          <span style="font-size:10px;color:var(--text3);font-weight:700;margin-left:8px;margin-right:2px">FUTURO</span>
-          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(74,222,128,.1)"></div>livre</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(251,191,36,.25)"></div>conta chegando</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#7f2d1d"></div>conta grande</div>
+          <span style="font-size:10px;color:var(--text3);font-weight:700;margin-right:2px">SALDO</span>
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#14532d"></div>alto</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#3f6212"></div>médio</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#713f12"></div>baixo</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#991b1b"></div>negativo</div>
+          <span style="font-size:10px;color:var(--text3);margin-left:8px">· cada célula = saldo acumulado</span>
         </div>
         <div class="cal-wrap" id="calWrap"><div class="empty-msg">Carregando...</div></div>
       </div>
@@ -993,50 +990,49 @@ function fillContasFixas(fixedCosts, subscriptions){
 }
 
 // ══ CALENDAR ═════════════════════════════════════════════════════════════════
-function _calStyle(val, isPast){
-  if(isPast){
-    if(val===null||val===0) return {bg:'rgba(255,255,255,.03)',color:'var(--text3)',opacity:.6};
-    if(val>=2000)  return {bg:'#14532d',color:'#86efac'};
-    if(val>=200)   return {bg:'rgba(74,222,128,.18)',color:'#4ade80'};
-    if(val>0)      return {bg:'rgba(74,222,128,.09)',color:'#4ade80'};
-    if(val>=-300)  return {bg:'rgba(248,113,113,.12)',color:'#fca5a5'};
-    if(val>=-1000) return {bg:'rgba(248,113,113,.22)',color:'#f87171'};
-    if(val>=-3000) return {bg:'rgba(248,113,113,.38)',color:'#f87171'};
-    return             {bg:'#7f1d1d',color:'#fca5a5'};
-  } else {
-    if(val===0)    return {bg:'rgba(74,222,128,.07)',color:'var(--text3)',opacity:.5};
-    if(val>=-300)  return {bg:'rgba(251,191,36,.12)',color:'#fbbf24'};
-    if(val>=-1000) return {bg:'rgba(251,191,36,.25)',color:'#fbbf24'};
-    if(val>=-3000) return {bg:'rgba(248,113,113,.28)',color:'#f87171'};
-    return             {bg:'#7f2d1d',color:'#fca5a5'};
-  }
+// Color based on RUNNING SALDO — gradient green→yellow→red like spreadsheet
+function _saldoStyle(saldo, peak){
+  if(saldo === null) return {bg:'rgba(255,255,255,.03)', color:'var(--text3)', op:.4};
+  const pct = peak > 0 ? saldo / peak : 0;
+  if(saldo < 0)   return {bg:'#7f1d1d',             color:'#fca5a5'};
+  if(pct > 0.85)  return {bg:'#14532d',             color:'#86efac'};
+  if(pct > 0.70)  return {bg:'#166534',             color:'#86efac'};
+  if(pct > 0.55)  return {bg:'#15803d',             color:'#bbf7d0'};
+  if(pct > 0.40)  return {bg:'#3f6212',             color:'#d9f99d'};
+  if(pct > 0.28)  return {bg:'#713f12',             color:'#fef08a'};
+  if(pct > 0.16)  return {bg:'#92400e',             color:'#fde68a'};
+  if(pct > 0.06)  return {bg:'#7c2d12',             color:'#fed7aa'};
+  return               {bg:'#991b1b',             color:'#fca5a5'};
 }
 
 function _fmtK(v){
   const a=Math.abs(v);
-  if(a>=1000) return (v>0?'+':'-')+(a/1000).toFixed(1).replace('.0','')+'k';
-  return (v>0?'+':'')+Math.round(v);
+  if(a>=1000) return (v>=0?'+':'-')+(a/1000).toFixed(1).replace('.0','')+'k';
+  return (v>=0?'+':'')+Math.round(v);
 }
 
 // Store cal data for drawer
 let _calTxByDate={}, _calFixedByDay={}, _calInstItems=[];
 
-function fillCalendario(txs, fixedCosts, installments){
+function fillCalendario(txs, fixedCosts, installments, accounts){
   const el=document.getElementById('calWrap');
   if(!el) return;
   const todayStr=new Date().toISOString().slice(0,10);
 
-  // Group txs by date → net + list
+  // --- Group txs by date ---
   _calTxByDate={};
+  const txNetByDate={};
   (txs||[]).forEach(t=>{
     if(!t.date) return;
     if(!_calTxByDate[t.date]) _calTxByDate[t.date]={net:0,items:[]};
     const sign = t.type==='entrada'?1:-1;
-    _calTxByDate[t.date].net += sign*(+t.amount||0);
+    const amt = sign*(+t.amount||0);
+    _calTxByDate[t.date].net += amt;
     _calTxByDate[t.date].items.push(t);
+    txNetByDate[t.date]=(txNetByDate[t.date]||0)+amt;
   });
 
-  // Fixed costs by day
+  // --- Fixed costs by day ---
   _calFixedByDay={};
   (fixedCosts||[]).forEach(c=>{
     if(!c.due_day) return;
@@ -1045,19 +1041,58 @@ function fillCalendario(txs, fixedCosts, installments){
     _calFixedByDay[d].total -= (+c.amount||0);
     _calFixedByDay[d].items.push(c);
   });
-  // Installments on day 10
-  _calInstItems = (installments||[]).filter(i=>i.active && +i.current_installment < +i.total_installments);
-  const instTotal = _calInstItems.reduce((s,i)=>s+(+i.installment_amount||0),0);
+  _calInstItems=(installments||[]).filter(i=>i.active && +i.current_installment < +i.total_installments);
+  const instTotal=_calInstItems.reduce((s,i)=>s+(+i.installment_amount||0),0);
   if(instTotal>0){
     if(!_calFixedByDay[10]) _calFixedByDay[10]={total:0,items:[]};
-    _calFixedByDay[10].total -= instTotal;
+    _calFixedByDay[10].total-=instTotal;
     _calFixedByDay[10].items.push({description:'Parcelas (cartão)',amount:instTotal,_isParcelas:true});
   }
 
-  function prevM(y,m){ return m===1?{y:y-1,m:12}:{y,m:m-1}; }
-  function nextM(y,m){ return m===12?{y:y+1,m:1}:{y,m:m+1}; }
-  const pm=prevM(_curYear,_curMonth), nm=nextM(_curYear,_curMonth);
-  const months=[pm,{y:_curYear,m:_curMonth},nm];
+  // --- Compute running saldo ---
+  // Current real balance
+  const curBal=(accounts||[]).reduce((s,a)=>s+(+a.balance||0),0);
+
+  // Month start balance = curBal reversed by all current-month txs
+  const monthNet=(txs||[]).reduce((s,t)=>{
+    return s + (t.type==='entrada'?1:-1)*(+t.amount||0);
+  },0);
+  const monthStart = curBal - monthNet;
+
+  // Build saldo for every PAST day of current month
+  const saldoByDate={};
+  const daysInCurMonth=new Date(_curYear,_curMonth,0).getDate();
+  let run=monthStart;
+  for(let d=1;d<=daysInCurMonth;d++){
+    const ds=`${_curYear}-${String(_curMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    if(ds>todayStr) break;
+    run += (txNetByDate[ds]||0);
+    saldoByDate[ds]=run;
+  }
+
+  // Build PROJECTED saldo for future days (next 2 months from today)
+  const projSaldo={};
+  let projRun=curBal;
+  function nextM(y,m){return m===12?{y:y+1,m:1}:{y,m:m+1};}
+  const nm=nextM(_curYear,_curMonth);
+  [[_curYear,_curMonth],[nm.y,nm.m]].forEach(([y,m])=>{
+    const dim=new Date(y,m,0).getDate();
+    for(let d=1;d<=dim;d++){
+      const ds=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      if(ds<=todayStr) continue;
+      projRun += (_calFixedByDay[d]?.total||0);
+      projSaldo[ds]=projRun;
+    }
+  });
+
+  // Peak = max saldo across all days (for color normalization)
+  const allSaldos=[...Object.values(saldoByDate),...Object.values(projSaldo)].filter(v=>v!==null);
+  const peak=allSaldos.length ? Math.max(...allSaldos) : curBal||1;
+
+  // --- Render ---
+  function prevM2(y,m){return m===1?{y:y-1,m:12}:{y,m:m-1};}
+  const pm=prevM2(_curYear,_curMonth);
+  const months=[pm,{y:_curYear,m:_curMonth},{y:nm.y,m:nm.m}];
   const DOWS=['D','S','T','Q','Q','S','S'];
 
   el.innerHTML=months.map(({y,m})=>{
@@ -1071,21 +1106,20 @@ function fillCalendario(txs, fixedCosts, installments){
     for(let d=1;d<=daysInMonth;d++){
       const ds=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       const isPast=ds<todayStr, isToday=ds===todayStr;
-      let val=null, valStr='';
+      let saldo=null, valStr='';
 
       if(isPast||isToday){
-        const data=_calTxByDate[ds];
-        val=data?data.net:null;
-        if(val!==null&&val!==0) valStr=_fmtK(val);
+        saldo = saldoByDate[ds]??null;
+        if(saldo!==null) valStr=_fmtK(saldo);
       } else {
-        val=_calFixedByDay[d]?.total||0;
-        if(val!==0) valStr=_fmtK(val);
+        saldo = projSaldo[ds]??null;
+        if(saldo!==null) valStr=_fmtK(saldo);
       }
 
-      const st=_calStyle(val,isPast||isToday);
-      const op=st.opacity?`opacity:${st.opacity};`:'';
+      const st=_saldoStyle(saldo, peak);
+      const opStr=st.op?`opacity:${st.op};`:'';
       const todayCls=isToday?' today':'';
-      cells+=`<div class="cal-day${todayCls}" style="background:${st.bg};color:${st.color};${op}"
+      cells+=`<div class="cal-day${todayCls}" style="background:${st.bg};color:${st.color};${opStr}"
         onclick="openCalDay('${ds}',${isPast||isToday})">
         <span class="cal-d">${d}</span>
         ${valStr?`<span class="cal-v">${valStr}</span>`:''}
