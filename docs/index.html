@@ -169,6 +169,10 @@ input,select,button,textarea{font-family:var(--font);}
 .due-badge.warn{background:rgba(251,191,36,.12);color:var(--amber);}
 .due-badge.ok{background:rgba(74,222,128,.1);color:var(--green);}
 /* check button */
+.icon-btn{width:22px;height:22px;border-radius:6px;border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text3);font-size:13px;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0;padding:0;line-height:1;}
+.icon-btn:hover{background:var(--surface3);color:var(--text);}
+.edit-btn{opacity:0;font-size:11px;}
+.conta-row:hover .edit-btn{opacity:1;}
 .chk-btn{width:24px;height:24px;border-radius:50%;border:2px solid var(--border2);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;transition:.15s;color:transparent;}
 .chk-btn:hover{border-color:var(--green);background:rgba(74,222,128,.1);}
 .chk-btn.paid{background:var(--green);border-color:var(--green);color:#0f0f12;}
@@ -657,14 +661,20 @@ input,select,button,textarea{font-family:var(--font);}
         <div class="section">
           <div class="section-hdr">
             <span class="section-lbl">Receitas Previstas</span>
-            <span id="receitasSummary" style="font-size:11px;color:var(--text3)"></span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span id="receitasSummary" style="font-size:11px;color:var(--text3)"></span>
+              <button class="icon-btn" onclick="addPlannedEntry()" title="Adicionar receita">＋</button>
+            </div>
           </div>
           <div id="receitasList"><div class="empty-msg">Carregando...</div></div>
         </div>
         <div class="section" style="margin-top:12px">
           <div class="section-hdr">
             <span class="section-lbl">Contas Fixas</span>
-            <span id="contasSummary" style="font-size:11px;color:var(--text3)"></span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span id="contasSummary" style="font-size:11px;color:var(--text3)"></span>
+              <button class="icon-btn" onclick="addFixedCost()" title="Adicionar conta fixa">＋</button>
+            </div>
           </div>
           <div id="contasFixasList"></div>
         </div>
@@ -1121,6 +1131,7 @@ function fillContasFixas(fixedCosts, subscriptions, txs){
           <div class="conta-desc">${c.description}${!isPaidItem?`<span class="due-badge ${badgeClass}">${badgeText}</span>`:''}</div>
           <div class="conta-cat">${c.category||''} · ${c.account||''}</div>
         </div>
+        <button class="icon-btn edit-btn" onclick="editFixedCost(${c.id})" title="Editar">✏</button>
         <div class="conta-val" style="color:${isPaidItem?'var(--text3)':'var(--red)'}">${brl(c.amount)}</div>
       </div>`;
     }).join('') || '<div class="empty-msg">Sem contas fixas</div>');
@@ -1176,6 +1187,7 @@ function fillPlannedEntradas(entries, txs){
         <div class="conta-desc">${e.description}${!isConf?`<span class="due-badge ${late?'urgent':'ok'}">${late?'Atrasado':dueD}</span>`:''}</div>
         <div class="conta-cat">${e.category||''} · ${e.account||''}</div>
       </div>
+      <button class="icon-btn edit-btn" onclick="editPlannedEntry(${e.id})" title="Editar">✏</button>
       <div class="conta-val" style="color:${isConf?'var(--text3)':'var(--green)'}">${brl(e.amount)}</div>
     </div>`;
   }).join('');
@@ -1241,7 +1253,26 @@ async function confirmPlannedEntry(id){
           method:'PATCH', headers:{...HDR,'Prefer':'return=minimal'},
           body: JSON.stringify({confirmed:true, confirmed_at: new Date().toISOString()})
         });
-        toast(`${entry.description} confirmado!`,'ok');
+        // Auto-cria mesma receita para o próximo mês
+        const baseDate = new Date((entry.due_date||date)+'T12:00:00');
+        baseDate.setMonth(baseDate.getMonth()+1);
+        const nextDue = baseDate.toISOString().slice(0,10);
+        // Só cria se não existe já para aquele mês
+        const ym = nextDue.slice(0,7);
+        const alreadyExists = (_plannedEntries||[]).some(p=>
+          !p.confirmed && p.type==='entrada' &&
+          (p.due_date||'').startsWith(ym) &&
+          (p.description||'').toLowerCase()===( entry.description||'').toLowerCase()
+        );
+        if(!alreadyExists){
+          await sbPost('planned_entries',{
+            description: entry.description, amount,
+            due_date: nextDue, type:'entrada',
+            category: entry.category||'Receita',
+            account: entry.account||'', confirmed:false
+          }).catch(()=>{});
+        }
+        toast(`${entry.description} confirmado! Próximo mês agendado.`,'ok');
         refreshDashboard(true);
       }catch(e){ toast('Erro ao salvar','err'); }
     }
@@ -1290,6 +1321,68 @@ function closeDialog(){
   overlay.classList.remove('open');
   overlay.style.display='none';
   overlay.querySelectorAll('.dialog-dyn-field').forEach(f=>f.remove());
+}
+
+// ══ ADD / EDIT — Contas Fixas & Receitas ═════════════════════════════════════
+function _fcFields(c){
+  return [
+    {label:'Descrição',      id:'fcDesc',    type:'text',   val:c.description||''},
+    {label:'Valor (R$)',     id:'fcAmount',  type:'number', val:c.amount?(+c.amount).toFixed(2):''},
+    {label:'Dia vencimento', id:'fcDay',     type:'number', val:c.due_day||''},
+    {label:'Categoria',      id:'fcCat',     type:'text',   val:c.category||'Contas'},
+    {label:'Conta',          id:'fcAccount', type:'text',   val:c.account||'Nubank'},
+  ];
+}
+function _peFields(e){
+  return [
+    {label:'Descrição',    id:'peDesc',    type:'text',   val:e.description||''},
+    {label:'Valor (R$)',   id:'peAmount',  type:'number', val:e.amount?(+e.amount).toFixed(2):''},
+    {label:'Data prevista',id:'peDate',    type:'date',   val:e.due_date||''},
+    {label:'Categoria',    id:'peCat',     type:'text',   val:e.category||'Salário'},
+    {label:'Conta',        id:'peAccount', type:'text',   val:e.account||'Nubank'},
+  ];
+}
+
+function addFixedCost(){
+  showDialog('Nova Conta Fixa','',_fcFields({}), async (v)=>{
+    if(!v.fcDesc||!v.fcAmount){toast('Preencha descrição e valor','err');return;}
+    try{
+      await sbPost('fixed_costs',{description:v.fcDesc,amount:parseFloat(v.fcAmount),due_day:parseInt(v.fcDay)||1,category:v.fcCat,account:v.fcAccount});
+      toast('Conta fixa adicionada!','ok'); refreshDashboard(true);
+    }catch(e){toast('Erro ao salvar','err');}
+  });
+}
+function editFixedCost(id){
+  const c=(_fixedCosts||[]).find(x=>x.id===id); if(!c) return;
+  showDialog('Editar Conta Fixa',c.description,_fcFields(c), async (v)=>{
+    try{
+      await fetch(`${REST}/fixed_costs?id=eq.${id}`,{method:'PATCH',headers:{...HDR,'Prefer':'return=minimal'},
+        body:JSON.stringify({description:v.fcDesc,amount:parseFloat(v.fcAmount),due_day:parseInt(v.fcDay)||1,category:v.fcCat,account:v.fcAccount})});
+      toast('Conta fixa atualizada!','ok'); refreshDashboard(true);
+    }catch(e){toast('Erro ao salvar','err');}
+  });
+}
+
+function addPlannedEntry(){
+  const d=new Date(); d.setMonth(d.getMonth()+1);
+  const defDate=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  showDialog('Nova Receita Prevista','',_peFields({due_date:defDate}), async (v)=>{
+    if(!v.peDesc||!v.peAmount){toast('Preencha descrição e valor','err');return;}
+    try{
+      await sbPost('planned_entries',{description:v.peDesc,amount:parseFloat(v.peAmount),due_date:v.peDate,type:'entrada',category:v.peCat,account:v.peAccount,confirmed:false});
+      toast('Receita adicionada!','ok'); refreshDashboard(true);
+    }catch(e){toast('Erro ao salvar','err');}
+  });
+}
+function editPlannedEntry(id){
+  const e=(_plannedEntries||[]).find(x=>x.id===id); if(!e) return;
+  showDialog('Editar Receita',e.description,_peFields(e), async (v)=>{
+    try{
+      await fetch(`${REST}/planned_entries?id=eq.${id}`,{method:'PATCH',headers:{...HDR,'Prefer':'return=minimal'},
+        body:JSON.stringify({description:v.peDesc,amount:parseFloat(v.peAmount),due_date:v.peDate,category:v.peCat,account:v.peAccount})});
+      toast('Receita atualizada!','ok'); refreshDashboard(true);
+    }catch(e){toast('Erro ao salvar','err');}
+  });
 }
 
 // ══ CALENDAR ═════════════════════════════════════════════════════════════════
