@@ -158,7 +158,7 @@ input,select,button,textarea{font-family:var(--font);}
 .parcela-footer{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);}
 
 /* ── CONTAS ── */
-.conta-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);}
+.conta-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
 .conta-row:last-child{border-bottom:none;}
 .conta-info{flex:1;min-width:0;}
 .conta-desc{font-size:13px;font-weight:500;}
@@ -168,6 +168,17 @@ input,select,button,textarea{font-family:var(--font);}
 .due-badge.urgent{background:rgba(248,113,113,.15);color:var(--red);}
 .due-badge.warn{background:rgba(251,191,36,.12);color:var(--amber);}
 .due-badge.ok{background:rgba(74,222,128,.1);color:var(--green);}
+/* check button */
+.chk-btn{width:24px;height:24px;border-radius:50%;border:2px solid var(--border2);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;transition:.15s;color:transparent;}
+.chk-btn:hover{border-color:var(--green);background:rgba(74,222,128,.1);}
+.chk-btn.paid{background:var(--green);border-color:var(--green);color:#0f0f12;}
+.chk-btn.recv{background:var(--blue);border-color:var(--blue);color:#0f0f12;}
+.conta-row.is-paid .conta-desc,.conta-row.is-paid .conta-val{opacity:.45;text-decoration:line-through;}
+.conta-row.is-paid .conta-cat{opacity:.35;}
+.conta-row.is-paid .chk-btn{cursor:default;}
+.section-summary{display:flex;justify-content:space-between;align-items:center;padding:8px 0 10px;border-bottom:1px solid var(--border);margin-bottom:4px;}
+.summary-left{font-size:11px;color:var(--text3);}
+.summary-right{font-size:13px;font-weight:700;}
 
 /* ── UPCOMING ── */
 .upcoming-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);}
@@ -645,7 +656,15 @@ input,select,button,textarea{font-family:var(--font);}
       <div id="pageContas" class="page" style="display:none">
         <div class="section">
           <div class="section-hdr">
+            <span class="section-lbl">Receitas Previstas</span>
+            <span id="receitasSummary" style="font-size:11px;color:var(--text3)"></span>
+          </div>
+          <div id="receitasList"><div class="empty-msg">Carregando...</div></div>
+        </div>
+        <div class="section" style="margin-top:12px">
+          <div class="section-hdr">
             <span class="section-lbl">Contas Fixas</span>
+            <span id="contasSummary" style="font-size:11px;color:var(--text3)"></span>
           </div>
           <div id="contasFixasList"></div>
         </div>
@@ -690,6 +709,7 @@ let _accounts  = [];
 let _fixedCosts = [];
 let _installments = [];
 let _subscriptions = [];
+let _plannedEntries = [];
 let _activeTab = 'home';
 let _refreshTimer = null;
 let _lastRefreshTs = 0;
@@ -1056,41 +1076,62 @@ function fillParcelas(installments){
   }).join('');
 }
 
-function fillContasFixas(fixedCosts, subscriptions){
+// Detecta contas fixas já pagas no mês atual (match por descrição + categoria)
+function _paidSet(txs){
+  const s = new Set();
+  (txs||[]).filter(t=>t.type==='saida').forEach(t=>{
+    s.add((t.description||'').toLowerCase().trim());
+  });
+  return s;
+}
+
+function _isPaid(cost, paid){
+  return paid.has((cost.description||'').toLowerCase().trim());
+}
+
+function fillContasFixas(fixedCosts, subscriptions, txs){
   const contasEl = document.getElementById('contasFixasList');
   const subsEl   = document.getElementById('subscriptionsList');
-
-  const today = new Date().getDate();
+  const sumEl    = document.getElementById('contasSummary');
+  const today    = new Date().getDate();
+  const paid     = _paidSet(txs);
 
   if(contasEl){
     const sorted = (fixedCosts||[]).sort((a,b)=>(+a.due_day||99)-(+b.due_day||99));
-    const totalFC = sorted.reduce((s,c)=>s+(+c.amount||0),0);
-    const header = `<div style="display:flex;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
-      <span style="font-size:11px;color:var(--text3)">${sorted.length} contas</span>
-      <span style="font-size:13px;font-weight:700;">${brl(totalFC)}/mês</span>
-    </div>`;
-    contasEl.innerHTML = header + (sorted.map(c=>{
-      const daysLeft = +c.due_day - today;
-      let badgeClass = 'ok', badgeText = `dia ${c.due_day}`;
-      if(daysLeft < 0){ badgeClass='ok'; badgeText=`dia ${c.due_day}`; }
-      else if(daysLeft <= 2){ badgeClass='urgent'; badgeText='Urgente!'; }
-      else if(daysLeft <= 7){ badgeClass='warn'; badgeText=`${daysLeft}d`; }
-      return `<div class="conta-row">
+    const totalFC  = sorted.reduce((s,c)=>s+(+c.amount||0),0);
+    const paidFC   = sorted.filter(c=>_isPaid(c,paid)).reduce((s,c)=>s+(+c.amount||0),0);
+    const pendente = totalFC - paidFC;
+    const pagasCount = sorted.filter(c=>_isPaid(c,paid)).length;
+
+    if(sumEl) sumEl.textContent = `${pagasCount}/${sorted.length} pagas · ${brl(pendente)} pendente`;
+
+    contasEl.innerHTML = (sorted.map(c=>{
+      const isPaidItem = _isPaid(c, paid);
+      const daysLeft   = +c.due_day - today;
+      let badgeClass='ok', badgeText=`dia ${c.due_day}`;
+      if(!isPaidItem){
+        if(daysLeft===0)       { badgeClass='urgent'; badgeText='Hoje!'; }
+        else if(daysLeft<0)    { badgeClass='urgent'; badgeText='Atrasado!'; }
+        else if(daysLeft<=2)   { badgeClass='urgent'; badgeText=`${daysLeft}d`; }
+        else if(daysLeft<=7)   { badgeClass='warn';   badgeText=`${daysLeft}d`; }
+      }
+      return `<div class="conta-row${isPaidItem?' is-paid':''}">
+        <button class="chk-btn${isPaidItem?' paid':''}" onclick="${isPaidItem?'':'confirmFixedCost('+c.id+')'}" title="${isPaidItem?'Pago':'Confirmar pagamento'}">✓</button>
         <div class="conta-info">
-          <div class="conta-desc">${c.description}<span class="due-badge ${badgeClass}">${badgeText}</span></div>
+          <div class="conta-desc">${c.description}${!isPaidItem?`<span class="due-badge ${badgeClass}">${badgeText}</span>`:''}</div>
           <div class="conta-cat">${c.category||''} · ${c.account||''}</div>
         </div>
-        <div class="conta-val">${brl(c.amount)}</div>
+        <div class="conta-val" style="color:${isPaidItem?'var(--text3)':'var(--red)'}">${brl(c.amount)}</div>
       </div>`;
     }).join('') || '<div class="empty-msg">Sem contas fixas</div>');
   }
 
   if(subsEl){
     const activeSubs = (subscriptions||[]).filter(s=>s.active!==false);
-    const totalSubs = activeSubs.reduce((s,sub)=>s+(+sub.amount||0),0);
-    const header = `<div style="display:flex;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
-      <span style="font-size:11px;color:var(--text3)">${activeSubs.length} assinaturas</span>
-      <span style="font-size:13px;font-weight:700;">${brl(totalSubs)}/mês</span>
+    const totalSubs  = activeSubs.reduce((s,sub)=>s+(+sub.amount||0),0);
+    const header = `<div class="section-summary">
+      <span class="summary-left">${activeSubs.length} assinaturas</span>
+      <span class="summary-right">${brl(totalSubs)}/mês</span>
     </div>`;
     subsEl.innerHTML = header + (activeSubs.sort((a,b)=>(+a.billing_day||99)-(+b.billing_day||99)).map(s=>{
       return `<div class="conta-row">
@@ -1102,6 +1143,153 @@ function fillContasFixas(fixedCosts, subscriptions){
       </div>`;
     }).join('') || '<div class="empty-msg">Sem assinaturas</div>');
   }
+}
+
+function fillPlannedEntradas(entries, txs){
+  const el = document.getElementById('receitasList');
+  const sumEl = document.getElementById('receitasSummary');
+  if(!el) return;
+
+  const ym = `${_curYear}-${String(_curMonth).padStart(2,'0')}`;
+  // Show entries for current month (both confirmed and pending)
+  const monthEntries = (entries||[]).filter(e=>e.type==='entrada' && (e.due_date||'').startsWith(ym));
+
+  if(!monthEntries.length){
+    el.innerHTML = '<div class="empty-msg">Sem receitas previstas. Adicione em "Novo" → Entrada com data futura.</div>';
+    if(sumEl) sumEl.textContent = '';
+    return;
+  }
+
+  const total    = monthEntries.reduce((s,e)=>s+(+e.amount||0),0);
+  const confirmed= monthEntries.filter(e=>e.confirmed).reduce((s,e)=>s+(+e.amount||0),0);
+  const confCount= monthEntries.filter(e=>e.confirmed).length;
+  if(sumEl) sumEl.textContent = `${confCount}/${monthEntries.length} recebidas · ${brl(confirmed)} confirmado`;
+
+  el.innerHTML = monthEntries.sort((a,b)=>a.due_date>b.due_date?1:-1).map(e=>{
+    const isConf = !!e.confirmed;
+    const dueD   = e.due_date ? new Date(e.due_date+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : '—';
+    const today  = new Date().toISOString().slice(0,10);
+    const late   = !isConf && e.due_date < today;
+    return `<div class="conta-row${isConf?' is-paid':''}">
+      <button class="chk-btn${isConf?' recv':''}" onclick="${isConf?'':'confirmPlannedEntry('+e.id+')'}" title="${isConf?'Recebido':'Confirmar recebimento'}">✓</button>
+      <div class="conta-info">
+        <div class="conta-desc">${e.description}${!isConf?`<span class="due-badge ${late?'urgent':'ok'}">${late?'Atrasado':dueD}</span>`:''}</div>
+        <div class="conta-cat">${e.category||''} · ${e.account||''}</div>
+      </div>
+      <div class="conta-val" style="color:${isConf?'var(--text3)':'var(--green)'}">${brl(e.amount)}</div>
+    </div>`;
+  }).join('');
+}
+
+async function confirmFixedCost(id){
+  const cost = (_fixedCosts||[]).find(c=>c.id===id);
+  if(!cost) return;
+
+  const today = new Date();
+  const dueDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(cost.due_day||today.getDate()).padStart(2,'0')}`;
+
+  showDialog(
+    `Confirmar pagamento`,
+    `${cost.description}`,
+    [
+      {label:'Valor (R$)', id:'confirmVal', type:'number', val:(+cost.amount||0).toFixed(2)},
+      {label:'Data', id:'confirmDate', type:'date', val:dueDate},
+    ],
+    async (vals)=>{
+      const amount = parseFloat(vals.confirmVal)||0;
+      const date   = vals.confirmDate || dueDate;
+      if(!amount){ toast('Valor inválido','err'); return; }
+      try{
+        await sbPost('transactions', {
+          description: cost.description,
+          amount, date, type:'saida',
+          category: cost.category||'Contas',
+          account: cost.account||'',
+        });
+        toast(`${cost.description} pago!`,'ok');
+        refreshDashboard(true);
+      }catch(e){ toast('Erro ao salvar','err'); }
+    }
+  );
+}
+
+async function confirmPlannedEntry(id){
+  const entry = (_plannedEntries||[]).find(e=>e.id===id);
+  if(!entry) return;
+
+  showDialog(
+    `Confirmar recebimento`,
+    `${entry.description}`,
+    [
+      {label:'Valor (R$)', id:'confirmVal', type:'number', val:(+entry.amount||0).toFixed(2)},
+      {label:'Data', id:'confirmDate', type:'date', val:entry.due_date||new Date().toISOString().slice(0,10)},
+    ],
+    async (vals)=>{
+      const amount = parseFloat(vals.confirmVal)||0;
+      const date   = vals.confirmDate || entry.due_date;
+      if(!amount){ toast('Valor inválido','err'); return; }
+      try{
+        // Cria transação real
+        await sbPost('transactions', {
+          description: entry.description,
+          amount, date, type:'entrada',
+          category: entry.category||'Receita',
+          account: entry.account||'',
+        });
+        // Marca como confirmada
+        await fetch(`${REST}/planned_entries?id=eq.${id}`, {
+          method:'PATCH', headers:{...HDR,'Prefer':'return=minimal'},
+          body: JSON.stringify({confirmed:true, confirmed_at: new Date().toISOString()})
+        });
+        toast(`${entry.description} confirmado!`,'ok');
+        refreshDashboard(true);
+      }catch(e){ toast('Erro ao salvar','err'); }
+    }
+  );
+}
+
+// Dialog genérico com múltiplos campos
+function showDialog(title, subtitle, fields, onConfirm){
+  const overlay = document.getElementById('dialogOverlay');
+  document.getElementById('dialogMsg').textContent = title;
+  document.getElementById('dialogSub').textContent = subtitle;
+
+  // Build fields dynamically
+  const existingFields = overlay.querySelectorAll('.dialog-dyn-field');
+  existingFields.forEach(f=>f.remove());
+  const btns = document.getElementById('dialogBtns');
+
+  fields.forEach(f=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'dialog-dyn-field';
+    wrap.style.cssText = 'margin-bottom:10px;';
+    wrap.innerHTML = `<label style="display:block;font-size:11px;color:var(--text3);margin-bottom:4px;font-weight:500">${f.label}</label>
+      <input id="${f.id}" type="${f.type||'text'}" value="${f.val||''}" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:8px 11px;outline:none;" />`;
+    btns.insertAdjacentElement('beforebegin', wrap);
+  });
+
+  btns.innerHTML = `<button class="btn btn-ghost" onclick="closeDialog()">Cancelar</button>
+    <button class="btn btn-green" onclick="_dialogConfirm()">Confirmar ✓</button>`;
+
+  window._dialogConfirm = ()=>{
+    const vals = {};
+    fields.forEach(f=>{ vals[f.id] = document.getElementById(f.id)?.value; });
+    closeDialog();
+    onConfirm(vals);
+  };
+
+  const inp = document.getElementById('dialogInput');
+  if(inp) inp.style.display='none';
+  overlay.classList.add('open');
+  overlay.style.display='flex';
+  setTimeout(()=>{ document.getElementById(fields[0]?.id)?.focus(); }, 50);
+}
+
+function closeDialog(){
+  const overlay = document.getElementById('dialogOverlay');
+  overlay.classList.remove('open');
+  overlay.style.display='none';
+  overlay.querySelectorAll('.dialog-dyn-field').forEach(f=>f.remove());
 }
 
 // ══ CALENDAR ═════════════════════════════════════════════════════════════════
@@ -1129,7 +1317,7 @@ function _fmtK(v){
 // Store cal data for drawer
 let _calTxByDate={}, _calFixedByDay={}, _calInstItems=[];
 
-function fillCalendario(txs, fixedCosts, installments, accounts){
+function fillCalendario(txs, fixedCosts, installments, accounts, plannedEntries){
   const el=document.getElementById('calWrap');
   if(!el) return;
   const todayStr=new Date().toISOString().slice(0,10);
@@ -1147,7 +1335,10 @@ function fillCalendario(txs, fixedCosts, installments, accounts){
     txNetByDate[t.date]=(txNetByDate[t.date]||0)+amt;
   });
 
-  // --- Fixed costs by day ---
+  // --- Paid fixed costs this month (by description match) ---
+  const paidDescs = _paidSet(txs);
+
+  // --- Fixed costs by day (all months) ---
   _calFixedByDay={};
   (fixedCosts||[]).forEach(c=>{
     if(!c.due_day) return;
@@ -1164,17 +1355,21 @@ function fillCalendario(txs, fixedCosts, installments, accounts){
     _calFixedByDay[10].items.push({description:'Parcelas (cartão)',amount:instTotal,_isParcelas:true});
   }
 
-  // --- Compute running saldo ---
-  // Current real balance
-  const curBal=(accounts||[]).reduce((s,a)=>s+(+a.balance||0),0);
+  // --- Planned entries by specific date (unconfirmed only) ---
+  const plannedByDate={};
+  (plannedEntries||[]).filter(e=>!e.confirmed && e.due_date > todayStr).forEach(e=>{
+    if(!plannedByDate[e.due_date]) plannedByDate[e.due_date]={total:0,items:[]};
+    const sign = e.type==='entrada' ? 1 : -1;
+    plannedByDate[e.due_date].total += sign*(+e.amount||0);
+    plannedByDate[e.due_date].items.push(e);
+  });
 
-  // Month start balance = curBal reversed by all current-month txs
-  const monthNet=(txs||[]).reduce((s,t)=>{
-    return s + (t.type==='entrada'?1:-1)*(+t.amount||0);
-  },0);
+  // --- Compute running saldo ---
+  const curBal=(accounts||[]).reduce((s,a)=>s+(+a.balance||0),0);
+  const monthNet=(txs||[]).reduce((s,t)=>s+(t.type==='entrada'?1:-1)*(+t.amount||0),0);
   const monthStart = curBal - monthNet;
 
-  // Build saldo for every PAST day of current month
+  // Past days saldo (actual transactions)
   const saldoByDate={};
   const daysInCurMonth=new Date(_curYear,_curMonth,0).getDate();
   let run=monthStart;
@@ -1185,17 +1380,30 @@ function fillCalendario(txs, fixedCosts, installments, accounts){
     saldoByDate[ds]=run;
   }
 
-  // Build PROJECTED saldo for future days (next 2 months from today)
+  // Future projected saldo:
+  // - Fixed costs by day, EXCEPT those already paid in current month
+  // - Plus unconfirmed planned entries on their specific dates
   const projSaldo={};
   let projRun=curBal;
   function nextM(y,m){return m===12?{y:y+1,m:1}:{y,m:m+1};}
   const nm=nextM(_curYear,_curMonth);
   [[_curYear,_curMonth],[nm.y,nm.m]].forEach(([y,m])=>{
     const dim=new Date(y,m,0).getDate();
+    const isCurM=(y===_curYear && m===_curMonth);
     for(let d=1;d<=dim;d++){
       const ds=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       if(ds<=todayStr) continue;
-      projRun += (_calFixedByDay[d]?.total||0);
+      // Fixed costs for this day (skip paid ones in current month)
+      let dayDelta = 0;
+      if(_calFixedByDay[d]){
+        _calFixedByDay[d].items.forEach(c=>{
+          const skip = isCurM && !c._isParcelas && paidDescs.has((c.description||'').toLowerCase().trim());
+          if(!skip) dayDelta -= (+c.amount||0);
+        });
+      }
+      // Planned entries for this specific date
+      dayDelta += (plannedByDate[ds]?.total||0);
+      projRun += dayDelta;
       projSaldo[ds]=projRun;
     }
   });
@@ -1317,23 +1525,30 @@ async function _doRefresh(){
     const dateFrom = `${ym}-01`;
     const dateTo   = `${ym}-${String(lastDayNum).padStart(2,'0')}`;
 
-    const [txsRaw, accounts, fixedCosts, installments, subscriptions] = await Promise.all([
-      sbGet('transactions', {select:'*', order:'date.desc,id.desc', date:`gte.${dateFrom}`, limit:500}),
-      sbGet('accounts',     {select:'*', order:'bank.asc,type.asc'}),
-      sbGet('fixed_costs',  {select:'*', order:'due_day.asc.nullslast,id.asc'}),
-      sbGet('installments', {select:'*', active:'eq.true', order:'installment_amount.desc'}),
-      sbGet('subscriptions',{select:'*', active:'eq.true', order:'billing_day.asc.nullslast,name.asc'}),
+    // Fetch planned entries for current + next 2 months
+    const nm1 = _curMonth===12?{y:_curYear+1,m:1}:{y:_curYear,m:_curMonth+1};
+    const nm2 = nm1.m===12?{y:nm1.y+1,m:1}:{y:nm1.y,m:nm1.m+1};
+    const planTo = `${nm2.y}-${String(nm2.m).padStart(2,'0')}-28`;
+
+    const [txsRaw, accounts, fixedCosts, installments, subscriptions, plannedEntries] = await Promise.all([
+      sbGet('transactions',    {select:'*', order:'date.desc,id.desc', date:`gte.${dateFrom}`, limit:500}),
+      sbGet('accounts',        {select:'*', order:'bank.asc,type.asc'}),
+      sbGet('fixed_costs',     {select:'*', order:'due_day.asc.nullslast,id.asc'}),
+      sbGet('installments',    {select:'*', active:'eq.true', order:'installment_amount.desc'}),
+      sbGet('subscriptions',   {select:'*', active:'eq.true', order:'billing_day.asc.nullslast,name.asc'}),
+      sbGet('planned_entries', {select:'*', order:'due_date.asc', due_date:`gte.${dateFrom}`, limit:200}).catch(()=>[]),
     ]);
 
     // Filter transactions to exact month
     const txs = (txsRaw||[]).filter(t=>t.date && t.date <= dateTo);
 
     // Cache state
-    _allTxs       = txs;
-    _accounts     = accounts;
-    _fixedCosts   = fixedCosts;
-    _installments = installments;
-    _subscriptions= subscriptions;
+    _allTxs         = txs;
+    _accounts       = accounts;
+    _fixedCosts     = fixedCosts;
+    _installments   = installments;
+    _subscriptions  = subscriptions;
+    _plannedEntries = plannedEntries||[];
     txs.forEach(t=>{ _txMap[t.id] = t; });
 
     // Calculate month totals
@@ -1347,8 +1562,9 @@ async function _doRefresh(){
     fillUpcoming(fixedCosts);
     fillFullTx(txs);
     fillParcelas(installments);
-    fillContasFixas(fixedCosts, subscriptions);
-    fillCalendario(txs, fixedCosts, installments, accounts);
+    fillContasFixas(fixedCosts, subscriptions, txs);
+    fillPlannedEntradas(plannedEntries||[], txs);
+    fillCalendario(txs, fixedCosts, installments, accounts, plannedEntries||[]);
 
     _lastRefreshTs = Date.now();
     _setRefreshLoading(false);
