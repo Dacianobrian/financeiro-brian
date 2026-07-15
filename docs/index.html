@@ -812,7 +812,6 @@ input,select,button,textarea{font-family:var(--font);}
           </div>
           <button class="icon-btn" onclick="calNav(1)" style="font-size:20px;width:36px;height:36px;">›</button>
         </div>
-        <div id="calMonthSum" style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border);"></div>
         <div class="cal-legend" style="border-bottom:1px solid var(--border);margin:0;padding:7px 16px;">
           <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#14532d"></div>alto</div>
           <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#3f6212"></div>médio</div>
@@ -821,7 +820,8 @@ input,select,button,textarea{font-family:var(--font);}
           <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#f87171;"></div>conta vence</div>
         </div>
         <div class="cal-wrap" id="calWrap" style="overflow-x:visible;padding:10px 10px 12px;display:block;"><div class="empty-msg">Carregando...</div></div>
-        <div id="calUpcoming" style="border-top:1px solid var(--border);"></div>
+        <div id="calMonthSum" style="display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--border);border-bottom:1px solid var(--border);"></div>
+        <div id="calUpcoming"></div>
       </div>
 
       <!-- ── CONTAS ── -->
@@ -2200,10 +2200,11 @@ function _renderCalMonth(){
   const previsto=(fixedCosts||[]).reduce((s,c)=>s+(+c.amount||0),0)
     + (subscriptions||[]).filter(s=>s.active!==false).reduce((s,x)=>s+(+x.amount||0),0)
     + (installments||[]).filter(i=>i.active).reduce((s,i)=>s+(+i.installment_amount||0),0);
+  const saldoMes=entradas-saidas;
   if(sumEl) sumEl.innerHTML=`
     <div class="cal-sum-item"><div class="cal-sum-lbl">Entradas</div><div class="cal-sum-val" style="color:var(--green)">${isCurrentMonth?'+'+brl(entradas):'—'}</div></div>
     <div class="cal-sum-item"><div class="cal-sum-lbl">Saídas</div><div class="cal-sum-val" style="color:var(--red)">${isCurrentMonth?'−'+brl(saidas):'—'}</div></div>
-    <div class="cal-sum-item"><div class="cal-sum-lbl">Previsto</div><div class="cal-sum-val" style="color:var(--text2)">−${brl(previsto)}</div></div>`;
+    <div class="cal-sum-item"><div class="cal-sum-lbl">Saldo</div><div class="cal-sum-val" style="color:${saldoMes>=0?'var(--green)':'var(--red)'}">${isCurrentMonth?(saldoMes>=0?'+':'')+brl(Math.abs(saldoMes)):'—'}</div></div>`;
 
   // Grid
   let cells=DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
@@ -2247,14 +2248,21 @@ function _renderCalMonth(){
       });
     }
     const shown=upcoming.slice(0,6);
+    const todayMs=new Date(today.getFullYear(),today.getMonth(),today.getDate()).getTime();
     upEl.innerHTML=shown.length?`
       <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.06em;padding:8px 16px 4px;">PRÓXIMOS VENCIMENTOS</div>
-      ${shown.map(u=>`<div class="cal-up-row">
+      ${shown.map(u=>{
+        const diffDays=Math.round((new Date(u.ds).getTime()-todayMs)/(86400000));
+        let badge='';
+        if(diffDays===0) badge=`<span style="padding:2px 7px;border-radius:5px;font-size:10px;font-weight:600;background:rgba(248,113,113,.15);color:var(--red);">HOJE</span>`;
+        else if(diffDays<=3) badge=`<span style="padding:2px 7px;border-radius:5px;font-size:10px;font-weight:600;background:rgba(251,191,36,.12);color:var(--amber);">${diffDays}D</span>`;
+        else badge=`<span style="padding:2px 7px;border-radius:5px;font-size:10px;font-weight:600;background:var(--surface3);color:var(--text3);">${diffDays}D</span>`;
+        return `<div class="cal-up-row">
         <div class="cal-up-dot" style="background:${u.color}"></div>
         <div class="cal-up-date"><div class="cal-up-num">${u.dy}</div><div class="cal-up-mon">${u.monName}</div></div>
         <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.desc}</div><div style="font-size:10px;color:var(--text3);margin-top:1px">${u.tag}</div></div>
-        <div style="font-size:12px;font-weight:600;color:var(--red);white-space:nowrap">${brl(u.val)}</div>
-      </div>`).join('')}
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;"><div style="font-size:12px;font-weight:600;color:var(--red);white-space:nowrap">${brl(u.val)}</div>${badge}</div>
+      </div>`;}).join('')}
     `:'<div class="empty-msg">Sem vencimentos próximos</div>';
   }
 }
