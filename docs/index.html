@@ -510,13 +510,10 @@ input,select,button,textarea{font-family:var(--font);}
     align-items:start;
     max-width:1100px;
   }
-  #pageHome > .hero-card  {grid-column:1 / -1;}
-  #pageHome > .kpi-row    {grid-column:1 / -1;}
-  #pageHome > #alertasSection{grid-column:1 / -1;}
-  /* section:nth-of-type counts only .section elements — use nth-child offset by 4 fixed items */
-  /* child order: 1=hero, 2=kpi1, 3=kpi2, 4=alertas, 5=orçamentos, 6=categorias, 7=últimas tx, 8=próximos */
-  #pageHome > .section:nth-child(5){grid-column:2;grid-row:5 / 7;} /* orçamentos → col 2 */
-  #pageHome > .section:nth-child(8){grid-column:2;}                 /* próximos → col 2 */
+  #pageHome > .hero-card   {grid-column:1 / -1;}
+  #pageHome > .kpi-row     {grid-column:1 / -1;}
+  #pageHome > .home-full   {grid-column:1 / -1;}
+  .home-col-left,.home-col-right{display:flex;flex-direction:column;gap:14px;min-width:0;}
 
   /* Parcelas 2 columns */
   #pageParcelas{
@@ -747,32 +744,38 @@ input,select,button,textarea{font-family:var(--font);}
             <div class="sparkline-bars" id="sparkSaidas"></div>
           </div>
         </div>
-        <div id="alertasSection"></div>
-        <div class="section">
-          <div class="section-hdr">
-            <span class="section-lbl">Orçamentos</span>
-            <button class="icon-btn" onclick="openOrcamentoModal()" title="Editar orçamentos">✏️</button>
+        <div id="alertasSection" class="home-full"></div>
+        <!-- coluna esquerda -->
+        <div class="home-col-left">
+          <div class="section">
+            <div class="section-hdr">
+              <span class="section-lbl">Gastos por categoria</span>
+            </div>
+            <div id="catBars"><div class="empty-msg">Carregando...</div></div>
           </div>
-          <div id="orcamentoList"><div class="empty-msg" style="font-size:12px">Configure limites por categoria</div></div>
+          <div class="section">
+            <div class="section-hdr">
+              <span class="section-lbl">Últimas transações</span>
+              <button class="see-all" onclick="switchTab('tx')">Ver todas →</button>
+            </div>
+            <div id="recentTxList"><div class="empty-msg">Carregando...</div></div>
+          </div>
         </div>
-        <div class="section">
-          <div class="section-hdr">
-            <span class="section-lbl">Gastos por categoria</span>
+        <!-- coluna direita -->
+        <div class="home-col-right">
+          <div class="section">
+            <div class="section-hdr">
+              <span class="section-lbl">Orçamentos</span>
+              <button class="icon-btn" onclick="openOrcamentoModal()" title="Editar orçamentos">✏️</button>
+            </div>
+            <div id="orcamentoList"><div class="empty-msg" style="font-size:12px">Configure limites por categoria</div></div>
           </div>
-          <div id="catBars"><div class="empty-msg">Carregando...</div></div>
-        </div>
-        <div class="section">
-          <div class="section-hdr">
-            <span class="section-lbl">Últimas transações</span>
-            <button class="see-all" onclick="switchTab('tx')">Ver todas →</button>
+          <div class="section">
+            <div class="section-hdr">
+              <span class="section-lbl">Próximos vencimentos</span>
+            </div>
+            <div id="upcomingList"><div class="empty-msg">Carregando...</div></div>
           </div>
-          <div id="recentTxList"><div class="empty-msg">Carregando...</div></div>
-        </div>
-        <div class="section">
-          <div class="section-hdr">
-            <span class="section-lbl">Próximos vencimentos</span>
-          </div>
-          <div id="upcomingList"><div class="empty-msg">Carregando...</div></div>
         </div>
       </div>
 
