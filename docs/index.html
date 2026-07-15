@@ -158,16 +158,27 @@ input,select,button,textarea{font-family:var(--font);}
 .parcela-footer{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);}
 
 /* ── CONTAS ── */
-.conta-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.conta-row{display:grid;grid-template-columns:28px 1fr auto auto;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
 .conta-row:last-child{border-bottom:none;}
 .conta-info{flex:1;min-width:0;}
 .conta-desc{font-size:13px;font-weight:500;}
 .conta-cat{font-size:11px;color:var(--text3);margin-top:2px;}
 .conta-val{font-size:13px;font-weight:700;flex-shrink:0;font-variant-numeric:tabular-nums;}
-.due-badge{display:inline-flex;align-items:center;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;margin-left:6px;}
-.due-badge.urgent{background:rgba(248,113,113,.15);color:var(--red);}
-.due-badge.warn{background:rgba(251,191,36,.12);color:var(--amber);}
-.due-badge.ok{background:rgba(74,222,128,.1);color:var(--green);}
+.due-cell{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:52px;padding:4px 8px;border-radius:8px;}
+.due-cell.urgent{background:rgba(248,113,113,.15);}
+.due-cell.warn{background:rgba(251,191,36,.12);}
+.due-cell.ok{background:var(--surface3);border:0.5px solid var(--border);}
+.due-cell.today{background:rgba(96,165,250,.15);}
+.due-cell .dc-num{font-size:15px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;}
+.due-cell.urgent .dc-num{color:var(--red);}
+.due-cell.warn .dc-num{color:var(--amber);}
+.due-cell.ok .dc-num{color:var(--text2);}
+.due-cell.today .dc-num{color:var(--blue);}
+.due-cell .dc-lbl{font-size:9px;font-weight:600;letter-spacing:.05em;margin-top:2px;}
+.due-cell.urgent .dc-lbl{color:var(--red);}
+.due-cell.warn .dc-lbl{color:var(--amber);}
+.due-cell.ok .dc-lbl{color:var(--text3);}
+.due-cell.today .dc-lbl{color:var(--blue);}
 /* check button */
 .icon-btn{width:22px;height:22px;border-radius:6px;border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text3);font-size:13px;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0;padding:0;line-height:1;}
 .icon-btn:hover{background:var(--surface3);color:var(--text);}
@@ -1118,20 +1129,24 @@ function fillContasFixas(fixedCosts, subscriptions, txs){
     contasEl.innerHTML = (sorted.map(c=>{
       const isPaidItem = _isPaid(c, paid);
       const daysLeft   = +c.due_day - today;
-      let badgeClass='ok', badgeText=`dia ${c.due_day}`;
+      let dueClass='ok', dueNum=c.due_day||'—', dueLbl='DIA';
       if(!isPaidItem){
-        if(daysLeft===0)       { badgeClass='urgent'; badgeText='Hoje!'; }
-        else if(daysLeft<0)    { badgeClass='urgent'; badgeText='Atrasado!'; }
-        else if(daysLeft<=2)   { badgeClass='urgent'; badgeText=`${daysLeft}d`; }
-        else if(daysLeft<=7)   { badgeClass='warn';   badgeText=`${daysLeft}d`; }
+        if(daysLeft===0)    { dueClass='today';  dueNum=c.due_day; dueLbl='HOJE'; }
+        else if(daysLeft<0) { dueClass='urgent'; dueNum='—';       dueLbl='ATRASADO'; }
+        else if(daysLeft<=2){ dueClass='urgent'; dueNum=c.due_day; dueLbl=`${daysLeft}D`; }
+        else if(daysLeft<=7){ dueClass='warn';   dueNum=c.due_day; dueLbl=`${daysLeft} DIAS`; }
+        else                { dueClass='ok';     dueNum=c.due_day; dueLbl='DIA'; }
       }
+      const dueCell = isPaidItem
+        ? `<div class="due-cell ok"><span class="dc-num">${c.due_day||'—'}</span><span class="dc-lbl">DIA</span></div>`
+        : `<div class="due-cell ${dueClass}"><span class="dc-num">${dueNum}</span><span class="dc-lbl">${dueLbl}</span></div>`;
       return `<div class="conta-row${isPaidItem?' is-paid':''}">
         <button class="chk-btn${isPaidItem?' paid':''}" onclick="${isPaidItem?'':'confirmFixedCost('+c.id+')'}" title="${isPaidItem?'Pago':'Confirmar pagamento'}">✓</button>
         <div class="conta-info">
-          <div class="conta-desc">${c.description}${!isPaidItem?`<span class="due-badge ${badgeClass}">${badgeText}</span>`:''}</div>
+          <div class="conta-desc">${c.description}</div>
           <div class="conta-cat">${c.category||''} · ${c.account||''}</div>
         </div>
-        <button class="icon-btn edit-btn" onclick="editFixedCost(${c.id})" title="Editar">✏</button>
+        ${dueCell}
         <div class="conta-val" style="color:${isPaidItem?'var(--text3)':'var(--red)'}">${brl(c.amount)}</div>
       </div>`;
     }).join('') || '<div class="empty-msg">Sem contas fixas</div>');
