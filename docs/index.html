@@ -415,20 +415,29 @@ input,select,button,textarea{font-family:var(--font);}
 .toast.info{background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);}
 
 /* ── CALENDAR ── */
-.cal-wrap{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch;}
-.cal-wrap::-webkit-scrollbar{height:4px;}
-.cal-wrap::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px;}
-.cal-month{flex:1 1 200px;min-width:185px;}
-.cal-month-title{font-size:11px;font-weight:800;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
-.cal-dow{font-size:8px;color:var(--text3);text-align:center;padding:4px 0;font-weight:700;}
-.cal-day{border-radius:9px;min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 2px;cursor:pointer;transition:transform .12s,box-shadow .12s;position:relative;}
-.cal-day.empty{background:transparent;min-height:50px;cursor:default;pointer-events:none;}
-.cal-day:not(.empty):hover{transform:scale(1.1);z-index:5;box-shadow:0 4px 16px rgba(0,0,0,.4);}
-.cal-d{font-size:11px;font-weight:700;line-height:1;color:inherit;opacity:.9;}
-.cal-v{font-size:8px;font-weight:800;line-height:1.2;text-align:center;margin-top:3px;color:inherit;}
+.cal-wrap{display:block;padding:10px 10px 12px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-dow{font-size:9px;color:var(--text3);text-align:center;padding:4px 0;font-weight:700;}
+.cal-day{border-radius:9px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 2px;cursor:pointer;transition:transform .12s,box-shadow .12s;position:relative;}
+.cal-day.empty{background:transparent;min-height:52px;cursor:default;pointer-events:none;}
+.cal-day:not(.empty):hover{transform:scale(1.08);z-index:5;box-shadow:0 4px 16px rgba(0,0,0,.4);}
+.cal-d{font-size:12px;font-weight:700;line-height:1;color:inherit;}
+.cal-v{font-size:9px;font-weight:700;line-height:1.2;text-align:center;margin-top:3px;color:inherit;opacity:.85;}
 .cal-day.today{box-shadow:0 0 0 2px var(--blue) inset;}
-.cal-day.today .cal-d::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--blue);}
+.cal-bill-dot{position:absolute;top:4px;right:4px;width:5px;height:5px;border-radius:50%;background:#f87171;}
+.cal-sum-item{padding:8px 6px;text-align:center;border-right:1px solid var(--border);}
+.cal-sum-item:last-child{border-right:none;}
+.cal-sum-lbl{font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;}
+.cal-sum-val{font-size:12px;font-weight:700;margin-top:3px;}
+.cal-up-row{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--border);}
+.cal-up-row:last-child{border-bottom:none;}
+.cal-up-date{width:36px;text-align:center;flex-shrink:0;}
+.cal-up-num{font-size:14px;font-weight:700;color:var(--text);line-height:1;}
+.cal-up-mon{font-size:10px;color:var(--text3);margin-top:1px;}
+.cal-up-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.cal-legend{display:flex;flex-wrap:wrap;gap:5px 12px;font-size:10px;color:var(--text3);}
+.cal-legend-item{display:flex;align-items:center;gap:5px;}
+.cal-legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 /* legend */
 .cal-legend{display:flex;flex-wrap:wrap;gap:5px 14px;margin-bottom:14px;font-size:10px;color:var(--text3);}
 .cal-legend-item{display:flex;align-items:center;gap:5px;}
@@ -795,16 +804,24 @@ input,select,button,textarea{font-family:var(--font);}
       </div>
 
       <!-- ── CALENDÁRIO ── -->
-      <div id="pageCal" class="page" style="display:none">
-        <div class="cal-legend">
-          <span style="font-size:10px;color:var(--text3);font-weight:700;margin-right:2px">SALDO</span>
+      <div id="pageCal" class="page" style="display:none;padding:0;max-width:560px;">
+        <div id="calNavBar" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface);">
+          <button class="icon-btn" onclick="calNav(-1)" style="font-size:20px;width:36px;height:36px;">‹</button>
+          <div style="text-align:center">
+            <div id="calNavTitle" style="font-size:15px;font-weight:600;"></div>
+          </div>
+          <button class="icon-btn" onclick="calNav(1)" style="font-size:20px;width:36px;height:36px;">›</button>
+        </div>
+        <div id="calMonthSum" style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border);"></div>
+        <div class="cal-legend" style="border-bottom:1px solid var(--border);margin:0;padding:7px 16px;">
           <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#14532d"></div>alto</div>
           <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#3f6212"></div>médio</div>
           <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#713f12"></div>baixo</div>
           <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#991b1b"></div>negativo</div>
-          <span style="font-size:10px;color:var(--text3);margin-left:8px">· cada célula = saldo acumulado</span>
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#f87171;"></div>conta vence</div>
         </div>
-        <div class="cal-wrap" id="calWrap"><div class="empty-msg">Carregando...</div></div>
+        <div class="cal-wrap" id="calWrap" style="overflow-x:visible;padding:10px 10px 12px;display:block;"><div class="empty-msg">Carregando...</div></div>
+        <div id="calUpcoming" style="border-top:1px solid var(--border);"></div>
       </div>
 
       <!-- ── CONTAS ── -->
@@ -903,6 +920,7 @@ function updateMonthLabel(){
 function prevMonth(){
   _curMonth--;
   if(_curMonth < 1){ _curMonth = 12; _curYear--; }
+  _calViewYear=_curYear; _calViewMonth=_curMonth;
   updateMonthLabel();
   refreshDashboard(true);
 }
@@ -910,6 +928,7 @@ function prevMonth(){
 function nextMonth(){
   _curMonth++;
   if(_curMonth > 12){ _curMonth = 1; _curYear++; }
+  _calViewYear=_curYear; _calViewMonth=_curMonth;
   updateMonthLabel();
   refreshDashboard(true);
 }
@@ -2039,7 +2058,7 @@ function _fmtK(v){
 // Store cal data for drawer
 let _calTxByDate={}, _calFixedByDay={}, _calInstItems=[];
 
-function fillCalendario(txs, fixedCosts, installments, accounts, plannedEntries){
+function fillCalendario(txs, fixedCosts, installments, accounts, plannedEntries, subscriptions){
   const el=document.getElementById('calWrap');
   if(!el) return;
   const todayStr=new Date().toISOString().slice(0,10);
@@ -2134,47 +2153,119 @@ function fillCalendario(txs, fixedCosts, installments, accounts, plannedEntries)
   const allSaldos=[...Object.values(saldoByDate),...Object.values(projSaldo)].filter(v=>v!==null);
   const peak=allSaldos.length ? Math.max(...allSaldos) : curBal||1;
 
-  // --- Render ---
-  function prevM2(y,m){return m===1?{y:y-1,m:12}:{y,m:m-1};}
-  const pm=prevM2(_curYear,_curMonth);
-  const months=[pm,{y:_curYear,m:_curMonth},{y:nm.y,m:nm.m}];
+  // Store data globally for navigation re-render
+  _calData = {saldoByDate, projSaldo, peak, fixedCosts, subscriptions: subscriptions||[], installments, txs, todayStr};
+
+  // Init view to current month if not set
+  if(!_calViewYear){ _calViewYear=_curYear; _calViewMonth=_curMonth; }
+
+  _renderCalMonth();
+}
+
+let _calViewYear=0, _calViewMonth=0, _calData=null;
+
+function calNav(dir){
+  if(!_calData) return;
+  _calViewMonth += dir;
+  if(_calViewMonth>12){ _calViewMonth=1; _calViewYear++; }
+  if(_calViewMonth<1){  _calViewMonth=12; _calViewYear--; }
+  _renderCalMonth();
+}
+
+function _renderCalMonth(){
+  const el   = document.getElementById('calWrap');
+  const navEl= document.getElementById('calNavTitle');
+  const sumEl= document.getElementById('calMonthSum');
+  const upEl = document.getElementById('calUpcoming');
+  if(!el||!_calData) return;
+
+  const {saldoByDate,projSaldo,peak,fixedCosts,subscriptions,installments,txs,todayStr}=_calData;
+  const y=_calViewYear, m=_calViewMonth;
   const DOWS=['D','S','T','Q','Q','S','S'];
+  const daysInMonth=new Date(y,m,0).getDate();
+  const firstDow=new Date(y,m-1,1).getDay();
 
-  el.innerHTML=months.map(({y,m})=>{
-    const daysInMonth=new Date(y,m,0).getDate();
-    const firstDow=new Date(y,m-1,1).getDay();
-    const monthName=_MESES_PT[m-1]+' '+y;
+  if(navEl) navEl.textContent=_MESES_PT[m-1]+' '+y;
 
-    let cells=DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
-    for(let i=0;i<firstDow;i++) cells+=`<div class="cal-day empty"></div>`;
+  // Bill days for this month (fixed costs + subscriptions due days)
+  const billDays=new Set();
+  (fixedCosts||[]).forEach(c=>{ if(c.due_day) billDays.add(+c.due_day); });
+  (subscriptions||[]).filter(s=>s.active!==false).forEach(s=>{ if(s.billing_day) billDays.add(+s.billing_day); });
 
-    for(let d=1;d<=daysInMonth;d++){
-      const ds=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const isPast=ds<todayStr, isToday=ds===todayStr;
-      let saldo=null, valStr='';
+  // Month summary
+  const isCurrentMonth=(y===_curYear && m===_curMonth);
+  const monthTxs=(txs||[]);
+  const entradas=isCurrentMonth ? monthTxs.filter(t=>t.type==='entrada').reduce((s,t)=>s+(+t.amount||0),0) : 0;
+  const saidas  =isCurrentMonth ? monthTxs.filter(t=>t.type==='saida').reduce((s,t)=>s+(+t.amount||0),0) : 0;
+  const previsto=(fixedCosts||[]).reduce((s,c)=>s+(+c.amount||0),0)
+    + (subscriptions||[]).filter(s=>s.active!==false).reduce((s,x)=>s+(+x.amount||0),0)
+    + (installments||[]).filter(i=>i.active).reduce((s,i)=>s+(+i.installment_amount||0),0);
+  if(sumEl) sumEl.innerHTML=`
+    <div class="cal-sum-item"><div class="cal-sum-lbl">Entradas</div><div class="cal-sum-val" style="color:var(--green)">${isCurrentMonth?'+'+brl(entradas):'—'}</div></div>
+    <div class="cal-sum-item"><div class="cal-sum-lbl">Saídas</div><div class="cal-sum-val" style="color:var(--red)">${isCurrentMonth?'−'+brl(saidas):'—'}</div></div>
+    <div class="cal-sum-item"><div class="cal-sum-lbl">Previsto</div><div class="cal-sum-val" style="color:var(--text2)">−${brl(previsto)}</div></div>`;
 
-      if(isPast||isToday){
-        saldo = saldoByDate[ds]??null;
-        if(saldo!==null) valStr=_fmtK(saldo);
-      } else {
-        saldo = projSaldo[ds]??null;
-        if(saldo!==null) valStr=_fmtK(saldo);
-      }
+  // Grid
+  let cells=DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<firstDow;i++) cells+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isPast=ds<todayStr, isToday=ds===todayStr;
+    let saldo=null;
+    if(isPast||isToday) saldo=saldoByDate[ds]??null;
+    else                saldo=projSaldo[ds]??null;
 
-      const st=_saldoStyle(saldo, peak);
-      const opStr=st.op?`opacity:${st.op};`:'';
-      const todayCls=isToday?' today':'';
-      cells+=`<div class="cal-day${todayCls}" style="background:${st.bg};color:${st.color};${opStr}"
-        onclick="openCalDay('${ds}',${isPast||isToday})">
-        <span class="cal-d">${d}</span>
-        ${valStr?`<span class="cal-v">${valStr}</span>`:''}
-      </div>`;
-    }
-    return `<div class="cal-month">
-      <div class="cal-month-title">${monthName}</div>
-      <div class="cal-grid">${cells}</div>
+    const st=_saldoStyle(saldo,peak);
+    const opStr=(st.op&&!isPast&&!isToday)?`opacity:${st.op};`:'';
+    const valStr=saldo!==null ? _fmtExact(saldo) : '';
+    const dot=billDays.has(d)?'<div class="cal-bill-dot"></div>':'';
+    cells+=`<div class="cal-day${isToday?' today':''}" style="background:${st.bg};color:${st.color};${opStr}"
+      onclick="openCalDay('${ds}',${isPast||isToday})">
+      ${dot}
+      <span class="cal-d">${d}</span>
+      ${valStr?`<span class="cal-v">${valStr}</span>`:''}
     </div>`;
-  }).join('');
+  }
+  el.innerHTML=`<div class="cal-grid">${cells}</div>`;
+
+  // Upcoming list (next 6 bills from today in the viewed month + next)
+  if(upEl){
+    const today=new Date();
+    const upcoming=[];
+    for(let offset=0;offset<60;offset++){
+      const dd=new Date(today.getFullYear(),today.getMonth(),today.getDate()+offset);
+      const ds=dd.toISOString().slice(0,10);
+      const dy=dd.getDate();
+      const mon=dd.getMonth()+1;
+      const yr=dd.getFullYear();
+      const monName=_MESES_PT[dd.getMonth()].slice(0,3);
+      (fixedCosts||[]).forEach(c=>{
+        if(+c.due_day===dy) upcoming.push({ds,dy,monName,desc:c.description,tag:'Conta fixa',val:+c.amount,color:'var(--red)'});
+      });
+      (subscriptions||[]).filter(s=>s.active!==false).forEach(s=>{
+        if(+s.billing_day===dy) upcoming.push({ds,dy,monName,desc:s.name,tag:`Assinatura · ${s.card||''}`,val:+s.amount,color:'var(--amber)'});
+      });
+    }
+    const shown=upcoming.slice(0,6);
+    upEl.innerHTML=shown.length?`
+      <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.06em;padding:8px 16px 4px;">PRÓXIMOS VENCIMENTOS</div>
+      ${shown.map(u=>`<div class="cal-up-row">
+        <div class="cal-up-dot" style="background:${u.color}"></div>
+        <div class="cal-up-date"><div class="cal-up-num">${u.dy}</div><div class="cal-up-mon">${u.monName}</div></div>
+        <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.desc}</div><div style="font-size:10px;color:var(--text3);margin-top:1px">${u.tag}</div></div>
+        <div style="font-size:12px;font-weight:600;color:var(--red);white-space:nowrap">${brl(u.val)}</div>
+      </div>`).join('')}
+    `:'<div class="empty-msg">Sem vencimentos próximos</div>';
+  }
+}
+
+function _fmtExact(v){
+  if(v===null||v===undefined) return '';
+  const abs=Math.abs(v);
+  if(abs>=100000) return (v/1000).toFixed(0)+'k';
+  if(abs>=10000)  return (v/1000).toFixed(1)+'k';
+  if(abs>=1000)   return (v/1000).toFixed(1)+'k';
+  return String(Math.round(v));
 }
 
 function openCalDay(dateStr, isPast){
@@ -2318,7 +2409,7 @@ async function _doRefresh(){
     fillContasFixas(fixedCosts, subscriptions, installments, txs);
     fillFaturaPrevisao(subscriptions, installments);
     fillPlannedEntradas(plannedEntries||[], txs);
-    fillCalendario(txs, fixedCosts, installments, accounts, plannedEntries||[]);
+    fillCalendario(txs, fixedCosts, installments, accounts, plannedEntries||[], subscriptions);
 
     _lastRefreshTs = Date.now();
     _setRefreshLoading(false);
