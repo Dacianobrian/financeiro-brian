@@ -123,9 +123,27 @@ input,select,button,textarea{font-family:var(--font);}
 .cat-val{font-size:12px;color:var(--text2);width:74px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums;}
 
 /* ── TRANSACTIONS ── */
-.tx-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:.1s;}
+.tx-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:.1s;}
 .tx-row:last-child{border-bottom:none;}
-.tx-row:hover{opacity:.75;}
+.tx-row:hover{background:rgba(255,255,255,.02);}
+.tx-day-hdr{display:flex;justify-content:space-between;align-items:center;padding:6px 16px;background:var(--surface3);border-bottom:1px solid var(--border);border-top:1px solid var(--border);}
+.tx-day-hdr:first-child{border-top:none;}
+.tx-day-lbl{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.05em;}
+.tx-day-net{font-size:11px;font-weight:600;}
+.tx-icon-wrap{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.tx-icon-wrap.saida{background:rgba(248,113,113,.12);}
+.tx-icon-wrap.entrada{background:rgba(74,222,128,.12);}
+.tx-icon-wrap.investido{background:rgba(167,139,250,.12);}
+.tx-cat-pill{display:inline-block;font-size:10px;font-weight:500;padding:2px 7px;border-radius:4px;margin-top:3px;}
+.tx-cat-pill.saida{background:rgba(248,113,113,.1);color:var(--red);}
+.tx-cat-pill.entrada{background:rgba(74,222,128,.1);color:var(--green);}
+.tx-cat-pill.investido{background:rgba(167,139,250,.1);color:var(--purple);}
+.tx-summary-item{padding:8px 10px;text-align:center;border-right:1px solid var(--border);}
+.tx-summary-item:last-child{border-right:none;}
+.tx-summary-lbl{font-size:9px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;}
+.tx-summary-val{font-size:13px;font-weight:700;margin-top:2px;}
+.tx-edit-icon{color:var(--text3);font-size:14px;opacity:0;transition:.1s;padding:4px;}
+.tx-row:hover .tx-edit-icon{opacity:1;}
 .tx-icon{width:36px;height:36px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
 .tx-info{flex:1;min-width:0;}
 .tx-desc{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -752,16 +770,22 @@ input,select,button,textarea{font-family:var(--font);}
       </div>
 
       <!-- ── TRANSAÇÕES ── -->
-      <div id="pageTx" class="page" style="display:none">
-        <div class="filter-row">
-          <input id="txSearch" type="text" class="search-input" placeholder="Buscar transação..." oninput="filterTx()"/>
-          <select id="txTypeFilter" class="filter-select" onchange="filterTx();buildCatChips()">
-            <option value="">Todos</option>
-            <option value="entrada">Entradas</option>
-            <option value="saida">Saídas</option>
-          </select>
+      <div id="pageTx" class="page" style="display:none;padding-left:0;padding-right:0;padding-top:0;">
+        <div style="padding:12px 16px 0;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:52px;z-index:10;">
+          <div class="filter-row" style="margin-bottom:8px;">
+            <div style="flex:1;display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:9px;padding:0 12px;">
+              <span style="color:var(--text3);font-size:14px;">🔍</span>
+              <input id="txSearch" type="text" style="flex:1;background:transparent;border:none;color:var(--text);font-size:13px;padding:9px 0;outline:none;" placeholder="Buscar por nome, categoria ou valor..." oninput="filterTx()"/>
+            </div>
+            <select id="txTypeFilter" class="filter-select" onchange="filterTx();buildCatChips()">
+              <option value="">Todos</option>
+              <option value="entrada">Entradas</option>
+              <option value="saida">Saídas</option>
+            </select>
+          </div>
+          <div id="txCatChips" style="display:flex;gap:5px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none;"></div>
         </div>
-        <div id="txCatChips" style="display:flex;gap:6px;flex-wrap:wrap;padding:0 0 8px;"></div>
+        <div id="txSummaryBar" style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border);"></div>
         <div id="txFullList"><div class="empty-msg">Carregando...</div></div>
       </div>
 
@@ -1171,25 +1195,69 @@ function fillUpcoming(fixedCosts){
 
 function fillFullTx(txs){
   const el = document.getElementById('txFullList');
+  const sumEl = document.getElementById('txSummaryBar');
   if(!el) return;
-  if(!(txs||[]).length){ el.innerHTML='<div class="empty-msg">Sem transações no período</div>'; return; }
-  el.innerHTML = (txs||[]).map(t=>{
-    const isEnt = t.type==='entrada';
-    const isInv = t.type==='investido';
-    const emoji = catIcon(t.category);
-    const sign  = isEnt ? '+' : '−';
-    const color = isEnt ? 'var(--green)' : isInv ? 'var(--purple)' : 'var(--red)';
-    return `<div class="tx-row" onclick="openTxDrawer(${t.id})">
-      <div class="tx-icon">${emoji}</div>
-      <div class="tx-info">
-        <div class="tx-desc">${t.description||t.category||'—'}</div>
-        <div class="tx-meta">${t.category||''} · ${fmtDate(t.date)}</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <div class="tx-amount" style="color:${color}">${sign}${brl(Math.abs(+t.amount))}</div>
-        <span class="tx-edit-btn" onclick="event.stopPropagation();openEditTx(${t.id})" title="Editar">✏️</span>
-      </div>
+  if(!(txs||[]).length){
+    el.innerHTML='<div class="empty-msg">Sem transações no período</div>';
+    if(sumEl) sumEl.innerHTML='';
+    return;
+  }
+
+  // Barra de resumo
+  const entTotal = txs.filter(t=>t.type==='entrada').reduce((s,t)=>s+(+t.amount||0),0);
+  const saiTotal = txs.filter(t=>t.type==='saida').reduce((s,t)=>s+(+t.amount||0),0);
+  const saldo = entTotal - saiTotal;
+  if(sumEl) sumEl.innerHTML = `
+    <div class="tx-summary-item"><div class="tx-summary-lbl">Entradas</div><div class="tx-summary-val" style="color:var(--green)">+${brl(entTotal)}</div></div>
+    <div class="tx-summary-item"><div class="tx-summary-lbl">Saídas</div><div class="tx-summary-val" style="color:var(--red)">−${brl(saiTotal)}</div></div>
+    <div class="tx-summary-item"><div class="tx-summary-lbl">Saldo</div><div class="tx-summary-val" style="color:${saldo>=0?'var(--green)':'var(--red)'}">${saldo>=0?'+':'−'}${brl(Math.abs(saldo))}</div></div>`;
+
+  // Agrupar por data
+  const byDate = {};
+  txs.forEach(t=>{
+    const d = t.date||'';
+    if(!byDate[d]) byDate[d]={items:[],net:0};
+    byDate[d].items.push(t);
+    byDate[d].net += t.type==='entrada' ? (+t.amount||0) : -(+t.amount||0);
+  });
+  const dates = Object.keys(byDate).sort((a,b)=>b>a?1:-1);
+
+  const todayStr = new Date().toISOString().slice(0,10);
+  const yesterStr = new Date(Date.now()-86400000).toISOString().slice(0,10);
+  function dayLabel(ds){
+    if(ds===todayStr) return 'HOJE';
+    if(ds===yesterStr) return 'ONTEM';
+    const [y,m,d] = ds.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  el.innerHTML = dates.map(ds=>{
+    const {items, net} = byDate[ds];
+    const netColor = net>=0 ? 'var(--green)' : 'var(--red)';
+    const netStr = (net>=0?'+':'−') + brl(Math.abs(net));
+    const hdr = `<div class="tx-day-hdr">
+      <div class="tx-day-lbl">${dayLabel(ds)}</div>
+      <div class="tx-day-net" style="color:${netColor}">${netStr}</div>
     </div>`;
+    const rows = items.map(t=>{
+      const isEnt = t.type==='entrada';
+      const isInv = t.type==='investido';
+      const typeCls = isEnt?'entrada':isInv?'investido':'saida';
+      const sign  = isEnt ? '+' : '−';
+      const color = isEnt ? 'var(--green)' : isInv ? 'var(--purple)' : 'var(--red)';
+      return `<div class="tx-row" onclick="openTxDrawer(${t.id})">
+        <div class="tx-icon-wrap ${typeCls}">${catIcon(t.category)}</div>
+        <div class="tx-info" style="flex:1;min-width:0">
+          <div class="tx-desc">${t.description||t.category||'—'}</div>
+          <span class="tx-cat-pill ${typeCls}">${t.category||'Outros'}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <div class="tx-amount" style="color:${color}">${sign}${brl(Math.abs(+t.amount))}</div>
+          <span class="tx-edit-icon" onclick="event.stopPropagation();openEditTx(${t.id})" title="Editar">✏️</span>
+        </div>
+      </div>`;
+    }).join('');
+    return hdr + rows;
   }).join('');
 }
 
@@ -2305,7 +2373,8 @@ function _applyTxFilters(){
   if(_txCatFilter) rows = rows.filter(t=>(t.category||'Outros')===_txCatFilter);
   if(q.length>=2) rows = rows.filter(t=>
     (t.description||'').toLowerCase().includes(q) ||
-    (t.category||'').toLowerCase().includes(q)
+    (t.category||'').toLowerCase().includes(q) ||
+    String(+t.amount||0).includes(q.replace(',','.'))
   );
   fillFullTx(rows);
 }
