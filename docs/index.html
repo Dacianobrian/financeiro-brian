@@ -194,6 +194,47 @@ input,select,button,textarea{font-family:var(--font);}
 .section-summary{display:flex;justify-content:space-between;align-items:center;padding:8px 0 10px;border-bottom:1px solid var(--border);margin-bottom:4px;}
 .summary-left{font-size:11px;color:var(--text3);}
 .summary-right{font-size:13px;font-weight:700;}
+/* ── CONTAS GRUPOS ── */
+.contas-progress{margin:6px 0 14px;}
+.progress-track{height:4px;background:var(--border2);border-radius:99px;overflow:hidden;margin-bottom:4px;}
+.progress-fill{height:100%;border-radius:99px;background:var(--green);transition:width .4s;}
+.progress-meta{display:flex;justify-content:space-between;font-size:10px;}
+.progress-late{color:var(--red);}
+.progress-count{color:var(--text3);}
+.group-block{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px;}
+.group-hdr{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;border-bottom:1px solid var(--border);}
+.group-label{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:.07em;}
+.group-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.group-label.g-urgent{color:var(--red);}  .group-label.g-urgent .group-dot{background:var(--red);}
+.group-label.g-today{color:var(--blue);}  .group-label.g-today .group-dot{background:var(--blue);}
+.group-label.g-warn{color:var(--amber);} .group-label.g-warn .group-dot{background:var(--amber);}
+.group-label.g-ok{color:var(--text3);}   .group-label.g-ok .group-dot{background:var(--text3);}
+.group-label.g-paid{color:var(--text3);} .group-label.g-paid .group-dot{background:var(--green);}
+.group-total{font-size:11px;font-weight:700;}
+.group-total.red{color:var(--red);} .group-total.muted{color:var(--text3);}
+/* ── FATURA CARD ── */
+.fatura-row{display:grid;grid-template-columns:28px 1fr auto auto;align-items:center;padding:10px 14px;gap:10px;border-bottom:1px solid var(--border);cursor:pointer;}
+.fatura-row:last-child{border-bottom:none;}
+.fatura-toggle{font-size:10px;color:var(--text3);margin-top:3px;}
+.fatura-detail{display:none;background:var(--surface3);border-top:1px solid var(--border);}
+.fatura-detail.open{display:block;}
+.fatura-sub-row{display:flex;align-items:center;justify-content:space-between;padding:7px 14px 7px 52px;border-bottom:1px solid var(--border);}
+.fatura-sub-row:last-child{border-bottom:none;}
+.fatura-sub-name{font-size:12px;color:var(--text2);}
+.fatura-sub-val{font-size:12px;font-weight:600;color:var(--text2);}
+.fatura-sub-tag{font-size:10px;color:var(--text3);margin-top:1px;}
+/* ── PARCELAS INLINE ── */
+.parcelas-section{margin-top:12px;}
+.parcela-inline{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;}
+.parcela-inline-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.parcela-inline-desc{font-size:13px;font-weight:500;}
+.parcela-inline-card{font-size:11px;color:var(--text3);margin-top:2px;}
+.parcela-inline-val{font-size:13px;font-weight:700;color:var(--red);}
+.parcela-inline-foot{display:flex;justify-content:space-between;align-items:center;margin-top:4px;}
+.parcela-inline-prog{font-size:11px;color:var(--text3);}
+.parcela-inline-left{font-size:11px;color:var(--text3);}
+.parcela-bar-track{height:3px;background:var(--border2);border-radius:99px;overflow:hidden;margin:6px 0 4px;}
+.parcela-bar-fill{height:100%;background:var(--blue);border-radius:99px;}
 
 /* ── UPCOMING ── */
 .upcoming-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);}
@@ -567,7 +608,6 @@ input,select,button,textarea{font-family:var(--font);}
     <nav class="sb-nav">
       <button class="nav-btn active" id="nb-home"    onclick="switchTab('home')"><span class="nav-icon">🏠</span>Início</button>
       <button class="nav-btn" id="nb-tx"             onclick="switchTab('tx')"><span class="nav-icon">↕</span>Transações</button>
-      <button class="nav-btn" id="nb-parcelas"       onclick="switchTab('parcelas')"><span class="nav-icon">💳</span>Parcelamentos</button>
       <button class="nav-btn" id="nb-contas"         onclick="switchTab('contas')"><span class="nav-icon">📌</span>Contas</button>
       <button class="nav-btn" id="nb-cal"            onclick="switchTab('cal')"><span class="nav-icon">📅</span>Calendário</button>
     </nav>
@@ -689,11 +729,19 @@ input,select,button,textarea{font-family:var(--font);}
           </div>
           <div id="contasFixasList"></div>
         </div>
-        <div class="section" style="margin-top:12px">
+        <div class="section parcelas-section" style="margin-top:12px">
           <div class="section-hdr">
-            <span class="section-lbl">Assinaturas</span>
+            <span class="section-lbl">Fatura do Cartão</span>
+            <span id="faturaSummary" style="font-size:11px;color:var(--text3)"></span>
           </div>
-          <div id="subscriptionsList"></div>
+          <div id="faturaCardList"></div>
+        </div>
+        <div class="section parcelas-section" style="margin-top:12px">
+          <div class="section-hdr">
+            <span class="section-lbl">Parcelamentos</span>
+            <span id="parcelasInlineSummary" style="font-size:11px;color:var(--text3)"></span>
+          </div>
+          <div id="parcelasInlineList"></div>
         </div>
       </div>
 
@@ -705,7 +753,6 @@ input,select,button,textarea{font-family:var(--font);}
     <div class="bottom-nav-inner">
       <button class="bn-btn active" id="bn-home"    onclick="switchTab('home')"><span class="bn-icon">🏠</span>Início</button>
       <button class="bn-btn" id="bn-tx"             onclick="switchTab('tx')"><span class="bn-icon">↕</span>Transações</button>
-      <button class="bn-btn" id="bn-parcelas"       onclick="switchTab('parcelas')"><span class="bn-icon">💳</span>Parcelas</button>
       <button class="bn-btn" id="bn-contas"         onclick="switchTab('contas')"><span class="bn-icon">📌</span>Contas</button>
       <button class="bn-btn" id="bn-cal"            onclick="switchTab('cal')"><span class="bn-icon">📅</span>Calendário</button>
     </div>
@@ -1110,64 +1157,182 @@ function _isPaid(cost, paid){
   return paid.has((cost.description||'').toLowerCase().trim());
 }
 
-function fillContasFixas(fixedCosts, subscriptions, txs){
+function _dueCell(isPaid, dueDay, today){
+  if(isPaid) return `<div class="due-cell ok"><span class="dc-num">${dueDay||'—'}</span><span class="dc-lbl">DIA</span></div>`;
+  const d = +dueDay - today;
+  let cls='ok', num=dueDay||'—', lbl='DIA';
+  if(d===0)      { cls='today';  num=dueDay; lbl='HOJE'; }
+  else if(d<0)   { cls='urgent'; num=dueDay||'—'; lbl='ATRASADO'; }
+  else if(d<=2)  { cls='urgent'; num=dueDay; lbl=d+'D'; }
+  else if(d<=7)  { cls='warn';   num=dueDay; lbl=d+' DIAS'; }
+  return `<div class="due-cell ${cls}"><span class="dc-num">${num}</span><span class="dc-lbl">${lbl}</span></div>`;
+}
+
+function _contaRow(c, isPaid, today){
+  const dueCell = _dueCell(isPaid, c.due_day, today);
+  return `<div class="conta-row${isPaid?' is-paid':''}">
+    <button class="chk-btn${isPaid?' paid':''}" onclick="${isPaid?'':'confirmFixedCost('+c.id+')'}" title="${isPaid?'Pago':'Confirmar pagamento'}">✓</button>
+    <div class="conta-info">
+      <div class="conta-desc">${c.description}</div>
+      <div class="conta-cat">${c.category||''} · ${c.account||''}</div>
+    </div>
+    ${dueCell}
+    <button class="icon-btn edit-btn" onclick="editFixedCost(${c.id})" title="Editar">✏</button>
+    <div class="conta-val" style="color:${isPaid?'var(--text3)':'var(--red)'}">${brl(c.amount)}</div>
+  </div>`;
+}
+
+function _groupBlock(labelClass, labelText, totalColor, total, rows){
+  if(!rows.length) return '';
+  return `<div class="group-block">
+    <div class="group-hdr">
+      <div class="group-label ${labelClass}"><div class="group-dot"></div>${labelText}</div>
+      <div class="group-total ${totalColor}">${brl(total)}</div>
+    </div>
+    ${rows.join('')}
+  </div>`;
+}
+
+function fillContasFixas(fixedCosts, subscriptions, installments, txs){
   const contasEl = document.getElementById('contasFixasList');
-  const subsEl   = document.getElementById('subscriptionsList');
   const sumEl    = document.getElementById('contasSummary');
+  const faturaEl = document.getElementById('faturaCardList');
+  const fatSumEl = document.getElementById('faturaSummary');
+  const parcEl   = document.getElementById('parcelasInlineList');
+  const parcSumEl= document.getElementById('parcelasInlineSummary');
   const today    = new Date().getDate();
   const paid     = _paidSet(txs);
 
+  // ── CONTAS FIXAS com grupos ──
   if(contasEl){
     const sorted = (fixedCosts||[]).sort((a,b)=>(+a.due_day||99)-(+b.due_day||99));
-    const totalFC  = sorted.reduce((s,c)=>s+(+c.amount||0),0);
-    const paidFC   = sorted.filter(c=>_isPaid(c,paid)).reduce((s,c)=>s+(+c.amount||0),0);
-    const pendente = totalFC - paidFC;
-    const pagasCount = sorted.filter(c=>_isPaid(c,paid)).length;
+    const totalFC   = sorted.reduce((s,c)=>s+(+c.amount||0),0);
+    const paidItems = sorted.filter(c=>_isPaid(c,paid));
+    const paidFC    = paidItems.reduce((s,c)=>s+(+c.amount||0),0);
+    const pendente  = totalFC - paidFC;
+    const pagasCount= paidItems.length;
+    const pct       = totalFC>0 ? Math.round((paidFC/totalFC)*100) : 0;
+
+    const late    = sorted.filter(c=>!_isPaid(c,paid) && (+c.due_day - today)<0);
+    const lateAmt = late.reduce((s,c)=>s+(+c.amount||0),0);
 
     if(sumEl) sumEl.textContent = `${pagasCount}/${sorted.length} pagas · ${brl(pendente)} pendente`;
 
-    contasEl.innerHTML = (sorted.map(c=>{
-      const isPaidItem = _isPaid(c, paid);
-      const daysLeft   = +c.due_day - today;
-      let dueClass='ok', dueNum=c.due_day||'—', dueLbl='DIA';
-      if(!isPaidItem){
-        if(daysLeft===0)    { dueClass='today';  dueNum=c.due_day; dueLbl='HOJE'; }
-        else if(daysLeft<0) { dueClass='urgent'; dueNum='—';       dueLbl='ATRASADO'; }
-        else if(daysLeft<=2){ dueClass='urgent'; dueNum=c.due_day; dueLbl=`${daysLeft}D`; }
-        else if(daysLeft<=7){ dueClass='warn';   dueNum=c.due_day; dueLbl=`${daysLeft} DIAS`; }
-        else                { dueClass='ok';     dueNum=c.due_day; dueLbl='DIA'; }
-      }
-      const dueCell = isPaidItem
-        ? `<div class="due-cell ok"><span class="dc-num">${c.due_day||'—'}</span><span class="dc-lbl">DIA</span></div>`
-        : `<div class="due-cell ${dueClass}"><span class="dc-num">${dueNum}</span><span class="dc-lbl">${dueLbl}</span></div>`;
-      return `<div class="conta-row${isPaidItem?' is-paid':''}">
-        <button class="chk-btn${isPaidItem?' paid':''}" onclick="${isPaidItem?'':'confirmFixedCost('+c.id+')'}" title="${isPaidItem?'Pago':'Confirmar pagamento'}">✓</button>
-        <div class="conta-info">
-          <div class="conta-desc">${c.description}</div>
-          <div class="conta-cat">${c.category||''} · ${c.account||''}</div>
-        </div>
-        ${dueCell}
-        <div class="conta-val" style="color:${isPaidItem?'var(--text3)':'var(--red)'}">${brl(c.amount)}</div>
-      </div>`;
-    }).join('') || '<div class="empty-msg">Sem contas fixas</div>');
+    const urgente = sorted.filter(c=>!_isPaid(c,paid) && (+c.due_day-today)>=0 && (+c.due_day-today)<=2);
+    const warn    = sorted.filter(c=>!_isPaid(c,paid) && (+c.due_day-today)>2  && (+c.due_day-today)<=7);
+    const ok      = sorted.filter(c=>!_isPaid(c,paid) && (+c.due_day-today)>7);
+
+    const progressBar = `<div class="contas-progress">
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="progress-meta">
+        <span class="progress-late">${lateAmt>0?brl(lateAmt)+' atrasado':''}</span>
+        <span class="progress-count">${pagasCount} de ${sorted.length} pagas</span>
+      </div>
+    </div>`;
+
+    const lateRows    = late.map(c=>_contaRow(c,false,today));
+    const urgenteRows = urgente.map(c=>_contaRow(c,false,today));
+    const warnRows    = warn.map(c=>_contaRow(c,false,today));
+    const okRows      = ok.map(c=>_contaRow(c,false,today));
+    const paidRows    = paidItems.map(c=>_contaRow(c,true,today));
+
+    contasEl.innerHTML = progressBar
+      + _groupBlock('g-urgent','ATRASADAS','red', lateAmt, lateRows)
+      + _groupBlock('g-today','HOJE / URGENTE','', urgente.reduce((s,c)=>s+(+c.amount||0),0), urgenteRows)
+      + _groupBlock('g-warn','PRÓXIMAS','', warn.reduce((s,c)=>s+(+c.amount||0),0), warnRows)
+      + _groupBlock('g-ok','EM DIA','muted', ok.reduce((s,c)=>s+(+c.amount||0),0), okRows)
+      + _groupBlock('g-paid','PAGAS','muted', paidFC, paidRows)
+      || '<div class="empty-msg">Sem contas fixas</div>';
   }
 
-  if(subsEl){
-    const activeSubs = (subscriptions||[]).filter(s=>s.active!==false);
-    const totalSubs  = activeSubs.reduce((s,sub)=>s+(+sub.amount||0),0);
-    const header = `<div class="section-summary">
-      <span class="summary-left">${activeSubs.length} assinaturas</span>
-      <span class="summary-right">${brl(totalSubs)}/mês</span>
-    </div>`;
-    subsEl.innerHTML = header + (activeSubs.sort((a,b)=>(+a.billing_day||99)-(+b.billing_day||99)).map(s=>{
-      return `<div class="conta-row">
-        <div class="conta-info">
-          <div class="conta-desc">${s.emoji||'📱'} ${s.name}</div>
-          <div class="conta-cat">${s.category||''} · dia ${s.billing_day||'?'} · ${s.card||''}</div>
-        </div>
-        <div class="conta-val">${brl(+s.amount)}</div>
-      </div>`;
-    }).join('') || '<div class="empty-msg">Sem assinaturas</div>');
+  // ── FATURA DO CARTÃO (assinaturas + parcelas por cartão) ──
+  if(faturaEl){
+    const activeSubs  = (subscriptions||[]).filter(s=>s.active!==false);
+    const activeInst  = (installments||[]).filter(i=>i.active && +i.current_installment < +i.total_installments);
+
+    // agrupar por cartão
+    const cards = {};
+    activeSubs.forEach(s=>{
+      const card = s.card||'Sem cartão';
+      if(!cards[card]) cards[card]={subs:[],inst:[]};
+      cards[card].subs.push(s);
+    });
+    activeInst.forEach(i=>{
+      const card = i.card||'Sem cartão';
+      if(!cards[card]) cards[card]={subs:[],inst:[]};
+      cards[card].inst.push(i);
+    });
+
+    const cardNames = Object.keys(cards);
+    const totalFatura = cardNames.reduce((s,k)=>{
+      const c=cards[k];
+      return s + c.subs.reduce((a,x)=>a+(+x.amount||0),0) + c.inst.reduce((a,x)=>a+(+x.installment_amount||0),0);
+    },0);
+
+    if(fatSumEl) fatSumEl.textContent = cardNames.length ? `${cardNames.length} cartão${cardNames.length>1?'ões':''} · ${brl(totalFatura)}/mês` : '';
+
+    if(!cardNames.length){
+      faturaEl.innerHTML='<div class="empty-msg">Sem assinaturas ou parcelamentos</div>';
+    } else {
+      faturaEl.innerHTML = cardNames.map(cardName=>{
+        const c = cards[cardName];
+        const totalCard = c.subs.reduce((a,x)=>a+(+x.amount||0),0) + c.inst.reduce((a,x)=>a+(+x.installment_amount||0),0);
+        const isFaturaPaid = paid.has(('fatura '+cardName).toLowerCase().trim());
+        const subRows = c.subs.map(s=>`
+          <div class="fatura-sub-row">
+            <div><div class="fatura-sub-name">${s.emoji||'📱'} ${s.name}</div><div class="fatura-sub-tag">Assinatura · dia ${s.billing_day||'?'}</div></div>
+            <div class="fatura-sub-val">${brl(+s.amount)}</div>
+          </div>`).join('');
+        const instRows = c.inst.map(i=>`
+          <div class="fatura-sub-row">
+            <div><div class="fatura-sub-name">${i.emoji||'💳'} ${i.description}</div><div class="fatura-sub-tag">Parcela ${i.current_installment}/${i.total_installments}</div></div>
+            <div class="fatura-sub-val">${brl(+i.installment_amount)}</div>
+          </div>`).join('');
+        return `<div class="group-block" style="margin-bottom:10px">
+          <div class="fatura-row${isFaturaPaid?' is-paid':''}" onclick="toggleFaturaDetail('fd-${cardName.replace(/\s/g,'_')}')">
+            <button class="chk-btn${isFaturaPaid?' paid':''}" onclick="event.stopPropagation();${isFaturaPaid?'':'confirmFatura(\''+cardName+'\')'}" title="${isFaturaPaid?'Pago':'Confirmar pagamento'}">✓</button>
+            <div class="conta-info">
+              <div class="conta-desc">💳 Fatura ${cardName}</div>
+              <div class="conta-cat fatura-toggle">▾ ver detalhes</div>
+            </div>
+            <div class="conta-val" style="color:${isFaturaPaid?'var(--text3)':'var(--red)'}">${brl(totalCard)}</div>
+          </div>
+          <div class="fatura-detail" id="fd-${cardName.replace(/\s/g,'_')}">
+            ${subRows}${instRows}
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ── PARCELAMENTOS INLINE ──
+  if(parcEl){
+    const active = (installments||[]).filter(i=>i.active && +i.current_installment < +i.total_installments);
+    const total  = active.reduce((s,i)=>s+(+i.installment_amount||0),0);
+    if(parcSumEl) parcSumEl.textContent = active.length ? `${active.length} ativos · ${brl(total)}/mês` : '';
+    if(!active.length){
+      parcEl.innerHTML='<div class="empty-msg">Sem parcelamentos ativos</div>';
+    } else {
+      parcEl.innerHTML = active.sort((a,b)=>(+b.installment_amount)-(+a.installment_amount)).map(i=>{
+        const remaining = +i.total_installments - +i.current_installment;
+        const totalLeft = remaining * (+i.installment_amount||0);
+        const pct = Math.round((+i.current_installment / +i.total_installments)*100);
+        return `<div class="parcela-inline">
+          <div class="parcela-inline-hdr">
+            <div>
+              <div class="parcela-inline-desc">${i.emoji||'💳'} ${i.description}</div>
+              <div class="parcela-inline-card">${i.card||''}</div>
+            </div>
+            <div class="parcela-inline-val">${brl(+i.installment_amount)}/mês</div>
+          </div>
+          <div class="parcela-bar-track"><div class="parcela-bar-fill" style="width:${pct}%"></div></div>
+          <div class="parcela-inline-foot">
+            <span class="parcela-inline-prog">Parcela ${i.current_installment}/${i.total_installments}</span>
+            <span class="parcela-inline-left">${remaining} restante${remaining!==1?'s':''} · ${brl(totalLeft)}</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
   }
 }
 
@@ -1206,6 +1371,53 @@ function fillPlannedEntradas(entries, txs){
       <div class="conta-val" style="color:${isConf?'var(--text3)':'var(--green)'}">${brl(e.amount)}</div>
     </div>`;
   }).join('');
+}
+
+function toggleFaturaDetail(id){
+  const el = document.getElementById(id);
+  if(el) el.classList.toggle('open');
+}
+
+async function confirmFatura(cardName){
+  const activeSubs = (_subscriptions||[]).filter(s=>s.active!==false && (s.card||'Sem cartão')===cardName);
+  const activeInst = (_installments||[]).filter(i=>i.active && +i.current_installment < +i.total_installments && (i.card||'Sem cartão')===cardName);
+  const total = activeSubs.reduce((s,x)=>s+(+x.amount||0),0) + activeInst.reduce((s,x)=>s+(+x.installment_amount||0),0);
+  const today = new Date();
+  const dateStr = today.toISOString().slice(0,10);
+
+  showDialog(
+    `Pagar Fatura ${cardName}`,
+    `${activeSubs.length} assinaturas + ${activeInst.length} parcelas`,
+    [
+      {label:'Valor total (R$)', id:'faturaVal', type:'number', val:total.toFixed(2)},
+      {label:'Data', id:'faturaDate', type:'date', val:dateStr},
+    ],
+    async (vals)=>{
+      const amount = parseFloat(vals.faturaVal)||0;
+      const date   = vals.faturaDate || dateStr;
+      if(!amount){ toast('Valor inválido','err'); return; }
+      try{
+        // Registra a transação da fatura
+        await sbPost('transactions',{
+          description: `Fatura ${cardName}`,
+          amount, date, type:'saida',
+          category:'Cartão de Crédito',
+          account: cardName,
+        });
+        // Avança todos os parcelamentos do cartão
+        await Promise.all(activeInst.map(i=>{
+          const next = +i.current_installment + 1;
+          const done = next >= +i.total_installments;
+          return fetch(`${REST}/installments?id=eq.${i.id}`,{
+            method:'PATCH', headers:{...HDR,'Prefer':'return=minimal'},
+            body: JSON.stringify({current_installment: next, ...(done?{active:false}:{})})
+          });
+        }));
+        toast(`Fatura ${cardName} paga! ${activeInst.length} parcelas avançadas.`,'ok');
+        refreshDashboard(true);
+      }catch(e){ toast('Erro ao salvar','err'); }
+    }
+  );
 }
 
 async function confirmFixedCost(id){
@@ -1670,7 +1882,7 @@ async function _doRefresh(){
     fillUpcoming(fixedCosts);
     fillFullTx(txs);
     fillParcelas(installments);
-    fillContasFixas(fixedCosts, subscriptions, txs);
+    fillContasFixas(fixedCosts, subscriptions, installments, txs);
     fillPlannedEntradas(plannedEntries||[], txs);
     fillCalendario(txs, fixedCosts, installments, accounts, plannedEntries||[]);
 
@@ -1697,8 +1909,8 @@ setInterval(()=>{
 // ══ TAB SWITCHING ════════════════════════════════════════════════════════════
 function switchTab(tab){
   _activeTab = tab;
-  const tabs = ['home','tx','parcelas','contas','cal'];
-  const pageMap = {home:'pageHome',tx:'pageTx',parcelas:'pageParcelas',contas:'pageContas',cal:'pageCal'};
+  const tabs = ['home','tx','contas','cal'];
+  const pageMap = {home:'pageHome',tx:'pageTx',contas:'pageContas',cal:'pageCal'};
   tabs.forEach(t=>{
     const pg  = document.getElementById(pageMap[t]);
     const nb  = document.getElementById('nb-'+t);
