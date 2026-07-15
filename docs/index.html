@@ -261,6 +261,25 @@ input,select,button,textarea{font-family:var(--font);}
 .parcela-bar-track{height:3px;background:var(--border2);border-radius:99px;overflow:hidden;margin:5px 0 3px;}
 .parcela-bar-fill{height:100%;background:var(--blue);border-radius:99px;}
 
+/* ── PREVISÃO FATURA MÊS A MÊS ── */
+.previsao-section{margin-top:12px;}
+.prev-month-block{border-top:1px solid var(--border);}
+.prev-month-block:first-child{border-top:none;}
+.prev-month-hdr{display:flex;justify-content:space-between;align-items:center;padding:7px 16px;background:var(--surface3);border-bottom:1px solid var(--border);cursor:pointer;}
+.prev-month-label{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;}
+.prev-month-total{font-size:12px;font-weight:700;color:var(--red);}
+.prev-month-detail{display:none;}
+.prev-month-detail.open{display:block;}
+.prev-card-block{border-top:1px solid var(--border);}
+.prev-card-block:first-child{border-top:none;}
+.prev-card-hdr{display:flex;justify-content:space-between;align-items:center;padding:6px 16px 4px 28px;background:rgba(255,255,255,.01);}
+.prev-card-name{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.05em;}
+.prev-card-total{font-size:11px;font-weight:700;color:var(--text2);}
+.prev-item-row{display:flex;justify-content:space-between;align-items:center;padding:5px 16px 5px 40px;border-top:1px solid var(--border);}
+.prev-item-name{font-size:12px;color:var(--text2);}
+.prev-item-tag{font-size:10px;color:var(--text3);}
+.prev-item-val{font-size:12px;font-weight:600;color:var(--text3);}
+
 /* ── UPCOMING ── */
 .upcoming-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);}
 .upcoming-row:last-child{border-bottom:none;}
@@ -767,6 +786,13 @@ input,select,button,textarea{font-family:var(--font);}
             <span id="parcelasInlineSummary" style="font-size:11px;color:var(--text3)"></span>
           </div>
           <div id="parcelasInlineList"></div>
+        </div>
+        <div class="section previsao-section" style="margin-top:12px">
+          <div class="section-hdr">
+            <span class="section-lbl">Previsão Mês a Mês</span>
+            <span id="previsaoSummary" style="font-size:11px;color:var(--text3)"></span>
+          </div>
+          <div id="previsaoList"></div>
         </div>
       </div>
 
@@ -1431,6 +1457,73 @@ function fillPlannedEntradas(entries, txs){
   }).join('');
 }
 
+function fillFaturaPrevisao(subscriptions, installments){
+  const el = document.getElementById('previsaoList');
+  const sumEl = document.getElementById('previsaoSummary');
+  if(!el) return;
+
+  const activeSubs  = (subscriptions||[]).filter(s=>s.active!==false);
+  const activeInst  = (installments||[]).filter(i=>i.active);
+  const cardNames   = [...new Set([...activeSubs.map(s=>s.card), ...activeInst.map(i=>i.card)].filter(Boolean))].sort();
+
+  const now   = new Date();
+  const MONTHS = 6;
+  const monthLabels = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+
+  let html = '';
+  for(let m=0; m<MONTHS; m++){
+    const d = new Date(now.getFullYear(), now.getMonth()+m, 1);
+    const label = monthLabels[d.getMonth()] + '/' + String(d.getFullYear()).slice(2);
+    let monthTotal = 0;
+    let cardsHtml  = '';
+
+    for(const card of cardNames){
+      const subs  = activeSubs.filter(s=>s.card===card);
+      const insts = activeInst.filter(i=>i.card===card && (i.current_installment + m) < i.total_installments);
+      const subTotal  = subs.reduce((s,x)=>s+(+x.amount||0), 0);
+      const instTotal = insts.reduce((s,x)=>s+(+x.installment_amount||0), 0);
+      const cardTotal = subTotal + instTotal;
+      if(!cardTotal) continue;
+      monthTotal += cardTotal;
+
+      const subRows  = subs.map(s=>`<div class="prev-item-row">
+        <div><div class="prev-item-name">${s.emoji||'📱'} ${s.name}</div><div class="prev-item-tag">Assinatura</div></div>
+        <div class="prev-item-val">${brl(+s.amount)}</div>
+      </div>`).join('');
+
+      const instRows = insts.map(i=>`<div class="prev-item-row">
+        <div><div class="prev-item-name">${i.emoji||'💳'} ${i.description}</div><div class="prev-item-tag">Parcela ${i.current_installment+m+1}/${i.total_installments}</div></div>
+        <div class="prev-item-val">${brl(+i.installment_amount)}</div>
+      </div>`).join('');
+
+      cardsHtml += `<div class="prev-card-block">
+        <div class="prev-card-hdr">
+          <div class="prev-card-name">💳 ${card}</div>
+          <div class="prev-card-total">${brl(cardTotal)}</div>
+        </div>
+        ${subRows}${instRows}
+      </div>`;
+    }
+
+    const detailId = 'prev-detail-'+m;
+    html += `<div class="prev-month-block">
+      <div class="prev-month-hdr" onclick="togglePrevMonth('${detailId}')">
+        <div class="prev-month-label">${label}</div>
+        <div class="prev-month-total">${brl(monthTotal)}</div>
+      </div>
+      <div class="prev-month-detail${m===0?' open':''}" id="${detailId}">${cardsHtml}</div>
+    </div>`;
+  }
+
+  el.innerHTML = html || '<div class="empty-msg">Sem previsões</div>';
+  if(sumEl) sumEl.textContent = `próx. ${MONTHS} meses`;
+}
+
+function togglePrevMonth(id){
+  const el = document.getElementById(id);
+  if(el) el.classList.toggle('open');
+}
+
 function toggleFaturaDetail(id){
   const el = document.getElementById(id);
   if(el) el.classList.toggle('open');
@@ -1941,6 +2034,7 @@ async function _doRefresh(){
     fillFullTx(txs);
     fillParcelas(installments);
     fillContasFixas(fixedCosts, subscriptions, installments, txs);
+    fillFaturaPrevisao(subscriptions, installments);
     fillPlannedEntradas(plannedEntries||[], txs);
     fillCalendario(txs, fixedCosts, installments, accounts, plannedEntries||[]);
 
