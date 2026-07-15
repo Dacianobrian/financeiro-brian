@@ -109,9 +109,9 @@ input,select,button,textarea{font-family:var(--font);}
 .kpi-val.neutral{color:var(--text);}
 
 /* ── SECTIONS ── */
-.section{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:18px 16px;margin-bottom:12px;}
-.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.section-lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;}
+.section{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:16px 0;margin-bottom:12px;overflow:hidden;}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 16px;}
+.section-lbl{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;}
 .see-all{background:transparent;border:none;color:var(--blue);font-size:12px;cursor:pointer;font-weight:500;}
 
 /* ── CATEGORY BARS ── */
@@ -158,12 +158,12 @@ input,select,button,textarea{font-family:var(--font);}
 .parcela-footer{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);}
 
 /* ── CONTAS ── */
-.conta-row{display:grid;grid-template-columns:28px 1fr auto auto;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.conta-row{display:grid;grid-template-columns:28px 1fr auto auto;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);}
 .conta-row:last-child{border-bottom:none;}
-.conta-info{flex:1;min-width:0;}
-.conta-desc{font-size:13px;font-weight:500;}
+.conta-info{min-width:0;}
+.conta-desc{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .conta-cat{font-size:11px;color:var(--text3);margin-top:2px;}
-.conta-val{font-size:13px;font-weight:700;flex-shrink:0;font-variant-numeric:tabular-nums;}
+.conta-val{font-size:13px;font-weight:700;flex-shrink:0;font-variant-numeric:tabular-nums;text-align:right;}
 .due-cell{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:52px;padding:4px 8px;border-radius:8px;}
 .due-cell.urgent{background:rgba(248,113,113,.15);}
 .due-cell.warn{background:rgba(251,191,36,.12);}
@@ -182,8 +182,9 @@ input,select,button,textarea{font-family:var(--font);}
 /* check button */
 .icon-btn{width:22px;height:22px;border-radius:6px;border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text3);font-size:13px;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0;padding:0;line-height:1;}
 .icon-btn:hover{background:var(--surface3);color:var(--text);}
-.edit-btn{opacity:0;font-size:11px;}
-.conta-row:hover .edit-btn{opacity:1;}
+.edit-btn{position:absolute;right:14px;opacity:0;font-size:11px;pointer-events:none;}
+.conta-row{position:relative;}
+.conta-row:hover .edit-btn{opacity:1;pointer-events:auto;}
 .chk-btn{width:24px;height:24px;border-radius:50%;border:2px solid var(--border2);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;transition:.15s;color:transparent;}
 .chk-btn:hover{border-color:var(--green);background:rgba(74,222,128,.1);}
 .chk-btn.paid{background:var(--green);border-color:var(--green);color:#0f0f12;}
@@ -195,14 +196,15 @@ input,select,button,textarea{font-family:var(--font);}
 .summary-left{font-size:11px;color:var(--text3);}
 .summary-right{font-size:13px;font-weight:700;}
 /* ── CONTAS GRUPOS ── */
-.contas-progress{margin:6px 0 14px;}
-.progress-track{height:4px;background:var(--border2);border-radius:99px;overflow:hidden;margin-bottom:4px;}
+.contas-progress{margin:0 16px 14px;}
+.progress-track{height:4px;background:var(--border2);border-radius:99px;overflow:hidden;margin-bottom:5px;}
 .progress-fill{height:100%;border-radius:99px;background:var(--green);transition:width .4s;}
 .progress-meta{display:flex;justify-content:space-between;font-size:10px;}
-.progress-late{color:var(--red);}
+.progress-late{color:var(--red);font-weight:600;}
 .progress-count{color:var(--text3);}
-.group-block{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px;}
-.group-hdr{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;border-bottom:1px solid var(--border);}
+.group-block{background:var(--surface2);border-top:1px solid var(--border);overflow:hidden;margin-bottom:0;}
+.group-block+.group-block{border-top:1px solid var(--border);}
+.group-hdr{display:flex;align-items:center;justify-content:space-between;padding:7px 16px;background:var(--surface3);}
 .group-label{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:.07em;}
 .group-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .group-label.g-urgent{color:var(--red);}  .group-label.g-urgent .group-dot{background:var(--red);}
@@ -213,19 +215,21 @@ input,select,button,textarea{font-family:var(--font);}
 .group-total{font-size:11px;font-weight:700;}
 .group-total.red{color:var(--red);} .group-total.muted{color:var(--text3);}
 /* ── FATURA CARD ── */
-.fatura-row{display:grid;grid-template-columns:28px 1fr auto auto;align-items:center;padding:10px 14px;gap:10px;border-bottom:1px solid var(--border);cursor:pointer;}
-.fatura-row:last-child{border-bottom:none;}
+.fatura-row{display:grid;grid-template-columns:28px 1fr auto;align-items:center;padding:11px 16px;gap:10px;border-top:1px solid var(--border);cursor:pointer;transition:.1s;}
+.fatura-row:first-child{border-top:none;}
+.fatura-row:hover{background:rgba(255,255,255,.02);}
 .fatura-toggle{font-size:10px;color:var(--text3);margin-top:3px;}
 .fatura-detail{display:none;background:var(--surface3);border-top:1px solid var(--border);}
 .fatura-detail.open{display:block;}
-.fatura-sub-row{display:flex;align-items:center;justify-content:space-between;padding:7px 14px 7px 52px;border-bottom:1px solid var(--border);}
+.fatura-sub-row{display:flex;align-items:center;justify-content:space-between;padding:7px 16px 7px 54px;border-bottom:1px solid var(--border);}
 .fatura-sub-row:last-child{border-bottom:none;}
 .fatura-sub-name{font-size:12px;color:var(--text2);}
 .fatura-sub-val{font-size:12px;font-weight:600;color:var(--text2);}
 .fatura-sub-tag{font-size:10px;color:var(--text3);margin-top:1px;}
 /* ── PARCELAS INLINE ── */
 .parcelas-section{margin-top:12px;}
-.parcela-inline{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;}
+.parcela-inline{border-top:1px solid var(--border);padding:12px 16px;}
+.parcela-inline:first-child{border-top:none;}
 .parcela-inline-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
 .parcela-inline-desc{font-size:13px;font-weight:500;}
 .parcela-inline-card{font-size:11px;color:var(--text3);margin-top:2px;}
