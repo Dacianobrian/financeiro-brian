@@ -99,6 +99,19 @@ input,select,button,textarea{font-family:var(--font);}
 .kpi-card.saida-card{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);}
 .kpi-card.patrimonio-card{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);}
 .kpi-card.reserva-card{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);}
+.comprom-card{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:16px;overflow:hidden;}
+.comprom-title{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px;}
+.comprom-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.comprom-item{background:var(--surface2);border-radius:10px;padding:10px 12px;}
+.comprom-item-lbl{font-size:10px;color:var(--text3);font-weight:500;margin-bottom:3px;}
+.comprom-item-val{font-size:15px;font-weight:700;color:var(--text);}
+.comprom-divider{border:none;border-top:1px solid var(--border);margin:0 0 12px;}
+.comprom-bottom{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.comprom-stat{display:flex;flex-direction:column;gap:2px;}
+.comprom-stat-lbl{font-size:10px;color:var(--text3);font-weight:500;}
+.comprom-stat-val{font-size:17px;font-weight:800;letter-spacing:-.4px;}
+.comprom-bar-wrap{height:4px;background:var(--surface3);border-radius:2px;margin-top:6px;overflow:hidden;}
+.comprom-bar{height:100%;border-radius:2px;transition:width .4s ease;}
 .kpi-lbl{font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:500;}
 .kpi-sub{font-size:10px;color:var(--text3);margin-top:4px;}
 .kpi-val{font-size:22px;font-weight:800;letter-spacing:-.5px;}
@@ -744,6 +757,7 @@ input,select,button,textarea{font-family:var(--font);}
             <div class="sparkline-bars" id="sparkSaidas"></div>
           </div>
         </div>
+        <div id="comprometimentoCard" class="home-full"></div>
         <div id="alertasSection" class="home-full"></div>
         <!-- coluna esquerda -->
         <div class="home-col-left">
@@ -1105,6 +1119,59 @@ function autoCategory(desc, tipo){
 }
 
 // ══ RENDER FUNCTIONS ══════════════════════════════════════════════════════════
+
+function fillComprometimento(fixedCosts, subscriptions, installments, txs){
+  const el = document.getElementById('comprometimentoCard');
+  if(!el) return;
+
+  const totalFixos = (fixedCosts||[]).reduce((s,f)=>s+(+f.amount||0),0);
+  const totalSubs  = (subscriptions||[]).filter(s=>s.active!==false).reduce((s,x)=>s+(+x.amount||0),0);
+  const totalParcelas = (installments||[]).filter(i=>i.active && +i.current_installment < +i.total_installments).reduce((s,i)=>s+(+i.installment_amount||0),0);
+  const totalComprometido = totalFixos + totalSubs + totalParcelas;
+
+  const gastoReal = (txs||[]).filter(t=>t.type==='saida').reduce((s,t)=>s+(+t.amount||0),0);
+  const receitaMinima = totalComprometido;
+
+  const pctGasto = totalComprometido > 0 ? Math.min(gastoReal / totalComprometido * 100, 100) : 0;
+  const excedeu  = gastoReal > totalComprometido;
+
+  el.innerHTML = `
+    <div class="comprom-card">
+      <div class="comprom-title">Comprometimento mensal</div>
+      <div class="comprom-grid">
+        <div class="comprom-item">
+          <div class="comprom-item-lbl">Contas fixas</div>
+          <div class="comprom-item-val">${brl(totalFixos)}</div>
+        </div>
+        <div class="comprom-item">
+          <div class="comprom-item-lbl">Parcelamentos</div>
+          <div class="comprom-item-val">${brl(totalParcelas)}</div>
+        </div>
+        <div class="comprom-item">
+          <div class="comprom-item-lbl">Assinaturas</div>
+          <div class="comprom-item-val">${brl(totalSubs)}</div>
+        </div>
+      </div>
+      <hr class="comprom-divider">
+      <div class="comprom-bottom">
+        <div class="comprom-stat">
+          <div class="comprom-stat-lbl">Comprometido (mín.)</div>
+          <div class="comprom-stat-val" style="color:var(--amber)">${brl(totalComprometido)}</div>
+          <div class="comprom-bar-wrap"><div class="comprom-bar" style="width:100%;background:rgba(251,191,36,.5)"></div></div>
+        </div>
+        <div class="comprom-stat">
+          <div class="comprom-stat-lbl">Gasto real no mês</div>
+          <div class="comprom-stat-val" style="color:${excedeu?'var(--red)':'var(--text)'}">${brl(gastoReal)}</div>
+          <div class="comprom-bar-wrap"><div class="comprom-bar" style="width:${pctGasto}%;background:${excedeu?'var(--red)':'var(--green)'}"></div></div>
+        </div>
+        <div class="comprom-stat">
+          <div class="comprom-stat-lbl">Receita mínima necessária</div>
+          <div class="comprom-stat-val" style="color:var(--blue)">${brl(receitaMinima)}</div>
+          <div class="comprom-bar-wrap"><div class="comprom-bar" style="width:100%;background:rgba(96,165,250,.5)"></div></div>
+        </div>
+      </div>
+    </div>`;
+}
 
 function fillKpis(accounts, entradas, saidas){
   const corrente = (accounts||[]).filter(a=>a.type==='corrente').reduce((s,a)=>s+(+a.balance||0),0);
@@ -2407,6 +2474,7 @@ async function _doRefresh(){
     // Render all tabs
     fillKpis(accounts, entradas, saidas);
     fillSparklines(histMonths, entradas, saidas);
+    fillComprometimento(fixedCosts, subscriptions, installments, txs);
     fillAlertas(fixedCosts, subscriptions, budgets||[], txs);
     fillOrcamentos(budgets||[], txs);
     fillCatBars(txs);
