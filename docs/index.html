@@ -551,6 +551,46 @@ input,select,button,textarea{font-family:var(--font);}
   .cal-d{font-size:12px;}
   .cal-v{font-size:10px;}
 }
+
+/* ── HERO GRADIENT VARIANTS ─────────────────────────────────────────────────── */
+.hero-card.hero-positive{border-color:rgba(74,222,128,.22);}
+.hero-card.hero-positive::before{background:radial-gradient(ellipse at 60% 0%,rgba(74,222,128,.13) 0%,transparent 70%);}
+.hero-card.hero-negative{border-color:rgba(248,113,113,.22);}
+.hero-card.hero-negative::before{background:radial-gradient(ellipse at 60% 0%,rgba(248,113,113,.13) 0%,transparent 70%);}
+.hero-card.hero-low{border-color:rgba(251,191,36,.2);}
+.hero-card.hero-low::before{background:radial-gradient(ellipse at 60% 0%,rgba(251,191,36,.1) 0%,transparent 70%);}
+.hero-val.hv-positive{color:var(--green)!important;}
+.hero-val.hv-negative{color:var(--red)!important;}
+.hero-val.hv-low{color:var(--amber)!important;}
+
+/* ── SALDO COLOR HELPERS ─────────────────────────────────────────────────────── */
+.sc-green{color:var(--green);}
+.sc-red{color:var(--red);}
+.sc-amber{color:var(--amber);}
+
+/* ── ANNUAL VIEW ─────────────────────────────────────────────────────────────── */
+.ano-year-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:0 2px;}
+.ano-year-lbl{font-size:18px;font-weight:700;color:var(--text);}
+.ano-total-card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:20px 18px;margin-bottom:14px;text-align:center;}
+.ano-total-lbl{font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+.ano-total-saldo{font-size:34px;font-weight:800;letter-spacing:-1.5px;margin-bottom:6px;font-variant-numeric:tabular-nums;}
+.ano-total-row{display:flex;justify-content:center;gap:20px;font-size:12px;}
+.ano-months-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+.ano-month-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 12px;cursor:pointer;transition:.15s;position:relative;}
+.ano-month-card:hover{background:var(--surface2);transform:translateY(-1px);}
+.ano-month-card.ano-positive{border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.06);}
+.ano-month-card.ano-negative{border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.06);}
+.ano-month-card.ano-zero{border-color:rgba(251,191,36,.25);background:rgba(251,191,36,.05);}
+.ano-month-card.ano-current{outline:2px solid var(--blue);outline-offset:2px;}
+.ano-month-card.ano-future{opacity:.45;cursor:default;}
+.ano-month-card.ano-future:hover{transform:none;background:var(--surface);}
+.ano-month-name{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px;}
+.ano-month-saldo{font-size:17px;font-weight:800;letter-spacing:-0.5px;margin-bottom:5px;font-variant-numeric:tabular-nums;}
+.ano-month-detail{display:flex;flex-direction:column;gap:2px;font-size:10px;font-variant-numeric:tabular-nums;}
+.ano-month-bar{height:3px;border-radius:2px;margin-top:8px;background:var(--border);overflow:hidden;}
+.ano-month-bar-fill{height:100%;border-radius:2px;transition:width .4s;}
+.ano-loading{padding:48px;text-align:center;color:var(--text3);font-size:14px;}
+@media (min-width:960px){.ano-months-grid{grid-template-columns:repeat(4,1fr);}.ano-month-saldo{font-size:20px;}}
 </style>
 </head>
 <body>
@@ -708,6 +748,7 @@ input,select,button,textarea{font-family:var(--font);}
       <button class="nav-btn" id="nb-tx"             onclick="switchTab('tx')"><span class="nav-icon">↕</span>Transações</button>
       <button class="nav-btn" id="nb-contas"         onclick="switchTab('contas')"><span class="nav-icon">📌</span>Contas</button>
       <button class="nav-btn" id="nb-cal"            onclick="switchTab('cal')"><span class="nav-icon">📅</span>Calendário</button>
+      <button class="nav-btn" id="nb-ano"            onclick="switchTab('ano')"><span class="nav-icon">📆</span>Anual</button>
     </nav>
     <button class="logout-btn" onclick="doLogout()">⏻ Sair</button>
   </aside>
@@ -880,6 +921,16 @@ input,select,button,textarea{font-family:var(--font);}
         </div>
       </div>
 
+      <!-- ── ANO ── -->
+      <div id="pageAno" class="page" style="display:none">
+        <div class="ano-year-bar">
+          <button class="month-nav" onclick="prevAno()">‹</button>
+          <div class="ano-year-lbl" id="anoYearLbl">2025</div>
+          <button class="month-nav" onclick="nextAno()">›</button>
+        </div>
+        <div id="anoGrid"><div class="ano-loading">Carregando...</div></div>
+      </div>
+
     </div><!-- content-area -->
   </div><!-- main-wrap -->
 
@@ -890,6 +941,7 @@ input,select,button,textarea{font-family:var(--font);}
       <button class="bn-btn" id="bn-tx"             onclick="switchTab('tx')"><span class="bn-icon">↕</span>Transações</button>
       <button class="bn-btn" id="bn-contas"         onclick="switchTab('contas')"><span class="bn-icon">📌</span>Contas</button>
       <button class="bn-btn" id="bn-cal"            onclick="switchTab('cal')"><span class="bn-icon">📅</span>Calendário</button>
+      <button class="bn-btn" id="bn-ano"            onclick="switchTab('ano')"><span class="bn-icon">📆</span>Anual</button>
     </div>
   </nav>
 
@@ -1174,11 +1226,22 @@ function fillKpis(accounts, entradas, saidas){
   const reserva  = (accounts||[]).filter(a=>/(caixinha|rdb|reserva|emergencia)/i.test((a.type||'')+(a.name||''))).reduce((s,a)=>s+(+a.balance||0),0);
   const total    = (accounts||[]).reduce((s,a)=>s+(+a.balance||0),0);
 
-  // Hero: apenas conta corrente
+  // Hero: apenas conta corrente — gradiente por saldo
+  const heroCard = document.querySelector('.hero-card');
+  if(heroCard){
+    heroCard.classList.remove('hero-positive','hero-negative','hero-low');
+    if(corrente >= 1000)      heroCard.classList.add('hero-positive');
+    else if(corrente < 0)     heroCard.classList.add('hero-negative');
+    else                      heroCard.classList.add('hero-low');
+  }
   const heroEl = document.getElementById('heroSaldo');
   if(heroEl){
     heroEl.textContent = brl(corrente);
-    heroEl.style.color = corrente < 0 ? 'var(--red)' : 'var(--text)';
+    heroEl.classList.remove('hv-positive','hv-negative','hv-low');
+    if(corrente >= 1000)      heroEl.classList.add('hv-positive');
+    else if(corrente < 0)     heroEl.classList.add('hv-negative');
+    else                      heroEl.classList.add('hv-low');
+    heroEl.style.color = '';
   }
   const subEl = document.getElementById('heroSub');
   const correnteAccts = (accounts||[]).filter(a=>a.type==='corrente');
@@ -2485,6 +2548,7 @@ async function _doRefresh(){
     fillCalendario(txs, fixedCosts, installments, accounts, plannedEntries||[], subscriptions);
 
     _lastRefreshTs = Date.now();
+    _invalidateAnoCache();
     _setRefreshLoading(false);
     document.title = 'Brian · Finanças';
   }catch(e){
@@ -2507,8 +2571,8 @@ setInterval(()=>{
 // ══ TAB SWITCHING ════════════════════════════════════════════════════════════
 function switchTab(tab){
   _activeTab = tab;
-  const tabs = ['home','tx','contas','cal'];
-  const pageMap = {home:'pageHome',tx:'pageTx',contas:'pageContas',cal:'pageCal'};
+  const tabs = ['home','tx','contas','cal','ano'];
+  const pageMap = {home:'pageHome',tx:'pageTx',contas:'pageContas',cal:'pageCal',ano:'pageAno'};
   tabs.forEach(t=>{
     const pg  = document.getElementById(pageMap[t]);
     const nb  = document.getElementById('nb-'+t);
@@ -2521,6 +2585,7 @@ function switchTab(tab){
   window.scrollTo(0,0);
   const fab = document.getElementById('fabBtn');
   if(fab) fab.style.display = (tab==='tx'||tab==='home') ? 'flex' : 'none';
+  if(tab==='ano') loadAno();
 }
 
 // ══ TX FILTER ════════════════════════════════════════════════════════════════
@@ -2736,6 +2801,128 @@ async function deleteTxInline(id, desc){
     toast('Transação excluída','ok');
     refreshDashboard(true);
   }catch(e){ toast('Erro ao excluir','err'); }
+}
+
+// ══ ANNUAL VIEW ═══════════════════════════════════════════════════════════════
+let _anoYear  = new Date().getFullYear();
+let _anoCache = {};
+
+async function _fetchAno(year){
+  const from = `${year}-01-01`;
+  const to   = `${year}-12-31`;
+  const txs  = await sbGet('transactions',{select:'amount,type,date',date:`gte.${from}`,order:'date.asc',limit:5000});
+  const filtered = (txs||[]).filter(t=>t.date && t.date<=to);
+  const byMonth = {};
+  for(let m=1;m<=12;m++) byMonth[m]={entradas:0,saidas:0,saldo:0};
+  filtered.forEach(t=>{
+    const m = parseInt(t.date.split('-')[1],10);
+    if(t.type==='entrada') byMonth[m].entradas += (+t.amount||0);
+    else if(t.type==='saida') byMonth[m].saidas += (+t.amount||0);
+  });
+  Object.keys(byMonth).forEach(m=>{ byMonth[m].saldo = byMonth[m].entradas - byMonth[m].saidas; });
+  return byMonth;
+}
+
+function fillAno(monthData, year){
+  const el    = document.getElementById('anoGrid');
+  const lblEl = document.getElementById('anoYearLbl');
+  if(lblEl) lblEl.textContent = year;
+  if(!el) return;
+
+  const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const hoje   = new Date();
+  const curMes = hoje.getMonth()+1;
+  const curAno = hoje.getFullYear();
+
+  // Totais do ano
+  let yearEnt=0, yearSai=0;
+  Object.values(monthData).forEach(d=>{ yearEnt+=d.entradas; yearSai+=d.saidas; });
+  const yearSaldo = yearEnt - yearSai;
+  const yearSaldoColor = yearSaldo>=0 ? 'var(--green)' : 'var(--red)';
+
+  const totalCard = `<div class="ano-total-card">
+    <div class="ano-total-lbl">Resultado ${year}</div>
+    <div class="ano-total-saldo" style="color:${yearSaldoColor}">${yearSaldo>=0?'+':''}${brl(Math.abs(yearSaldo))}</div>
+    <div class="ano-total-row">
+      <span style="color:var(--green)">+${brl(yearEnt)} entradas</span>
+      <span style="color:var(--red)">−${brl(yearSai)} saídas</span>
+    </div>
+  </div>`;
+
+  // Maior saldo positivo (para normalizar barras)
+  const maxSaldo = Math.max(...Object.values(monthData).map(d=>Math.abs(d.saldo)),1);
+
+  const cards = MESES.map((nome,i)=>{
+    const m = i+1;
+    const d = monthData[m]||{entradas:0,saidas:0,saldo:0};
+    const isFuture  = year>curAno || (year===curAno && m>curMes);
+    const isCurrent = year===curAno && m===curMes;
+
+    let cls = 'ano-month-card';
+    let saldoColor = 'var(--text3)';
+    if(!isFuture){
+      if(d.saldo>0)       { cls+=' ano-positive'; saldoColor='var(--green)'; }
+      else if(d.saldo<0)  { cls+=' ano-negative'; saldoColor='var(--red)'; }
+      else                { cls+=' ano-zero'; saldoColor='var(--amber)'; }
+    } else {
+      cls += ' ano-future';
+    }
+    if(isCurrent) cls += ' ano-current';
+
+    const barPct  = isFuture ? 0 : Math.round(Math.abs(d.saldo)/maxSaldo*100);
+    const barColor = d.saldo>=0 ? 'var(--green)' : 'var(--red)';
+    const saldoStr = isFuture ? '—' : (d.saldo>=0?'+':'')+d.saldo.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+    return `<div class="${cls}" onclick="${isFuture?'void(0)':'goToMonth('+year+','+m+')'}">
+      <div class="ano-month-name">${nome}${isCurrent?' ●':''}</div>
+      <div class="ano-month-saldo" style="color:${saldoColor}">${saldoStr}</div>
+      <div class="ano-month-detail">
+        <span style="color:var(--green)">${isFuture?'—':'+'+brl(d.entradas)}</span>
+        <span style="color:var(--red)">${isFuture?'—':'−'+brl(d.saidas)}</span>
+      </div>
+      <div class="ano-month-bar"><div class="ano-month-bar-fill" style="width:${barPct}%;background:${barColor}"></div></div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = totalCard + '<div class="ano-months-grid">' + cards + '</div>';
+}
+
+function prevAno(){ _anoYear--; loadAno(); }
+function nextAno(){ _anoYear++; loadAno(); }
+
+function goToMonth(year, month){
+  _curYear=year; _curMonth=month;
+  _calViewYear=year; _calViewMonth=month;
+  updateMonthLabel();
+  switchTab('home');
+  refreshDashboard(true);
+}
+
+async function loadAno(){
+  const el = document.getElementById('anoGrid');
+  if(el) el.innerHTML = '<div class="ano-loading">Carregando ano...</div>';
+  const lblEl = document.getElementById('anoYearLbl');
+  if(lblEl) lblEl.textContent = _anoYear;
+  try{
+    if(!_anoCache[_anoYear]){
+      _anoCache[_anoYear] = await _fetchAno(_anoYear);
+    }
+    // Injeta dados reais do mês atual a partir do cache do dashboard
+    if(_anoYear===_curYear && _allTxs.length){
+      const ent = _allTxs.filter(t=>t.type==='entrada').reduce((s,t)=>s+(+t.amount||0),0);
+      const sai = _allTxs.filter(t=>t.type==='saida').reduce((s,t)=>s+(+t.amount||0),0);
+      _anoCache[_anoYear][_curMonth] = {entradas:ent, saidas:sai, saldo:ent-sai};
+    }
+    fillAno(_anoCache[_anoYear], _anoYear);
+  }catch(e){
+    if(el) el.innerHTML = '<div class="ano-loading">Erro ao carregar. Tente novamente.</div>';
+    console.error('Ano load error:',e);
+  }
+}
+
+// Invalida cache do ano corrente quando o dashboard atualiza
+function _invalidateAnoCache(){
+  delete _anoCache[_curYear];
 }
 
 // ══ KEYBOARD SHORTCUTS ════════════════════════════════════════════════════════
