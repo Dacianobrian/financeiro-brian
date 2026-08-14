@@ -2248,8 +2248,6 @@ function _fmtK(v){
 let _calTxByDate={}, _calFixedByDay={}, _calInstItems=[];
 
 function fillCalendario(txs, fixedCosts, installments, accounts, plannedEntries, subscriptions){
-  const el=document.getElementById('calWrap');
-  if(!el) return;
   const todayStr=new Date().toISOString().slice(0,10);
 
   // --- Group txs by date ---
