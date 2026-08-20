@@ -60,29 +60,51 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 .bn.on .bn-lb{color:var(--or)}
 .bn-plus-wrap{width:44px;height:44px;background:var(--or);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;margin-top:-4px;box-shadow:0 4px 14px rgba(232,82,26,.4);line-height:1}
 
-/* ── SALDOS PAGE ────────────────────────── */
-.saldo-filters{display:flex;gap:8px;padding:12px 16px 10px;overflow-x:auto;scrollbar-width:none;background:var(--card);border-bottom:1px solid var(--br);flex-shrink:0;position:sticky;top:0;z-index:5}
-.saldo-filters::-webkit-scrollbar{display:none}
-.fchip{padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;border:1.5px solid var(--br);background:none;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;color:var(--t2);transition:.1s}
-.fchip.on{background:var(--or);color:#fff;border-color:var(--or)}
+/* ── SALDOS GRID ────────────────────────── */
+.sg-summary{padding:14px 16px 12px;background:var(--card);border-bottom:1px solid var(--br)}
+.sg-bal{font-size:26px;font-weight:800;letter-spacing:-.5px;color:var(--t1)}
+.sg-bal-lbl{font-size:11px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.sg-month-sum{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap}
+.sg-ms-item{display:flex;flex-direction:column;align-items:flex-start}
+.sg-ms-lbl{font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.05em}
+.sg-ms-val{font-size:14px;font-weight:700;margin-top:1px}
 
-.day-grp{padding:0 16px}
-.day-hdr{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0 6px;border-bottom:1px solid var(--br)}
-.day-lbl{font-size:13px;font-weight:700;color:var(--t2)}
-.day-sal{font-size:13px;font-weight:700}
-.day-sal.p{color:var(--gr)}
-.day-sal.n{color:var(--rd)}
+.sg-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--card)}
+.sg-wrap::-webkit-scrollbar{display:none}
+.sg-table{border-collapse:collapse;width:100%}
+.sg-table th,.sg-table td{white-space:nowrap}
+.sg-thead tr{background:var(--or)}
+.sg-thead th{padding:8px 6px;font-size:11px;font-weight:700;color:#fff;text-align:right;letter-spacing:.02em}
+.sg-thday{text-align:left!important;padding-left:16px!important;width:54px}
+.sg-th{width:68px}
+.sg-th-sal{width:auto}
 
-.tx{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--br);cursor:pointer;transition:background .1s}
-.tx:last-child{border-bottom:none}
-.tx-ic{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px}
-.tx-ic.entrada{background:var(--gr-l)}
-.tx-ic.saida{background:var(--rd-l)}
-.tx-ic.cartao{background:var(--bl-l)}
-.tx-ic.economia{background:var(--pu-l)}
-.tx-body{flex:1;min-width:0}
-.tx-desc{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tx-cat{font-size:12px;color:var(--t3);margin-top:1px}
+.sg-row{border-bottom:1px solid var(--br);cursor:pointer;transition:background .08s}
+.sg-row:active{background:var(--bg)!important}
+.sg-row td{padding:9px 6px;font-size:13px;text-align:right;vertical-align:middle;line-height:1.1}
+.sg-day{text-align:left!important;padding-left:16px!important}
+.sg-dn{font-size:15px;font-weight:700;display:block;color:var(--t1)}
+.sg-dw{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.03em;display:block}
+
+.sg-entr{color:var(--gr)}
+.sg-sai{color:var(--rd)}
+.sg-eco{color:var(--pu)}
+.sg-cart{color:var(--bl)}
+.sg-sal{font-weight:700;padding-right:12px!important}
+.sg-sal.pos{color:var(--am)}
+.sg-sal.neg{color:var(--rd)}
+
+.sg-z{color:var(--br2);font-size:12px}
+.sg-v{font-weight:600}
+.sg-proj{opacity:.7;font-style:italic}
+
+.sg-today{background:#FFFBEB!important}
+.sg-today .sg-dn{color:var(--am);font-weight:800}
+.sg-today .sg-dw{color:var(--am)}
+.sg-future{opacity:.72}
+.sg-future .sg-dn{color:var(--t3)}
+
+/* keep tx-val for tx-detail modal */
 .tx-val{font-size:15px;font-weight:700;flex-shrink:0}
 .tx-val.entrada{color:var(--gr)}
 .tx-val.saida{color:var(--rd)}
@@ -186,15 +208,6 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 .cv-comprom-total-lbl{font-size:13px;color:var(--t2);font-weight:500}
 .cv-comprom-total-val{font-size:18px;font-weight:700;color:var(--rd)}
 
-/* ── PROJEÇÃO FUTURA ────────────────────── */
-.day-future{opacity:.65}
-.day-lbl-fut{color:var(--t3)!important;font-style:italic}
-.day-sal-fut{opacity:.8}
-.tx-fut{background:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(0,0,0,.015) 4px,rgba(0,0,0,.015) 8px)}
-.tx-ic-fut{opacity:.5}
-.tx-desc-fut{color:var(--t3)}
-.tx-val-fut{opacity:.7}
-
 /* ── UTILITIES ─────────────────────────── */
 .empty{padding:56px 16px;text-align:center;color:var(--t3);font-size:14px;line-height:1.6}
 .loading{padding:56px 16px;text-align:center;color:var(--t3);font-size:14px}
@@ -231,13 +244,6 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
   <div id="pages">
     <!-- Saldos -->
     <div id="pg-saldos" class="page">
-      <div class="saldo-filters" id="filters">
-        <button class="fchip on" onclick="setFilter('all',this)">Todas</button>
-        <button class="fchip" onclick="setFilter('income',this)">Entradas</button>
-        <button class="fchip" onclick="setFilter('expense',this)">Saídas</button>
-        <button class="fchip" onclick="setFilter('card',this)">Cartão</button>
-        <button class="fchip" onclick="setFilter('savings',this)">Economia</button>
-      </div>
       <div id="saldos-list"></div>
     </div>
 
@@ -470,130 +476,123 @@ async function loadData(){
   if(_tab==='menu')   renderMenu();
 }
 
-// ── FILTER ─────────────────────────────────────────────────────
-function setFilter(f,el){
-  _filter=f;
-  document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('on'));
-  el.classList.add('on');
-  renderSaldos();
-}
-
-// ── SALDOS ─────────────────────────────────────────────────────
+// ── SALDOS GRID ────────────────────────────────────────────────
 function renderSaldos(){
-  const el = document.getElementById('saldos-list');
+  const el=document.getElementById('saldos-list');
   if(!el) return;
 
-  const totalBal = _accs.reduce((s,a)=>s+parseFloat(a.balance||0),0);
-  const isIncome = t=>t.type==='income'||t.type==='entrada';
-  const monthNet = _txs.reduce((s,t)=>{
-    const a=parseFloat(t.amount||0);
-    return isIncome(t)?s+a:s-a;
-  },0);
+  const totalBal=_accs.reduce((s,a)=>s+parseFloat(a.balance||0),0);
+  const isInc=t=>['income','entrada'].includes(t.type);
+  const isEco=t=>['savings','economia','investment'].includes(t.type);
+  const isCart=t=>['card','cartao','transfer'].includes(t.type);
+  const isSai=t=>['expense','saida'].includes(t.type);
+  const monthNet=_txs.reduce((s,t)=>{const a=parseFloat(t.amount||0);return isInc(t)?s+a:s-a;},0);
 
-  // Group by date (all txs for saldo calculation)
   const byDate={};
   _txs.forEach(t=>{if(!byDate[t.date])byDate[t.date]=[];byDate[t.date].push(t);});
-  const dates=Object.keys(byDate).sort();
 
-  let runSaldo = totalBal - monthNet;
-  const today  = todayStr();
-  let html='';
+  const nowDate=new Date();
+  const isCurMo=(_yr===nowDate.getFullYear()&&_mo===nowDate.getMonth());
+  const todayDay=isCurMo?nowDate.getDate():-1;
+  const daysInMo=dim(_yr,_mo);
 
-  for(const date of dates){
-    const dayAll = byDate[date];
-    const dayNet = dayAll.reduce((s,t)=>{
-      const a=parseFloat(t.amount||0);
-      return isIncome(t)?s+a:s-a;
-    },0);
-    runSaldo += dayNet;
-
-    const display = _filter==='all' ? dayAll : dayAll.filter(t=>(FILTRO[_filter]||[_filter]).includes(t.type));
-    if(!display.length) continue;
-
-    const d   = parseInt(date.slice(8));
-    const dow = dowOf(date);
-    const isTd = date===today;
-    const pos  = runSaldo>=0;
-
-    html+=`<div class="day-grp">
-  <div class="day-hdr">
-    <span class="day-lbl">${d} ${dow}${isTd?' · hoje':''}</span>
-    <span class="day-sal ${pos?'p':'n'}">${brl(runSaldo)}</span>
-  </div>`;
-
-    for(const t of display){
-      const cls = TIPO_CLS[t.type]||'saida';
-      const ic  = TIPO_IC[t.type]||'⚪';
-      const amt = parseFloat(t.amount||0);
-      const sign= isIncome(t)?'+':'-';
-      html+=`<div class="tx" onclick="openTx('${t.id}')">
-    <div class="tx-ic ${cls}">${ic}</div>
-    <div class="tx-body">
-      <div class="tx-desc">${esc(t.description||'Sem descrição')}</div>
-      <div class="tx-cat">${esc(t.category||TIPO_LBL[t.type]||'')}</div>
-    </div>
-    <div class="tx-val ${cls}">${sign} ${brl(amt)}</div>
-  </div>`;
-    }
-    html+='</div>';
-  }
-
-  // ── PROJEÇÃO FUTURA ──────────────────────────────────────────
-  const nowDate = new Date();
-  const isCurrentMonth = (_yr===nowDate.getFullYear() && _mo===nowDate.getMonth());
-  if(isCurrentMonth && _filter==='all'){
-    const todayDay = nowDate.getDate();
-    const daysInMo = dim(_yr,_mo);
-    function isPagoAmt(amount){
-      return _txs.some(t=>{
-        const tp=t.type;
-        return (tp==='saida'||tp==='expense'||tp==='cartao'||tp==='card')&&Math.abs(parseFloat(t.amount)-amount)<0.05;
-      });
-    }
-    // Build map day -> upcoming charges
-    const upcoming={};
+  // Future projections: map day -> total R$
+  const projMap={};
+  if(isCurMo){
+    const paid=amt=>_txs.some(t=>(isSai(t)||isCart(t))&&Math.abs(parseFloat(t.amount)-amt)<0.05);
     _fixedCosts.forEach(fc=>{
-      const day=fc.due_day||1;
-      if(day>todayDay && !isPagoAmt(parseFloat(fc.amount))){
-        if(!upcoming[day]) upcoming[day]=[];
-        upcoming[day].push({desc:fc.description,amt:parseFloat(fc.amount),cat:fc.category||'Conta Fixa'});
-      }
+      const d=fc.due_day||1;
+      if(d>todayDay&&!paid(parseFloat(fc.amount)))
+        projMap[d]=(projMap[d]||0)+parseFloat(fc.amount);
     });
     _subs.forEach(s=>{
-      const day=s.billing_day||1;
-      if(day>todayDay){
-        if(!upcoming[day]) upcoming[day]=[];
-        upcoming[day].push({desc:(s.emoji||'📱')+' '+s.name,amt:parseFloat(s.amount),cat:s.category||'Assinatura'});
-      }
+      const d=s.billing_day||1;
+      if(d>todayDay) projMap[d]=(projMap[d]||0)+parseFloat(s.amount);
     });
-    const futureDays=Object.keys(upcoming).map(Number).sort((a,b)=>a-b);
-    for(const day of futureDays){
-      const items=upcoming[day];
-      const dayNet=-items.reduce((s,i)=>s+i.amt,0);
-      runSaldo+=dayNet;
-      const ds=dStr(_yr,_mo,day);
-      const dow=dowOf(ds);
-      const pos=runSaldo>=0;
-      html+=`<div class="day-grp day-future">
-  <div class="day-hdr">
-    <span class="day-lbl day-lbl-fut">${day} ${dow} · previsto</span>
-    <span class="day-sal ${pos?'p':'n'} day-sal-fut">${brl(runSaldo)}</span>
-  </div>`;
-      for(const item of items){
-        html+=`<div class="tx tx-fut">
-    <div class="tx-ic saida tx-ic-fut">🔴</div>
-    <div class="tx-body">
-      <div class="tx-desc tx-desc-fut">${esc(item.desc)}</div>
-      <div class="tx-cat">${esc(item.cat)}</div>
-    </div>
-    <div class="tx-val saida tx-val-fut">− ${brl(item.amt)}</div>
-  </div>`;
-      }
-      html+='</div>';
-    }
   }
 
-  el.innerHTML=html||'<div class="empty">Nenhuma movimentação<br>neste mês</div>';
+  // Month totals for summary bar
+  let mEntr=0,mSai=0,mEco=0,mCart=0;
+  _txs.forEach(t=>{
+    const a=parseFloat(t.amount||0);
+    if(isInc(t)) mEntr+=a;
+    else if(isEco(t)) mEco+=a;
+    else if(isCart(t)) mCart+=a;
+    else if(isSai(t)) mSai+=a;
+  });
+
+  let runSaldo=totalBal-monthNet;
+  const DOW=['dom','seg','ter','qua','qui','sex','sáb'];
+  const rows=[];
+
+  for(let day=1;day<=daysInMo;day++){
+    const ds=dStr(_yr,_mo,day);
+    const dayTxs=byDate[ds]||[];
+    const proj=projMap[day]||0;
+    const isFut=isCurMo&&day>todayDay;
+    const isToday=isCurMo&&day===todayDay;
+
+    let entr=0,sai=0,eco=0,cart=0;
+    dayTxs.forEach(t=>{
+      const a=parseFloat(t.amount||0);
+      if(isInc(t)) entr+=a;
+      else if(isEco(t)) eco+=a;
+      else if(isCart(t)) cart+=a;
+      else if(isSai(t)) sai+=a;
+    });
+
+    runSaldo+=entr-sai-eco-cart;
+    if(isFut) runSaldo-=proj;
+
+    const hasTx=entr||sai||eco||cart||(isFut&&proj);
+    const rowCls=isToday?'sg-row sg-today':isFut?'sg-row sg-future':'sg-row';
+    const dowLabel=DOW[new Date(ds+'T12:00:00').getDay()];
+    const salPos=runSaldo>=0;
+
+    const cv=v=>v?`<span class="sg-v">${brl(v)}</span>`:`<span class="sg-z">—</span>`;
+    const cp=v=>v?`<span class="sg-v sg-proj">${brl(v)}</span>`:`<span class="sg-z">—</span>`;
+
+    rows.push(`<tr class="${rowCls}" onclick="openDayDetail('${ds}')">
+      <td class="sg-day"><span class="sg-dn">${day}</span><span class="sg-dw">${dowLabel}</span></td>
+      <td class="sg-entr">${cv(entr)}</td>
+      <td class="sg-sai">${sai?cv(sai):isFut&&proj?cp(proj):'<span class="sg-z">—</span>'}</td>
+      <td class="sg-eco">${cv(eco)}</td>
+      <td class="sg-cart">${cv(cart)}</td>
+      <td class="sg-sal ${salPos?'pos':'neg'}">${brl(runSaldo)}</td>
+    </tr>`);
+  }
+
+  el.innerHTML=`
+  <div class="sg-summary">
+    <div class="sg-bal">${brl(totalBal)}</div>
+    <div class="sg-bal-lbl">saldo atual</div>
+    <div class="sg-month-sum">
+      ${mEntr?`<div class="sg-ms-item"><span class="sg-ms-lbl">💚 Entradas</span><span class="sg-ms-val" style="color:var(--gr)">${brl(mEntr)}</span></div>`:''}
+      ${(mSai+mCart)?`<div class="sg-ms-item"><span class="sg-ms-lbl">🔴 Saídas</span><span class="sg-ms-val" style="color:var(--rd)">${brl(mSai+mCart)}</span></div>`:''}
+      ${mEco?`<div class="sg-ms-item"><span class="sg-ms-lbl">💜 Economias</span><span class="sg-ms-val" style="color:var(--pu)">${brl(mEco)}</span></div>`:''}
+    </div>
+  </div>
+  <div class="sg-wrap">
+    <table class="sg-table">
+      <thead class="sg-thead">
+        <tr>
+          <th class="sg-thday">Dia</th>
+          <th class="sg-th">💚<br>Entr.</th>
+          <th class="sg-th">🔴<br>Saíd.</th>
+          <th class="sg-th">💜<br>Econ.</th>
+          <th class="sg-th">🔵<br>Cart.</th>
+          <th class="sg-th sg-th-sal">Saldo</th>
+        </tr>
+      </thead>
+      <tbody>${rows.join('')}</tbody>
+    </table>
+  </div>`;
+}
+
+function openDayDetail(ds){
+  openAdd();
+  const inp=document.getElementById('add-date');
+  if(inp) inp.value=ds;
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
