@@ -304,9 +304,11 @@ const PWD_HASH = '6747df63076be4c16930139e0240d612fe17724f06153f83d495d959e78e78
 const MOS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const DOW = ['DOM','SEG','TER','QUA','QUI','SEX','SÁB'];
 
-const TIPO_IC  = {income:'💚',expense:'🔴',card:'🔵',savings:'💜',investment:'💜',transfer:'🔵'};
-const TIPO_CLS = {income:'entrada',expense:'saida',card:'cartao',savings:'economia',investment:'economia',transfer:'cartao'};
-const TIPO_LBL = {income:'Entrada',expense:'Saída',card:'Cartão',savings:'Economia',investment:'Economia',transfer:'Transferência'};
+const TIPO_IC  = {income:'💚',entrada:'💚',expense:'🔴',saida:'🔴',card:'🔵',cartao:'🔵',transfer:'🔵',savings:'💜',economia:'💜',investment:'💜'};
+const TIPO_CLS = {income:'entrada',entrada:'entrada',expense:'saida',saida:'saida',card:'cartao',cartao:'cartao',transfer:'cartao',savings:'economia',economia:'economia',investment:'economia'};
+const TIPO_LBL = {income:'Entrada',entrada:'Entrada',expense:'Saída',saida:'Saída',card:'Cartão',cartao:'Cartão',transfer:'Transferência',savings:'Economia',economia:'Economia',investment:'Economia'};
+// Quais tipos raw pertencem a cada filtro
+const FILTRO = {income:['income','entrada'],expense:['expense','saida'],card:['card','cartao','transfer'],savings:['savings','economia','investment']};
 const TAG_COLORS = ['#22C55E','#EF4444','#3B82F6','#8B5CF6','#F59E0B','#E8521A','#06B6D4','#EC4899','#84CC16','#14B8A6'];
 
 // ── STATE ──────────────────────────────────────────────────────
@@ -417,8 +419,7 @@ async function loadData(){
     sb('transactions',{
       select:'id,date,description,amount,type,category',
       'date':'gte.'+from,
-      'date.lte':to,
-      order:'date.asc,created_at.asc',
+      order:'date.asc',
       limit:2000
     }),
     sb('accounts',{select:'id,name,bank,balance,type'})
@@ -447,9 +448,10 @@ function renderSaldos(){
   if(!el) return;
 
   const totalBal = _accs.reduce((s,a)=>s+parseFloat(a.balance||0),0);
+  const isIncome = t=>t.type==='income'||t.type==='entrada';
   const monthNet = _txs.reduce((s,t)=>{
     const a=parseFloat(t.amount||0);
-    return t.type==='income'?s+a:s-a;
+    return isIncome(t)?s+a:s-a;
   },0);
 
   // Group by date (all txs for saldo calculation)
@@ -470,11 +472,11 @@ function renderSaldos(){
     const dayAll = byDate[date];
     const dayNet = dayAll.reduce((s,t)=>{
       const a=parseFloat(t.amount||0);
-      return t.type==='income'?s+a:s-a;
+      return isIncome(t)?s+a:s-a;
     },0);
     runSaldo += dayNet;
 
-    const display = _filter==='all' ? dayAll : dayAll.filter(t=>t.type===_filter);
+    const display = _filter==='all' ? dayAll : dayAll.filter(t=>(FILTRO[_filter]||[_filter]).includes(t.type));
     if(!display.length) continue;
 
     const d   = parseInt(date.slice(8));
@@ -563,10 +565,11 @@ function renderTotais(){
   let entradas=0,saidas=0,cartao=0,economia=0;
   _txs.forEach(t=>{
     const a=parseFloat(t.amount||0);
-    if(t.type==='income') entradas+=a;
-    else if(t.type==='expense') saidas+=a;
-    else if(t.type==='card'||t.type==='transfer') cartao+=a;
-    else if(t.type==='savings'||t.type==='investment') economia+=a;
+    const tp=t.type;
+    if(tp==='income'||tp==='entrada') entradas+=a;
+    else if(tp==='expense'||tp==='saida') saidas+=a;
+    else if(tp==='card'||tp==='cartao'||tp==='transfer') cartao+=a;
+    else if(tp==='savings'||tp==='economia'||tp==='investment') economia+=a;
   });
 
   const custoVida=saidas+cartao;
