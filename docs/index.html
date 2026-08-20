@@ -158,14 +158,33 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 .mrow-sub{font-size:13px;color:var(--t3);margin-top:1px}
 .btn-out{display:block;width:calc(100% - 32px);margin:8px 16px 20px;padding:13px;border:1.5px solid var(--br);background:none;border-radius:999px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;color:var(--t2)}
 
-/* ── TAGS PAGE ──────────────────────────── */
-.tags-hdr{padding:24px 16px 12px}
-.tags-hdr h2{font-size:22px;font-weight:700}
-.tag-row{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--card);border-bottom:1px solid var(--br)}
-.tag-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
-.tag-name{flex:1;font-size:15px;font-weight:500}
-.tag-amt{font-size:14px;font-weight:700;color:var(--t2)}
-.tag-cnt{font-size:12px;color:var(--t3);margin-top:1px}
+/* ── CONTAS PAGE ────────────────────────── */
+.cv-hdr{padding:20px 16px 8px}
+.cv-hdr h2{font-size:22px;font-weight:700}
+.cv-sec{padding:0 16px 12px}
+.cv-sec-title{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.cv-card{background:var(--card);border-radius:16px;border:1px solid var(--br);overflow:hidden}
+.cv-item{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--br)}
+.cv-item:last-child{border-bottom:none}
+.cv-day{min-width:42px;height:42px;border-radius:12px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.cv-day-n{font-size:16px;font-weight:700;line-height:1}
+.cv-day-s{font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--t3);line-height:1;margin-top:1px}
+.cv-day.at{background:var(--rd-l)} .cv-day.at .cv-day-n{color:var(--rd)} .cv-day.at .cv-day-s{color:var(--rd)}
+.cv-day.hj{background:var(--or-l)} .cv-day.hj .cv-day-n{color:var(--or)} .cv-day.hj .cv-day-s{color:var(--or)}
+.cv-day.ok{background:var(--gr-l)} .cv-day.ok .cv-day-n{color:var(--gr)} .cv-day.ok .cv-day-s{color:var(--gr)}
+.cv-body{flex:1;min-width:0}
+.cv-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cv-sub{font-size:12px;color:var(--t3);margin-top:1px}
+.cv-amt{font-size:15px;font-weight:700;flex-shrink:0}
+.cv-comprom{background:var(--card);margin:0 16px 12px;border-radius:16px;border:1px solid var(--br);padding:16px}
+.cv-comprom-title{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.cv-comprom-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.cv-comprom-item{background:var(--bg);border-radius:12px;padding:10px}
+.cv-comprom-lbl{font-size:10px;color:var(--t3);font-weight:600;margin-bottom:2px}
+.cv-comprom-val{font-size:14px;font-weight:700;color:var(--t1)}
+.cv-comprom-total{border-top:1px solid var(--br);padding-top:12px;display:flex;justify-content:space-between;align-items:center}
+.cv-comprom-total-lbl{font-size:13px;color:var(--t2);font-weight:500}
+.cv-comprom-total-val{font-size:18px;font-weight:700;color:var(--rd)}
 
 /* ── UTILITIES ─────────────────────────── */
 .empty{padding:56px 16px;text-align:center;color:var(--t3);font-size:14px;line-height:1.6}
@@ -218,10 +237,9 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
       <div id="totais-content"></div>
     </div>
 
-    <!-- Tags -->
-    <div id="pg-tags" class="page off">
-      <div class="tags-hdr"><h2>Tags</h2></div>
-      <div id="tags-list"></div>
+    <!-- Contas -->
+    <div id="pg-contas" class="page off">
+      <div id="contas-content"></div>
     </div>
 
     <!-- Menu -->
@@ -242,8 +260,8 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
       <span class="bn-ic"><span class="bn-plus-wrap">+</span></span>
       <span class="bn-lb">&nbsp;</span>
     </button>
-    <button class="bn" id="bn-tags" onclick="goTo('tags')">
-      <span class="bn-ic">🏷️</span><span class="bn-lb">Tags</span>
+    <button class="bn" id="bn-contas" onclick="goTo('contas')">
+      <span class="bn-ic">📌</span><span class="bn-lb">Contas</span>
     </button>
     <button class="bn" id="bn-menu" onclick="goTo('menu')">
       <span class="bn-ic">☰</span><span class="bn-lb">Menu</span>
@@ -317,6 +335,9 @@ let _yr  = _now.getFullYear();
 let _mo  = _now.getMonth();
 let _txs = [];
 let _accs = [];
+let _fixedCosts = [];
+let _subs = [];
+let _installs = [];
 let _filter = 'all';
 let _atype  = 'income';
 let _tab    = 'saldos';
@@ -390,13 +411,13 @@ function todayStr(){return dStr(_now.getFullYear(),_now.getMonth(),_now.getDate(
 // ── NAVIGATION ─────────────────────────────────────────────────
 function goTo(tab){
   _tab = tab;
-  ['saldos','totais','tags','menu'].forEach(t=>{
+  ['saldos','totais','contas','menu'].forEach(t=>{
     document.getElementById('pg-'+t).classList.toggle('off', t!==tab);
     const b = document.getElementById('bn-'+t);
     if(b) b.classList.toggle('on', t===tab);
   });
   if(tab==='totais') renderTotais();
-  if(tab==='tags')   renderTags();
+  if(tab==='contas') renderContas();
   if(tab==='menu')   renderMenu();
 }
 function prevM(){
@@ -415,22 +436,28 @@ async function loadData(){
   const from = dStr(_yr,_mo,1);
   const to   = dStr(_yr,_mo,dim(_yr,_mo));
 
-  const [txData,accData] = await Promise.all([
+  const [txData,accData,fcData,subData,instData] = await Promise.all([
     sb('transactions',{
       select:'id,date,description,amount,type,category',
       'date':'gte.'+from,
       order:'date.asc',
       limit:2000
     }),
-    sb('accounts',{select:'id,name,bank,balance,type'})
+    sb('accounts',{select:'id,name,bank,balance,type'}),
+    sb('fixed_costs',{select:'id,description,amount,due_day,category,account',order:'due_day.asc'}),
+    sb('subscriptions',{select:'id,name,amount,card,category,billing_day,emoji,active',order:'billing_day.asc'}),
+    sb('installments',{select:'id,description,installment_amount,current_installment,total_installments,card,emoji,active',order:'card.asc'})
   ]);
 
-  _txs  = (txData||[]).filter(t=>t.date>=from && t.date<=to);
-  _accs = accData||[];
+  _txs      = (txData||[]).filter(t=>t.date>=from && t.date<=to);
+  _accs     = accData||[];
+  _fixedCosts = fcData||[];
+  _subs     = (subData||[]).filter(s=>s.active!==false);
+  _installs = (instData||[]).filter(i=>i.active!==false);
 
   renderSaldos();
   if(_tab==='totais') renderTotais();
-  if(_tab==='tags')   renderTags();
+  if(_tab==='contas') renderContas();
   if(_tab==='menu')   renderMenu();
 }
 
@@ -647,6 +674,25 @@ function renderTotais(){
       ${mrow('Economia','+ '+brl(economia),'color:var(--pu)')}
       ${mrow('Saldo Atual',brl(totalBal),totalBal>=0?'color:var(--gr)':'color:var(--rd)')}
     </div>
+  </div>
+  ${renderComprometimento()}`;
+}
+
+function renderComprometimento(){
+  const totalFixas=_fixedCosts.reduce((s,c)=>s+parseFloat(c.amount||0),0);
+  const totalSubs=_subs.reduce((s,c)=>s+parseFloat(c.amount||0),0);
+  const totalInst=_installs.reduce((s,c)=>s+parseFloat(c.installment_amount||0),0);
+  const totalC=totalFixas+totalSubs+totalInst;
+  if(!totalC) return '';
+  return `
+  <div class="mcard" style="margin-top:8px;margin-bottom:4px">
+    <div class="mcard-in"><div class="mc-label">Comprometimento Mensal</div></div>
+    <div class="mcard-rows">
+      ${mrow('Contas Fixas',brl(totalFixas),'color:var(--rd)')}
+      ${mrow('Assinaturas',brl(totalSubs),'color:var(--rd)')}
+      ${mrow('Parcelamentos',brl(totalInst),'color:var(--rd)')}
+      ${mrow('Total comprometido',brl(totalC),'color:var(--rd);font-weight:800')}
+    </div>
   </div>`;
 }
 
@@ -655,30 +701,107 @@ function mrow(l,v,style=''){
 }
 
 // ── TAGS ───────────────────────────────────────────────────────
-function renderTags(){
-  const el=document.getElementById('tags-list');
+function renderContas(){
+  const el=document.getElementById('contas-content');
   if(!el) return;
 
-  const cats={};
-  _txs.forEach(t=>{
-    const cat=t.category||TIPO_LBL[t.type]||'Outros';
-    if(!cats[cat]) cats[cat]={count:0,total:0,type:t.type};
-    cats[cat].count++;
-    cats[cat].total+=parseFloat(t.amount||0);
+  const today=new Date();
+  const todayDay=(_yr===today.getFullYear()&&_mo===today.getMonth())?today.getDate():32;
+
+  // Helper: check if a fixed cost amount was already paid this month
+  function isPago(amount){
+    return _txs.some(t=>{
+      const tp=t.type;
+      const paid=(tp==='saida'||tp==='expense'||tp==='cartao'||tp==='card');
+      return paid && Math.abs(parseFloat(t.amount)-amount)<0.05;
+    });
+  }
+
+  function dayBadge(day, pago){
+    if(pago) return `<div class="cv-day ok"><div class="cv-day-n">${day}</div><div class="cv-day-s">PAGO</div></div>`;
+    if(day<todayDay) return `<div class="cv-day at"><div class="cv-day-n">${day}</div><div class="cv-day-s">ATRASO</div></div>`;
+    if(day===todayDay) return `<div class="cv-day hj"><div class="cv-day-n">${day}</div><div class="cv-day-s">HOJE</div></div>`;
+    return `<div class="cv-day"><div class="cv-day-n">${day}</div><div class="cv-day-s">DIA</div></div>`;
+  }
+
+  // Fixed costs grouped: atrasadas, hoje, próximas, pagas
+  const fcHtml=_fixedCosts.map(c=>{
+    const day=c.due_day||1;
+    const pago=isPago(parseFloat(c.amount));
+    return `<div class="cv-item">
+      ${dayBadge(day,pago)}
+      <div class="cv-body">
+        <div class="cv-name">${esc(c.description)}</div>
+        <div class="cv-sub">${esc(c.category||'')}</div>
+      </div>
+      <div class="cv-amt" style="color:${pago?'var(--gr)':'var(--rd)'}">${brl(parseFloat(c.amount))}</div>
+    </div>`;
+  }).join('');
+
+  // Subscriptions
+  const subHtml=_subs.map(s=>{
+    const day=s.billing_day||1;
+    return `<div class="cv-item">
+      ${dayBadge(day,false)}
+      <div class="cv-body">
+        <div class="cv-name">${esc(s.emoji||'📱')} ${esc(s.name)}</div>
+        <div class="cv-sub">${esc(s.card||'')}</div>
+      </div>
+      <div class="cv-amt" style="color:var(--rd)">${brl(parseFloat(s.amount))}</div>
+    </div>`;
+  }).join('');
+
+  // Installments grouped by card
+  const byCard={};
+  _installs.forEach(i=>{
+    const card=i.card||'Cartão';
+    if(!byCard[card]) byCard[card]={total:0,items:[]};
+    byCard[card].items.push(i);
+    byCard[card].total+=parseFloat(i.installment_amount);
   });
 
-  const sorted=Object.entries(cats).sort((a,b)=>b[1].total-a[1].total);
-  if(!sorted.length){ el.innerHTML='<div class="empty">Nenhuma movimentação neste mês</div>'; return; }
-
-  el.innerHTML=sorted.map(([name,v],i)=>`
-    <div class="tag-row">
-      <div class="tag-dot" style="background:${TAG_COLORS[i%TAG_COLORS.length]}"></div>
-      <div style="flex:1">
-        <div class="tag-name">${esc(name)}</div>
-        <div class="tag-cnt">${v.count} mov.</div>
+  const instHtml=Object.entries(byCard).map(([card,g])=>{
+    const rows=g.items.map(i=>`<div class="cv-item">
+      <div class="cv-day"><div class="cv-day-n">${i.current_installment}</div><div class="cv-day-s">/${i.total_installments}</div></div>
+      <div class="cv-body">
+        <div class="cv-name">${esc(i.emoji||'🛒')} ${esc(i.description)}</div>
+        <div class="cv-sub">${i.current_installment}/${i.total_installments} parcelas</div>
       </div>
-      <div class="tag-amt">${brl(v.total)}</div>
+      <div class="cv-amt" style="color:var(--bl)">${brl(parseFloat(i.installment_amount))}/mês</div>
     </div>`).join('');
+    return `<div class="cv-sec">
+      <div class="cv-sec-title"><span>${esc(card)}</span><span style="color:var(--rd)">${brl(g.total)}/mês</span></div>
+      <div class="cv-card">${rows}</div>
+    </div>`;
+  }).join('');
+
+  const totalFixas=_fixedCosts.reduce((s,c)=>s+parseFloat(c.amount||0),0);
+  const totalSubs=_subs.reduce((s,c)=>s+parseFloat(c.amount||0),0);
+  const totalInst=_installs.reduce((s,c)=>s+parseFloat(c.installment_amount||0),0);
+
+  el.innerHTML=`
+  <div class="cv-hdr"><h2>Contas</h2></div>
+  <div class="cv-comprom">
+    <div class="cv-comprom-title">Comprometimento Mensal</div>
+    <div class="cv-comprom-grid">
+      <div class="cv-comprom-item"><div class="cv-comprom-lbl">Fixas</div><div class="cv-comprom-val">${brl(totalFixas)}</div></div>
+      <div class="cv-comprom-item"><div class="cv-comprom-lbl">Assinaturas</div><div class="cv-comprom-val">${brl(totalSubs)}</div></div>
+      <div class="cv-comprom-item"><div class="cv-comprom-lbl">Parcelamentos</div><div class="cv-comprom-val">${brl(totalInst)}</div></div>
+    </div>
+    <div class="cv-comprom-total">
+      <span class="cv-comprom-total-lbl">Total comprometido</span>
+      <span class="cv-comprom-total-val">${brl(totalFixas+totalSubs+totalInst)}</span>
+    </div>
+  </div>
+  ${_fixedCosts.length?`<div class="cv-sec">
+    <div class="cv-sec-title"><span>Contas Fixas</span><span style="color:var(--rd)">${brl(totalFixas)}/mês</span></div>
+    <div class="cv-card">${fcHtml}</div>
+  </div>`:''}
+  ${_subs.length?`<div class="cv-sec">
+    <div class="cv-sec-title"><span>Assinaturas</span><span style="color:var(--rd)">${brl(totalSubs)}/mês</span></div>
+    <div class="cv-card">${subHtml}</div>
+  </div>`:''}
+  ${instHtml}`;
 }
 
 // ── MENU ───────────────────────────────────────────────────────
