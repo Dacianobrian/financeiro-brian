@@ -186,6 +186,15 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 .cv-comprom-total-lbl{font-size:13px;color:var(--t2);font-weight:500}
 .cv-comprom-total-val{font-size:18px;font-weight:700;color:var(--rd)}
 
+/* ── PROJEÇÃO FUTURA ────────────────────── */
+.day-future{opacity:.65}
+.day-lbl-fut{color:var(--t3)!important;font-style:italic}
+.day-sal-fut{opacity:.8}
+.tx-fut{background:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(0,0,0,.015) 4px,rgba(0,0,0,.015) 8px)}
+.tx-ic-fut{opacity:.5}
+.tx-desc-fut{color:var(--t3)}
+.tx-val-fut{opacity:.7}
+
 /* ── UTILITIES ─────────────────────────── */
 .empty{padding:56px 16px;text-align:center;color:var(--t3);font-size:14px;line-height:1.6}
 .loading{padding:56px 16px;text-align:center;color:var(--t3);font-size:14px}
@@ -486,11 +495,6 @@ function renderSaldos(){
   _txs.forEach(t=>{if(!byDate[t.date])byDate[t.date]=[];byDate[t.date].push(t);});
   const dates=Object.keys(byDate).sort();
 
-  if(dates.length===0){
-    el.innerHTML='<div class="empty">Nenhuma movimentação<br>neste mês</div>';
-    return;
-  }
-
   let runSaldo = totalBal - monthNet;
   const today  = todayStr();
   let html='';
@@ -521,7 +525,7 @@ function renderSaldos(){
       const cls = TIPO_CLS[t.type]||'saida';
       const ic  = TIPO_IC[t.type]||'⚪';
       const amt = parseFloat(t.amount||0);
-      const sign= t.type==='income'?'+':'-';
+      const sign= isIncome(t)?'+':'-';
       html+=`<div class="tx" onclick="openTx('${t.id}')">
     <div class="tx-ic ${cls}">${ic}</div>
     <div class="tx-body">
@@ -534,7 +538,62 @@ function renderSaldos(){
     html+='</div>';
   }
 
-  el.innerHTML=html;
+  // ── PROJEÇÃO FUTURA ──────────────────────────────────────────
+  const nowDate = new Date();
+  const isCurrentMonth = (_yr===nowDate.getFullYear() && _mo===nowDate.getMonth());
+  if(isCurrentMonth && _filter==='all'){
+    const todayDay = nowDate.getDate();
+    const daysInMo = dim(_yr,_mo);
+    function isPagoAmt(amount){
+      return _txs.some(t=>{
+        const tp=t.type;
+        return (tp==='saida'||tp==='expense'||tp==='cartao'||tp==='card')&&Math.abs(parseFloat(t.amount)-amount)<0.05;
+      });
+    }
+    // Build map day -> upcoming charges
+    const upcoming={};
+    _fixedCosts.forEach(fc=>{
+      const day=fc.due_day||1;
+      if(day>todayDay && !isPagoAmt(parseFloat(fc.amount))){
+        if(!upcoming[day]) upcoming[day]=[];
+        upcoming[day].push({desc:fc.description,amt:parseFloat(fc.amount),cat:fc.category||'Conta Fixa'});
+      }
+    });
+    _subs.forEach(s=>{
+      const day=s.billing_day||1;
+      if(day>todayDay){
+        if(!upcoming[day]) upcoming[day]=[];
+        upcoming[day].push({desc:(s.emoji||'📱')+' '+s.name,amt:parseFloat(s.amount),cat:s.category||'Assinatura'});
+      }
+    });
+    const futureDays=Object.keys(upcoming).map(Number).sort((a,b)=>a-b);
+    for(const day of futureDays){
+      const items=upcoming[day];
+      const dayNet=-items.reduce((s,i)=>s+i.amt,0);
+      runSaldo+=dayNet;
+      const ds=dStr(_yr,_mo,day);
+      const dow=dowOf(ds);
+      const pos=runSaldo>=0;
+      html+=`<div class="day-grp day-future">
+  <div class="day-hdr">
+    <span class="day-lbl day-lbl-fut">${day} ${dow} · previsto</span>
+    <span class="day-sal ${pos?'p':'n'} day-sal-fut">${brl(runSaldo)}</span>
+  </div>`;
+      for(const item of items){
+        html+=`<div class="tx tx-fut">
+    <div class="tx-ic saida tx-ic-fut">🔴</div>
+    <div class="tx-body">
+      <div class="tx-desc tx-desc-fut">${esc(item.desc)}</div>
+      <div class="tx-cat">${esc(item.cat)}</div>
+    </div>
+    <div class="tx-val saida tx-val-fut">− ${brl(item.amt)}</div>
+  </div>`;
+      }
+      html+='</div>';
+    }
+  }
+
+  el.innerHTML=html||'<div class="empty">Nenhuma movimentação<br>neste mês</div>';
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
