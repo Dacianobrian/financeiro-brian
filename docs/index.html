@@ -9,17 +9,17 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --or:#FF5917; --or-l:rgba(255,89,23,.14); --or-d:rgba(255,89,23,.08);
+  --or:#FF5917; --or-l:rgba(255,89,23,.14); --or-d:rgba(255,89,23,.07);
   --gr:#22C55E; --gr-l:rgba(34,197,94,.14);
   --rd:#EF4444; --rd-l:rgba(239,68,68,.14);
   --pu:#8B5CF6; --pu-l:rgba(139,92,246,.14);
   --bl:#3B82F6; --bl-l:rgba(59,130,246,.14);
   --am:#F59E0B; --am-l:rgba(245,158,11,.14);
-  --bg:#0E1015; --card:#181A21; --card2:#1E2028;
-  --t1:#F0F1F3; --t2:#82858F; --t3:#3A3D4A;
-  --br:rgba(255,255,255,.07); --br2:rgba(255,255,255,.04);
-  --shadow:0 2px 12px rgba(0,0,0,.4);
-  --bnav:64px; --hdr:56px;
+  --bg:#0C0D10; --card:#131519; --card2:#191B1F;
+  --t1:#E8E9EB; --t2:#5E6170; --t3:#2C2F38;
+  --br:rgba(255,255,255,.06); --br2:rgba(255,255,255,.03);
+  --shadow:0 1px 4px rgba(0,0,0,.5);
+  --bnav:64px; --hdr:54px;
   --st:env(safe-area-inset-top,0px);
   --sb:env(safe-area-inset-bottom,0px);
 }
@@ -44,30 +44,36 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 .app-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 
 /* ── SIDEBAR ─────────────────────────────── */
-#sidebar{width:196px;background:var(--card);border-right:1px solid var(--br);display:none;flex-direction:column;flex-shrink:0;z-index:10;transition:width .22s ease;overflow:hidden}
-#sidebar.col{width:58px}
-.sb-logo{display:flex;align-items:center;gap:10px;padding:18px 14px 16px;border-bottom:1px solid var(--br);font-size:14px;font-weight:800;color:var(--or);white-space:nowrap;overflow:hidden;letter-spacing:-.3px}
-.sb-logo-ic{font-size:22px;flex-shrink:0;line-height:1}
-.sb-nav{flex:1;padding:12px 8px;overflow:hidden}
-.sb-item{display:flex;align-items:center;gap:10px;width:100%;padding:10px 10px 10px 12px;cursor:pointer;font-size:13px;font-weight:600;color:var(--t2);border-radius:12px;margin-bottom:2px;transition:all .12s;border:none;background:none;font-family:'DM Sans',sans-serif;text-align:left;white-space:nowrap;overflow:hidden;position:relative}
-.sb-item:hover{background:var(--card2);color:var(--t1)}
-.sb-item.on{background:var(--or-d);color:var(--or)}
-.sb-item.on::before{content:'';position:absolute;left:0;top:20%;height:60%;width:3px;background:var(--or);border-radius:0 3px 3px 0}
-.sb-ic{font-size:16px;width:22px;text-align:center;flex-shrink:0;line-height:1}
+#sidebar{width:180px;background:var(--card);border-right:1px solid var(--br);display:none;flex-direction:column;flex-shrink:0;z-index:10;transition:width .2s ease;overflow:hidden}
+#sidebar.col{width:52px}
+.sb-logo{display:flex;align-items:center;gap:10px;padding:16px 14px;border-bottom:1px solid var(--br);white-space:nowrap;overflow:hidden}
+.sb-logo-ic{font-size:20px;flex-shrink:0;line-height:1}
+.sb-logo-name{font-size:15px;font-weight:800;color:var(--or);letter-spacing:-.3px}
+.sb-nav{flex:1;padding:10px 8px;overflow:hidden}
+.sb-item{display:flex;align-items:center;gap:9px;width:100%;padding:9px 10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--t2);border-radius:8px;margin-bottom:1px;transition:color .1s;border:none;background:none;font-family:'DM Sans',sans-serif;text-align:left;white-space:nowrap;overflow:hidden}
+.sb-item:hover{color:var(--t1)}
+.sb-item.on{color:var(--or);font-weight:600;background:none}
+.sb-ic{font-size:15px;width:20px;text-align:center;flex-shrink:0;line-height:1;opacity:.7}
+.sb-item.on .sb-ic{opacity:1}
 .sb-lb{flex:1;overflow:hidden;text-overflow:ellipsis}
-.sb-bottom{padding:8px 8px 12px;border-top:1px solid var(--br);overflow:hidden}
-.sb-add{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;cursor:pointer;font-size:13px;font-weight:700;color:#fff;background:var(--or);border-radius:12px;margin-bottom:6px;border:none;font-family:'DM Sans',sans-serif;text-align:left;white-space:nowrap;overflow:hidden;transition:opacity .12s}
-.sb-add:hover{opacity:.88}
-.sb-collapse{display:flex;align-items:center;justify-content:center;width:100%;padding:9px;cursor:pointer;font-size:13px;color:var(--t3);border:none;background:none;font-family:'DM Sans',sans-serif;transition:all .2s;margin-top:2px;border-radius:10px}
-.sb-collapse:hover{color:var(--t1);background:var(--card2)}
+.sb-bottom{padding:6px 8px 14px;border-top:1px solid var(--br);overflow:hidden}
+.sb-add{display:flex;align-items:center;gap:9px;width:100%;padding:10px 10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--or);background:none;border-radius:8px;margin-bottom:1px;border:none;font-family:'DM Sans',sans-serif;text-align:left;white-space:nowrap;overflow:hidden;transition:color .1s}
+.sb-add:hover{color:#fff}
+.sb-add-ic{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.sb-collapse{display:flex;align-items:center;justify-content:center;width:100%;padding:8px;cursor:pointer;font-size:12px;color:var(--t3);border:none;background:none;font-family:'DM Sans',sans-serif;transition:all .2s;border-radius:8px}
+.sb-collapse:hover{color:var(--t2)}
 #sidebar.col .sb-collapse{transform:rotate(180deg)}
-#sidebar.col .sb-lb,#sidebar.col .sb-logo span{display:none}
+#sidebar.col .sb-lb,#sidebar.col .sb-logo-name{display:none}
 
 /* Header */
-#hdr{height:var(--hdr);padding-top:var(--st);background:var(--card);border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;padding-left:14px;padding-right:14px;flex-shrink:0;z-index:20;box-shadow:0 1px 0 var(--br)}
-.hdr-btn{min-width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--card2);border:1px solid var(--br);font-size:18px;cursor:pointer;color:var(--t1);font-family:'DM Sans',sans-serif;font-weight:700;transition:all .12s;padding:0 12px;gap:5px}
-.hdr-btn:active{background:var(--or-l);color:var(--or)}
-#hdr-title{font-size:15px;font-weight:700;letter-spacing:-.2px;color:var(--t1)}
+#hdr{height:var(--hdr);padding-top:var(--st);background:var(--card);border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;padding-left:20px;padding-right:14px;flex-shrink:0;z-index:20}
+#hdr-page-title{font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--t1);flex:1}
+.hdr-nav{display:flex;align-items:center;gap:4px}
+.hdr-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:var(--card2);border:none;font-size:16px;cursor:pointer;color:var(--t2);font-family:'DM Sans',sans-serif;font-weight:700;transition:all .1s}
+.hdr-btn:hover{color:var(--t1);background:var(--card2)}
+.hdr-btn:active{color:var(--or)}
+.hdr-btn-skip{opacity:.5}
+#hdr-title{font-size:13px;font-weight:600;color:var(--t2);padding:0 6px;white-space:nowrap;letter-spacing:-.1px}
 
 /* Pages */
 #pages{flex:1;overflow:hidden;position:relative}
@@ -283,28 +289,28 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 .sg2-month-lbl{padding:14px 16px 6px;font-size:15px;font-weight:700;color:var(--t1)}
 .sg2-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .sg2-table{border-collapse:collapse;width:100%;min-width:580px;background:var(--card)}
-.sg2-hdr-row th{padding:10px 8px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--br);white-space:nowrap;vertical-align:middle;background:var(--bg)}
-.sg2-th-day{text-align:left!important;width:48px;padding-left:16px!important;position:sticky;left:0;background:var(--bg);z-index:2}
+.sg2-hdr-row th{padding:8px 8px;font-size:11px;font-weight:600;color:var(--t2);border-bottom:1px solid var(--br);white-space:nowrap;vertical-align:middle;background:var(--card)}
+.sg2-th-day{text-align:left!important;width:44px;padding-left:14px!important;position:sticky;left:0;background:var(--card);z-index:2;color:var(--t2)}
 .sg2-th-v{text-align:right;min-width:90px}
-.sg2-th-sal{text-align:right;min-width:100px;padding-right:16px!important}
+.sg2-th-sal{text-align:right;min-width:100px;padding-right:14px!important}
 .sg2-ic{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;flex-shrink:0;vertical-align:middle;margin-right:3px}
 .sg2-row td{border-bottom:1px solid var(--br);vertical-align:middle}
-.sg2-row{cursor:pointer;transition:background .07s}
-.sg2-row:hover td{background:rgba(255,255,255,.025)!important}
-.sg2-row:active{filter:brightness(.95)}
-.sg2-past-empty{opacity:.4}
+.sg2-row{cursor:pointer;transition:none}
+.sg2-row:hover td:not(.sg2-td-sal){background:rgba(255,255,255,.02)!important}
+.sg2-row:active td{opacity:.8}
+.sg2-past-empty{opacity:.35}
 .sg2-past-row{opacity:1}
-.sg2-future-row{opacity:.65}
-.sg2-today-row{background:rgba(255,89,23,.06)!important}
-.sg2-today-row:hover td{background:rgba(255,89,23,.09)!important}
-.sg2-td-day{padding:11px 6px 11px 16px;white-space:nowrap;position:sticky;left:0;background:var(--card);z-index:1}
-.sg2-today-row .sg2-td-day{background:rgba(255,89,23,.06);box-shadow:inset 3px 0 0 var(--or)}
+.sg2-future-row{opacity:.6}
+.sg2-today-row td{background:rgba(255,255,255,.04)!important}
+.sg2-today-row .sg2-td-sal{background:inherit!important}
+.sg2-td-day{padding:9px 6px 9px 14px;white-space:nowrap;position:sticky;left:0;background:var(--card);z-index:1}
+.sg2-today-row .sg2-td-day{background:rgba(255,255,255,.04)}
 .sg2-future-row .sg2-td-day{background:var(--card)}
 .sg2-past-empty .sg2-td-day,.sg2-past-row .sg2-td-day{background:var(--card)}
-.sg2-day-n{font-size:16px;font-weight:800;display:block;color:var(--t1);line-height:1}
+.sg2-day-n{font-size:14px;font-weight:700;display:block;color:var(--t2);line-height:1}
 .sg2-day-w{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.03em;display:block;margin-top:2px}
-.sg2-today-n{background:var(--or);color:#fff;width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;box-shadow:0 2px 8px rgba(255,89,23,.4)}
-.sg2-td-v{text-align:right;padding:11px 8px;white-space:nowrap}
+.sg2-today-n{background:rgba(255,255,255,.9);color:#111;width:24px;height:24px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+.sg2-td-v{text-align:right;padding:9px 8px;white-space:nowrap}
 .sg2-v-act{font-size:13px;font-weight:700}
 .sg2-v-zero{font-size:13px;color:var(--t3);font-weight:400}
 .sg2-proj-box{font-size:12px;font-weight:700;color:var(--t2);border:1px solid var(--br);border-radius:6px;padding:3px 8px;display:inline-block;background:var(--card2)}
@@ -313,8 +319,8 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 .sg2-sal.hi{background:rgba(34,197,94,.15);color:#22C55E}
 .sg2-sal.lo{background:rgba(245,158,11,.15);color:#F59E0B}
 .sg2-sal.neg{background:rgba(239,68,68,.15);color:#EF4444}
-.sg2-foot-row td{padding:11px 8px;background:var(--bg);border-top:1px solid var(--br);border-bottom:none;white-space:nowrap;text-align:right;font-size:13px}
-.sg2-foot-row .sg2-td-day{text-align:left;padding-left:16px}
+.sg2-foot-row td{padding:9px 8px;background:var(--bg);border-top:1px solid var(--br);border-bottom:none;white-space:nowrap;text-align:right;font-size:12px;font-weight:600}
+.sg2-foot-row .sg2-td-day{text-align:left;padding-left:14px}
 
 /* ── SALDO HERO CARD ─────────────────────── */
 .sg2-hero{padding:18px 16px 16px;background:var(--card);border-bottom:1px solid var(--br)}
@@ -351,8 +357,8 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 /* Multi-mês toggle */
 .sg2-multi-btn{display:inline-flex;align-items:center;gap:5px;background:var(--bg);border:1.5px solid var(--br);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;color:var(--t2);transition:all .12s;margin-left:auto}
 .sg2-multi-btn.on{background:var(--or-l);border-color:var(--or);color:var(--or)}
-.sg2-month-hdr{display:flex;align-items:center;padding:10px 16px 6px;gap:8px}
-.sg2-month-hdr-lbl{font-size:15px;font-weight:700;color:var(--t1)}
+.sg2-month-hdr{display:flex;align-items:center;padding:12px 14px 8px;gap:8px;border-bottom:1px solid var(--br)}
+.sg2-month-hdr-lbl{font-size:13px;font-weight:700;color:var(--t2);text-transform:lowercase}
 /* Gráfico */
 .sg2-chart-wrap{padding:12px 14px 8px;background:var(--card);border-bottom:1px solid var(--br)}
 .sg2-chart-canvas{display:block;width:100%;border-radius:8px}
@@ -396,28 +402,28 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
   <nav id="sidebar">
     <div class="sb-logo">
       <span class="sb-logo-ic">🏠</span>
-      <span>Finanças</span>
+      <span class="sb-logo-name">finanças</span>
     </div>
     <div class="sb-nav">
       <button class="sb-item on" id="sbi-saldos" onclick="goTo('saldos')">
-        <span class="sb-ic">💰</span><span class="sb-lb">saldos</span>
+        <span class="sb-ic">⊟</span><span class="sb-lb">saldos</span>
       </button>
       <button class="sb-item" id="sbi-totais" onclick="goTo('totais')">
-        <span class="sb-ic">📊</span><span class="sb-lb">totais</span>
+        <span class="sb-ic">∑</span><span class="sb-lb">totais</span>
       </button>
       <button class="sb-item" id="sbi-tags" onclick="goTo('tags')">
-        <span class="sb-ic">🏷️</span><span class="sb-lb">tags</span>
+        <span class="sb-ic">◈</span><span class="sb-lb">tags</span>
       </button>
       <button class="sb-item" id="sbi-menu" onclick="goTo('menu')">
-        <span class="sb-ic">☰</span><span class="sb-lb">menu</span>
+        <span class="sb-ic">≡</span><span class="sb-lb">menu</span>
       </button>
     </div>
     <div class="sb-bottom">
       <button class="sb-add" onclick="openAdd()">
-        <span class="sb-ic">＋</span><span class="sb-lb">adicionar</span>
+        <span class="sb-add-ic">⊕</span><span class="sb-lb">adicionar</span>
       </button>
       <button class="sb-item" onclick="goToday()">
-        <span class="sb-ic">📅</span><span class="sb-lb">ir pra hoje</span>
+        <span class="sb-ic" id="sb-today-ic">↻</span><span class="sb-lb">ir pra hoje</span>
       </button>
     </div>
     <button class="sb-collapse" onclick="toggleSidebar()">‹</button>
@@ -426,9 +432,14 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
   <!-- MAIN -->
   <div class="app-main">
     <div id="hdr">
-      <button class="hdr-btn" onclick="prevM()">‹</button>
-      <span id="hdr-title"></span>
-      <button class="hdr-btn" onclick="nextM()">›</button>
+      <span id="hdr-page-title">saldos</span>
+      <div class="hdr-nav">
+        <button class="hdr-btn hdr-btn-skip" onclick="skipMonths(-3)" title="−3 meses">«</button>
+        <button class="hdr-btn" onclick="prevM()">‹</button>
+        <span id="hdr-title"></span>
+        <button class="hdr-btn" onclick="nextM()">›</button>
+        <button class="hdr-btn hdr-btn-skip" onclick="skipMonths(3)" title="+3 meses">»</button>
+      </div>
     </div>
 
     <div id="pages">
@@ -660,6 +671,7 @@ function parseTags(raw){
 }
 
 // ── NAVIGATION ─────────────────────────────────────────────────
+const PAGE_TITLES={saldos:'saldos',totais:'totais',tags:'tags',contas:'contas',menu:'menu'};
 function goTo(tab){
   _tab = tab;
   ['saldos','totais','tags','contas','menu'].forEach(t=>{
@@ -669,6 +681,8 @@ function goTo(tab){
     const sbi = document.getElementById('sbi-'+t);
     if(sbi) sbi.classList.toggle('on', t===tab);
   });
+  const titleEl=document.getElementById('hdr-page-title');
+  if(titleEl) titleEl.textContent=PAGE_TITLES[tab]||tab;
   if(tab==='totais') renderTotais();
   if(tab==='tags')   renderTags();
   if(tab==='contas') renderContas();
@@ -682,7 +696,15 @@ function nextM(){
   if(_mo===11){_mo=0;_yr++;}else _mo++;
   updateHdr(); _selTag=null; loadData();
 }
-function updateHdr(){document.getElementById('hdr-title').textContent=mStr(_yr,_mo);}
+function skipMonths(n){
+  _mo+=n; while(_mo<0){_mo+=12;_yr--;} while(_mo>11){_mo-=12;_yr++;}
+  updateHdr(); _selTag=null; loadData();
+}
+function updateHdr(){document.getElementById('hdr-title').textContent=mStr(_yr,_mo);
+  const d=_now.getDate();
+  const ic=document.getElementById('sb-today-ic');
+  if(ic) ic.textContent=(_yr===_now.getFullYear()&&_mo===_now.getMonth())?'↻':'↻';
+}
 
 // ── LOAD DATA ──────────────────────────────────────────────────
 async function loadData(){
@@ -912,26 +934,7 @@ function renderSaldos(){
   const multiClass=_multiMo?'sg2-multi-wrap':'';
   const curBlock=`<div class="sg2-month-block"><div class="sg2-month-hdr"><span class="sg2-month-hdr-lbl">${MOS_FULL[_mo]} de ${_yr}</span></div>${tableHtml(rows,tE,tS,tD,tEc,tC)}</div>`;
 
-  const balCls=totalBal<0?' neg':'';
   el.innerHTML=`
-  <div class="sg2-hero">
-    <div class="sg2-hero-lbl">saldo atual</div>
-    <div class="sg2-hero-bal${balCls}">${totalBal<0?'-':''}R$&nbsp;${brl(totalBal).replace('R$ ','')}</div>
-    <div class="sg2-hero-stats">
-      <div class="sg2-hero-stat">
-        <div class="sg2-hero-stat-lbl">entradas</div>
-        <div class="sg2-hero-stat-val" style="color:#22C55E">+${brl(tE)}</div>
-      </div>
-      <div class="sg2-hero-stat">
-        <div class="sg2-hero-stat-lbl">saídas</div>
-        <div class="sg2-hero-stat-val" style="color:#EF4444">-${brl(tS+tD+tC)}</div>
-      </div>
-      <div class="sg2-hero-stat">
-        <div class="sg2-hero-stat-lbl">economias</div>
-        <div class="sg2-hero-stat-val" style="color:#8B5CF6">-${brl(tEc)}</div>
-      </div>
-    </div>
-  </div>
   <div class="sg2-search-bar">
     <span class="sg2-search-ic">🔍</span>
     <input class="sg2-search-input" id="sg2-search-inp" type="search" placeholder="Buscar por descrição, categoria, tag..." value="${_searchQ}" oninput="applySearch()">
@@ -946,11 +949,10 @@ function renderSaldos(){
     <button class="sg2-chip${_filterType==='card'?' on':''}" data-ft="card" onclick="setFilterType('card')" style="${_filterType==='card'?'--chip-c:#3B82F6;--chip-bg:rgba(59,130,246,.15)':''}">Cartão</button>
     <button class="sg2-chip${_filterType==='savings'?' on':''}" data-ft="savings" onclick="setFilterType('savings')" style="${_filterType==='savings'?'--chip-c:#8B5CF6;--chip-bg:rgba(139,92,246,.15)':''}">Economias</button>
   </div>
-  <div class="sg2-chart-wrap"><canvas class="sg2-chart-canvas" id="sg2-chart" height="110"></canvas></div>
   <div id="sg2-results" style="display:none"></div>
   <div id="sg2-table-wrap" class="${multiClass}">${prevBlock}${curBlock}</div>`;
 
-  setTimeout(()=>{ drawSaldoChart(saldoArr,daysInMo,todayDay); renderSearchResults(); },0);
+  setTimeout(()=>{ renderSearchResults(); },0);
 }
 
 function openDayDetail(ds){
