@@ -312,6 +312,43 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 .sg2-foot-row td{padding:11px 8px;background:var(--bg);border-top:2px solid var(--br);border-bottom:none;white-space:nowrap;text-align:right;font-size:13px}
 .sg2-foot-row .sg2-td-day{text-align:left}
 
+/* ── BUSCA & FILTRO ─────────────────────── */
+.sg2-search-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--card);border-bottom:1px solid var(--br);position:sticky;top:0;z-index:5}
+.sg2-search-ic{font-size:15px;color:var(--t3);flex-shrink:0}
+.sg2-search-input{flex:1;background:var(--bg);border:1.5px solid var(--br);border-radius:12px;padding:8px 12px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--t1);outline:none;transition:border-color .15s}
+.sg2-search-input:focus{border-color:var(--or)}
+.sg2-search-clear{width:28px;height:28px;border-radius:50%;border:none;background:var(--bg);color:var(--t2);font-size:16px;cursor:pointer;display:none;align-items:center;justify-content:center;flex-shrink:0}
+.sg2-search-clear.vis{display:flex}
+.sg2-filter-chips{display:flex;gap:6px;padding:8px 16px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--br);background:var(--card)}
+.sg2-filter-chips::-webkit-scrollbar{display:none}
+.sg2-chip{padding:5px 13px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--br);background:var(--bg);color:var(--t2);font-family:'DM Sans',sans-serif;transition:all .12s;white-space:nowrap}
+.sg2-chip.on{background:var(--chip-bg,var(--or-l));border-color:var(--chip-c,var(--or));color:var(--chip-c,var(--or))}
+.sg2-res-count{padding:8px 16px 4px;font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;background:var(--bg)}
+.sg2-res-row{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--br);background:var(--card);cursor:pointer;transition:background .07s}
+.sg2-res-row:hover{background:var(--bg)}
+.sg2-res-ic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.sg2-res-body{flex:1;min-width:0}
+.sg2-res-title{font-size:14px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sg2-res-sub{font-size:11px;color:var(--t3);margin-top:2px}
+.sg2-res-val{font-size:14px;font-weight:800;flex-shrink:0}
+.sg2-mark{background:rgba(255,89,23,.22);color:var(--or);border-radius:3px;padding:0 2px}
+.sg2-no-res{padding:40px 16px;text-align:center;color:var(--t3);font-size:14px;background:var(--bg)}
+/* Multi-mês toggle */
+.sg2-multi-btn{display:inline-flex;align-items:center;gap:5px;background:var(--bg);border:1.5px solid var(--br);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;color:var(--t2);transition:all .12s;margin-left:auto}
+.sg2-multi-btn.on{background:var(--or-l);border-color:var(--or);color:var(--or)}
+.sg2-month-hdr{display:flex;align-items:center;padding:10px 16px 6px;gap:8px}
+.sg2-month-hdr-lbl{font-size:15px;font-weight:700;color:var(--t1)}
+/* Gráfico */
+.sg2-chart-wrap{padding:14px 16px 10px;background:var(--card);border-bottom:1px solid var(--br)}
+.sg2-chart-canvas{display:block;width:100%;border-radius:10px}
+/* Edit button in tx modal */
+.btn-edit{display:block;width:100%;padding:13px;background:var(--or-l);color:var(--or);border:none;border-radius:999px;font-size:15px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:20px;transition:opacity .15s}
+.btn-edit:active{opacity:.7}
+/* Multi-month side-by-side */
+.sg2-multi-wrap{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:0}
+.sg2-month-block{flex-shrink:0;min-width:min(500px,90vw);border-right:2px solid var(--or)}
+.sg2-month-block:last-child{border-right:none}
+
 /* ── UTILITIES ─────────────────────────── */
 .empty{padding:56px 16px;text-align:center;color:var(--t3);font-size:14px;line-height:1.6}
 .loading{padding:56px 16px;text-align:center;color:var(--t3);font-size:14px}
@@ -478,6 +515,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
       <button class="close-btn" onclick="closeTx()">×</button>
     </div>
     <div id="tx-detail-body"></div>
+    <button class="btn-edit" id="tx-edit-btn">Editar transação</button>
     <button class="btn-del" id="tx-del-btn">Excluir</button>
   </div>
 </div>
@@ -514,6 +552,12 @@ let _atype  = 'income';
 let _tab    = 'saldos';
 let _curTx  = null;
 let _selTag = null;
+let _searchQ = '';
+let _filterType = 'all';
+let _multiMo = false;
+let _txs2 = [];
+let _allTxs = [];
+let _editId = null;
 
 // ── AUTH ───────────────────────────────────────────────────────
 async function sha256(msg){
@@ -650,6 +694,17 @@ async function loadData(){
   _subs     = (subData||[]).filter(s=>s.active!==false);
   _installs = (instData||[]).filter(i=>i.active!==false);
 
+  // Carrega mês anterior para multi-mês
+  _txs2=[]; _allTxs=[..._txs];
+  if(_multiMo){
+    let yr2=_yr,mo2=_mo-1;
+    if(mo2<0){mo2=11;yr2--;}
+    const from2=dStr(yr2,mo2,1),to2=dStr(yr2,mo2,dim(yr2,mo2));
+    const txData2=await sb('transactions',{select:'id,date,description,amount,type,category,tags','date':'gte.'+from2,order:'date.asc',limit:2000});
+    _txs2=(txData2||[]).filter(t=>t.date>=from2&&t.date<=to2);
+    _allTxs=[..._txs2,..._txs];
+  }
+
   renderSaldos();
   if(_tab==='totais') renderTotais();
   if(_tab==='tags')   renderTags();
@@ -770,8 +825,8 @@ function renderSaldos(){
     </tr>`);
   }
 
-  el.innerHTML=`
-  <div class="sg2-month-lbl">${MOS_FULL[_mo]} de ${_yr}</div>
+  // Tabela do mês atual
+  const tableHtml=(rowsArr,tEntr,tSai,tDai,tEco,tCar)=>`
   <div class="sg2-scroll">
   <table class="sg2-table">
     <thead><tr class="sg2-hdr-row">
@@ -783,18 +838,85 @@ function renderSaldos(){
       <th class="sg2-th-v"><span class="sg2-ic" style="background:#8B5CF6">C</span> cartão</th>
       <th class="sg2-th-sal">saldos</th>
     </tr></thead>
-    <tbody>${rows.join('')}</tbody>
+    <tbody>${rowsArr.join('')}</tbody>
     <tfoot><tr class="sg2-foot-row">
       <td class="sg2-td-day"></td>
-      <td class="sg2-td-v"><span class="sg2-ic" style="background:#22C55E">↙</span><span style="color:#22C55E;font-weight:700">${brl(tE)}</span></td>
-      <td class="sg2-td-v"><span class="sg2-ic" style="background:#EF4444">↗</span><span style="color:#EF4444;font-weight:700">${brl(tS)}</span></td>
-      <td class="sg2-td-v"><span class="sg2-ic" style="background:#EC4899">D</span><span style="color:#EC4899;font-weight:700">${brl(tD)}</span></td>
-      <td class="sg2-td-v"><span class="sg2-ic" style="background:#22C55E">E</span><span style="color:#8B5CF6;font-weight:700">${brl(tEc)}</span></td>
-      <td class="sg2-td-v"><span class="sg2-ic" style="background:#8B5CF6">C</span><span style="color:#3B82F6;font-weight:700">${brl(tC)}</span></td>
+      <td class="sg2-td-v"><span class="sg2-ic" style="background:#22C55E">↙</span><span style="color:#22C55E;font-weight:700">${brl(tEntr)}</span></td>
+      <td class="sg2-td-v"><span class="sg2-ic" style="background:#EF4444">↗</span><span style="color:#EF4444;font-weight:700">${brl(tSai)}</span></td>
+      <td class="sg2-td-v"><span class="sg2-ic" style="background:#EC4899">D</span><span style="color:#EC4899;font-weight:700">${brl(tDai)}</span></td>
+      <td class="sg2-td-v"><span class="sg2-ic" style="background:#22C55E">E</span><span style="color:#8B5CF6;font-weight:700">${brl(tEco)}</span></td>
+      <td class="sg2-td-v"><span class="sg2-ic" style="background:#8B5CF6">C</span><span style="color:#3B82F6;font-weight:700">${brl(tCar)}</span></td>
       <td></td>
     </tr></tfoot>
   </table>
   </div>`;
+
+  // Multi-mês: constrói bloco do mês anterior
+  let prevBlock='';
+  if(_multiMo&&_txs2.length>0){
+    let yr2=_yr,mo2=_mo-1;
+    if(mo2<0){mo2=11;yr2--;}
+    const daysInMo2=dim(yr2,mo2);
+    const byDate2={};
+    _txs2.forEach(t=>{if(!byDate2[t.date])byDate2[t.date]=[];byDate2[t.date].push(t);});
+    let tE2=0,tS2=0,tD2=0,tEc2=0,tC2=0;
+    const rows2=[];
+    const saldo2={};
+    const monthNet2=_txs2.reduce((s,t)=>{const a=parseFloat(t.amount||0);return isInc(t)?s+a:s-a;},0);
+    let run2=totalBal-monthNet2-(Object.values(saldoArr).length?saldoArr[1]-dayData[1].net:0);
+    for(let day=1;day<=daysInMo2;day++){
+      const ds2=dStr(yr2,mo2,day);
+      const dayTxs2=byDate2[ds2]||[];
+      let entr2=0,sai2=0,daily2=0,eco2=0,cart2=0;
+      dayTxs2.forEach(t=>{const a=parseFloat(t.amount||0);if(isInc(t))entr2+=a;else if(isEco(t))eco2+=a;else if(isCart(t))cart2+=a;else if(isDay(t))daily2+=a;else if(isSai(t))sai2+=a;});
+      run2+=entr2-sai2-daily2-eco2-cart2;
+      saldo2[day]=run2;
+      tE2+=entr2;tS2+=sai2;tD2+=daily2;tEc2+=eco2;tC2+=cart2;
+      const dow2=DOW2[new Date(ds2+'T12:00:00').getDay()];
+      const hasData2=entr2||sai2||daily2||eco2||cart2;
+      let sBg2,sCol2;
+      if(run2<0){sBg2='rgba(239,68,68,.26)';sCol2='#EF4444';}
+      else if(run2<200){sBg2='rgba(255,89,23,.26)';sCol2='#FF5917';}
+      else if(run2<800){sBg2='rgba(234,179,8,.28)';sCol2='#CA8A04';}
+      else if(run2<3000){sBg2='rgba(34,197,94,.14)';sCol2='#22C55E';}
+      else if(run2<10000){sBg2='rgba(34,197,94,.26)';sCol2='#22C55E';}
+      else{sBg2='rgba(34,197,94,.42)';sCol2='#16A34A';}
+      rows2.push(`<tr class="sg2-row${!hasData2?' sg2-past-empty':''}" onclick="openDayDetail('${ds2}')">
+        <td class="sg2-td-day"><span class="sg2-day-n">${day}</span><span class="sg2-day-w">${dow2}</span></td>
+        <td class="sg2-td-v">${ic(entr2>0,'#22C55E','↙')} ${val(entr2,'#22C55E')}</td>
+        <td class="sg2-td-v">${ic(!!(sai2),'#EF4444','↗')} ${val(sai2,'#EF4444')}</td>
+        <td class="sg2-td-v">${ic(daily2>0,'#EC4899','D')} ${val(daily2,'#EC4899')}</td>
+        <td class="sg2-td-v">${ic(eco2>0,'#22C55E','E')} ${val(eco2,'#8B5CF6')}</td>
+        <td class="sg2-td-v">${ic(cart2>0,'#8B5CF6','C')} ${val(cart2,'#3B82F6')}</td>
+        <td class="sg2-td-sal" style="background:${sBg2}"><span style="color:${sCol2};font-size:13px;font-weight:700">${brlSaldo(run2)}</span></td>
+      </tr>`);
+    }
+    prevBlock=`<div class="sg2-month-block"><div class="sg2-month-hdr"><span class="sg2-month-hdr-lbl">${MOS_FULL[mo2]} de ${yr2}</span></div>${tableHtml(rows2,tE2,tS2,tD2,tEc2,tC2)}</div>`;
+  }
+
+  const multiClass=_multiMo?'sg2-multi-wrap':'';
+  const curBlock=`<div class="sg2-month-block"><div class="sg2-month-hdr"><span class="sg2-month-hdr-lbl">${MOS_FULL[_mo]} de ${_yr}</span></div>${tableHtml(rows,tE,tS,tD,tEc,tC)}</div>`;
+
+  el.innerHTML=`
+  <div class="sg2-search-bar">
+    <span class="sg2-search-ic">🔍</span>
+    <input class="sg2-search-input" id="sg2-search-inp" type="search" placeholder="Buscar por descrição, categoria, tag..." value="${_searchQ}" oninput="applySearch()">
+    <button class="sg2-search-clear${_searchQ?' vis':''}" id="sg2-search-clear" onclick="clearSearch()">×</button>
+    <button class="sg2-multi-btn${_multiMo?' on':''}" id="sg2-multi-toggle" onclick="toggleMultiMo()">${_multiMo?'✕ 1 mês':'⊞ 2 meses'}</button>
+  </div>
+  <div class="sg2-filter-chips">
+    <button class="sg2-chip${_filterType==='all'?' on':''}" data-ft="all" onclick="setFilterType('all')">Todos</button>
+    <button class="sg2-chip${_filterType==='income'?' on':''}" data-ft="income" onclick="setFilterType('income')" style="${_filterType==='income'?'--chip-c:#22C55E;--chip-bg:rgba(34,197,94,.15)':''}">Entradas</button>
+    <button class="sg2-chip${_filterType==='expense'?' on':''}" data-ft="expense" onclick="setFilterType('expense')" style="${_filterType==='expense'?'--chip-c:#EF4444;--chip-bg:rgba(239,68,68,.15)':''}">Saídas</button>
+    <button class="sg2-chip${_filterType==='daily'?' on':''}" data-ft="daily" onclick="setFilterType('daily')" style="${_filterType==='daily'?'--chip-c:#EC4899;--chip-bg:rgba(236,72,153,.15)':''}">Diários</button>
+    <button class="sg2-chip${_filterType==='card'?' on':''}" data-ft="card" onclick="setFilterType('card')" style="${_filterType==='card'?'--chip-c:#3B82F6;--chip-bg:rgba(59,130,246,.15)':''}">Cartão</button>
+    <button class="sg2-chip${_filterType==='savings'?' on':''}" data-ft="savings" onclick="setFilterType('savings')" style="${_filterType==='savings'?'--chip-c:#8B5CF6;--chip-bg:rgba(139,92,246,.15)':''}">Economias</button>
+  </div>
+  <div class="sg2-chart-wrap"><canvas class="sg2-chart-canvas" id="sg2-chart" height="110"></canvas></div>
+  <div id="sg2-results" style="display:none"></div>
+  <div id="sg2-table-wrap" class="${multiClass}">${prevBlock}${curBlock}</div>`;
+
+  setTimeout(()=>{ drawSaldoChart(saldoArr,daysInMo,todayDay); renderSearchResults(); },0);
 }
 
 function openDayDetail(ds){
@@ -805,7 +927,8 @@ function openDayDetail(ds){
 
 // ── TX DETAIL ──────────────────────────────────────────────────
 function openTx(id){
-  const t=_txs.find(x=>x.id===id);
+  const pool=_allTxs.length?_allTxs:_txs;
+  const t=pool.find(x=>x.id===id);
   if(!t) return;
   _curTx=t;
   const cls=TIPO_CLS[t.type]||'saida';
@@ -846,6 +969,7 @@ function openTx(id){
     </div>`;
 
   document.getElementById('tx-del-btn').onclick=()=>deleteTx(id);
+  document.getElementById('tx-edit-btn').onclick=()=>{ closeTx(); openEdit(t); };
   document.getElementById('tx-modal').classList.remove('off');
 }
 function closeTx(){ document.getElementById('tx-modal').classList.add('off'); }
@@ -854,6 +978,30 @@ async function deleteTx(id){
   await sb('transactions',{id:'eq.'+id},{method:'DELETE',prefer:'return=minimal'});
   closeTx();
   loadData();
+}
+
+function openEdit(tx){
+  _editId = tx.id;
+  openAdd();
+  document.getElementById('add-amt').value = parseFloat(tx.amount||0);
+  document.getElementById('add-desc').value = tx.description||'';
+  document.getElementById('add-date').value = tx.date||'';
+  document.getElementById('add-cat').value = tx.category||'';
+  document.getElementById('add-tag-input').value = tx.tags||'';
+  const typeMap={'income':'income','entrada':'income','expense':'expense','saida':'expense','daily':'daily','diario':'daily','card':'card','cartao':'card','savings':'savings','economia':'savings'};
+  const mapped=typeMap[tx.type]||'expense';
+  const btn=document.querySelector(`.atype[onclick*="'${mapped}'"]`);
+  if(btn) setAType(mapped, btn);
+  document.getElementById('add-btn').textContent='Atualizar';
+}
+
+async function updateTx(id, data){
+  const r = await fetch(`${SUPA_URL}/rest/v1/transactions?id=eq.${id}`, {
+    method:'PATCH',
+    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+    body:JSON.stringify(data)
+  });
+  return r;
 }
 
 // ── TOTAIS ─────────────────────────────────────────────────────
@@ -1240,6 +1388,8 @@ function renderMenu(){
 
 // ── ADD TRANSACTION ─────────────────────────────────────────────
 function openAdd(){
+  _editId = null;
+  document.getElementById('add-btn').textContent='Salvar';
   const today=dStr(_yr,_mo,Math.min(_now.getDate(),dim(_yr,_mo)));
   document.getElementById('add-date').value=today;
   document.getElementById('add-amt').value='';
@@ -1312,24 +1462,189 @@ async function submitAdd(){
   const btn=document.getElementById('add-btn');
   btn.textContent='Salvando...'; btn.disabled=true;
   try {
-    const r = await fetch(`${SUPA_URL}/rest/v1/transactions`, {
-      method:'POST',
-      headers:{
-        'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,
-        'Content-Type':'application/json',
-        'Prefer':'return=minimal'
-      },
-      body:JSON.stringify({ description:desc, amount:Math.abs(amt), type:_atype, date, category:cat||TIPO_LBL[_atype], tags })
-    });
+    const payload={ description:desc, amount:Math.abs(amt), type:_atype, date, category:cat||TIPO_LBL[_atype], tags };
+    let r;
+    if(_editId){
+      r = await fetch(`${SUPA_URL}/rest/v1/transactions?id=eq.${_editId}`, {
+        method:'PATCH',
+        headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify(payload)
+      });
+    } else {
+      r = await fetch(`${SUPA_URL}/rest/v1/transactions`, {
+        method:'POST',
+        headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify(payload)
+      });
+    }
     if(!r.ok){ const err=await r.text(); console.error(r.status,err); alert('Erro ao salvar: '+r.status); return; }
+    _editId=null;
     closeAdd();
     loadData();
   } catch(e){
     console.error(e);
     alert('Erro de conexão. Verifique sua internet e tente novamente.');
   } finally {
-    btn.textContent='Salvar'; btn.disabled=false;
+    btn.textContent=_editId?'Atualizar':'Salvar'; btn.disabled=false;
   }
+}
+
+// ── BUSCA ──────────────────────────────────────────────────────
+function applySearch(){
+  _searchQ=document.getElementById('sg2-search-inp').value.trim().toLowerCase();
+  const cl=document.getElementById('sg2-search-clear');
+  if(cl) cl.classList.toggle('vis',_searchQ.length>0);
+  renderSearchResults();
+}
+
+function clearSearch(){
+  const inp=document.getElementById('sg2-search-inp');
+  if(inp) inp.value='';
+  _searchQ='';
+  const cl=document.getElementById('sg2-search-clear');
+  if(cl) cl.classList.remove('vis');
+  renderSearchResults();
+}
+
+function setFilterType(t){
+  _filterType=t;
+  document.querySelectorAll('.sg2-chip').forEach(c=>c.classList.toggle('on',c.dataset.ft===t));
+  renderSearchResults();
+}
+
+function renderSearchResults(){
+  const wrap=document.getElementById('sg2-results');
+  if(!wrap) return;
+  const hasFilter=_searchQ||_filterType!=='all';
+  if(!hasFilter){ wrap.style.display='none'; document.getElementById('sg2-table-wrap').style.display=''; return; }
+  wrap.style.display='';
+  document.getElementById('sg2-table-wrap').style.display='none';
+
+  const pool=_allTxs.length?_allTxs:_txs;
+  let res=pool.filter(t=>{
+    const matchQ=!_searchQ||(t.description||'').toLowerCase().includes(_searchQ)||(t.category||'').toLowerCase().includes(_searchQ)||(t.tags||'').toLowerCase().includes(_searchQ);
+    const matchT=_filterType==='all'||t.type===_filterType;
+    return matchQ&&matchT;
+  });
+
+  const ic=(type)=>{const m={income:'↙',expense:'↗',daily:'D',card:'C',savings:'E'};return m[type]||'·';};
+  const colorType=(type)=>{const m={income:'#22C55E',expense:'#EF4444',daily:'#EC4899',card:'#3B82F6',savings:'#8B5CF6'};return m[type]||'var(--t2)';};
+  const sign=(type)=>['income','entrada','savings','economia'].includes(type)?'+':'-';
+
+  const brlSaldo=v=>(v<0?'-':'')+brl(v);
+  const mark=(txt)=>{
+    if(!_searchQ) return esc(txt);
+    const re=new RegExp('('+_searchQ.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+    return esc(txt).replace(re,'<mark class="sg2-mark">$1</mark>');
+  };
+
+  const html=res.length?res.map(t=>{
+    const c=colorType(t.type);
+    const amt=parseFloat(t.amount||0);
+    const d=new Date(t.date+'T12:00:00');
+    const sub=`${d.getDate()} ${MOS[d.getMonth()]} · ${t.category||t.type}`;
+    return `<div class="sg2-res-row" onclick="openTx('${t.id}')">
+      <span class="sg2-res-ic" style="background:${c}22;color:${c}">${ic(t.type)}</span>
+      <div class="sg2-res-body">
+        <span class="sg2-res-title">${mark(t.description||'—')}</span>
+        <span class="sg2-res-sub">${sub}</span>
+      </div>
+      <span class="sg2-res-val" style="color:${c}">${sign(t.type)} ${brl(amt)}</span>
+    </div>`;
+  }).join(''):`<div class="sg2-no-res">Nenhuma movimentação encontrada</div>`;
+
+  wrap.innerHTML=`<div class="sg2-res-count">${res.length} resultado${res.length===1?'':'s'}</div>${html}`;
+}
+
+// ── GRÁFICO ─────────────────────────────────────────────────────
+function drawSaldoChart(saldoArr, daysInMo, todayDay){
+  const canvas=document.getElementById('sg2-chart');
+  if(!canvas) return;
+  const W=canvas.offsetWidth||canvas.parentElement.offsetWidth||320;
+  const H=110;
+  canvas.width=W*2; canvas.height=H*2;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(2,2);
+
+  const vals=[];
+  for(let d=1;d<=daysInMo;d++) vals.push(saldoArr[d]||0);
+  const minV=Math.min(...vals,0);
+  const maxV=Math.max(...vals,0);
+  const range=maxV-minV||1;
+
+  const pad={l:6,r:6,t:10,b:22};
+  const cW=W-pad.l-pad.r;
+  const cH=H-pad.t-pad.b;
+
+  const xOf=(i)=>pad.l+i/(daysInMo-1)*cW;
+  const yOf=(v)=>pad.t+cH-(v-minV)/range*cH;
+
+  // zero line
+  const y0=yOf(0);
+  ctx.strokeStyle='rgba(255,255,255,.08)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(pad.l,y0);ctx.lineTo(pad.l+cW,y0);ctx.stroke();
+
+  // área past (verde)
+  if(todayDay>1){
+    const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+cH);
+    grad.addColorStop(0,'rgba(34,197,94,.35)');
+    grad.addColorStop(1,'rgba(34,197,94,.03)');
+    ctx.fillStyle=grad;
+    ctx.beginPath();
+    ctx.moveTo(xOf(0),yOf(vals[0]));
+    for(let i=1;i<Math.min(todayDay,daysInMo);i++) ctx.lineTo(xOf(i),yOf(vals[i]));
+    ctx.lineTo(xOf(Math.min(todayDay-1,daysInMo-1)),yOf(0));
+    ctx.lineTo(xOf(0),yOf(0));
+    ctx.closePath();ctx.fill();
+    // linha past
+    ctx.strokeStyle='#22C55E';ctx.lineWidth=2;ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(xOf(0),yOf(vals[0]));
+    for(let i=1;i<Math.min(todayDay,daysInMo);i++) ctx.lineTo(xOf(i),yOf(vals[i]));
+    ctx.stroke();
+  }
+
+  // linha future (azul pontilhada)
+  if(todayDay<daysInMo){
+    const start=Math.max(todayDay-1,0);
+    ctx.strokeStyle='#3B82F6';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    ctx.moveTo(xOf(start),yOf(vals[start]));
+    for(let i=start+1;i<daysInMo;i++) ctx.lineTo(xOf(i),yOf(vals[i]));
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // dot hoje (laranja)
+  if(todayDay>=1&&todayDay<=daysInMo){
+    const xi=xOf(todayDay-1);
+    const yi=yOf(vals[todayDay-1]);
+    ctx.beginPath();ctx.arc(xi,yi,5,0,Math.PI*2);
+    ctx.fillStyle='#FF5917';ctx.fill();
+    ctx.strokeStyle='var(--card)';ctx.lineWidth=2;ctx.stroke();
+  }
+
+  // labels eixo X (início, meio, fim)
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,255,255,.35)';
+  ctx.font='8px DM Sans, sans-serif';
+  ctx.textAlign='center';
+  const lblDays=[1,Math.ceil(daysInMo/2),daysInMo];
+  lblDays.forEach(d=>{
+    const xi=xOf(d-1);
+    ctx.fillText(d,xi,H-4);
+  });
+}
+
+// ── MULTI-MÊS ──────────────────────────────────────────────────
+function toggleMultiMo(){
+  _multiMo=!_multiMo;
+  const btn=document.getElementById('sg2-multi-toggle');
+  if(btn){ btn.classList.toggle('on',_multiMo); btn.textContent=_multiMo?'✕ 1 mês':'⊞ 2 meses'; }
+  if(_multiMo) loadData(); else renderSaldos();
 }
 
 // ── START ──────────────────────────────────────────────────────
