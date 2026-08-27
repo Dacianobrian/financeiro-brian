@@ -40,6 +40,26 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 
 /* ── APP SHELL ──────────────────────────── */
 #app{position:fixed;inset:0;display:flex;flex-direction:column}
+.app-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* ── SIDEBAR ─────────────────────────────── */
+#sidebar{width:190px;background:var(--card);border-right:1px solid var(--br);display:none;flex-direction:column;flex-shrink:0;z-index:10;transition:width .22s ease;overflow:hidden}
+#sidebar.col{width:56px}
+.sb-logo{display:flex;align-items:center;gap:10px;padding:16px 14px 14px;border-bottom:1px solid var(--br);font-size:14px;font-weight:800;color:var(--or);white-space:nowrap;overflow:hidden;letter-spacing:-.2px}
+.sb-logo-ic{font-size:22px;flex-shrink:0;line-height:1}
+.sb-nav{flex:1;padding:10px 8px;overflow:hidden}
+.sb-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--t2);border-radius:10px;margin-bottom:3px;transition:all .12s;border:none;background:none;font-family:'DM Sans',sans-serif;text-align:left;white-space:nowrap;overflow:hidden}
+.sb-item:hover{background:var(--bg);color:var(--t1)}
+.sb-item.on{background:rgba(255,89,23,.12);color:var(--or)}
+.sb-ic{font-size:16px;width:22px;text-align:center;flex-shrink:0;line-height:1}
+.sb-lb{flex:1;overflow:hidden;text-overflow:ellipsis}
+.sb-bottom{padding:8px 8px 10px;border-top:1px solid var(--br);overflow:hidden}
+.sb-add{display:flex;align-items:center;gap:10px;width:100%;padding:10px 10px;cursor:pointer;font-size:13px;font-weight:700;color:var(--or);background:var(--or-l);border-radius:10px;margin-bottom:6px;border:none;font-family:'DM Sans',sans-serif;text-align:left;white-space:nowrap;overflow:hidden;transition:opacity .12s}
+.sb-add:hover{opacity:.85}
+.sb-collapse{display:flex;align-items:center;justify-content:center;width:100%;padding:9px;cursor:pointer;font-size:15px;color:var(--t3);border:none;background:none;font-family:'DM Sans',sans-serif;transition:all .2s;margin-top:4px;border-radius:8px}
+.sb-collapse:hover{color:var(--t1);background:var(--bg)}
+#sidebar.col .sb-collapse{transform:rotate(180deg)}
+#sidebar.col .sb-lb,#sidebar.col .sb-logo span{display:none}
 
 /* Header */
 #hdr{height:var(--hdr);padding-top:var(--st);background:var(--card);border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;padding-left:12px;padding-right:12px;flex-shrink:0;z-index:20}
@@ -60,6 +80,17 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 .bn-lb{font-size:10px;color:var(--t3);font-weight:600;transition:color .12s;letter-spacing:.02em}
 .bn.on .bn-lb{color:var(--or)}
 .bn-plus-wrap{width:46px;height:46px;background:var(--or);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;margin-top:-6px;box-shadow:0 4px 18px rgba(255,89,23,.5);line-height:1}
+
+/* ── RESPONSIVO ──────────────────────────── */
+@media(min-width:640px){
+  #app{flex-direction:row}
+  #sidebar{display:flex}
+  #bnav{display:none!important}
+  .page{padding-bottom:8px!important}
+}
+@media(max-width:639px){
+  .page{padding-bottom:calc(var(--bnav) + var(--sb) + 8px)!important}
+}
 
 /* ── SALDOS GRID (estilo Breno) ─────────── */
 .sg-summary{padding:16px 16px 14px;background:var(--card);border-bottom:1px solid var(--br)}
@@ -308,40 +339,76 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 
 <!-- APP -->
 <div id="app" style="display:none">
-  <div id="hdr">
-    <button class="hdr-btn" onclick="prevM()">‹</button>
-    <span id="hdr-title"></span>
-    <button class="hdr-btn" onclick="nextM()">›</button>
+
+  <!-- SIDEBAR (desktop) -->
+  <nav id="sidebar">
+    <div class="sb-logo">
+      <span class="sb-logo-ic">🏠</span>
+      <span>Finanças</span>
+    </div>
+    <div class="sb-nav">
+      <button class="sb-item on" id="sbi-saldos" onclick="goTo('saldos')">
+        <span class="sb-ic">💰</span><span class="sb-lb">saldos</span>
+      </button>
+      <button class="sb-item" id="sbi-totais" onclick="goTo('totais')">
+        <span class="sb-ic">📊</span><span class="sb-lb">totais</span>
+      </button>
+      <button class="sb-item" id="sbi-tags" onclick="goTo('tags')">
+        <span class="sb-ic">🏷️</span><span class="sb-lb">tags</span>
+      </button>
+      <button class="sb-item" id="sbi-menu" onclick="goTo('menu')">
+        <span class="sb-ic">☰</span><span class="sb-lb">menu</span>
+      </button>
+    </div>
+    <div class="sb-bottom">
+      <button class="sb-add" onclick="openAdd()">
+        <span class="sb-ic">＋</span><span class="sb-lb">adicionar</span>
+      </button>
+      <button class="sb-item" onclick="goToday()">
+        <span class="sb-ic">📅</span><span class="sb-lb">ir pra hoje</span>
+      </button>
+    </div>
+    <button class="sb-collapse" onclick="toggleSidebar()">‹</button>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="app-main">
+    <div id="hdr">
+      <button class="hdr-btn" onclick="prevM()">‹</button>
+      <span id="hdr-title"></span>
+      <button class="hdr-btn" onclick="nextM()">›</button>
+    </div>
+
+    <div id="pages">
+      <!-- Saldos -->
+      <div id="pg-saldos" class="page">
+        <div id="saldos-list"></div>
+      </div>
+
+      <!-- Totais -->
+      <div id="pg-totais" class="page off">
+        <div id="totais-content"></div>
+      </div>
+
+      <!-- Tags -->
+      <div id="pg-tags" class="page off">
+        <div id="tags-content"></div>
+      </div>
+
+      <!-- Contas (acessível pelo Menu) -->
+      <div id="pg-contas" class="page off">
+        <div id="contas-content"></div>
+      </div>
+
+      <!-- Menu -->
+      <div id="pg-menu" class="page off">
+        <div class="menu-hdr"><h2>Menu</h2></div>
+        <div id="menu-content"></div>
+      </div>
+    </div>
   </div>
 
-  <div id="pages">
-    <!-- Saldos -->
-    <div id="pg-saldos" class="page">
-      <div id="saldos-list"></div>
-    </div>
-
-    <!-- Totais -->
-    <div id="pg-totais" class="page off">
-      <div id="totais-content"></div>
-    </div>
-
-    <!-- Tags -->
-    <div id="pg-tags" class="page off">
-      <div id="tags-content"></div>
-    </div>
-
-    <!-- Contas (acessível pelo Menu) -->
-    <div id="pg-contas" class="page off">
-      <div id="contas-content"></div>
-    </div>
-
-    <!-- Menu -->
-    <div id="pg-menu" class="page off">
-      <div class="menu-hdr"><h2>Menu</h2></div>
-      <div id="menu-content"></div>
-    </div>
-  </div>
-
+  <!-- BOTTOM NAV (mobile) -->
   <nav id="bnav">
     <button class="bn on" id="bn-saldos" onclick="goTo('saldos')">
       <span class="bn-ic">💰</span><span class="bn-lb">Saldos</span>
@@ -475,9 +542,23 @@ function logout(){
 function boot(){
   document.getElementById('login').style.display='none';
   document.getElementById('app').style.display='flex';
-  document.getElementById('app').style.flexDirection='column';
   updateHdr();
   loadData();
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('col');
+}
+
+function goToday(){
+  const now=new Date();
+  _yr=now.getFullYear();_mo=now.getMonth();
+  goTo('saldos');
+  renderAll();
+  setTimeout(()=>{
+    const tr=document.querySelector('.sg2-today-row');
+    if(tr) tr.scrollIntoView({behavior:'smooth',block:'center'});
+  },350);
 }
 
 // ── SUPABASE ───────────────────────────────────────────────────
@@ -526,6 +607,8 @@ function goTo(tab){
     document.getElementById('pg-'+t).classList.toggle('off', t!==tab);
     const b = document.getElementById('bn-'+t);
     if(b) b.classList.toggle('on', t===tab);
+    const sbi = document.getElementById('sbi-'+t);
+    if(sbi) sbi.classList.toggle('on', t===tab);
   });
   if(tab==='totais') renderTotais();
   if(tab==='tags')   renderTags();
@@ -651,12 +734,21 @@ function renderSaldos(){
   for(let day=1;day<=daysInMo;day++){
     const {ds,entr,sai,daily,eco,cart,proj,isFut,isToday}=dayData[day];
     const runSaldo=saldoArr[day];
-    const salCls=runSaldo>1500?'hi':runSaldo>0?'lo':'neg';
     const dow=DOW2[new Date(ds+'T12:00:00').getDay()];
     const saiShow=sai||(isFut?proj:0);
     const saiProj=isFut&&!sai&&proj>0;
     const hasData=entr||sai||daily||eco||cart;
     const isPast=isCurMo&&day<todayDay;
+
+    // Gradiente de cor do saldo — verde/amarelo/vermelho por saúde financeira
+    let salBg,salColor;
+    if(isToday){salBg='transparent';salColor='var(--t1)';}
+    else if(runSaldo<0){salBg='rgba(239,68,68,.22)';salColor='#EF4444';}
+    else if(runSaldo<1){salBg='rgba(245,158,11,.35)';salColor='#D97706';}
+    else if(runSaldo<500){salBg='rgba(245,158,11,.22)';salColor='#D97706';}
+    else if(runSaldo<2000){salBg='rgba(34,197,94,.14)';salColor='#22C55E';}
+    else if(runSaldo<8000){salBg='rgba(34,197,94,.24)';salColor='#22C55E';}
+    else{salBg='rgba(34,197,94,.36)';salColor='#16A34A';}
 
     let rowCls='sg2-row';
     if(isToday) rowCls+=' sg2-today-row';
@@ -674,7 +766,7 @@ function renderSaldos(){
       <td class="sg2-td-v">${ic(daily>0,'#EC4899','D')} ${val(daily,'#EC4899')}</td>
       <td class="sg2-td-v">${ic(eco>0,'#22C55E','E')} ${val(eco,'#8B5CF6')}</td>
       <td class="sg2-td-v">${ic(cart>0,'#8B5CF6','C')} ${val(cart,'#3B82F6')}</td>
-      <td class="sg2-td-sal"><span class="sg2-sal ${salCls}">${brlSaldo(runSaldo)}</span></td>
+      <td class="sg2-td-sal" style="background:${salBg}"><span style="color:${salColor};font-size:13px;font-weight:700">${brlSaldo(runSaldo)}</span></td>
     </tr>`);
   }
 
