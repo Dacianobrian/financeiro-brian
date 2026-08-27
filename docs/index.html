@@ -137,6 +137,29 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 .mcard-row span:first-child{font-size:14px;color:var(--t2)}
 .mcard-row span:last-child{font-size:14px;font-weight:700}
 
+/* ── TAGS PAGE ──────────────────────────── */
+.tags-hdr{padding:18px 16px 4px}
+.tags-hdr h2{font-size:18px;font-weight:700;color:var(--t1)}
+.tags-chips{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px 4px}
+.tag-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:opacity .12s}
+.tag-chip:active{opacity:.7}
+.tag-chip-count{font-size:11px;opacity:.65;font-weight:600}
+.tag-back{display:flex;align-items:center;gap:6px;padding:14px 16px 6px;font-size:15px;font-weight:700;color:var(--or);cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif}
+.tag-detail-sum{background:var(--card);margin:8px 16px 0;border-radius:16px;border:1px solid var(--br);padding:16px}
+.tag-detail-name{font-size:22px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.tag-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tag-detail-item{background:var(--bg);border-radius:12px;padding:10px}
+.tag-detail-lbl{font-size:10px;color:var(--t3);font-weight:600;margin-bottom:3px;text-transform:uppercase}
+.tag-detail-val{font-size:17px;font-weight:700}
+.tag-empty{padding:12px 16px 0}
+.tag-all-row{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--br);cursor:pointer;gap:10px}
+.tag-all-row:last-child{border-bottom:none}
+.tag-all-row:active{background:var(--bg)}
+.tag-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.tag-all-name{flex:1;font-size:14px;font-weight:600}
+.tag-all-count{font-size:12px;color:var(--t3);margin-right:8px}
+.tag-all-val{font-size:14px;font-weight:700}
+
 /* ── ADD MODAL ──────────────────────────── */
 #add-modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
 #add-modal.off{display:none}
@@ -153,6 +176,9 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 .afield label{font-size:12px;color:var(--t2);font-weight:600;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
 .afield input,.afield select{width:100%;border:1.5px solid var(--br);border-radius:12px;padding:11px 13px;font-size:15px;font-family:'DM Sans',sans-serif;outline:none;background:var(--bg);color:var(--t1);appearance:none}
 .afield input:focus,.afield select:focus{border-color:var(--or)}
+.add-tags-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.add-tag-pill{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--br);background:var(--bg);color:var(--t2);font-family:'DM Sans',sans-serif;transition:all .1s}
+.add-tag-pill.sel{border-color:var(--or);background:var(--or-l);color:var(--or)}
 .add-save{display:block;width:100%;padding:14px;background:var(--or);color:#fff;border:none;border-radius:999px;font-size:16px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:10px;transition:opacity .15s}
 .add-save:active{opacity:.8}
 .add-save:disabled{opacity:.5}
@@ -164,10 +190,12 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 .tx-sheet-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
 .tx-sheet-hdr h3{font-size:18px;font-weight:700}
 .close-btn{width:32px;height:32px;border-radius:50%;background:var(--bg);border:none;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.tx-detail-row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--br)}
+.tx-detail-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--br)}
 .tx-detail-row:last-child{border-bottom:none}
 .tx-detail-lbl{font-size:14px;color:var(--t2)}
 .tx-detail-val{font-size:14px;font-weight:600}
+.tx-tags-wrap{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end}
+.tx-tag-badge{padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
 .btn-del{display:block;width:100%;padding:13px;background:var(--rd-l);color:var(--rd);border:none;border-radius:999px;font-size:15px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:20px;transition:opacity .15s}
 .btn-del:active{opacity:.7}
 
@@ -213,6 +241,41 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 .cv-comprom-total-lbl{font-size:13px;color:var(--t2);font-weight:500}
 .cv-comprom-total-val{font-size:18px;font-weight:700;color:var(--rd)}
 
+/* ── SALDOS TABLE V2 (multi-coluna) ─────── */
+.sg2-month-lbl{padding:14px 16px 6px;font-size:15px;font-weight:700;color:var(--t1)}
+.sg2-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.sg2-table{border-collapse:collapse;width:100%;min-width:580px;background:var(--card)}
+.sg2-hdr-row th{padding:9px 8px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--br);white-space:nowrap;vertical-align:middle}
+.sg2-th-day{text-align:left!important;width:48px;padding-left:14px!important;position:sticky;left:0;background:var(--card);z-index:2}
+.sg2-th-v{text-align:right;min-width:88px}
+.sg2-th-sal{text-align:right;min-width:96px;padding-right:14px!important}
+.sg2-ic{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;flex-shrink:0;vertical-align:middle;margin-right:3px}
+.sg2-row td{border-bottom:1px solid var(--br);vertical-align:middle}
+.sg2-row{cursor:pointer}
+.sg2-row:active{filter:brightness(.97)}
+.sg2-past-empty{opacity:.4}
+.sg2-past-row{opacity:.75}
+.sg2-future-row{opacity:.55}
+.sg2-today-row{background:linear-gradient(90deg,#FFF8F5 0%,var(--card) 100%)}
+.sg2-td-day{padding:10px 6px 10px 14px;white-space:nowrap;position:sticky;left:0;background:var(--card);z-index:1}
+.sg2-today-row .sg2-td-day{background:linear-gradient(90deg,#FFF8F5 0%,#FFF8F5 100%)}
+.sg2-future-row .sg2-td-day{background:var(--card)}
+.sg2-past-empty .sg2-td-day,.sg2-past-row .sg2-td-day{background:var(--card)}
+.sg2-day-n{font-size:16px;font-weight:800;display:block;color:var(--t1);line-height:1}
+.sg2-day-w{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.03em;display:block;margin-top:2px}
+.sg2-today-n{background:var(--t1);color:#fff;width:26px;height:26px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:14px}
+.sg2-td-v{text-align:right;padding:10px 8px;white-space:nowrap}
+.sg2-v-act{font-size:13px;font-weight:700}
+.sg2-v-zero{font-size:13px;color:var(--br2);font-weight:400}
+.sg2-proj-box{font-size:13px;font-weight:700;color:var(--t2);border:1.5px solid var(--br2);border-radius:6px;padding:3px 8px;display:inline-block}
+.sg2-td-sal{text-align:right;padding:8px 14px 8px 6px}
+.sg2-sal{display:inline-block;padding:5px 10px;border-radius:7px;font-size:13px;font-weight:700;white-space:nowrap;min-width:88px;text-align:right}
+.sg2-sal.hi{background:#22C55E1a;color:#166534}
+.sg2-sal.lo{background:#F59E0B22;color:#92400e}
+.sg2-sal.neg{background:#EF44441a;color:#991b1b}
+.sg2-foot-row td{padding:11px 8px;background:var(--bg);border-top:2px solid var(--br);border-bottom:none;white-space:nowrap;text-align:right;font-size:13px}
+.sg2-foot-row .sg2-td-day{text-align:left}
+
 /* ── UTILITIES ─────────────────────────── */
 .empty{padding:56px 16px;text-align:center;color:var(--t3);font-size:14px;line-height:1.6}
 .loading{padding:56px 16px;text-align:center;color:var(--t3);font-size:14px}
@@ -257,7 +320,12 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
       <div id="totais-content"></div>
     </div>
 
-    <!-- Contas -->
+    <!-- Tags -->
+    <div id="pg-tags" class="page off">
+      <div id="tags-content"></div>
+    </div>
+
+    <!-- Contas (acessível pelo Menu) -->
     <div id="pg-contas" class="page off">
       <div id="contas-content"></div>
     </div>
@@ -280,8 +348,8 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
       <span class="bn-ic"><span class="bn-plus-wrap">+</span></span>
       <span class="bn-lb">&nbsp;</span>
     </button>
-    <button class="bn" id="bn-contas" onclick="goTo('contas')">
-      <span class="bn-ic">📌</span><span class="bn-lb">Contas</span>
+    <button class="bn" id="bn-tags" onclick="goTo('tags')">
+      <span class="bn-ic">🏷️</span><span class="bn-lb">Tags</span>
     </button>
     <button class="bn" id="bn-menu" onclick="goTo('menu')">
       <span class="bn-ic">☰</span><span class="bn-lb">Menu</span>
@@ -296,8 +364,9 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
     <div class="add-types">
       <button class="atype on" onclick="setAType('income',this)">Entrada</button>
       <button class="atype" onclick="setAType('expense',this)">Saída</button>
+      <button class="atype" onclick="setAType('daily',this)">Diário</button>
       <button class="atype" onclick="setAType('card',this)">Cartão</button>
-      <button class="atype" onclick="setAType('savings',this)">Economia</button>
+      <button class="atype" onclick="setAType('savings',this)">Eco.</button>
     </div>
     <div class="add-body">
       <div class="add-amt-wrap">
@@ -315,6 +384,11 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
       <div class="afield">
         <label>Categoria</label>
         <input type="text" id="add-cat" placeholder="ex: Alimentação, Saúde...">
+      </div>
+      <div class="afield">
+        <label>Tags</label>
+        <input type="text" id="add-tag-input" placeholder="ex: moradia, reembolso...">
+        <div class="add-tags-row" id="add-tags-suggest"></div>
       </div>
       <button class="add-save" id="add-btn" onclick="submitAdd()">Salvar</button>
     </div>
@@ -342,12 +416,13 @@ const PWD_HASH = '6747df63076be4c16930139e0240d612fe17724f06153f83d495d959e78e78
 const MOS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const DOW = ['DOM','SEG','TER','QUA','QUI','SEX','SÁB'];
 
-const TIPO_IC  = {income:'💚',entrada:'💚',expense:'🔴',saida:'🔴',card:'🔵',cartao:'🔵',transfer:'🔵',savings:'💜',economia:'💜',investment:'💜'};
-const TIPO_CLS = {income:'entrada',entrada:'entrada',expense:'saida',saida:'saida',card:'cartao',cartao:'cartao',transfer:'cartao',savings:'economia',economia:'economia',investment:'economia'};
-const TIPO_LBL = {income:'Entrada',entrada:'Entrada',expense:'Saída',saida:'Saída',card:'Cartão',cartao:'Cartão',transfer:'Transferência',savings:'Economia',economia:'Economia',investment:'Economia'};
-// Quais tipos raw pertencem a cada filtro
-const FILTRO = {income:['income','entrada'],expense:['expense','saida'],card:['card','cartao','transfer'],savings:['savings','economia','investment']};
+const TIPO_IC  = {income:'💚',entrada:'💚',expense:'🔴',saida:'🔴',daily:'🟣',diario:'🟣',card:'🔵',cartao:'🔵',transfer:'🔵',savings:'💜',economia:'💜',investment:'💜'};
+const TIPO_CLS = {income:'entrada',entrada:'entrada',expense:'saida',saida:'saida',daily:'saida',diario:'saida',card:'cartao',cartao:'cartao',transfer:'cartao',savings:'economia',economia:'economia',investment:'economia'};
+const TIPO_LBL = {income:'Entrada',entrada:'Entrada',expense:'Saída',saida:'Saída',daily:'Diário',diario:'Diário',card:'Cartão',cartao:'Cartão',transfer:'Transferência',savings:'Economia',economia:'Economia',investment:'Economia'};
+const FILTRO = {income:['income','entrada'],expense:['expense','saida'],daily:['daily','diario'],card:['card','cartao','transfer'],savings:['savings','economia','investment']};
 const TAG_COLORS = ['#22C55E','#EF4444','#3B82F6','#8B5CF6','#F59E0B','#E8521A','#06B6D4','#EC4899','#84CC16','#14B8A6'];
+const POPULAR_TAGS = ['moradia','assinatura','reembolso','viagem','alimentação','saúde','lazer','dividir','cancelar','trabalho'];
+const MOS_FULL = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 
 // ── STATE ──────────────────────────────────────────────────────
 const _now = new Date();
@@ -363,6 +438,7 @@ let _sgType  = 'saida';
 let _atype  = 'income';
 let _tab    = 'saldos';
 let _curTx  = null;
+let _selTag = null;
 
 // ── AUTH ───────────────────────────────────────────────────────
 async function sha256(msg){
@@ -417,10 +493,10 @@ async function sb(table, params={}, opts={}){
 
 // ── HELPERS ────────────────────────────────────────────────────
 function brl(n){
-  return 'R$ '+Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return 'R$ '+Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 function brlSign(n){
-  return (n>=0?'+':'-')+' '+brl(n);
+  return (n>=0?'+':'-')+' '+brl(n);
 }
 function pad2(n){return String(n).padStart(2,'0')}
 function dim(y,m){return new Date(y,m+1,0).getDate()}
@@ -428,26 +504,33 @@ function mStr(y,m){return MOS[m]+'/'+String(y).slice(2)}
 function dStr(y,m,d){return `${y}-${pad2(m+1)}-${pad2(d)}`}
 function dowOf(s){return DOW[new Date(s+'T12:00:00').getDay()]}
 function todayStr(){return dStr(_now.getFullYear(),_now.getMonth(),_now.getDate())}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function parseTags(raw){
+  if(!raw) return [];
+  return raw.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+}
 
 // ── NAVIGATION ─────────────────────────────────────────────────
 function goTo(tab){
   _tab = tab;
-  ['saldos','totais','contas','menu'].forEach(t=>{
+  ['saldos','totais','tags','contas','menu'].forEach(t=>{
     document.getElementById('pg-'+t).classList.toggle('off', t!==tab);
     const b = document.getElementById('bn-'+t);
     if(b) b.classList.toggle('on', t===tab);
   });
   if(tab==='totais') renderTotais();
+  if(tab==='tags')   renderTags();
   if(tab==='contas') renderContas();
   if(tab==='menu')   renderMenu();
 }
 function prevM(){
   if(_mo===0){_mo=11;_yr--;}else _mo--;
-  updateHdr(); loadData();
+  updateHdr(); _selTag=null; loadData();
 }
 function nextM(){
   if(_mo===11){_mo=0;_yr++;}else _mo++;
-  updateHdr(); loadData();
+  updateHdr(); _selTag=null; loadData();
 }
 function updateHdr(){document.getElementById('hdr-title').textContent=mStr(_yr,_mo);}
 
@@ -459,7 +542,7 @@ async function loadData(){
 
   const [txData,accData,fcData,subData,instData] = await Promise.all([
     sb('transactions',{
-      select:'id,date,description,amount,type,category',
+      select:'id,date,description,amount,type,category,tags',
       'date':'gte.'+from,
       order:'date.asc',
       limit:2000
@@ -478,33 +561,22 @@ async function loadData(){
 
   renderSaldos();
   if(_tab==='totais') renderTotais();
+  if(_tab==='tags')   renderTags();
   if(_tab==='contas') renderContas();
   if(_tab==='menu')   renderMenu();
 }
 
-// ── SALDOS GRID (estilo Breno) ─────────────────────────────────
-const SG_TYPES=[
-  {key:'saida',  label:'Saídas',    icon:'🔴', cls:'saida'},
-  {key:'entrada',label:'Entradas',  icon:'💚', cls:'entrada'},
-  {key:'cartao', label:'Cartão',    icon:'🔵', cls:'cartao'},
-  {key:'economia',label:'Economias',icon:'💜', cls:'economia'},
-];
-function sgNextType(){
-  const idx=SG_TYPES.findIndex(t=>t.key===_sgType);
-  _sgType=SG_TYPES[(idx+1)%SG_TYPES.length].key;
-  renderSaldos();
-}
-
+// ── SALDOS TABLE V2 (multi-coluna, estilo App Breno) ───────────
 function renderSaldos(){
   const el=document.getElementById('saldos-list');
   if(!el) return;
 
   const totalBal=_accs.reduce((s,a)=>s+parseFloat(a.balance||0),0);
-  const isInc=t=>['income','entrada'].includes(t.type);
-  const isEco=t=>['savings','economia','investment'].includes(t.type);
+  const isInc =t=>['income','entrada'].includes(t.type);
+  const isEco =t=>['savings','economia','investment'].includes(t.type);
   const isCart=t=>['card','cartao','transfer'].includes(t.type);
-  const isSai=t=>['expense','saida'].includes(t.type);
-  const monthNet=_txs.reduce((s,t)=>{const a=parseFloat(t.amount||0);return isInc(t)?s+a:s-a;},0);
+  const isDay =t=>['daily','diario'].includes(t.type);
+  const isSai =t=>['expense','saida'].includes(t.type);
 
   const byDate={};
   _txs.forEach(t=>{if(!byDate[t.date])byDate[t.date]=[];byDate[t.date].push(t);});
@@ -514,110 +586,115 @@ function renderSaldos(){
   const todayDay=isCurMo?nowDate.getDate():-1;
   const daysInMo=dim(_yr,_mo);
 
-  // Future projections for saída column
   const projMap={};
   if(isCurMo){
-    const paid=amt=>_txs.some(t=>(isSai(t)||isCart(t))&&Math.abs(parseFloat(t.amount)-amt)<0.05);
-    _fixedCosts.forEach(fc=>{
-      const d=fc.due_day||1;
-      if(d>todayDay&&!paid(parseFloat(fc.amount)))
-        projMap[d]=(projMap[d]||0)+parseFloat(fc.amount);
-    });
-    _subs.forEach(s=>{
-      const d=s.billing_day||1;
-      if(d>todayDay) projMap[d]=(projMap[d]||0)+parseFloat(s.amount);
-    });
+    const paid=amt=>_txs.some(t=>!isInc(t)&&!isEco(t)&&Math.abs(parseFloat(t.amount)-amt)<0.05);
+    _fixedCosts.forEach(fc=>{const d=fc.due_day||1;if(d>todayDay&&!paid(parseFloat(fc.amount)))projMap[d]=(projMap[d]||0)+parseFloat(fc.amount);});
+    _subs.forEach(s=>{const d=s.billing_day||1;if(d>todayDay)projMap[d]=(projMap[d]||0)+parseFloat(s.amount);});
   }
 
-  // Month totals for summary bar
-  let mEntr=0,mSai=0,mEco=0,mCart=0;
-  _txs.forEach(t=>{
-    const a=parseFloat(t.amount||0);
-    if(isInc(t)) mEntr+=a;
-    else if(isEco(t)) mEco+=a;
-    else if(isCart(t)) mCart+=a;
-    else if(isSai(t)) mSai+=a;
-  });
-
-  const curType=SG_TYPES.find(t=>t.key===_sgType)||SG_TYPES[0];
-  let runSaldo=totalBal-monthNet;
-  const DOW=['dom','seg','ter','qua','qui','sex','sáb'];
-  const rows=[];
-
+  // Passo 1: coleta dados por dia
+  let tE=0,tS=0,tD=0,tEc=0,tC=0;
+  const dayData={};
   for(let day=1;day<=daysInMo;day++){
     const ds=dStr(_yr,_mo,day);
     const dayTxs=byDate[ds]||[];
-    const proj=projMap[day]||0;
     const isFut=isCurMo&&day>todayDay;
-    const isPast=isCurMo?day<todayDay:true;
     const isToday=isCurMo&&day===todayDay;
-
-    let entr=0,sai=0,eco=0,cart=0;
+    let entr=0,sai=0,daily=0,eco=0,cart=0;
     dayTxs.forEach(t=>{
       const a=parseFloat(t.amount||0);
       if(isInc(t)) entr+=a;
       else if(isEco(t)) eco+=a;
       else if(isCart(t)) cart+=a;
+      else if(isDay(t)) daily+=a;
       else if(isSai(t)) sai+=a;
     });
+    const proj=projMap[day]||0;
+    dayData[day]={ds,entr,sai,daily,eco,cart,proj,net:entr-sai-daily-eco-cart,isFut,isToday};
+    tE+=entr;tS+=sai;tD+=daily;tEc+=eco;tC+=cart;
+  }
 
-    runSaldo+=entr-sai-eco-cart;
-    if(isFut) runSaldo-=proj;
-
-    // Value for selected type column
-    let typeVal=0, isProj=false;
-    if(_sgType==='entrada') typeVal=entr;
-    else if(_sgType==='saida'){
-      typeVal=sai||(isFut?proj:0);
-      isProj=isFut&&!sai&&proj>0;
+  // Passo 2: calcula saldo de cada dia
+  // Para o mês atual: âncora = saldo de hoje (totalBal); vai pra trás/frente
+  // Para meses passados: acumula do início usando totalBal - monthNet
+  const saldoArr={};
+  if(isCurMo){
+    saldoArr[todayDay]=totalBal;
+    for(let d=todayDay-1;d>=1;d--) saldoArr[d]=saldoArr[d+1]-dayData[d+1].net;
+    for(let d=todayDay+1;d<=daysInMo;d++){
+      const dd=dayData[d];
+      saldoArr[d]=saldoArr[d-1]+dd.net-(dd.isFut?dd.proj:0);
     }
-    else if(_sgType==='cartao') typeVal=cart;
-    else if(_sgType==='economia') typeVal=eco;
+  } else {
+    const monthNet=_txs.reduce((s,t)=>{const a=parseFloat(t.amount||0);return isInc(t)?s+a:s-a;},0);
+    let run=totalBal-monthNet;
+    for(let day=1;day<=daysInMo;day++){run+=dayData[day].net;saldoArr[day]=run;}
+  }
 
-    const rowCls=isToday?'sg-row sg-today':isFut?'sg-row sg-future':'sg-row';
-    const dowLabel=DOW[new Date(ds+'T12:00:00').getDay()];
-    const salPos=runSaldo>=0;
-    const amtHtml=typeVal
-      ?`<span class="${isProj?'sg-proj':''}">${brl(typeVal)}</span>`
-      :`<span class="sg-z">—</span>`;
+  const DOW2=['dom','seg','ter','qua','qui','sex','sáb'];
+  const ic=(on,color,lbl='')=>`<span class="sg2-ic" style="background:${on?color:'var(--br)'};${on?'':'opacity:.45'}">${lbl}</span>`;
+  const brlSaldo=v=>(v<0?'-':'')+brl(v);
+  const val=(v,color,proj=false)=>proj
+    ?`<span class="sg2-proj-box">${brl(v)}</span>`
+    :(v?`<span class="sg2-v-act" style="color:${color}">${brl(v)}</span>`:`<span class="sg2-v-zero">${brl(0)}</span>`);
+
+  const rows=[];
+  for(let day=1;day<=daysInMo;day++){
+    const {ds,entr,sai,daily,eco,cart,proj,isFut,isToday}=dayData[day];
+    const runSaldo=saldoArr[day];
+    const salCls=runSaldo>1500?'hi':runSaldo>0?'lo':'neg';
+    const dow=DOW2[new Date(ds+'T12:00:00').getDay()];
+    const saiShow=sai||(isFut?proj:0);
+    const saiProj=isFut&&!sai&&proj>0;
+    const hasData=entr||sai||daily||eco||cart;
+    const isPast=isCurMo&&day<todayDay;
+
+    let rowCls='sg2-row';
+    if(isToday) rowCls+=' sg2-today-row';
+    else if(isFut) rowCls+=' sg2-future-row';
+    else if(isPast&&!hasData) rowCls+=' sg2-past-empty';
+    else if(isPast) rowCls+=' sg2-past-row';
 
     rows.push(`<tr class="${rowCls}" onclick="openDayDetail('${ds}')">
-      <td class="sg-day">
-        <span class="sg-dn">${day}</span>
-        <span class="sg-dw">${dowLabel}</span>
-        ${isPast?'<span class="sg-chk">✓</span>':''}
+      <td class="sg2-td-day">
+        <span class="${isToday?'sg2-today-n':'sg2-day-n'}">${day}</span>
+        <span class="sg2-day-w">${dow}</span>
       </td>
-      <td class="sg-amt ${curType.cls}">${amtHtml}</td>
-      <td class="sg-sal-cell">
-        <span class="sg-sal-inner ${salPos?'pos':'neg'}">${brl(runSaldo)}</span>
-      </td>
+      <td class="sg2-td-v">${ic(entr>0,'#22C55E','↙')} ${val(entr,'#22C55E')}</td>
+      <td class="sg2-td-v">${ic(!!(saiShow),'#EF4444','↗')} ${val(saiShow,'#EF4444',saiProj)}</td>
+      <td class="sg2-td-v">${ic(daily>0,'#EC4899','D')} ${val(daily,'#EC4899')}</td>
+      <td class="sg2-td-v">${ic(eco>0,'#22C55E','E')} ${val(eco,'#8B5CF6')}</td>
+      <td class="sg2-td-v">${ic(cart>0,'#8B5CF6','C')} ${val(cart,'#3B82F6')}</td>
+      <td class="sg2-td-sal"><span class="sg2-sal ${salCls}">${brlSaldo(runSaldo)}</span></td>
     </tr>`);
   }
 
   el.innerHTML=`
-  <div class="sg-summary">
-    <div class="sg-bal">${brl(totalBal)}</div>
-    <div class="sg-bal-lbl">saldo atual</div>
-    <div class="sg-month-sum">
-      ${mEntr?`<div class="sg-ms-item"><span class="sg-ms-lbl">💚 Entradas</span><span class="sg-ms-val" style="color:var(--gr)">${brl(mEntr)}</span></div>`:''}
-      ${(mSai+mCart)?`<div class="sg-ms-item"><span class="sg-ms-lbl">🔴 Saídas</span><span class="sg-ms-val" style="color:var(--rd)">${brl(mSai+mCart)}</span></div>`:''}
-      ${mEco?`<div class="sg-ms-item"><span class="sg-ms-lbl">💜 Economias</span><span class="sg-ms-val" style="color:var(--pu)">${brl(mEco)}</span></div>`:''}
-    </div>
-  </div>
-  <table class="sg-table">
-    <thead class="sg-thead">
-      <tr>
-        <th class="sg-thday">dia</th>
-        <th class="sg-th-amt">
-          <button class="sg-type-btn" onclick="sgNextType()">
-            ${curType.icon} ${curType.label} <span class="arr">▼</span>
-          </button>
-        </th>
-        <th class="sg-th-sal">saldos</th>
-      </tr>
-    </thead>
+  <div class="sg2-month-lbl">${MOS_FULL[_mo]} de ${_yr}</div>
+  <div class="sg2-scroll">
+  <table class="sg2-table">
+    <thead><tr class="sg2-hdr-row">
+      <th class="sg2-th-day">dia</th>
+      <th class="sg2-th-v"><span class="sg2-ic" style="background:#22C55E">↙</span> entradas</th>
+      <th class="sg2-th-v"><span class="sg2-ic" style="background:#EF4444">↗</span> saídas</th>
+      <th class="sg2-th-v"><span class="sg2-ic" style="background:#EC4899">D</span> diários</th>
+      <th class="sg2-th-v"><span class="sg2-ic" style="background:#22C55E">E</span> economias</th>
+      <th class="sg2-th-v"><span class="sg2-ic" style="background:#8B5CF6">C</span> cartão</th>
+      <th class="sg2-th-sal">saldos</th>
+    </tr></thead>
     <tbody>${rows.join('')}</tbody>
-  </table>`;
+    <tfoot><tr class="sg2-foot-row">
+      <td class="sg2-td-day"></td>
+      <td class="sg2-td-v"><span class="sg2-ic" style="background:#22C55E">↙</span><span style="color:#22C55E;font-weight:700">${brl(tE)}</span></td>
+      <td class="sg2-td-v"><span class="sg2-ic" style="background:#EF4444">↗</span><span style="color:#EF4444;font-weight:700">${brl(tS)}</span></td>
+      <td class="sg2-td-v"><span class="sg2-ic" style="background:#EC4899">D</span><span style="color:#EC4899;font-weight:700">${brl(tD)}</span></td>
+      <td class="sg2-td-v"><span class="sg2-ic" style="background:#22C55E">E</span><span style="color:#8B5CF6;font-weight:700">${brl(tEc)}</span></td>
+      <td class="sg2-td-v"><span class="sg2-ic" style="background:#8B5CF6">C</span><span style="color:#3B82F6;font-weight:700">${brl(tC)}</span></td>
+      <td></td>
+    </tr></tfoot>
+  </table>
+  </div>`;
 }
 
 function openDayDetail(ds){
@@ -626,8 +703,6 @@ function openDayDetail(ds){
   if(inp) inp.value=ds;
 }
 
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-
 // ── TX DETAIL ──────────────────────────────────────────────────
 function openTx(id){
   const t=_txs.find(x=>x.id===id);
@@ -635,9 +710,14 @@ function openTx(id){
   _curTx=t;
   const cls=TIPO_CLS[t.type]||'saida';
   const amt=parseFloat(t.amount||0);
-  const sign=t.type==='income'?'+':'-';
+  const sign=t.type==='income'||t.type==='entrada'?'+':'-';
   const d=new Date(t.date+'T12:00:00');
-  const dateLabel=`${d.getDate()} de ${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][d.getMonth()]} de ${d.getFullYear()}`;
+  const dateLabel=`${d.getDate()} de ${MOS[d.getMonth()]} de ${d.getFullYear()}`;
+  const tags=parseTags(t.tags);
+  const tagsHtml=tags.length?`<div class="tx-tags-wrap">${tags.map((tag,i)=>{
+    const c=TAG_COLORS[i%TAG_COLORS.length];
+    return `<span class="tx-tag-badge" style="background:${c}20;color:${c}">${esc(tag)}</span>`;
+  }).join('')}</div>`:`<span class="tx-detail-val" style="color:var(--t3)">—</span>`;
 
   document.getElementById('tx-detail-body').innerHTML=`
     <div class="tx-detail-row">
@@ -659,6 +739,10 @@ function openTx(id){
     <div class="tx-detail-row">
       <span class="tx-detail-lbl">Data</span>
       <span class="tx-detail-val">${dateLabel}</span>
+    </div>
+    <div class="tx-detail-row" style="align-items:flex-start;gap:12px">
+      <span class="tx-detail-lbl">Tags</span>
+      ${tagsHtml}
     </div>`;
 
   document.getElementById('tx-del-btn').onclick=()=>deleteTx(id);
@@ -696,7 +780,6 @@ function renderTotais(){
   const diasP=(_yr===hoje.getFullYear()&&_mo===hoje.getMonth())?hoje.getDate():dim(_yr,_mo);
   const diarioMed=diasP>0?custoVida/diasP:0;
 
-  // Score 0–5
   let score=0;
   if(entradas>0) score++;
   if(sobrou>=0) score++;
@@ -757,10 +840,10 @@ function renderTotais(){
   <div class="mcard" style="margin-top:12px;margin-bottom:4px">
     <div class="mcard-in"><div class="mc-label">Resumo do Mês</div></div>
     <div class="mcard-rows">
-      ${mrow('Entradas','+ '+brl(entradas),'color:var(--gr)')}
-      ${mrow('Saídas','− '+brl(saidas),'color:var(--rd)')}
-      ${mrow('Cartão','− '+brl(cartao),'color:var(--bl)')}
-      ${mrow('Economia','+ '+brl(economia),'color:var(--pu)')}
+      ${mrow('Entradas','+ '+brl(entradas),'color:var(--gr)')}
+      ${mrow('Saídas','− '+brl(saidas),'color:var(--rd)')}
+      ${mrow('Cartão','− '+brl(cartao),'color:var(--bl)')}
+      ${mrow('Economia','+ '+brl(economia),'color:var(--pu)')}
       ${mrow('Saldo Atual',brl(totalBal),totalBal>=0?'color:var(--gr)':'color:var(--rd)')}
     </div>
   </div>
@@ -790,6 +873,123 @@ function mrow(l,v,style=''){
 }
 
 // ── TAGS ───────────────────────────────────────────────────────
+function renderTags(){
+  const el=document.getElementById('tags-content');
+  if(!el) return;
+
+  // Montar mapa de tags com stats
+  const tagMap={};
+  _txs.forEach(t=>{
+    const tags=parseTags(t.tags);
+    tags.forEach(tag=>{
+      if(!tagMap[tag]) tagMap[tag]={count:0,in:0,out:0,txs:[]};
+      tagMap[tag].count++;
+      const a=parseFloat(t.amount||0);
+      const isInc=['income','entrada'].includes(t.type);
+      if(isInc) tagMap[tag].in+=a; else tagMap[tag].out+=a;
+      tagMap[tag].txs.push(t);
+    });
+  });
+
+  const tagNames=Object.keys(tagMap).sort();
+
+  // Visão de detalhe de uma tag
+  if(_selTag && tagMap[_selTag]){
+    const g=tagMap[_selTag];
+    const net=g.in-g.out;
+    const colorIdx=tagNames.indexOf(_selTag);
+    const color=TAG_COLORS[colorIdx%TAG_COLORS.length];
+
+    const txRows=g.txs.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(t=>{
+      const a=parseFloat(t.amount||0);
+      const cls=TIPO_CLS[t.type]||'saida';
+      const sign=['income','entrada'].includes(t.type)?'+':'-';
+      const d=new Date(t.date+'T12:00:00');
+      const dow=['dom','seg','ter','qua','qui','sex','sáb'][d.getDay()];
+      return `<div class="cv-item" onclick="openTx(${t.id})" style="cursor:pointer">
+        <div class="cv-day"><div class="cv-day-n">${d.getDate()}</div><div class="cv-day-s">${dow.toUpperCase()}</div></div>
+        <div class="cv-body">
+          <div class="cv-name">${esc(t.description||'—')}</div>
+          <div class="cv-sub">${esc(t.category||'')}</div>
+        </div>
+        <div class="cv-amt tx-val ${cls}">${sign} ${brl(a)}</div>
+      </div>`;
+    }).join('');
+
+    el.innerHTML=`
+    <button class="tag-back" onclick="_selTag=null;renderTags()">‹ Todas as tags</button>
+    <div class="tag-detail-sum">
+      <div class="tag-detail-name">
+        <span style="width:14px;height:14px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0"></span>
+        ${esc(_selTag)}
+      </div>
+      <div class="tag-detail-grid">
+        <div class="tag-detail-item">
+          <div class="tag-detail-lbl">Entradas</div>
+          <div class="tag-detail-val" style="color:var(--gr)">${brl(g.in)}</div>
+        </div>
+        <div class="tag-detail-item">
+          <div class="tag-detail-lbl">Saídas</div>
+          <div class="tag-detail-val" style="color:var(--rd)">${brl(g.out)}</div>
+        </div>
+        <div class="tag-detail-item">
+          <div class="tag-detail-lbl">Transações</div>
+          <div class="tag-detail-val">${g.count}</div>
+        </div>
+        <div class="tag-detail-item">
+          <div class="tag-detail-lbl">Saldo</div>
+          <div class="tag-detail-val" style="color:${net>=0?'var(--gr)':'var(--rd)'}">${net>=0?'+ ':'- '}${brl(Math.abs(net))}</div>
+        </div>
+      </div>
+    </div>
+    <div class="cv-sec" style="margin-top:12px">
+      <div class="cv-sec-title"><span>Movimentações</span><span>${g.count}</span></div>
+      <div class="cv-card">${txRows||'<div style="padding:16px;color:var(--t3);font-size:14px">Sem movimentações</div>'}</div>
+    </div>`;
+    return;
+  }
+
+  _selTag=null;
+
+  if(!tagNames.length){
+    el.innerHTML=`
+    <div class="tags-hdr"><h2>Tags · ${mStr(_yr,_mo)}</h2></div>
+    <div class="empty">Nenhuma tag neste mês.<br><br>Ao adicionar uma movimentação,<br>toque em uma tag para classificá-la.</div>`;
+    return;
+  }
+
+  // Chips coloridos no topo
+  const chipsHtml=tagNames.map((tag,i)=>{
+    const color=TAG_COLORS[i%TAG_COLORS.length];
+    const g=tagMap[tag];
+    return `<button class="tag-chip" style="background:${color}18;color:${color};border:1.5px solid ${color}50"
+      onclick="_selTag='${tag.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}';renderTags()">
+      ${esc(tag)} <span class="tag-chip-count">${g.count}</span>
+    </button>`;
+  }).join('');
+
+  // Lista com totais
+  const listHtml=tagNames.map((tag,i)=>{
+    const color=TAG_COLORS[i%TAG_COLORS.length];
+    const g=tagMap[tag];
+    const net=g.in-g.out;
+    return `<div class="tag-all-row" onclick="_selTag='${tag.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}';renderTags()">
+      <span class="tag-dot" style="background:${color}"></span>
+      <span class="tag-all-name">${esc(tag)}</span>
+      <span class="tag-all-count">${g.count} lançamento${g.count!==1?'s':''}</span>
+      <span class="tag-all-val" style="color:${net>=0?'var(--gr)':'var(--rd)'}">${net>=0?'+ ':'- '}${brl(Math.abs(net))}</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML=`
+  <div class="tags-hdr"><h2>Tags · ${mStr(_yr,_mo)}</h2></div>
+  <div class="tags-chips">${chipsHtml}</div>
+  <div class="mcard" style="margin-top:8px;margin-bottom:16px">
+    <div class="mcard-rows" style="border-top:none">${listHtml}</div>
+  </div>`;
+}
+
+// ── CONTAS ─────────────────────────────────────────────────────
 function renderContas(){
   const el=document.getElementById('contas-content');
   if(!el) return;
@@ -797,7 +997,6 @@ function renderContas(){
   const today=new Date();
   const todayDay=(_yr===today.getFullYear()&&_mo===today.getMonth())?today.getDate():32;
 
-  // Helper: check if a fixed cost amount was already paid this month
   function isPago(amount){
     return _txs.some(t=>{
       const tp=t.type;
@@ -813,7 +1012,6 @@ function renderContas(){
     return `<div class="cv-day"><div class="cv-day-n">${day}</div><div class="cv-day-s">DIA</div></div>`;
   }
 
-  // Fixed costs grouped: atrasadas, hoje, próximas, pagas
   const fcHtml=_fixedCosts.map(c=>{
     const day=c.due_day||1;
     const pago=isPago(parseFloat(c.amount));
@@ -827,7 +1025,6 @@ function renderContas(){
     </div>`;
   }).join('');
 
-  // Subscriptions
   const subHtml=_subs.map(s=>{
     const day=s.billing_day||1;
     return `<div class="cv-item">
@@ -840,7 +1037,6 @@ function renderContas(){
     </div>`;
   }).join('');
 
-  // Installments grouped by card
   const byCard={};
   _installs.forEach(i=>{
     const card=i.card||'Cartão';
@@ -926,6 +1122,19 @@ function renderMenu(){
     <div class="msec-title">Contas</div>
     <div class="mcard2">${accRows||'<div class="mrow"><span style="color:var(--t3);font-size:14px;padding:4px 0">Nenhuma conta cadastrada</span></div>'}</div>
   </div>
+  <div class="msec">
+    <div class="msec-title">Compromissos</div>
+    <div class="mcard2">
+      <div class="mrow" onclick="goTo('contas')" style="cursor:pointer">
+        <div class="mrow-ic">📌</div>
+        <div class="mrow-body">
+          <div class="mrow-title">Contas Fixas &amp; Assinaturas</div>
+          <div class="mrow-sub">Ver parcelas e fixas do mês</div>
+        </div>
+        <span style="color:var(--t3);font-size:18px">›</span>
+      </div>
+    </div>
+  </div>
   <button class="btn-out" onclick="logout()">Sair</button>`;
 }
 
@@ -936,10 +1145,30 @@ function openAdd(){
   document.getElementById('add-amt').value='';
   document.getElementById('add-desc').value='';
   document.getElementById('add-cat').value='';
+  document.getElementById('add-tag-input').value='';
+
+  // Renderizar sugestões de tags populares
+  const suggest=document.getElementById('add-tags-suggest');
+  if(suggest){
+    suggest.innerHTML=POPULAR_TAGS.map(tag=>
+      `<button class="add-tag-pill" onclick="toggleTagPill(this,'${tag}')">${tag}</button>`
+    ).join('');
+  }
+
   document.getElementById('add-modal').classList.remove('off');
   setTimeout(()=>document.getElementById('add-amt').focus(),200);
 }
+
 function closeAdd(){ document.getElementById('add-modal').classList.add('off'); }
+
+function toggleTagPill(el, tag){
+  el.classList.toggle('sel');
+  const inp=document.getElementById('add-tag-input');
+  const cur=inp.value.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+  const idx=cur.indexOf(tag);
+  if(idx>=0) cur.splice(idx,1); else cur.push(tag);
+  inp.value=cur.join(', ');
+}
 
 document.getElementById('add-modal').addEventListener('click',e=>{
   if(e.target===document.getElementById('add-modal')) closeAdd();
@@ -956,16 +1185,31 @@ async function submitAdd(){
   const desc=document.getElementById('add-desc').value.trim();
   const date=document.getElementById('add-date').value;
   const cat=document.getElementById('add-cat').value.trim();
+  const tagsRaw=document.getElementById('add-tag-input').value.trim();
+  const tags=tagsRaw?tagsRaw.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean).join(','):null;
+
   if(!amt||!desc||!date){ alert('Preencha valor, descrição e data'); return; }
   const btn=document.getElementById('add-btn');
   btn.textContent='Salvando...'; btn.disabled=true;
-  await sb('transactions',{},{
-    method:'POST', prefer:'return=minimal',
-    body:{ description:desc, amount:Math.abs(amt), type:_atype, date, category:cat||TIPO_LBL[_atype] }
-  });
-  btn.textContent='Salvar'; btn.disabled=false;
-  closeAdd();
-  loadData();
+  try {
+    const r = await fetch(`${SUPA_URL}/rest/v1/transactions`, {
+      method:'POST',
+      headers:{
+        'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,
+        'Content-Type':'application/json',
+        'Prefer':'return=minimal'
+      },
+      body:JSON.stringify({ description:desc, amount:Math.abs(amt), type:_atype, date, category:cat||TIPO_LBL[_atype], tags })
+    });
+    if(!r.ok){ const err=await r.text(); console.error(r.status,err); alert('Erro ao salvar: '+r.status); return; }
+    closeAdd();
+    loadData();
+  } catch(e){
+    console.error(e);
+    alert('Erro de conexão. Verifique sua internet e tente novamente.');
+  } finally {
+    btn.textContent='Salvar'; btn.disabled=false;
+  }
 }
 
 // ── START ──────────────────────────────────────────────────────
