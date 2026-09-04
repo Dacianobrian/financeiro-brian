@@ -1041,41 +1041,83 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 /* ─── YEAR NAV ─── */
 .period-btn-dbl { font-size:14px; font-weight:700; letter-spacing:-.5px; }
 /* ─── TAGS PAGE ─── */
-.tags-search { display:flex; align-items:center; gap:8px; background:var(--card); border:1px solid var(--div); border-radius:12px; padding:10px 14px; margin-bottom:14px; }
-.tags-search input { flex:1; border:none; background:transparent; color:var(--text); font-size:14px; outline:none; }
-.tags-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; }
-.tag-card { background:var(--card); border:1px solid var(--div2); border-radius:14px; padding:16px; cursor:pointer; transition:all .12s; }
-.tag-card:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(0,0,0,.1); }
-.tag-card-top { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-.tag-card-emoji { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
-.tag-card-nome { font-size:14px; font-weight:700; }
-.tag-card-count { font-size:11px; color:var(--text3); margin-top:1px; }
-.tag-card-total { font-size:16px; font-weight:700; font-variant-numeric:tabular-nums; }
-.tag-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:60px 20px; color:var(--text3); font-size:14px; text-align:center; }
-.tag-empty svg { opacity:.2; }
-.tag-card-edit { margin-left:auto; background:none; border:none; cursor:pointer; color:var(--text3); padding:2px 4px; border-radius:6px; transition:color .15s, background .15s; font-size:14px; }
-.tag-card-edit:hover { color:var(--accent); background:var(--div2); }
-/* ─── TAG EDITOR MODAL ─── */
+.tags-search-wrap { display:flex; align-items:center; gap:8px; background:var(--elevated); border-radius:12px; padding:10px 14px; margin:4px 24px 14px; }
+.tags-search-wrap input { flex:1; border:none; background:transparent; color:var(--text); font-size:14px; outline:none; }
+.tags-list { padding:0 24px 24px; display:flex; flex-direction:column; gap:8px; }
+.tag-card2 { background:var(--surface); border:1px solid var(--div2); border-radius:14px; padding:16px; cursor:pointer; transition:background .12s; }
+.tag-card2:hover { background:var(--elevated); }
+.tag-card2-top { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+.tag-card2-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+.tag-card2-nome { font-size:14px; font-weight:600; flex:1; }
+.tag-card2-edit { background:none; border:none; cursor:pointer; color:var(--text3); padding:4px; border-radius:6px; font-size:14px; transition:color .12s; }
+.tag-card2-edit:hover { color:var(--accent); }
+.tags-empty2 { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:80px 20px; color:var(--text3); font-size:14px; text-align:center; background:var(--surface); border:1px solid var(--div2); border-radius:16px; margin:4px 24px; }
+.tags-empty2-icon { width:56px; height:56px; border-radius:50%; background:var(--elevated); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.tags-create-btn2 { width:34px; height:34px; border-radius:50%; background:var(--accent); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:opacity .12s; }
+.tags-create-btn2:hover { opacity:.85; }
+/* ─── NOVA TAG MODAL ─── */
+.nova-tag-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:1200; display:flex; align-items:center; justify-content:center; padding:20px; }
+.nova-tag-box { background:var(--surface); border:1px solid var(--div); border-radius:20px; padding:24px; width:100%; max-width:380px; max-height:90vh; overflow-y:auto; }
+.nova-tag-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.nova-tag-title { font-size:16px; font-weight:700; }
+.nova-tag-close { background:none; border:none; cursor:pointer; color:var(--text3); font-size:22px; line-height:1; display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:6px; }
+.nova-tag-close:hover { background:var(--elevated); }
+.nova-tag-nome-row { display:flex; align-items:center; gap:10px; background:var(--elevated); border:1px solid var(--div); border-radius:10px; padding:12px 14px; margin-bottom:12px; }
+.nova-tag-nome-ico { color:var(--text3); display:flex; align-items:center; }
+.nova-tag-nome-input { flex:1; border:none; background:transparent; color:var(--text); font-size:15px; outline:none; font-family:inherit; }
+.nova-tag-cor-btn { width:100%; background:var(--elevated); border:1px solid var(--div); border-radius:10px; padding:12px 14px; color:var(--text); font-size:15px; display:flex; align-items:center; gap:10px; cursor:pointer; margin-bottom:12px; }
+.nova-tag-cor-dot { width:14px; height:14px; border-radius:50%; flex-shrink:0; }
+.nova-tag-cor-label { flex:1; }
+.nova-tag-cor-list { background:var(--elevated); border:1px solid var(--div); border-radius:10px; overflow:hidden; margin-bottom:12px; display:none; }
+.nova-tag-cor-list.open { display:block; }
+.nova-tag-cor-opt { display:flex; align-items:center; gap:10px; padding:12px 14px; cursor:pointer; transition:background .1s; font-size:14px; }
+.nova-tag-cor-opt:hover { background:var(--div2); }
+.nova-tag-cor-opt-dot { width:14px; height:14px; border-radius:50%; flex-shrink:0; }
+.nova-tag-avancadas-hdr { display:flex; align-items:center; justify-content:space-between; padding:12px 0 6px; cursor:pointer; border-top:1px solid var(--div); margin-bottom:4px; }
+.nova-tag-avancadas-title { font-size:14px; font-weight:600; }
+.nova-tag-avancadas-desc { font-size:12px; color:var(--text3); margin-bottom:10px; }
+.nova-tag-calc-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--div2); }
+.nova-tag-calc-row:last-child { border-bottom:none; }
+.nova-tag-calc-label { font-size:14px; font-weight:500; }
+.nova-tag-calc-btns { display:flex; gap:4px; }
+.nova-tag-calc-btn { padding:5px 12px; border-radius:20px; border:1px solid var(--div); background:none; color:var(--text2); font-size:12px; font-weight:500; cursor:pointer; font-family:inherit; transition:all .1s; }
+.nova-tag-calc-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+.nova-tag-save-btn { width:100%; padding:14px; background:var(--text); color:var(--ground); border:none; border-radius:12px; font-size:15px; font-weight:600; cursor:pointer; margin-top:16px; font-family:inherit; }
+.nova-tag-save-btn:hover { opacity:.9; }
+.nova-tag-limit { font-size:11px; color:var(--text3); text-align:center; margin-top:8px; }
+/* ─── TAGS DRAWER PICKER ─── */
+.tpk-hdr { display:flex; align-items:center; justify-content:space-between; padding:14px 16px 10px; border-bottom:1px solid var(--div2); }
+.tpk-title { font-size:16px; font-weight:700; }
+.tpk-create { width:30px; height:30px; border-radius:50%; background:var(--accent); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+.tpk-search { display:flex; align-items:center; gap:8px; background:var(--elevated); border-radius:10px; padding:8px 12px; margin:10px 14px; }
+.tpk-search input { flex:1; border:none; background:transparent; color:var(--text); font-size:14px; outline:none; }
+.tpk-list { max-height:260px; overflow-y:auto; }
+.tpk-empty { display:flex; align-items:center; justify-content:center; padding:30px 20px; color:var(--text3); font-size:13px; }
+.tpk-row { display:flex; align-items:center; gap:10px; padding:12px 16px; cursor:pointer; transition:background .1s; border-bottom:1px solid var(--div2); }
+.tpk-row:last-child { border-bottom:none; }
+.tpk-row:hover { background:var(--row-hover); }
+.tpk-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.tpk-label { flex:1; font-size:14px; font-weight:500; }
+.tpk-check { color:var(--accent); font-weight:700; font-size:16px; }
+.tpk-salvar { display:block; width:calc(100% - 28px); margin:10px 14px 14px; padding:12px; background:var(--text); color:var(--ground); border:none; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; }
+/* ─── TAG EDITOR MODAL (conta) ─── */
 .tag-editor-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1200; display:flex; align-items:center; justify-content:center; padding:20px; }
-.tag-editor-box { background:var(--card); border:1px solid var(--div); border-radius:20px; padding:24px; width:100%; max-width:380px; }
+.tag-editor-box { background:var(--surface); border:1px solid var(--div); border-radius:20px; padding:24px; width:100%; max-width:380px; }
 .tag-editor-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
 .tag-editor-title { font-size:16px; font-weight:700; }
 .tag-editor-close { background:none; border:none; cursor:pointer; color:var(--text3); font-size:18px; }
-.tag-editor-preview { display:flex; align-items:center; gap:12px; margin-bottom:20px; padding:14px; background:var(--bg); border-radius:12px; }
-.tag-editor-preview-emoji { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; }
+.tag-editor-preview { display:flex; align-items:center; gap:12px; margin-bottom:20px; padding:14px; background:var(--elevated); border-radius:12px; }
+.tag-editor-preview-emoji { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; }
 .tag-editor-preview-nome { font-size:15px; font-weight:700; }
 .tag-editor-field { margin-bottom:14px; }
 .tag-editor-label { font-size:11px; font-weight:600; color:var(--text3); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; }
-.tag-editor-input { width:100%; background:var(--bg); border:1px solid var(--div); border-radius:10px; padding:10px 12px; color:var(--text); font-size:14px; outline:none; box-sizing:border-box; }
+.tag-editor-input { width:100%; background:var(--elevated); border:1px solid var(--div); border-radius:10px; padding:10px 12px; color:var(--text); font-size:14px; outline:none; box-sizing:border-box; font-family:inherit; }
 .tag-editor-input:focus { border-color:var(--accent); }
-.tag-editor-emojis { display:flex; flex-wrap:wrap; gap:6px; }
-.tag-editor-emojis button { width:36px; height:36px; border:1px solid var(--div); border-radius:8px; background:var(--bg); cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; transition:border-color .12s; }
-.tag-editor-emojis button:hover, .tag-editor-emojis button.sel { border-color:var(--accent); background:var(--div2); }
 .tag-editor-colors { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
 .tag-editor-colors button { width:28px; height:28px; border-radius:50%; border:2px solid transparent; cursor:pointer; transition:border-color .12s, transform .1s; }
 .tag-editor-colors button:hover { transform:scale(1.1); }
 .tag-editor-colors button.sel { border-color:var(--text); }
-.tag-editor-save { width:100%; padding:12px; background:var(--accent); color:#fff; border:none; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; margin-top:4px; }
+.tag-editor-save { width:100%; padding:12px; background:var(--accent); color:#fff; border:none; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; margin-top:4px; font-family:inherit; }
 .tag-editor-save:hover { opacity:.9; }
 /* ─── MENU PAGE ─── */
 .menu-profile { background:var(--card); border:1px solid var(--div); border-radius:16px; padding:20px; display:flex; align-items:center; gap:16px; margin-bottom:16px; }
@@ -1347,16 +1389,15 @@ let _userId = null;
 // ─── DATA ───
 const TODAY = new Date();
 
-let TAGS = {
-  renda:      { nome: 'Renda',         emoji: '💰', cor: '#84CC16', bg: 'rgba(132,204,22,0.15)' },
-  moradia:    { nome: 'Moradia',       emoji: '🏠', cor: '#7C3AED', bg: 'rgba(124,58,237,0.15)' },
-  alimentacao:{ nome: 'Alimentação',   emoji: '🍽️', cor: '#F97316', bg: 'rgba(249,115,22,0.15)' },
-  saude:      { nome: 'Saúde',         emoji: '💊', cor: '#EC4899', bg: 'rgba(236,72,153,0.15)' },
-  lazer:      { nome: 'Lazer',         emoji: '🎬', cor: '#06B6D4', bg: 'rgba(6,182,212,0.15)'  },
-  casa:       { nome: 'Casa',          emoji: '💡', cor: '#EAB308', bg: 'rgba(234,179,8,0.15)'  },
-  invest:     { nome: 'Investimentos', emoji: '📈', cor: '#10B981', bg: 'rgba(16,185,129,0.15)' },
-  transporte: { nome: 'Transporte',    emoji: '🚗', cor: '#6366F1', bg: 'rgba(99,102,241,0.15)' },
+let tagsDB = []; // [{id, nome, cor, calc_saldos, calc_performance, calc_economizado, calc_custo_vida, calc_diario_medio}]
+const TAG_CORES = {
+  cinza:'#9CA3AF', azul:'#3B82F6', amarelo:'#CA8A04',
+  verde:'#10B981', vermelho:'#EF4444', roxo:'#8B5CF6',
+  rosa:'#EC4899',  marrom:'#A16207',
 };
+function getTagHex(cor) { return TAG_CORES[cor] || TAG_CORES.verde; }
+function getTagBg(cor) { return getTagHex(cor) + '28'; }
+function getTagById(id) { return tagsDB.find(t => t.id === id) || null; }
 
 let CONTAS = {
   nubank: { nome: 'Nubank',     cor: '#8A05BE', saldo0: 0, label: 'D', labelCor: '#0891B2' },
@@ -1406,6 +1447,7 @@ const S = {
   totaisMes: null,
   totaisView: 'mensal', // 'mensal' | 'anual'
   tagSearch: '',
+  _tagPickerQ: '',
   themeMode: 'sistema',
   menuSubPage: null,
   prevDiarioGastos: [],
@@ -1974,15 +2016,23 @@ function render() {
       <span class="period-label" style="font-size:15px;font-weight:700">Horizonte de Saldos</span>
     </div><div class="panel active" style="padding:0 0 16px">${renderHorizonte()}</div>`;
   } else if (S.page === 'tags') {
-    main.innerHTML = `<div class="page-hdr">
-      <span class="period-label" style="font-size:15px;font-weight:700">Tags & Categorias</span>
-      <div class="hdr-actions">
-        <button class="btn-add" onclick="openTypePicker()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
-          <span class="btn-add-text">Adicionar</span>
-        </button>
+    const MONTHS_ABBR = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const { y, m } = S.month;
+    main.innerHTML = `<div class="page-hdr" style="padding-bottom:10px">
+      <div style="display:flex;align-items:center;gap:4px">
+        <button class="period-btn" onclick="prevMonth()">‹</button>
+        <span class="period-label">${MONTHS_ABBR[m]}/${String(y).slice(2)}</span>
+        <button class="period-btn" onclick="nextMonth()">›</button>
       </div>
-    </div><div class="panel active" style="padding:12px 16px 24px">${renderTags()}</div>`;
+      <button class="tags-create-btn2" onclick="openNovaTag()" title="criar tag">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
+      </button>
+    </div>
+    <div class="tags-search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color:var(--text3)"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"/></svg>
+      <input type="text" placeholder="filtrar tags" value="${(S.tagSearch||'').replace(/"/g,'&quot;')}" oninput="S.tagSearch=this.value;reRenderTagsPage()">
+    </div>
+    <div id="tagsListEl">${renderTagsList()}</div>`;
   } else if (S.page === 'menu') {
     const menuHdr = S.menuSubPage === 'prevDiario'
       ? `<div class="page-hdr" style="gap:12px">
@@ -2373,9 +2423,9 @@ function renderDayPanel() {
     html = `<div class="dp-empty">sem movimentações por aqui.<br>clique no + para adicionar.</div>`;
   } else {
     html = list.map(mv => {
-      const tag = mv.tag ? TAGS[mv.tag] : null;
+      const tag = mv.tag ? getTagById(mv.tag) : null;
       const conta = CONTAS[mv.conta] || { nome: mv.conta, cor: 'var(--text3)' };
-      const sub = [conta.nome, tag ? `${tag.emoji} ${tag.nome}` : '', mv.rec ? getRecLabel(mv.rec) : ''].filter(Boolean).join(' · ');
+      const sub = [conta.nome, tag ? tag.nome : '', mv.rec ? getRecLabel(mv.rec) : ''].filter(Boolean).join(' · ');
       return `
         <div class="dp-mov" onclick="editMov(${mv.id})">
           <div class="dp-mov-icon ${mv.tipo==='entrada'?'e':'s'}">${mv.tipo==='entrada'?'📥':'📤'}</div>
@@ -2441,9 +2491,9 @@ function renderMovsList(y, m) {
     const isT = isToday(d);
     html += `<div class="movs-date-hdr">${isT?'Hoje, ':''}<strong>${dtStr}</strong><span style="font-variant-numeric:tabular-nums;color:${dayTotal>=0?'var(--income)':'var(--expense)'}">${dayTotal>0?'+':''}${fmt(dayTotal)}</span></div>`;
     for (const mv of g.items) {
-      const tag = mv.tag ? TAGS[mv.tag] : null;
+      const tag = mv.tag ? getTagById(mv.tag) : null;
       const tagHtml = tag
-        ? `<span class="tag-pill" style="background:${tag.bg};color:${tag.cor}">${tag.emoji} ${tag.nome}</span>`
+        ? `<span class="tag-pill" style="background:${getTagBg(tag.cor)};color:${getTagHex(tag.cor)}">${tag.nome}</span>`
         : '';
       const recHtml = mv.rec
         ? `<span class="mov-sub">· ${mv.rec==='mensal'?'Mensal':'Anual'}</span>`
@@ -2471,52 +2521,40 @@ function renderMovsList(y, m) {
 function setFilter(f) { S.filter = f; render(); }
 
 // ─── TAGS PAGE ───
-function renderTags() {
+function renderTagsList() {
   const q = (S.tagSearch || '').toLowerCase();
-  const tagKeys = Object.keys(TAGS);
-  const stats = {};
-  for (const k of tagKeys) stats[k] = { count: 0, spent: 0, earned: 0 };
-  for (const mv of movs) {
-    if (mv.tag && stats[mv.tag]) {
-      stats[mv.tag].count++;
-      if (mv.tipo === 'saida') stats[mv.tag].spent += mv.valor;
-      else stats[mv.tag].earned += mv.valor;
-    }
-  }
-  const filtered = tagKeys.filter(k => !q || TAGS[k].nome.toLowerCase().includes(q) || k.includes(q));
-  const searchBar = `
-    <div class="tags-search">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color:var(--text3)"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"/></svg>
-      <input type="text" placeholder="buscar categoria..." value="${(S.tagSearch||'').replace(/"/g,'&quot;')}" oninput="S.tagSearch=this.value;reRenderTagsPanel()">
-    </div>`;
+  const { y, m } = S.month;
+  const filtered = tagsDB.filter(t => !q || t.nome.toLowerCase().includes(q));
   if (filtered.length === 0) {
-    return searchBar + `<div class="tag-empty">
-      <svg width="52" height="52" viewBox="0 0 24 24" fill="currentColor"><path d="M17.63 5.84C17.27 5.33 16.67 5 16 5L5 5.01C3.9 5.01 3 5.9 3 7v10c0 1.1.9 1.99 2 1.99L16 19c.67 0 1.27-.33 1.63-.84L22 12l-4.37-6.16z"/></svg>
-      <div>sem tags por aqui</div>
+    return `<div class="tags-empty2">
+      <div class="tags-empty2-icon" onclick="openNovaTag()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
+      </div>
+      <div>sem tags por aqui. toque no botão acima para criar.</div>
     </div>`;
   }
-  const cards = filtered.map(k => {
-    const t = TAGS[k], s = stats[k];
-    return `
-      <div class="tag-card">
-        <div class="tag-card-top">
-          <div class="tag-card-emoji" style="background:${t.bg}">${t.emoji}</div>
-          <div style="flex:1">
-            <div class="tag-card-nome" style="color:${t.cor}">${t.nome}</div>
-            <div class="tag-card-count">${s.count} lançamento${s.count!==1?'s':''}</div>
-          </div>
-          <button class="tag-card-edit" onclick="openTagEditor('${k}')" title="Editar categoria">✏️</button>
-        </div>
-        ${s.spent > 0 ? `<div class="tag-card-total ta-neg">${S.showBal ? '−'+fmt(s.spent) : '•••••'}</div>` : ''}
-        ${s.earned > 0 ? `<div class="tag-card-total ta-pos">${S.showBal ? '+'+fmt(s.earned) : '•••••'}</div>` : ''}
-        ${s.count === 0 ? '<div style="color:var(--text3);font-size:12px">nenhum lançamento</div>' : ''}
-      </div>`;
+  const cards = filtered.map(t => {
+    const hex = getTagHex(t.cor);
+    const mvs = movs.filter(mv => mv.tag === t.id && mv.data.getFullYear()===y && mv.data.getMonth()===m);
+    const spent = mvs.filter(mv=>mv.tipo==='saida').reduce((a,mv)=>a+mv.valor,0);
+    const earned = mvs.filter(mv=>mv.tipo==='entrada').reduce((a,mv)=>a+mv.valor,0);
+    const cnt = mvs.length;
+    return `<div class="tag-card2" onclick="openEditTag('${t.id}')">
+      <div class="tag-card2-top">
+        <div class="tag-card2-dot" style="background:${hex}"></div>
+        <div class="tag-card2-nome">${t.nome}</div>
+        <button class="tag-card2-edit" onclick="event.stopPropagation();openEditTag('${t.id}')" title="editar">✏️</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:${cnt>0?'6px':'0'}">${cnt} lançamento${cnt!==1?'s':''}</div>
+      ${spent>0?`<div style="font-size:14px;font-weight:600;color:var(--expense);font-variant-numeric:tabular-nums">−${fmt(spent)}</div>`:''}
+      ${earned>0?`<div style="font-size:14px;font-weight:600;color:var(--income);font-variant-numeric:tabular-nums">+${fmt(earned)}</div>`:''}
+    </div>`;
   }).join('');
-  return searchBar + `<div class="tags-grid">${cards}</div>`;
+  return `<div class="tags-list">${cards}</div>`;
 }
-function reRenderTagsPanel() {
-  const el = document.querySelector('#main .panel');
-  if (el) el.innerHTML = renderTags();
+function reRenderTagsPage() {
+  const el = document.getElementById('tagsListEl');
+  if (el) el.innerHTML = renderTagsList();
 }
 
 // ─── MENU PAGE ───
@@ -3108,8 +3146,8 @@ function openDrawerWithType(tipo) {
   S.drawerRec = '';
   if (tipo === 'entrada')  { S.drawerTipo='entrada'; S.drawerTag='';      S.drawerConta='nubank'; }
   if (tipo === 'saida')    { S.drawerTipo='saida';   S.drawerTag='';      S.drawerConta='nubank'; }
-  if (tipo === 'diario')   { S.drawerTipo='saida';   S.drawerTag='diário';S.drawerConta='nubank'; }
-  if (tipo === 'economia') { S.drawerTipo='saida';   S.drawerTag='invest';S.drawerConta='itau';   }
+  if (tipo === 'diario')   { S.drawerTipo='saida';   S.drawerTag='';S.drawerConta='nubank'; }
+  if (tipo === 'economia') { S.drawerTipo='saida';   S.drawerTag='';S.drawerConta='itau';   }
   if (tipo === 'cartao')   { S.drawerTipo='saida';   S.drawerTag='';      S.drawerConta='cartao'; }
   document.getElementById('btnDel').style.display = 'none';
   document.getElementById('fValor').value = '';
@@ -3163,17 +3201,29 @@ function renderDrawerFields() {
   }
 
   if (S.drawerPanel === 'tags') {
-    const allTags = [{ val: '', label: 'sem categoria', emoji: '' },
-      ...Object.entries(TAGS).map(([k,t]) => ({ val: k, label: t.nome, emoji: t.emoji }))];
+    const q = (S._tagPickerQ||'').toLowerCase();
+    const filtered = tagsDB.filter(t => !q || t.nome.toLowerCase().includes(q));
+    const listHtml = filtered.length === 0
+      ? `<div class="tpk-empty">nenhuma tag criada</div>`
+      : filtered.map(t => `
+          <div class="tpk-row" onclick="selectTag('${t.id}')">
+            <div class="tpk-dot" style="background:${getTagHex(t.cor)}"></div>
+            <div class="tpk-label">${t.nome}</div>
+            ${S.drawerTag === t.id ? '<span class="tpk-check">✓</span>' : ''}
+          </div>`).join('');
     el.innerHTML = `
-      <div class="picker-hdr">categoria</div>
-      ${allTags.map(o => `
-        <div class="picker-row" onclick="selectTag('${o.val}')">
-          <div class="picker-info">
-            <div class="picker-label">${o.emoji ? o.emoji + ' ' : ''}${o.label}</div>
-          </div>
-          ${S.drawerTag === o.val ? '<span class="picker-check">✓</span>' : ''}
-        </div>`).join('')}`;
+      <div class="tpk-hdr">
+        <div class="tpk-title">tags</div>
+        <button class="tpk-create" onclick="openNovaTagFromDrawer()" title="criar tag">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
+        </button>
+      </div>
+      <div class="tpk-search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="color:var(--text3)"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"/></svg>
+        <input type="text" placeholder="filtrar tags" value="${(S._tagPickerQ||'').replace(/"/g,'&quot;')}" oninput="S._tagPickerQ=this.value;renderDrawerFields()">
+      </div>
+      <div class="tpk-list">${listHtml}</div>
+      <button class="tpk-salvar" onclick="closePanel()">salvar</button>`;
     return;
   }
 
@@ -3192,8 +3242,8 @@ function renderDrawerFields() {
 
   // ── Main panel ──
   const recLabel = getRecLabel(S.drawerRec);
-  const tagInfo = S.drawerTag ? TAGS[S.drawerTag] : null;
-  const tagLabel = tagInfo ? `${tagInfo.emoji} ${tagInfo.nome}` : 'categoria';
+  const tagInfo = S.drawerTag ? getTagById(S.drawerTag) : null;
+  const tagLabel = tagInfo ? tagInfo.nome : 'tags';
   const contaInfo = CONTAS[S.drawerConta];
   const dataDisplay = S.drawerDataStr
     ? (() => { const [y,m,d] = S.drawerDataStr.split('-'); return `${d}/${m}/${y.slice(2)}`; })()
@@ -3491,12 +3541,12 @@ async function doSignOut() {
 }
 
 async function loadData() {
-  const { data, error } = await _sb
-    .from('movimentos')
-    .select('*')
-    .order('data', { ascending: true });
-  if (error) { console.error(error); return; }
-  movs = (data || []).map(r => ({
+  const [movsRes, tagsRes] = await Promise.all([
+    _sb.from('movimentos').select('*').order('data', { ascending: true }),
+    _sb.from('tags').select('*').order('created_at', { ascending: true }),
+  ]);
+  if (movsRes.error) console.error(movsRes.error);
+  movs = (movsRes.data || []).map(r => ({
     id: r.id,
     desc: r.descricao,
     valor: parseFloat(r.valor),
@@ -3505,6 +3555,17 @@ async function loadData() {
     conta: r.conta,
     tag: r.tag || null,
     rec: r.rec || null,
+  }));
+  if (tagsRes.error) console.error(tagsRes.error);
+  tagsDB = (tagsRes.data || []).map(r => ({
+    id: r.id,
+    nome: r.nome,
+    cor: r.cor || 'verde',
+    calc_saldos: r.calc_saldos !== false,
+    calc_performance: r.calc_performance !== false,
+    calc_economizado: r.calc_economizado !== false,
+    calc_custo_vida: r.calc_custo_vida !== false,
+    calc_diario_medio: r.calc_diario_medio !== false,
   }));
 }
 
@@ -3553,31 +3614,113 @@ async function bootApp() {
   render();
 }
 
-// ─── TAG EDITOR ───
-const TAG_EMOJIS = ['💰','🏠','🍽️','💊','🎬','💡','📈','🚗','🛒','✈️','🎮','👕','📱','🐾','🎓','💼','🎁','⚡','🏋️','🎵','🍕','☕','🚿','💎','🏥','🏦','🎯','🎨','🛡️','🧘'];
-const TAG_COLORS = ['#84CC16','#7C3AED','#F97316','#EC4899','#06B6D4','#EAB308','#10B981','#6366F1','#EF4444','#3B82F6','#8B5CF6','#F59E0B','#14B8A6','#F43F5E','#64748B'];
+// ─── NOVA TAG EDITOR ───
+const TAG_COR_NAMES = ['cinza','azul','amarelo','verde','vermelho','roxo','rosa','marrom'];
+let _novaTagEditId = null;
+let _novaTagSelCor = 'verde';
+let _novaTagCalcState = {};
+let _novaTagAvOpen = false;
 
-let _tagEditKey = null;
+function openNovaTag() { _novaTagEditId = null; _showNovaTagModal(null); }
+function openNovaTagFromDrawer() { _novaTagEditId = null; _showNovaTagModal(null); }
+function openEditTag(id) { const t = getTagById(id); if(!t) return; _novaTagEditId = id; _showNovaTagModal(t); }
 
-function loadTagCustomizations() {
-  try {
-    const saved = localStorage.getItem('brian-tag-custom');
-    if (!saved) return;
-    const custom = JSON.parse(saved);
-    for (const k of Object.keys(custom)) {
-      if (TAGS[k]) Object.assign(TAGS[k], custom[k]);
-    }
-  } catch(e) {}
+function _showNovaTagModal(t) {
+  const overlay = document.getElementById('novaTagOverlay');
+  if (!overlay) return;
+  const isEdit = !!t;
+  _novaTagSelCor = t?.cor || 'verde';
+  _novaTagAvOpen = false;
+  const calcFs = ['saldos','performance','economizado','custo_vida','diario_medio'];
+  const calcLs = ['saldos','performance','economizado','custo de vida','diário médio'];
+  _novaTagCalcState = { saldos:t?.calc_saldos!==false, performance:t?.calc_performance!==false, economizado:t?.calc_economizado!==false, custo_vida:t?.calc_custo_vida!==false, diario_medio:t?.calc_diario_medio!==false };
+
+  function corOpts() {
+    return TAG_COR_NAMES.map(c => `<div class="nova-tag-cor-opt${_novaTagSelCor===c?' sel':''}" onclick="_ntSetCor('${c}')"><div class="nova-tag-cor-opt-dot" style="background:${getTagHex(c)}"></div>${c}${_novaTagSelCor===c?'<span style="margin-left:auto;color:var(--accent)">✓</span>':''}</div>`).join('');
+  }
+  function calcRows() {
+    return calcFs.map((f,i) => `<div class="nova-tag-calc-row"><div class="nova-tag-calc-label">${calcLs[i]}</div><div class="nova-tag-calc-btns"><button class="nova-tag-calc-btn${!_novaTagCalcState[f]?' active':''}" onclick="_ntSetCalc('${f}',false)">ignorar</button><button class="nova-tag-calc-btn${_novaTagCalcState[f]?' active':''}" onclick="_ntSetCalc('${f}',true)">calcular</button></div></div>`).join('');
+  }
+
+  overlay.innerHTML = `<div class="nova-tag-box" onclick="event.stopPropagation()">
+    <div class="nova-tag-hdr">
+      <div class="nova-tag-title">${isEdit?'editar tag':'nova tag'}</div>
+      <button class="nova-tag-close" onclick="closeNovaTag()">✕</button>
+    </div>
+    <div class="nova-tag-nome-row">
+      <div class="nova-tag-nome-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>
+      <input class="nova-tag-nome-input" id="novaTagNome" type="text" placeholder="nome" maxlength="30" value="${t?t.nome.replace(/"/g,'&quot;'):''}">
+    </div>
+    <button class="nova-tag-cor-btn" onclick="_ntToggleCorList()">
+      <div class="nova-tag-cor-dot" id="ntCorDot" style="background:${getTagHex(_novaTagSelCor)}"></div>
+      <div class="nova-tag-cor-label" id="ntCorLabel">${_novaTagSelCor}</div>
+      <div style="color:var(--text3)">▾</div>
+    </button>
+    <div class="nova-tag-cor-list" id="ntCorList">${corOpts()}</div>
+    <div class="nova-tag-avancadas-hdr" onclick="_ntToggleAv()">
+      <div class="nova-tag-avancadas-title">configurações avançadas</div>
+      <div style="color:var(--text3);font-size:14px" id="ntAvChev">▾</div>
+    </div>
+    <div id="ntAvBody" style="display:none">
+      <div class="nova-tag-avancadas-desc">defina em quais partes do app as movimentações com essa tag serão calculadas</div>
+      <div id="ntCalcRows">${calcRows()}</div>
+    </div>
+    <button class="nova-tag-save-btn" onclick="saveNovaTag()">${isEdit?'salvar':'criar'}</button>
+    <div class="nova-tag-limit">${100-tagsDB.length} de 100 tags disponíveis</div>
+  </div>`;
+  overlay.onclick = e => { if(e.target===overlay) closeNovaTag(); };
+  overlay.hidden = false;
+
+  window._ntSetCor = c => {
+    _novaTagSelCor = c;
+    document.getElementById('ntCorDot').style.background = getTagHex(c);
+    document.getElementById('ntCorLabel').textContent = c;
+    document.getElementById('ntCorList').innerHTML = corOpts();
+  };
+  window._ntToggleCorList = () => { document.getElementById('ntCorList').classList.toggle('open'); };
+  window._ntToggleAv = () => {
+    _novaTagAvOpen = !_novaTagAvOpen;
+    document.getElementById('ntAvBody').style.display = _novaTagAvOpen?'block':'none';
+    document.getElementById('ntAvChev').textContent = _novaTagAvOpen?'▴':'▾';
+  };
+  window._ntSetCalc = (f,v) => {
+    _novaTagCalcState[f] = v;
+    document.getElementById('ntCalcRows').innerHTML = calcRows();
+  };
+
+  setTimeout(() => document.getElementById('novaTagNome')?.focus(), 100);
 }
 
-function saveTagCustomizations() {
-  try {
-    const custom = {};
-    for (const [k, t] of Object.entries(TAGS)) {
-      custom[k] = { nome: t.nome, emoji: t.emoji, cor: t.cor, bg: t.bg };
-    }
-    localStorage.setItem('brian-tag-custom', JSON.stringify(custom));
-  } catch(e) {}
+function closeNovaTag() {
+  const overlay = document.getElementById('novaTagOverlay');
+  if (overlay) { overlay.hidden = true; overlay.innerHTML = ''; }
+}
+
+async function saveNovaTag() {
+  const nome = document.getElementById('novaTagNome')?.value.trim();
+  if (!nome) { document.getElementById('novaTagNome')?.focus(); return; }
+  const row = { nome, cor: _novaTagSelCor,
+    calc_saldos: _novaTagCalcState.saldos!==false,
+    calc_performance: _novaTagCalcState.performance!==false,
+    calc_economizado: _novaTagCalcState.economizado!==false,
+    calc_custo_vida: _novaTagCalcState.custo_vida!==false,
+    calc_diario_medio: _novaTagCalcState.diario_medio!==false,
+    user_id: _userId };
+  const btn = document.querySelector('.nova-tag-save-btn');
+  if (btn) btn.disabled = true;
+  if (_novaTagEditId) {
+    const { error } = await _sb.from('tags').update(row).eq('id', _novaTagEditId);
+    if (error) { showToast('Erro ao salvar ✗'); if(btn) btn.disabled=false; return; }
+    const idx = tagsDB.findIndex(t => t.id === _novaTagEditId);
+    if (idx !== -1) tagsDB[idx] = { ...tagsDB[idx], ...row };
+  } else {
+    const { data, error } = await _sb.from('tags').insert(row).select();
+    if (error) { showToast('Erro ao salvar ✗'); if(btn) btn.disabled=false; return; }
+    if (data?.[0]) tagsDB.push({ nome:row.nome, cor:row.cor, calc_saldos:row.calc_saldos, calc_performance:row.calc_performance, calc_economizado:row.calc_economizado, calc_custo_vida:row.calc_custo_vida, calc_diario_medio:row.calc_diario_medio, id:data[0].id });
+  }
+  closeNovaTag();
+  if (S.page === 'tags') render();
+  showToast('Tag salva ✓');
 }
 
 // ─── CONTA EDITOR ───
@@ -3671,119 +3814,26 @@ function saveContaEdit() {
   render();
 }
 
-function openTagEditor(k) {
-  _tagEditKey = k;
-  const t = TAGS[k];
-  if (!t) return;
-  const overlay = document.getElementById('tagEditorOverlay');
-  overlay.dataset.cor = t.cor;
-  overlay.onclick = e => { if (e.target === overlay) closeTagEditor(); };
-
-  // Criar box do zero
-  const box = document.createElement('div');
-  box.className = 'tag-editor-box';
-
-  // Header
-  const hdr = document.createElement('div'); hdr.className = 'tag-editor-hdr';
-  const title = document.createElement('span'); title.className = 'tag-editor-title'; title.textContent = 'Editar categoria';
-  const closeBtn = document.createElement('button'); closeBtn.className = 'tag-editor-close'; closeBtn.textContent = '✕'; closeBtn.onclick = closeTagEditor;
-  hdr.appendChild(title); hdr.appendChild(closeBtn); box.appendChild(hdr);
-
-  // Preview
-  const prev = document.createElement('div'); prev.className = 'tag-editor-preview';
-  const prevEmoji = document.createElement('div'); prevEmoji.className = 'tag-editor-preview-emoji'; prevEmoji.id = 'tePreviewEmoji'; prevEmoji.style.background = t.bg; prevEmoji.textContent = t.emoji;
-  const prevNome = document.createElement('div'); prevNome.className = 'tag-editor-preview-nome'; prevNome.id = 'tePreviewNome'; prevNome.style.color = t.cor; prevNome.textContent = t.nome;
-  prev.appendChild(prevEmoji); prev.appendChild(prevNome); box.appendChild(prev);
-
-  // Campo nome
-  const fNome = document.createElement('div'); fNome.className = 'tag-editor-field';
-  const lNome = document.createElement('div'); lNome.className = 'tag-editor-label'; lNome.textContent = 'Nome';
-  const iNome = document.createElement('input'); iNome.id = 'teNome'; iNome.className = 'tag-editor-input'; iNome.type = 'text'; iNome.maxLength = 24; iNome.placeholder = 'Nome da categoria'; iNome.value = t.nome; iNome.oninput = _updateTagEditorPreview;
-  fNome.appendChild(lNome); fNome.appendChild(iNome); box.appendChild(fNome);
-
-  // Campo emoji
-  const fEmoji = document.createElement('div'); fEmoji.className = 'tag-editor-field';
-  const lEmoji = document.createElement('div'); lEmoji.className = 'tag-editor-label'; lEmoji.textContent = 'Emoji';
-  const iEmoji = document.createElement('input'); iEmoji.id = 'teEmojiInput'; iEmoji.className = 'tag-editor-input'; iEmoji.type = 'text'; iEmoji.maxLength = 8; iEmoji.placeholder = 'Emoji'; iEmoji.value = t.emoji; iEmoji.style.marginBottom = '8px'; iEmoji.oninput = _updateTagEditorPreview;
-  const eg = document.createElement('div'); eg.id = 'teEmojiGrid'; eg.className = 'tag-editor-emojis';
-  TAG_EMOJIS.forEach(e => {
-    const b = document.createElement('button'); b.textContent = e; b.dataset.emoji = e;
-    if (e === t.emoji) b.classList.add('sel');
-    b.onclick = () => teSelectEmoji(b, e);
-    eg.appendChild(b);
-  });
-  fEmoji.appendChild(lEmoji); fEmoji.appendChild(iEmoji); fEmoji.appendChild(eg); box.appendChild(fEmoji);
-
-  // Campo cor
-  const fCor = document.createElement('div'); fCor.className = 'tag-editor-field';
-  const lCor = document.createElement('div'); lCor.className = 'tag-editor-label'; lCor.textContent = 'Cor';
-  const cg = document.createElement('div'); cg.id = 'teColorGrid'; cg.className = 'tag-editor-colors';
-  TAG_COLORS.forEach(c => {
-    const b = document.createElement('button'); b.style.background = c; b.dataset.cor = c;
-    if (c === t.cor) b.classList.add('sel');
-    b.onclick = () => teSelectColor(b, c);
-    cg.appendChild(b);
-  });
-  fCor.appendChild(lCor); fCor.appendChild(cg); box.appendChild(fCor);
-
-  // Botão salvar
-  const saveBtn = document.createElement('button'); saveBtn.className = 'tag-editor-save'; saveBtn.textContent = 'Salvar'; saveBtn.onclick = saveTagEdit;
-  box.appendChild(saveBtn);
-
-  overlay.innerHTML = '';
-  overlay.appendChild(box);
-  overlay.hidden = false;
-}
-
 // Fechar com Escape
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTagEditor(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeTagEditor(); closeNovaTag(); }
+});
 
 function closeTagEditor() {
   document.getElementById('tagEditorOverlay').hidden = true;
-  _tagEditKey = null;
-}
-
-function _updateTagEditorPreview() {
-  const nome = document.getElementById('teNome').value || 'Tag';
-  const emoji = document.getElementById('teEmojiInput').value || '🏷️';
-  const cor = document.getElementById('tagEditorOverlay').dataset.cor || (TAGS[_tagEditKey]?.cor || '#6366F1');
-  const bg = cor + '26';
-  document.getElementById('tePreviewEmoji').style.background = bg;
-  document.getElementById('tePreviewEmoji').textContent = emoji;
-  document.getElementById('tePreviewNome').style.color = cor;
-  document.getElementById('tePreviewNome').textContent = nome;
-}
-
-function teSelectEmoji(btn, emoji) {
-  document.getElementById('teEmojiInput').value = emoji;
-  document.querySelectorAll('.tag-editor-emojis button').forEach(b => b.classList.remove('sel'));
-  btn.classList.add('sel');
-  _updateTagEditorPreview();
 }
 
 function teSelectColor(btn, cor) {
   document.getElementById('tagEditorOverlay').dataset.cor = cor;
   document.querySelectorAll('.tag-editor-colors button').forEach(b => b.classList.remove('sel'));
   btn.classList.add('sel');
-  _updateTagEditorPreview();
-}
-
-function saveTagEdit() {
-  const k = _tagEditKey;
-  if (!k) return;
-  const nome = document.getElementById('teNome').value.trim();
-  const emoji = document.getElementById('teEmojiInput').value.trim();
-  const cor = document.getElementById('tagEditorOverlay').dataset.cor || TAGS[k].cor;
-  if (!nome || !emoji) return;
-  const bg = cor + '26';
-  TAGS[k] = { ...TAGS[k], nome, emoji, cor, bg };
-  saveTagCustomizations();
-  closeTagEditor();
-  reRenderTagsPanel();
+  const pe = document.getElementById('tePreviewEmoji');
+  const pn = document.getElementById('tePreviewNome');
+  if (pe) { pe.style.background = cor + '30'; pe.style.color = cor; }
+  if (pn) pn.style.color = cor;
 }
 
 // ─── INIT ───
-loadTagCustomizations();
 loadContaCustomizations();
 bootApp();
 
@@ -3797,8 +3847,10 @@ window.addEventListener('resize', () => {
 });
 </script>
 
-<!-- TAG EDITOR MODAL -->
+<!-- TAG EDITOR MODAL (conta) -->
 <div id="tagEditorOverlay" class="tag-editor-overlay" hidden></div>
 
+<!-- NOVA TAG MODAL -->
+<div id="novaTagOverlay" class="nova-tag-overlay" hidden></div>
 
 </body></html>
