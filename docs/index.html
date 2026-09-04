@@ -2934,53 +2934,68 @@ function openTagEditor(k) {
   _tagEditKey = k;
   const t = TAGS[k];
   if (!t) return;
-  const el = document.getElementById('tagEditorOverlay');
-  el.dataset.cor = t.cor;
+  const overlay = document.getElementById('tagEditorOverlay');
+  overlay.dataset.cor = t.cor;
+  overlay.onclick = e => { if (e.target === overlay) closeTagEditor(); };
 
-  el.querySelector('.tag-editor-box').innerHTML = `
-    <div class="tag-editor-hdr">
-      <span class="tag-editor-title">Editar categoria</span>
-      <button class="tag-editor-close" onclick="closeTagEditor()">✕</button>
-    </div>
-    <div class="tag-editor-preview">
-      <div class="tag-editor-preview-emoji" id="tePreviewEmoji" style="background:${t.bg}">${t.emoji}</div>
-      <div class="tag-editor-preview-nome" id="tePreviewNome" style="color:${t.cor}">${t.nome}</div>
-    </div>
-    <div class="tag-editor-field">
-      <div class="tag-editor-label">Nome</div>
-      <input id="teNome" class="tag-editor-input" type="text" maxlength="24" oninput="_updateTagEditorPreview()" value="${t.nome.replace(/"/g,'&quot;')}" placeholder="Nome da categoria">
-    </div>
-    <div class="tag-editor-field">
-      <div class="tag-editor-label">Emoji</div>
-      <input id="teEmojiInput" class="tag-editor-input" type="text" maxlength="8" oninput="_updateTagEditorPreview()" value="${t.emoji}" placeholder="Emoji" style="margin-bottom:8px">
-      <div class="tag-editor-emojis" id="teEmojiGrid"></div>
-    </div>
-    <div class="tag-editor-field">
-      <div class="tag-editor-label">Cor</div>
-      <div class="tag-editor-colors" id="teColorGrid"></div>
-    </div>
-    <button class="tag-editor-save" onclick="saveTagEdit()">Salvar</button>`;
+  // Criar box do zero
+  const box = document.createElement('div');
+  box.className = 'tag-editor-box';
 
-  const eg = document.getElementById('teEmojiGrid');
+  // Header
+  const hdr = document.createElement('div'); hdr.className = 'tag-editor-hdr';
+  const title = document.createElement('span'); title.className = 'tag-editor-title'; title.textContent = 'Editar categoria';
+  const closeBtn = document.createElement('button'); closeBtn.className = 'tag-editor-close'; closeBtn.textContent = '✕'; closeBtn.onclick = closeTagEditor;
+  hdr.appendChild(title); hdr.appendChild(closeBtn); box.appendChild(hdr);
+
+  // Preview
+  const prev = document.createElement('div'); prev.className = 'tag-editor-preview';
+  const prevEmoji = document.createElement('div'); prevEmoji.className = 'tag-editor-preview-emoji'; prevEmoji.id = 'tePreviewEmoji'; prevEmoji.style.background = t.bg; prevEmoji.textContent = t.emoji;
+  const prevNome = document.createElement('div'); prevNome.className = 'tag-editor-preview-nome'; prevNome.id = 'tePreviewNome'; prevNome.style.color = t.cor; prevNome.textContent = t.nome;
+  prev.appendChild(prevEmoji); prev.appendChild(prevNome); box.appendChild(prev);
+
+  // Campo nome
+  const fNome = document.createElement('div'); fNome.className = 'tag-editor-field';
+  const lNome = document.createElement('div'); lNome.className = 'tag-editor-label'; lNome.textContent = 'Nome';
+  const iNome = document.createElement('input'); iNome.id = 'teNome'; iNome.className = 'tag-editor-input'; iNome.type = 'text'; iNome.maxLength = 24; iNome.placeholder = 'Nome da categoria'; iNome.value = t.nome; iNome.oninput = _updateTagEditorPreview;
+  fNome.appendChild(lNome); fNome.appendChild(iNome); box.appendChild(fNome);
+
+  // Campo emoji
+  const fEmoji = document.createElement('div'); fEmoji.className = 'tag-editor-field';
+  const lEmoji = document.createElement('div'); lEmoji.className = 'tag-editor-label'; lEmoji.textContent = 'Emoji';
+  const iEmoji = document.createElement('input'); iEmoji.id = 'teEmojiInput'; iEmoji.className = 'tag-editor-input'; iEmoji.type = 'text'; iEmoji.maxLength = 8; iEmoji.placeholder = 'Emoji'; iEmoji.value = t.emoji; iEmoji.style.marginBottom = '8px'; iEmoji.oninput = _updateTagEditorPreview;
+  const eg = document.createElement('div'); eg.id = 'teEmojiGrid'; eg.className = 'tag-editor-emojis';
   TAG_EMOJIS.forEach(e => {
-    const b = document.createElement('button');
-    b.textContent = e; b.dataset.emoji = e;
+    const b = document.createElement('button'); b.textContent = e; b.dataset.emoji = e;
     if (e === t.emoji) b.classList.add('sel');
     b.onclick = () => teSelectEmoji(b, e);
     eg.appendChild(b);
   });
+  fEmoji.appendChild(lEmoji); fEmoji.appendChild(iEmoji); fEmoji.appendChild(eg); box.appendChild(fEmoji);
 
-  const cg = document.getElementById('teColorGrid');
+  // Campo cor
+  const fCor = document.createElement('div'); fCor.className = 'tag-editor-field';
+  const lCor = document.createElement('div'); lCor.className = 'tag-editor-label'; lCor.textContent = 'Cor';
+  const cg = document.createElement('div'); cg.id = 'teColorGrid'; cg.className = 'tag-editor-colors';
   TAG_COLORS.forEach(c => {
-    const b = document.createElement('button');
-    b.style.background = c; b.dataset.cor = c;
+    const b = document.createElement('button'); b.style.background = c; b.dataset.cor = c;
     if (c === t.cor) b.classList.add('sel');
     b.onclick = () => teSelectColor(b, c);
     cg.appendChild(b);
   });
+  fCor.appendChild(lCor); fCor.appendChild(cg); box.appendChild(fCor);
 
-  el.hidden = false;
+  // Botão salvar
+  const saveBtn = document.createElement('button'); saveBtn.className = 'tag-editor-save'; saveBtn.textContent = 'Salvar'; saveBtn.onclick = saveTagEdit;
+  box.appendChild(saveBtn);
+
+  overlay.innerHTML = '';
+  overlay.appendChild(box);
+  overlay.hidden = false;
 }
+
+// Fechar com Escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTagEditor(); });
 
 function closeTagEditor() {
   document.getElementById('tagEditorOverlay').hidden = true;
@@ -3041,32 +3056,7 @@ window.addEventListener('resize', () => {
 </script>
 
 <!-- TAG EDITOR MODAL -->
-<div id="tagEditorOverlay" class="tag-editor-overlay" hidden onclick="if(event.target===this)closeTagEditor()">
-  <div class="tag-editor-box">
-    <div class="tag-editor-hdr">
-      <span class="tag-editor-title">Editar categoria</span>
-      <button class="tag-editor-close" onclick="closeTagEditor()">✕</button>
-    </div>
-    <div class="tag-editor-preview">
-      <div class="tag-editor-preview-emoji" id="tePreviewEmoji"></div>
-      <div class="tag-editor-preview-nome" id="tePreviewNome"></div>
-    </div>
-    <div class="tag-editor-field">
-      <div class="tag-editor-label">Nome</div>
-      <input id="teNome" class="tag-editor-input" type="text" maxlength="24" oninput="_updateTagEditorPreview()" placeholder="Nome da categoria">
-    </div>
-    <div class="tag-editor-field">
-      <div class="tag-editor-label">Emoji</div>
-      <input id="teEmojiInput" class="tag-editor-input" type="text" maxlength="4" oninput="_updateTagEditorPreview()" placeholder="Emoji" style="margin-bottom:8px">
-      <div class="tag-editor-emojis" id="teEmojiGrid"></div>
-    </div>
-    <div class="tag-editor-field">
-      <div class="tag-editor-label">Cor</div>
-      <div class="tag-editor-colors" id="teColorGrid"></div>
-    </div>
-    <button class="tag-editor-save" onclick="saveTagEdit()">Salvar</button>
-  </div>
-</div>
+<div id="tagEditorOverlay" class="tag-editor-overlay" hidden></div>
 
 
 </body></html>
