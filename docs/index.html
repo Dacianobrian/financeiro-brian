@@ -2084,7 +2084,7 @@ function renderMonthBlock(y, mi, mob) {
     ? `40px 1fr 1fr 100px`
     : S.diarioCols.map(w => w + 'px').join(' ');
 
-  const R = (ci) => mob ? '' : `<div class="diario-col-resizer" onmousedown="startColResize(event,${ci})" ondblclick="resetDiarioCols()" title="Arrastar para redimensionar · Duplo clique para resetar"></div>`;
+  const R = () => '';
 
   const v = S.diarioColsVis;
 
@@ -3169,7 +3169,13 @@ async function bootApp() {
   document.getElementById('app').hidden = false;
   try {
     const savedCols = localStorage.getItem('brian-diario-cols');
-    if (savedCols) S.diarioCols = JSON.parse(savedCols);
+    if (savedCols) {
+      const parsed = JSON.parse(savedCols);
+      if (Array.isArray(parsed) && parsed.every(v => typeof v === 'number' && v >= 20 && v <= 200))
+        S.diarioCols = parsed;
+      else
+        localStorage.removeItem('brian-diario-cols');
+    }
     const savedVis = localStorage.getItem('brian-diario-vis');
     if (savedVis) S.diarioColsVis = JSON.parse(savedVis);
   } catch(e) {}
