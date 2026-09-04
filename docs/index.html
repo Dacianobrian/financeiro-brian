@@ -213,9 +213,9 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 .bal-dot-empty { width: 6px; height: 6px; border-radius: 50%; border: 1.5px solid var(--text3); opacity: 0.35; flex-shrink: 0; }
 
 .col-ico {
-  width: 16px; height: 16px; border-radius: 50%;
+  width: 18px; height: 18px; border-radius: 50%;
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 8.5px; font-weight: 800; color: white; flex-shrink: 0; line-height: 1;
+  font-size: 9px; font-weight: 800; color: white; flex-shrink: 0; line-height: 1;
 }
 
 .day-cell {
@@ -298,13 +298,13 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
   display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
 .br-ico {
-  width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 8px; font-weight: 800; color: white; line-height: 1;
+  font-size: 9px; font-weight: 800; color: white; line-height: 1;
 }
 .br-ico-empty {
-  width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;
-  background: var(--elevated); opacity: 0.6;
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+  background: var(--div); opacity: 0.5;
 }
 .br-hdr-ico {
   display: flex; align-items: center; justify-content: center;
@@ -2232,8 +2232,8 @@ function renderDiario(y, m) {
   // ─ header ─
   const header = `<div class="bal-head" style="grid-template-columns:${GRID}">
     <div class="col-lbl">Dia</div>
-    ${colHdr('in',  '#16A34A', 'E', mob ? 'ent.' : 'entrada')}
-    ${colHdr('out', '#DC2626', 'S', mob ? 'saí.' : 'saida')}
+    ${colHdr('in',  '#529952', 'E', mob ? 'ent.' : 'entrada')}
+    ${colHdr('out', '#E62D2D', 'S', mob ? 'saí.' : 'saida')}
     ${mob ? '' : colHdr('inv', '#EC7000', 'I', 'economia')}
     ${mob ? '' : colHdr('d',   '#0891B2', 'D', 'diario')}
     ${mob ? '' : colHdr('c',   '#7C3AED', 'C', 'cartao')}
