@@ -1477,40 +1477,33 @@ function resetDiarioCols() {
 const _DCOLS_DEFAULT = [48, 160, 160, 160, 160, 160, 160];
 
 function toggleDiarioCol(ci) {
+  const wasExpanded = S.diarioColsVis[ci];
   S.diarioColsVis[ci] = !S.diarioColsVis[ci];
   const outer = document.getElementById('diarioScrollOuter');
   if (outer) {
-    // offsetParent dos blocos é o BODY, não o outer — usar getBoundingClientRect
-    const outerLeft = outer.getBoundingClientRect().left;
-    const blockPos = (b) => b.getBoundingClientRect().left - outerLeft + outer.scrollLeft;
-    const viewCenter = outer.scrollLeft + outer.clientWidth / 2;
-    let anchorMi = 0, anchorOffset = 0, bestDist = Infinity;
+    // Achar o mês mais centralizado na view antes do re-render
+    const outerRect = outer.getBoundingClientRect();
+    const savedScroll = outer.scrollLeft;
+    const viewCenter = savedScroll + outer.clientWidth / 2;
+    let anchorMi = 0, bestDist = Infinity;
     for (let mi = 0; mi < 12; mi++) {
       const block = document.getElementById('diario-month-' + mi);
       if (block) {
-        const bLeft = blockPos(block);
+        const bLeft = block.getBoundingClientRect().left - outerRect.left + savedScroll;
         const dist = Math.abs((bLeft + block.offsetWidth / 2) - viewCenter);
-        if (dist < bestDist) {
-          bestDist = dist;
-          anchorMi = mi;
-          anchorOffset = outer.scrollLeft - bLeft;
-        }
+        if (dist < bestDist) { bestDist = dist; anchorMi = mi; }
       }
     }
+    // Cada bloco muda 128px (168-40). Ajuste do scroll = nº de meses antes da âncora × variação
+    const widthDelta = wasExpanded ? -128 : 128;
+    const newScroll = savedScroll + anchorMi * widthDelta;
     const y = S.diarioYear || S.month?.y || new Date().getFullYear();
     const mob = window.innerWidth < 640;
     const blocks = [];
     for (let mi = 0; mi < 12; mi++) blocks.push(renderMonthBlock(y, mi, mob));
     outer.innerHTML = `<div class="diario-scroll-inner">${blocks.join('')}</div>`;
-    const restore = () => {
-      const block = document.getElementById('diario-month-' + anchorMi);
-      if (block) {
-        const bLeft = block.getBoundingClientRect().left - outer.getBoundingClientRect().left + outer.scrollLeft;
-        outer.scrollLeft = bLeft + anchorOffset;
-      }
-    };
-    restore();
-    requestAnimationFrame(restore);
+    outer.scrollLeft = newScroll;
+    requestAnimationFrame(() => { outer.scrollLeft = newScroll; });
   } else { render(); }
   try { localStorage.setItem('brian-diario-vis', JSON.stringify(S.diarioColsVis)); } catch(e) {}
 }
