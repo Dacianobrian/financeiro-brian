@@ -1602,6 +1602,7 @@ function calcDailyBalances(y, m) {
 // ─── GOTO ───
 function goto(page) {
   S.page = page;
+  closeTagEditor();
   document.querySelectorAll('.nav li').forEach(li => {
     li.classList.toggle('active', li.dataset.page === page);
   });
@@ -2947,11 +2948,11 @@ function openTagEditor(k) {
     </div>
     <div class="tag-editor-field">
       <div class="tag-editor-label">Nome</div>
-      <input id="teNome" class="tag-editor-input" type="text" maxlength="24" oninput="_updateTagEditorPreview()" placeholder="Nome da categoria">
+      <input id="teNome" class="tag-editor-input" type="text" maxlength="24" oninput="_updateTagEditorPreview()" value="${t.nome.replace(/"/g,'&quot;')}" placeholder="Nome da categoria">
     </div>
     <div class="tag-editor-field">
       <div class="tag-editor-label">Emoji</div>
-      <input id="teEmojiInput" class="tag-editor-input" type="text" maxlength="8" oninput="_updateTagEditorPreview()" placeholder="Emoji" style="margin-bottom:8px">
+      <input id="teEmojiInput" class="tag-editor-input" type="text" maxlength="8" oninput="_updateTagEditorPreview()" value="${t.emoji}" placeholder="Emoji" style="margin-bottom:8px">
       <div class="tag-editor-emojis" id="teEmojiGrid"></div>
     </div>
     <div class="tag-editor-field">
@@ -2959,9 +2960,6 @@ function openTagEditor(k) {
       <div class="tag-editor-colors" id="teColorGrid"></div>
     </div>
     <button class="tag-editor-save" onclick="saveTagEdit()">Salvar</button>`;
-
-  document.getElementById('teNome').value = t.nome;
-  document.getElementById('teEmojiInput').value = t.emoji;
 
   const eg = document.getElementById('teEmojiGrid');
   TAG_EMOJIS.forEach(e => {
