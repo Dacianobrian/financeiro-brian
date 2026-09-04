@@ -213,9 +213,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 .bal-dot-empty { width: 6px; height: 6px; border-radius: 50%; border: 1.5px solid var(--text3); opacity: 0.35; flex-shrink: 0; }
 
 .col-ico {
-  width: 18px; height: 18px; border-radius: 50%;
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: 9px; font-weight: 800; color: white; flex-shrink: 0; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 
 .day-cell {
@@ -298,9 +296,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
   display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
 .br-ico {
-  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 10px; font-weight: 800; color: white; line-height: 1;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .br-hdr-ico {
   display: flex; align-items: center; justify-content: center;
@@ -1405,6 +1401,10 @@ const TAG_CORES = {
   verde:'#10B981', vermelho:'#EF4444', roxo:'#8B5CF6',
   rosa:'#EC4899',  marrom:'#A16207',
 };
+function ringIco(color, opacity) {
+  const op = (opacity !== undefined && opacity < 1) ? ` opacity="${opacity}"` : '';
+  return `<svg width="20" height="20" viewBox="0 0 20 20" style="flex-shrink:0"${op}><circle cx="10" cy="10" r="8" stroke="${color}" stroke-width="2.5" fill="none"/><circle cx="10" cy="10" r="3.5" fill="${color}"/></svg>`;
+}
 function getTagHex(cor) { return TAG_CORES[cor] || TAG_CORES.verde; }
 function getTagBg(cor) { return getTagHex(cor) + '28'; }
 function getTagById(id) { return tagsDB.find(t => t.id === id) || null; }
@@ -2204,10 +2204,10 @@ function renderDiario(y, m) {
     const on = c[key];
     return on
       ? `<div class="col-lbl col-toggle" onclick="event.stopPropagation();toggleCol('${key}')" title="Ocultar ${label}">
-           <span class="col-ico" style="background:${bg}">${ico}</span>${label}
+           <span class="col-ico">${ringIco(bg)}</span>${label}
          </div>`
       : `<div class="col-lbl col-toggle col-collapsed" onclick="event.stopPropagation();toggleCol('${key}')" title="Mostrar ${label}">
-           <span class="col-ico" style="background:${bg}">${ico}</span>
+           <span class="col-ico">${ringIco(bg, 0.5)}</span>
          </div>`;
   };
 
@@ -2338,10 +2338,10 @@ function renderMonthBlock(y, mi, mob) {
     const exp = v[ci+1];
     return exp
       ? `<div class="br-hdr-ico br-hdr-expanded" onclick="event.stopPropagation();toggleDiarioCol(${ci+1})">
-           <span class="br-ico" style="background:${COLORS[ci]}">${ICOS[ci]}</span>${LBLS[ci]}
+           <span class="br-ico">${ringIco(COLORS[ci])}</span>${LBLS[ci]}
          </div>`
       : `<div class="br-hdr-ico" onclick="event.stopPropagation();toggleDiarioCol(${ci+1})">
-           <span class="br-ico" style="background:${COLORS[ci]};opacity:0.7">${ICOS[ci]}</span>
+           <span class="br-ico">${ringIco(COLORS[ci], 0.6)}</span>
          </div>`;
   };
 
@@ -2351,14 +2351,14 @@ function renderMonthBlock(y, mi, mob) {
     if (!S.showBal) return `<div class="br-icell${exp?' br-val-cell':''}"><span class="br-amt zer">•••</span></div>`;
     if (!exp) {
       return delta !== 0
-        ? `<div class="br-icell"><span class="br-ico" style="background:${COLORS[ci]}">${ICOS[ci]}</span></div>`
-        : `<div class="br-icell"><span class="br-ico" style="background:${COLORS[ci]};opacity:0.22">${ICOS[ci]}</span></div>`;
+        ? `<div class="br-icell"><span class="br-ico">${ringIco(COLORS[ci])}</span></div>`
+        : `<div class="br-icell"><span class="br-ico">${ringIco(COLORS[ci], 0.2)}</span></div>`;
     }
     // Expandido: ícone + valor
-    if (delta === 0) return `<div class="br-icell br-val-cell"><span class="br-ico" style="background:${COLORS[ci]};opacity:0.4">${ICOS[ci]}</span><span class="br-amt zer">–</span></div>`;
+    if (delta === 0) return `<div class="br-icell br-val-cell"><span class="br-ico">${ringIco(COLORS[ci], 0.35)}</span><span class="br-amt zer">–</span></div>`;
     const cls = delta > 0 ? 'pos' : 'neg';
     const sign = delta > 0 ? '+' : '';
-    return `<div class="br-icell br-val-cell"><span class="br-ico" style="background:${COLORS[ci]}">${ICOS[ci]}</span><span class="br-amt ${cls}">${sign}${fmt(Math.abs(delta))}</span></div>`;
+    return `<div class="br-icell br-val-cell"><span class="br-ico">${ringIco(COLORS[ci])}</span><span class="br-amt ${cls}">${sign}${fmt(Math.abs(delta))}</span></div>`;
   };
 
   const saldoCell = (total) => {
