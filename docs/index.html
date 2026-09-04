@@ -225,7 +225,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 
 .bal-cell {
   display: flex; flex-direction: column; align-items: flex-end; gap: 1px;
-  padding: 8px 10px 8px 0; justify-content: center;
+  padding: 8px 10px 8px 0; justify-content: center; overflow: hidden; min-width: 0;
 }
 .bal-cell-inner { display: flex; align-items: center; gap: 4px; }
 .bal-dot {
@@ -284,7 +284,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 }
 .diario-month-block {
   background: var(--surface); border: 1px solid var(--div);
-  border-radius: 12px; overflow: hidden; width: 582px; flex-shrink: 0;
+  border-radius: 12px; overflow: hidden; width: 612px; flex-shrink: 0;
 }
 .diario-month-hdr {
   display: flex; align-items: center; justify-content: space-between;
@@ -1982,7 +1982,7 @@ function renderMonthBlock(y, mi, mob) {
 
   const GRID = mob
     ? `40px 1fr 1fr 100px`
-    : `44px 88px 88px 80px 76px 76px 124px`;
+    : `44px 110px 110px 76px 68px 68px 126px`;
 
   const colHdr = (bg, ico, lbl) =>
     `<div class="col-lbl"><span class="col-ico" style="background:${bg}">${ico}</span>${lbl}</div>`;
