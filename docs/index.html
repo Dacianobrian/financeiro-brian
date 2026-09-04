@@ -1425,11 +1425,13 @@ function toggleDiarioCol(ci) {
   S.diarioColsVis[ci] = !S.diarioColsVis[ci];
   const outer = document.getElementById('diarioScrollOuter');
   if (outer) {
+    const savedScroll = outer.scrollLeft;
     const y = S.diarioYear || S.month?.y || new Date().getFullYear();
     const mob = window.innerWidth < 640;
     const blocks = [];
     for (let mi = 0; mi < 12; mi++) blocks.push(renderMonthBlock(y, mi, mob));
     outer.innerHTML = `<div class="diario-scroll-inner">${blocks.join('')}</div>`;
+    outer.scrollLeft = savedScroll;
   } else { render(); }
   try { localStorage.setItem('brian-diario-vis', JSON.stringify(S.diarioColsVis)); } catch(e) {}
 }
