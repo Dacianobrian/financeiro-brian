@@ -1401,10 +1401,19 @@ const TAG_CORES = {
   verde:'#10B981', vermelho:'#EF4444', roxo:'#8B5CF6',
   rosa:'#EC4899',  marrom:'#A16207',
 };
-function ringIco(color, opacity) {
+const CAT_COLORS = ['#529952','#E62D2D','#EC7000','#0891B2','#7C3AED'];
+const CAT_PATHS = [
+  '<path d="M10 5v9M6.5 11l3.5 3.5 3.5-3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+  '<path d="M10 15V6M6.5 9l3.5-3.5L13.5 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+  '<path d="M3.5 13.5l3.5-4 3 3 5.5-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+  '<circle cx="10" cy="10" r="5.5" stroke="white" stroke-width="1.8" fill="none"/><path d="M10 6.5v3.8l2.8 2" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+  '<rect x="3" y="6.5" width="14" height="8" rx="1.5" stroke="white" stroke-width="1.8" fill="none"/><path d="M3 9.5h14" stroke="white" stroke-width="1.8"/><rect x="5.5" y="11.5" width="3.5" height="1.5" rx="0.5" fill="white"/>'
+];
+function catIco(ci, opacity) {
   const op = (opacity !== undefined && opacity < 1) ? ` opacity="${opacity}"` : '';
-  return `<svg width="20" height="20" viewBox="0 0 20 20" style="flex-shrink:0"${op}><circle cx="10" cy="10" r="8" stroke="${color}" stroke-width="2.5" fill="none"/><circle cx="10" cy="10" r="3.5" fill="${color}"/></svg>`;
+  return `<svg width="22" height="22" viewBox="0 0 20 20" style="flex-shrink:0"${op}><circle cx="10" cy="10" r="10" fill="${CAT_COLORS[ci]}"/>${CAT_PATHS[ci]}</svg>`;
 }
+function ringIco(color, opacity) { return catIco(CAT_COLORS.indexOf(color), opacity); }
 function getTagHex(cor) { return TAG_CORES[cor] || TAG_CORES.verde; }
 function getTagBg(cor) { return getTagHex(cor) + '28'; }
 function getTagById(id) { return tagsDB.find(t => t.id === id) || null; }
@@ -2200,14 +2209,14 @@ function renderDiario(y, m) {
     : `44px ${CW('in')} ${CW('out')} ${CW('inv')} ${CW('d')} ${CW('c')} 138px`;
 
   // helper: cabeçalho de coluna (clicável — expande/colapsa)
-  const colHdr = (key, bg, ico, label) => {
+  const colHdr = (key, ci, label) => {
     const on = c[key];
     return on
       ? `<div class="col-lbl col-toggle" onclick="event.stopPropagation();toggleCol('${key}')" title="Ocultar ${label}">
-           <span class="col-ico">${ringIco(bg)}</span>${label}
+           <span class="col-ico">${catIco(ci)}</span>${label}
          </div>`
       : `<div class="col-lbl col-toggle col-collapsed" onclick="event.stopPropagation();toggleCol('${key}')" title="Mostrar ${label}">
-           <span class="col-ico">${ringIco(bg, 0.5)}</span>
+           <span class="col-ico">${catIco(ci, 0.45)}</span>
          </div>`;
   };
 
@@ -2228,11 +2237,11 @@ function renderDiario(y, m) {
   // ─ header ─
   const header = `<div class="bal-head" style="grid-template-columns:${GRID}">
     <div class="col-lbl">Dia</div>
-    ${colHdr('in',  '#529952', 'E', mob ? 'ent.' : 'entrada')}
-    ${colHdr('out', '#E62D2D', 'S', mob ? 'saí.' : 'saida')}
-    ${mob ? '' : colHdr('inv', '#EC7000', 'I', 'economia')}
-    ${mob ? '' : colHdr('d',   '#0891B2', 'D', 'diario')}
-    ${mob ? '' : colHdr('c',   '#7C3AED', 'C', 'cartao')}
+    ${colHdr('in',  0, mob ? 'ent.' : 'entrada')}
+    ${colHdr('out', 1, mob ? 'saí.' : 'saida')}
+    ${mob ? '' : colHdr('inv', 2, 'economia')}
+    ${mob ? '' : colHdr('d',   3, 'diario')}
+    ${mob ? '' : colHdr('c',   4, 'cartao')}
     <div class="saldo-hdr-cell">${mob ? 'saldo' : 'saldos'}</div>
   </div>`;
 
@@ -2338,10 +2347,10 @@ function renderMonthBlock(y, mi, mob) {
     const exp = v[ci+1];
     return exp
       ? `<div class="br-hdr-ico br-hdr-expanded" onclick="event.stopPropagation();toggleDiarioCol(${ci+1})">
-           <span class="br-ico">${ringIco(COLORS[ci])}</span>${LBLS[ci]}
+           <span class="br-ico">${catIco(ci)}</span>${LBLS[ci]}
          </div>`
       : `<div class="br-hdr-ico" onclick="event.stopPropagation();toggleDiarioCol(${ci+1})">
-           <span class="br-ico">${ringIco(COLORS[ci], 0.6)}</span>
+           <span class="br-ico">${catIco(ci, 0.55)}</span>
          </div>`;
   };
 
@@ -2351,14 +2360,14 @@ function renderMonthBlock(y, mi, mob) {
     if (!S.showBal) return `<div class="br-icell${exp?' br-val-cell':''}"><span class="br-amt zer">•••</span></div>`;
     if (!exp) {
       return delta !== 0
-        ? `<div class="br-icell"><span class="br-ico">${ringIco(COLORS[ci])}</span></div>`
-        : `<div class="br-icell"><span class="br-ico">${ringIco(COLORS[ci], 0.2)}</span></div>`;
+        ? `<div class="br-icell"><span class="br-ico">${catIco(ci)}</span></div>`
+        : `<div class="br-icell"><span class="br-ico">${catIco(ci, 0.2)}</span></div>`;
     }
     // Expandido: ícone + valor
-    if (delta === 0) return `<div class="br-icell br-val-cell"><span class="br-ico">${ringIco(COLORS[ci], 0.35)}</span><span class="br-amt zer">–</span></div>`;
+    if (delta === 0) return `<div class="br-icell br-val-cell"><span class="br-ico">${catIco(ci, 0.35)}</span><span class="br-amt zer">–</span></div>`;
     const cls = delta > 0 ? 'pos' : 'neg';
     const sign = delta > 0 ? '+' : '';
-    return `<div class="br-icell br-val-cell"><span class="br-ico">${ringIco(COLORS[ci])}</span><span class="br-amt ${cls}">${sign}${fmt(Math.abs(delta))}</span></div>`;
+    return `<div class="br-icell br-val-cell"><span class="br-ico">${catIco(ci)}</span><span class="br-amt ${cls}">${sign}${fmt(Math.abs(delta))}</span></div>`;
   };
 
   const saldoCell = (total) => {
