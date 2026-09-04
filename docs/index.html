@@ -1480,17 +1480,20 @@ function toggleDiarioCol(ci) {
   S.diarioColsVis[ci] = !S.diarioColsVis[ci];
   const outer = document.getElementById('diarioScrollOuter');
   if (outer) {
-    // Descobre qual mês está mais centralizado na tela antes do re-render
+    // offsetParent dos blocos é o BODY, não o outer — usar getBoundingClientRect
+    const outerLeft = outer.getBoundingClientRect().left;
+    const blockPos = (b) => b.getBoundingClientRect().left - outerLeft + outer.scrollLeft;
     const viewCenter = outer.scrollLeft + outer.clientWidth / 2;
     let anchorMi = 0, anchorOffset = 0, bestDist = Infinity;
     for (let mi = 0; mi < 12; mi++) {
       const block = document.getElementById('diario-month-' + mi);
       if (block) {
-        const dist = Math.abs((block.offsetLeft + block.offsetWidth / 2) - viewCenter);
+        const bLeft = blockPos(block);
+        const dist = Math.abs((bLeft + block.offsetWidth / 2) - viewCenter);
         if (dist < bestDist) {
           bestDist = dist;
           anchorMi = mi;
-          anchorOffset = outer.scrollLeft - block.offsetLeft;
+          anchorOffset = outer.scrollLeft - bLeft;
         }
       }
     }
@@ -1499,10 +1502,12 @@ function toggleDiarioCol(ci) {
     const blocks = [];
     for (let mi = 0; mi < 12; mi++) blocks.push(renderMonthBlock(y, mi, mob));
     outer.innerHTML = `<div class="diario-scroll-inner">${blocks.join('')}</div>`;
-    // Restaura posição relativa ao mesmo mês ancora
     const restore = () => {
       const block = document.getElementById('diario-month-' + anchorMi);
-      if (block) outer.scrollLeft = block.offsetLeft + anchorOffset;
+      if (block) {
+        const bLeft = block.getBoundingClientRect().left - outer.getBoundingClientRect().left + outer.scrollLeft;
+        outer.scrollLeft = bLeft + anchorOffset;
+      }
     };
     restore();
     requestAnimationFrame(restore);
