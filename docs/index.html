@@ -912,6 +912,30 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 .tag-card-total { font-size:16px; font-weight:700; font-variant-numeric:tabular-nums; }
 .tag-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:60px 20px; color:var(--text3); font-size:14px; text-align:center; }
 .tag-empty svg { opacity:.2; }
+.tag-card-edit { margin-left:auto; background:none; border:none; cursor:pointer; color:var(--text3); padding:2px 4px; border-radius:6px; transition:color .15s, background .15s; font-size:14px; }
+.tag-card-edit:hover { color:var(--accent); background:var(--div2); }
+/* ─── TAG EDITOR MODAL ─── */
+.tag-editor-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1200; display:flex; align-items:center; justify-content:center; padding:20px; }
+.tag-editor-box { background:var(--card); border:1px solid var(--div); border-radius:20px; padding:24px; width:100%; max-width:380px; }
+.tag-editor-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.tag-editor-title { font-size:16px; font-weight:700; }
+.tag-editor-close { background:none; border:none; cursor:pointer; color:var(--text3); font-size:18px; }
+.tag-editor-preview { display:flex; align-items:center; gap:12px; margin-bottom:20px; padding:14px; background:var(--bg); border-radius:12px; }
+.tag-editor-preview-emoji { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; }
+.tag-editor-preview-nome { font-size:15px; font-weight:700; }
+.tag-editor-field { margin-bottom:14px; }
+.tag-editor-label { font-size:11px; font-weight:600; color:var(--text3); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; }
+.tag-editor-input { width:100%; background:var(--bg); border:1px solid var(--div); border-radius:10px; padding:10px 12px; color:var(--text); font-size:14px; outline:none; box-sizing:border-box; }
+.tag-editor-input:focus { border-color:var(--accent); }
+.tag-editor-emojis { display:flex; flex-wrap:wrap; gap:6px; }
+.tag-editor-emojis button { width:36px; height:36px; border:1px solid var(--div); border-radius:8px; background:var(--bg); cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; transition:border-color .12s; }
+.tag-editor-emojis button:hover, .tag-editor-emojis button.sel { border-color:var(--accent); background:var(--div2); }
+.tag-editor-colors { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.tag-editor-colors button { width:28px; height:28px; border-radius:50%; border:2px solid transparent; cursor:pointer; transition:border-color .12s, transform .1s; }
+.tag-editor-colors button:hover { transform:scale(1.1); }
+.tag-editor-colors button.sel { border-color:var(--text); }
+.tag-editor-save { width:100%; padding:12px; background:var(--accent); color:#fff; border:none; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; margin-top:4px; }
+.tag-editor-save:hover { opacity:.9; }
 /* ─── MENU PAGE ─── */
 .menu-profile { background:var(--card); border:1px solid var(--div); border-radius:16px; padding:20px; display:flex; align-items:center; gap:16px; margin-bottom:16px; }
 .menu-avatar { width:52px; height:52px; border-radius:50%; background:var(--accent); color:#fff; font-size:22px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -1182,7 +1206,7 @@ let _userId = null;
 // ─── DATA ───
 const TODAY = new Date();
 
-const TAGS = {
+let TAGS = {
   renda:      { nome: 'Renda',         emoji: '💰', cor: '#84CC16', bg: 'rgba(132,204,22,0.15)' },
   moradia:    { nome: 'Moradia',       emoji: '🏠', cor: '#7C3AED', bg: 'rgba(124,58,237,0.15)' },
   alimentacao:{ nome: 'Alimentação',   emoji: '🍽️', cor: '#F97316', bg: 'rgba(249,115,22,0.15)' },
@@ -2083,10 +2107,11 @@ function renderTags() {
       <div class="tag-card">
         <div class="tag-card-top">
           <div class="tag-card-emoji" style="background:${t.bg}">${t.emoji}</div>
-          <div>
+          <div style="flex:1">
             <div class="tag-card-nome" style="color:${t.cor}">${t.nome}</div>
             <div class="tag-card-count">${s.count} lançamento${s.count!==1?'s':''}</div>
           </div>
+          <button class="tag-card-edit" onclick="openTagEditor('${k}')" title="Editar categoria">✏️</button>
         </div>
         ${s.spent > 0 ? `<div class="tag-card-total ta-neg">${S.showBal ? '−'+fmt(s.spent) : '•••••'}</div>` : ''}
         ${s.earned > 0 ? `<div class="tag-card-total ta-pos">${S.showBal ? '+'+fmt(s.earned) : '•••••'}</div>` : ''}
@@ -2877,7 +2902,98 @@ async function bootApp() {
   render();
 }
 
+// ─── TAG EDITOR ───
+const TAG_EMOJIS = ['💰','🏠','🍽️','💊','🎬','💡','📈','🚗','🛒','✈️','🎮','👕','📱','🐾','🎓','💼','🎁','⚡','🏋️','🎵','🍕','☕','🚿','💎','🏥','🏦','🎯','🎨','🛡️','🧘'];
+const TAG_COLORS = ['#84CC16','#7C3AED','#F97316','#EC4899','#06B6D4','#EAB308','#10B981','#6366F1','#EF4444','#3B82F6','#8B5CF6','#F59E0B','#14B8A6','#F43F5E','#64748B'];
+
+let _tagEditKey = null;
+
+function loadTagCustomizations() {
+  try {
+    const saved = localStorage.getItem('brian-tag-custom');
+    if (!saved) return;
+    const custom = JSON.parse(saved);
+    for (const k of Object.keys(custom)) {
+      if (TAGS[k]) Object.assign(TAGS[k], custom[k]);
+    }
+  } catch(e) {}
+}
+
+function saveTagCustomizations() {
+  try {
+    const custom = {};
+    for (const [k, t] of Object.entries(TAGS)) {
+      custom[k] = { nome: t.nome, emoji: t.emoji, cor: t.cor, bg: t.bg };
+    }
+    localStorage.setItem('brian-tag-custom', JSON.stringify(custom));
+  } catch(e) {}
+}
+
+function openTagEditor(k) {
+  _tagEditKey = k;
+  const t = TAGS[k];
+  const el = document.getElementById('tagEditorOverlay');
+  el.dataset.cor = t.cor;
+  document.getElementById('teNome').value = t.nome;
+  document.getElementById('teEmojiInput').value = t.emoji;
+  _updateTagEditorPreview();
+  // mark selected emoji
+  el.querySelectorAll('.tag-editor-emojis button').forEach(b => {
+    b.classList.toggle('sel', b.dataset.emoji === t.emoji);
+  });
+  // mark selected color
+  el.querySelectorAll('.tag-editor-colors button').forEach(b => {
+    b.classList.toggle('sel', b.dataset.cor === t.cor);
+  });
+  el.hidden = false;
+}
+
+function closeTagEditor() {
+  document.getElementById('tagEditorOverlay').hidden = true;
+  _tagEditKey = null;
+}
+
+function _updateTagEditorPreview() {
+  const nome = document.getElementById('teNome').value || 'Tag';
+  const emoji = document.getElementById('teEmojiInput').value || '🏷️';
+  const cor = document.getElementById('tagEditorOverlay').dataset.cor || (TAGS[_tagEditKey]?.cor || '#6366F1');
+  const bg = cor + '26';
+  document.getElementById('tePreviewEmoji').style.background = bg;
+  document.getElementById('tePreviewEmoji').textContent = emoji;
+  document.getElementById('tePreviewNome').style.color = cor;
+  document.getElementById('tePreviewNome').textContent = nome;
+}
+
+function teSelectEmoji(btn, emoji) {
+  document.getElementById('teEmojiInput').value = emoji;
+  document.querySelectorAll('.tag-editor-emojis button').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  _updateTagEditorPreview();
+}
+
+function teSelectColor(btn, cor) {
+  document.getElementById('tagEditorOverlay').dataset.cor = cor;
+  document.querySelectorAll('.tag-editor-colors button').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  _updateTagEditorPreview();
+}
+
+function saveTagEdit() {
+  const k = _tagEditKey;
+  if (!k) return;
+  const nome = document.getElementById('teNome').value.trim();
+  const emoji = document.getElementById('teEmojiInput').value.trim();
+  const cor = document.getElementById('tagEditorOverlay').dataset.cor || TAGS[k].cor;
+  if (!nome || !emoji) return;
+  const bg = cor + '26';
+  TAGS[k] = { ...TAGS[k], nome, emoji, cor, bg };
+  saveTagCustomizations();
+  closeTagEditor();
+  reRenderTagsPanel();
+}
+
 // ─── INIT ───
+loadTagCustomizations();
 bootApp();
 
 // re-render on resize para ajustar grid mobile/desktop
@@ -2888,6 +3004,53 @@ window.addEventListener('resize', () => {
     if (S.page === 'saldos' && S.subtab === 'diario') render();
   }, 150);
 });
+</script>
+
+<!-- TAG EDITOR MODAL -->
+<div id="tagEditorOverlay" class="tag-editor-overlay" hidden onclick="if(event.target===this)closeTagEditor()">
+  <div class="tag-editor-box">
+    <div class="tag-editor-hdr">
+      <span class="tag-editor-title">Editar categoria</span>
+      <button class="tag-editor-close" onclick="closeTagEditor()">✕</button>
+    </div>
+    <div class="tag-editor-preview">
+      <div class="tag-editor-preview-emoji" id="tePreviewEmoji"></div>
+      <div class="tag-editor-preview-nome" id="tePreviewNome"></div>
+    </div>
+    <div class="tag-editor-field">
+      <div class="tag-editor-label">Nome</div>
+      <input id="teNome" class="tag-editor-input" type="text" maxlength="24" oninput="_updateTagEditorPreview()" placeholder="Nome da categoria">
+    </div>
+    <div class="tag-editor-field">
+      <div class="tag-editor-label">Emoji</div>
+      <input id="teEmojiInput" class="tag-editor-input" type="text" maxlength="4" oninput="_updateTagEditorPreview()" placeholder="Emoji" style="margin-bottom:8px">
+      <div class="tag-editor-emojis" id="teEmojiGrid"></div>
+    </div>
+    <div class="tag-editor-field">
+      <div class="tag-editor-label">Cor</div>
+      <div class="tag-editor-colors" id="teColorGrid"></div>
+    </div>
+    <button class="tag-editor-save" onclick="saveTagEdit()">Salvar</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  const emojisEl = document.getElementById('teEmojiGrid');
+  TAG_EMOJIS.forEach(e => {
+    const b = document.createElement('button');
+    b.textContent = e; b.dataset.emoji = e;
+    b.onclick = () => teSelectEmoji(b, e);
+    emojisEl.appendChild(b);
+  });
+  const colorsEl = document.getElementById('teColorGrid');
+  TAG_COLORS.forEach(c => {
+    const b = document.createElement('button');
+    b.style.background = c; b.dataset.cor = c;
+    b.onclick = () => teSelectColor(b, c);
+    colorsEl.appendChild(b);
+  });
+})();
 </script>
 
 </body></html>
