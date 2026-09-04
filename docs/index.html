@@ -2228,10 +2228,10 @@ function renderDiario(y, m) {
   const header = `<div class="bal-head" style="grid-template-columns:${GRID}">
     <div class="col-lbl">Dia</div>
     ${colHdr('in',  '#16A34A', '↙', mob ? 'ent.' : 'entrada')}
-    ${colHdr('out', '#DC2626', '↗', mob ? 'saí.' : 'saída')}
-    ${mob ? '' : colHdr('inv', '#EC7000', 'I', 'investidos')}
-    ${mob ? '' : colHdr('d',   '#0891B2', 'D', 'diário')}
-    ${mob ? '' : colHdr('c',   '#7C3AED', 'C', 'cartão')}
+    ${colHdr('out', '#DC2626', '↗', mob ? 'saí.' : 'saida')}
+    ${mob ? '' : colHdr('inv', '#EC7000', 'I', 'economia')}
+    ${mob ? '' : colHdr('d',   '#0891B2', 'D', 'diario')}
+    ${mob ? '' : colHdr('c',   '#7C3AED', 'C', 'cartao')}
     <div class="saldo-hdr-cell">${mob ? 'saldo' : 'saldos'}</div>
   </div>`;
 
@@ -2322,7 +2322,7 @@ function renderMonthBlock(y, mi, mob) {
   const v = S.diarioColsVis; // [true, false/true per col, ..., true]
   const COLORS = ['#529952','#E62D2D','#EC7000','#0891B2','#7C3AED'];
   const ICOS   = ['↙','↗','I','D','C'];
-  const LBLS   = ['entradas','saídas','invest.','diário','cartão'];
+  const LBLS   = ['entrada','saida','economia','diario','cartao'];
   const nCols  = mob ? 2 : 5;
 
   const colW = (ci) => v[ci+1] ? 168 : 40; // ci=0..4 → vis index 1..5
