@@ -1733,13 +1733,13 @@ function render() {
     main.innerHTML = hdrHtml + subtabsHtml + `<div class="panel active" ${panelStyle}>${panelHtml}</div>`;
 
     if (S.subtab === 'diario') {
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         const now = new Date();
         const targetMi = y === now.getFullYear() ? now.getMonth() : 0;
         const el = document.getElementById(`diario-month-${targetMi}`);
         const container = document.getElementById('diarioScrollOuter');
         if (el && container) container.scrollLeft = Math.max(0, el.offsetLeft - 8);
-      });
+      }, 80);
     }
   } else if (S.page === 'movimentacoes') {
     const { y, m } = S.month;
