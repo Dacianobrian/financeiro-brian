@@ -1310,33 +1310,51 @@ function toggleCol(key) { S.cols[key] = !S.cols[key]; render(); }
 // ─── DIARIO COLUMN RESIZE ───
 function applyDiarioCols() {
   const tpl = S.diarioCols.map(w => w + 'px').join(' ');
+  const totalW = S.diarioCols.reduce((a, b) => a + b, 0) + 2;
   let el = document.getElementById('_diarioCols');
   if (!el) { el = document.createElement('style'); el.id = '_diarioCols'; document.head.appendChild(el); }
-  el.textContent = `.diario-month-block .bal-head,.diario-month-block .bal-row,.diario-month-block .bal-totals-row{grid-template-columns:${tpl}!important}` +
-    `.diario-month-block{width:${S.diarioCols.reduce((a,b)=>a+b,0)+2}px!important}`;
+  el.textContent =
+    `.diario-month-block .bal-head,.diario-month-block .bal-row,.diario-month-block .bal-totals-row{grid-template-columns:${tpl}!important}` +
+    `.diario-month-block{width:${totalW}px!important}`;
 }
 
-let _rCol = null, _rX0 = 0, _rW0 = 0;
+let _rCol = null, _rX0 = 0, _rW0 = 0, _rLine = null, _rOverlay = null;
+
 function startColResize(e, ci) {
   e.preventDefault(); e.stopPropagation();
   _rCol = ci; _rX0 = e.clientX; _rW0 = S.diarioCols[ci];
-  e.target.classList.add('resizing');
-  document.body.classList.add('diario-resizing-active');
-  document.addEventListener('mousemove', _doColResize);
-  document.addEventListener('mouseup', _endColResize, { once: true });
+
+  // Linha vertical de preview (não move colunas durante drag)
+  _rLine = document.createElement('div');
+  _rLine.style.cssText = `position:fixed;top:0;bottom:0;left:${e.clientX}px;width:2px;background:var(--accent,#f97316);opacity:0.85;z-index:99999;pointer-events:none;transition:none`;
+  document.body.appendChild(_rLine);
+
+  // Overlay transparente captura todos os eventos do mouse
+  _rOverlay = document.createElement('div');
+  _rOverlay.style.cssText = 'position:fixed;inset:0;z-index:99998;cursor:col-resize';
+  _rOverlay.addEventListener('mousemove', _doColResize);
+  _rOverlay.addEventListener('mouseup', _endColResize, { once: true });
+  document.body.appendChild(_rOverlay);
+  document.body.style.userSelect = 'none';
 }
+
 function _doColResize(e) {
-  if (_rCol === null) return;
-  S.diarioCols[_rCol] = Math.max(32, Math.round(_rW0 + e.clientX - _rX0));
-  applyDiarioCols();
+  if (_rLine) _rLine.style.left = e.clientX + 'px';
 }
+
 function _endColResize(e) {
-  document.removeEventListener('mousemove', _doColResize);
-  document.body.classList.remove('diario-resizing-active');
-  document.querySelectorAll('.diario-col-resizer.resizing').forEach(el => el.classList.remove('resizing'));
-  _rCol = null;
+  const newW = Math.max(36, Math.round(_rW0 + e.clientX - _rX0));
+  S.diarioCols[_rCol] = newW;
+
+  if (_rLine && _rLine.parentNode) _rLine.parentNode.removeChild(_rLine);
+  if (_rOverlay && _rOverlay.parentNode) _rOverlay.parentNode.removeChild(_rOverlay);
+  _rLine = null; _rOverlay = null; _rCol = null;
+  document.body.style.userSelect = '';
+
+  applyDiarioCols();
   try { localStorage.setItem('brian-diario-cols', JSON.stringify(S.diarioCols)); } catch(e) {}
 }
+
 function resetDiarioCols() {
   S.diarioCols = [44, 110, 110, 76, 68, 68, 126];
   applyDiarioCols();
