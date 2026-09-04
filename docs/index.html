@@ -1218,7 +1218,7 @@ let TAGS = {
   transporte: { nome: 'Transporte',    emoji: '🚗', cor: '#6366F1', bg: 'rgba(99,102,241,0.15)' },
 };
 
-const CONTAS = {
+let CONTAS = {
   nubank: { nome: 'Nubank',     cor: '#8A05BE', saldo0: 0, label: 'D', labelCor: '#0891B2' },
   itau:   { nome: 'Economias',  cor: '#EC7000', saldo0: 0, label: 'E', labelCor: '#16A34A' },
   cartao: { nome: 'Cartão',     cor: '#7C3AED', saldo0: 0, label: 'C', labelCor: '#7C3AED' },
@@ -2141,6 +2141,17 @@ function renderMenu() {
         <span class="menu-badge">✓ Ativo</span>
       </div>
       <div class="menu-section">
+        <div class="menu-section-hdr">Contas</div>
+        ${Object.entries(CONTAS).map(([k,c]) => `
+        <div class="menu-item">
+          <div class="menu-item-icon" style="background:${c.cor}30;color:${c.cor};font-weight:700;font-size:13px">${c.label}</div>
+          <div class="menu-item-body">
+            <div class="menu-item-label">${c.nome}</div>
+          </div>
+          <button onclick="openContaEditor('${k}')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:4px 8px;border-radius:6px" title="Editar">✏️</button>
+        </div>`).join('')}
+      </div>
+      <div class="menu-section">
         <div class="menu-section-hdr">Ferramentas</div>
         <div class="menu-item" onclick="S.menuSubPage='prevDiario';render()">
           <div class="menu-item-icon" style="background:#ec489920">📅</div>
@@ -2931,6 +2942,97 @@ function saveTagCustomizations() {
   } catch(e) {}
 }
 
+// ─── CONTA EDITOR ───
+let _contaEditKey = null;
+const CONTA_COLORS = ['#8A05BE','#EC7000','#7C3AED','#EF4444','#3B82F6','#10B981','#F59E0B','#06B6D4','#EC4899','#6366F1','#84CC16','#64748B','#F97316','#14B8A6','#8B5CF6'];
+
+function loadContaCustomizations() {
+  try {
+    const saved = localStorage.getItem('brian-conta-custom');
+    if (!saved) return;
+    const custom = JSON.parse(saved);
+    for (const k of Object.keys(custom)) {
+      if (CONTAS[k]) Object.assign(CONTAS[k], custom[k]);
+    }
+  } catch(e) {}
+}
+
+function saveContaCustomizations() {
+  try {
+    const custom = {};
+    for (const [k, c] of Object.entries(CONTAS)) {
+      custom[k] = { nome: c.nome, cor: c.cor };
+    }
+    localStorage.setItem('brian-conta-custom', JSON.stringify(custom));
+  } catch(e) {}
+}
+
+function openContaEditor(k) {
+  _contaEditKey = k;
+  const c = CONTAS[k];
+  if (!c) return;
+  const overlay = document.getElementById('tagEditorOverlay');
+  overlay.dataset.cor = c.cor;
+  overlay.onclick = e => { if (e.target === overlay) closeTagEditor(); };
+
+  const box = document.createElement('div'); box.className = 'tag-editor-box';
+
+  const hdr = document.createElement('div'); hdr.className = 'tag-editor-hdr';
+  const title = document.createElement('span'); title.className = 'tag-editor-title'; title.textContent = 'Editar conta';
+  const closeBtn = document.createElement('button'); closeBtn.className = 'tag-editor-close'; closeBtn.textContent = '✕'; closeBtn.onclick = closeTagEditor;
+  hdr.appendChild(title); hdr.appendChild(closeBtn); box.appendChild(hdr);
+
+  // Preview
+  const prev = document.createElement('div'); prev.className = 'tag-editor-preview';
+  const prevEmoji = document.createElement('div'); prevEmoji.className = 'tag-editor-preview-emoji'; prevEmoji.id = 'tePreviewEmoji'; prevEmoji.style.background = c.cor + '30'; prevEmoji.style.color = c.cor; prevEmoji.style.fontWeight = '700'; prevEmoji.textContent = c.label || '●';
+  const prevNome = document.createElement('div'); prevNome.className = 'tag-editor-preview-nome'; prevNome.id = 'tePreviewNome'; prevNome.style.color = c.cor; prevNome.textContent = c.nome;
+  prev.appendChild(prevEmoji); prev.appendChild(prevNome); box.appendChild(prev);
+
+  // Campo nome
+  const fNome = document.createElement('div'); fNome.className = 'tag-editor-field';
+  const lNome = document.createElement('div'); lNome.className = 'tag-editor-label'; lNome.textContent = 'Nome';
+  const iNome = document.createElement('input'); iNome.id = 'teNome'; iNome.className = 'tag-editor-input'; iNome.type = 'text'; iNome.maxLength = 24; iNome.placeholder = 'Nome da conta'; iNome.value = c.nome;
+  iNome.oninput = () => {
+    document.getElementById('tePreviewNome').textContent = iNome.value || 'Conta';
+  };
+  fNome.appendChild(lNome); fNome.appendChild(iNome); box.appendChild(fNome);
+
+  // Campo cor
+  const fCor = document.createElement('div'); fCor.className = 'tag-editor-field';
+  const lCor = document.createElement('div'); lCor.className = 'tag-editor-label'; lCor.textContent = 'Cor';
+  const cg = document.createElement('div'); cg.id = 'teColorGrid'; cg.className = 'tag-editor-colors';
+  CONTA_COLORS.forEach(col => {
+    const b = document.createElement('button'); b.style.background = col; b.dataset.cor = col;
+    if (col === c.cor) b.classList.add('sel');
+    b.onclick = () => {
+      overlay.dataset.cor = col;
+      document.querySelectorAll('#teColorGrid button').forEach(x => x.classList.remove('sel'));
+      b.classList.add('sel');
+      prevEmoji.style.background = col + '30'; prevEmoji.style.color = col;
+      prevNome.style.color = col;
+    };
+    cg.appendChild(b);
+  });
+  fCor.appendChild(lCor); fCor.appendChild(cg); box.appendChild(fCor);
+
+  const saveBtn = document.createElement('button'); saveBtn.className = 'tag-editor-save'; saveBtn.textContent = 'Salvar'; saveBtn.onclick = saveContaEdit;
+  box.appendChild(saveBtn);
+
+  overlay.innerHTML = ''; overlay.appendChild(box); overlay.hidden = false;
+}
+
+function saveContaEdit() {
+  const k = _contaEditKey;
+  if (!k) return;
+  const nome = document.getElementById('teNome').value.trim();
+  const cor = document.getElementById('tagEditorOverlay').dataset.cor || CONTAS[k].cor;
+  if (!nome) return;
+  CONTAS[k] = { ...CONTAS[k], nome, cor };
+  saveContaCustomizations();
+  closeTagEditor();
+  render();
+}
+
 function openTagEditor(k) {
   _tagEditKey = k;
   const t = TAGS[k];
@@ -3044,6 +3146,7 @@ function saveTagEdit() {
 
 // ─── INIT ───
 loadTagCustomizations();
+loadContaCustomizations();
 bootApp();
 
 // re-render on resize para ajustar grid mobile/desktop
