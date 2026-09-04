@@ -204,7 +204,8 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 .col-toggle { cursor: pointer; user-select: none; transition: opacity 0.15s; }
 .col-toggle:hover { opacity: 0.75; }
 .col-collapsed { justify-content: center; padding: 0; opacity: 0.5; }
-.bal-cell-collapsed { padding: 0; min-width: 0; overflow: hidden; }
+.bal-cell-collapsed { padding: 0; min-width: 0; overflow: hidden; justify-content: center; align-items: center; flex-direction: row; }
+.bal-dot-empty { width: 6px; height: 6px; border-radius: 50%; border: 1.5px solid var(--text3); opacity: 0.35; flex-shrink: 0; }
 
 .col-ico {
   width: 16px; height: 16px; border-radius: 50%;
@@ -1303,8 +1304,8 @@ const S = {
   menuSubPage: null,
   prevDiarioGastos: [],
   prevDiarioDias: 30,
-  diarioCols: [44, 120, 120, 78, 70, 70, 130],
-  diarioColsVis: [true, true, true, true, true, true, true],
+  diarioCols: [48, 40, 40, 40, 40, 40, 160],
+  diarioColsVis: [true, false, false, false, false, false, true],
 };
 
 function toggleCol(key) { S.cols[key] = !S.cols[key]; render(); }
@@ -1358,24 +1359,18 @@ function _endColResize(e) {
 }
 
 function resetDiarioCols() {
-  S.diarioCols = [44, 120, 120, 78, 70, 70, 130];
-  S.diarioColsVis = [true, true, true, true, true, true, true];
+  S.diarioCols = [48, 40, 40, 40, 40, 40, 160];
+  S.diarioColsVis = [true, false, false, false, false, false, true];
   applyDiarioCols();
-  try { localStorage.removeItem('brian-diario-cols'); } catch(e) {}
+  try { localStorage.removeItem('brian-diario-cols'); localStorage.removeItem('brian-diario-vis'); } catch(e) {}
 }
 
-const _DCOLS_DEFAULT = [44, 120, 120, 78, 70, 70, 130];
+const _DCOLS_DEFAULT = [48, 160, 160, 160, 160, 160, 160];
 
 function toggleDiarioCol(ci) {
   const vis = S.diarioColsVis;
   vis[ci] = !vis[ci];
-  if (vis[ci]) {
-    // Restaurar largura default (ou última usada antes de colapsar)
-    S.diarioCols[ci] = _DCOLS_DEFAULT[ci];
-  } else {
-    // Colapsar para ícone-only
-    S.diarioCols[ci] = 36;
-  }
+  S.diarioCols[ci] = vis[ci] ? _DCOLS_DEFAULT[ci] : 40;
   applyDiarioCols();
   // Re-renderiza só o conteúdo do diário (não o page inteiro)
   const outer = document.getElementById('diarioScrollOuter');
@@ -2110,8 +2105,13 @@ function renderMonthBlock(y, mi, mob) {
   </div>`;
 
   const dCell = (delta, vis = true) => {
-    if (!vis) return `<div class="bal-cell bal-cell-collapsed"></div>`;
-    if (!S.showBal) return `<div class="bal-cell"><span class="bal-amt zer">•••</span></div>`;
+    if (!S.showBal) return `<div class="bal-cell" style="${!vis?'justify-content:center':''}"><span class="bal-amt zer">•••</span></div>`;
+    if (!vis) {
+      // Colapsado (40px): só dot colorido igual Breno, nada para zero
+      if (delta === 0) return `<div class="bal-cell bal-cell-collapsed"><span class="bal-dot-empty"></span></div>`;
+      const dc = delta > 0 ? 'var(--income)' : 'var(--expense)';
+      return `<div class="bal-cell bal-cell-collapsed"><span class="bal-dot" style="background:${dc}"></span></div>`;
+    }
     if (delta === 0) return `<div class="bal-cell"><span class="bal-amt zer">R$ 0</span></div>`;
     const cls = delta > 0 ? 'pos' : 'neg';
     const sign = delta > 0 ? '+' : '';
