@@ -458,6 +458,45 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 .limit-amt { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 .limit-bar { height: 5px; background: var(--elevated); border-radius: 3px; overflow: hidden; }
 .limit-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width 0.4s ease; }
+.cartao-edit-badge { position: absolute; top: 10px; right: 12px; background: rgba(255,255,255,0.18); border: none; border-radius: 6px; color: rgba(255,255,255,0.9); cursor: pointer; padding: 3px 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+.cartao-vis:hover .cartao-edit-badge { opacity: 1; pointer-events: auto; }
+.cartao-vis.cartao-editing .cartao-edit-badge { opacity: 1; pointer-events: auto; background: rgba(255,255,255,0.28); }
+.cartao-vis { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+.cartao-vis:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+.cartao-vis.cartao-editing { box-shadow: 0 0 0 2px rgba(255,255,255,0.4), 0 8px 24px rgba(0,0,0,0.25); }
+.cartao-add-card { width: 140px; height: 176px; border-radius: 14px; border: 2px dashed var(--div); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: var(--text3); font-size: 12px; font-weight: 600; background: transparent; transition: background 0.1s, border-color 0.1s; flex-shrink: 0; }
+.cartao-add-card:hover { background: var(--elevated); border-color: var(--text3); }
+.cartao-edit-panel { background: var(--surface); border: 1px solid var(--div); border-radius: 12px; padding: 20px; margin-bottom: 20px; max-width: 640px; }
+.cartao-edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.cartao-edit-field { display: flex; flex-direction: column; gap: 5px; }
+.cartao-edit-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text3); }
+.cartao-edit-input { background: var(--elevated); border: 1px solid var(--div); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: var(--text); outline: none; width: 100%; box-sizing: border-box; }
+.cartao-edit-input:focus { border-color: var(--accent); }
+.color-swatches { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+.color-swatch { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s; flex-shrink: 0; }
+.color-swatch.selected { border-color: var(--text); transform: scale(1.2); }
+.pc-section { margin-top: 24px; max-width: 640px; }
+.pc-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.pc-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text3); }
+.pc-add-btn { font-size: 12px; font-weight: 700; color: var(--accent); background: var(--accent-dim); border: none; border-radius: 8px; padding: 6px 14px; cursor: pointer; }
+.pc-form { background: var(--surface); border: 1px solid var(--div); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+.pc-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.pc-form-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.pc-item { background: var(--surface); border: 1px solid var(--div); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+.pc-item-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.pc-item-desc { font-size: 13.5px; font-weight: 600; }
+.pc-item-card-lbl { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.pc-item-right { text-align: right; flex-shrink: 0; margin-left: 12px; }
+.pc-item-val { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pc-item-rest { font-size: 11px; color: var(--text3); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.pc-bar { height: 4px; background: var(--elevated); border-radius: 2px; overflow: hidden; }
+.pc-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+.pc-item-footer { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text3); }
+.pc-item-actions { display: flex; gap: 6px; }
+.pc-action-btn { font-size: 11px; font-weight: 600; border: none; border-radius: 5px; padding: 3px 9px; cursor: pointer; }
+.pc-btn-edit { background: var(--elevated); color: var(--text2); }
+.pc-btn-del { background: var(--expense-dim); color: var(--expense); }
+.pc-empty { text-align: center; padding: 32px 20px; color: var(--text3); font-size: 13px; border: 1px dashed var(--div); border-radius: 10px; line-height: 1.6; }
 
 /* ─── BOTTOM SHEET ─── */
 .overlay {
@@ -1325,6 +1364,19 @@ let CONTAS = {
   cartao: { nome: 'Cartão',     cor: '#7C3AED', saldo0: 0, label: 'C', labelCor: '#7C3AED' },
 };
 
+let CARTOES_VIS = [
+  { id: 'nu-cc',   nome: 'Nubank',             cor1: '#8A05BE', cor2: '#5E038C', num: '4812', titular: 'BRIAN D', limite: 8000 },
+  { id: 'itau-cc', nome: 'Itaú Personnalité',  cor1: '#EC7000', cor2: '#C05500', num: '9031', titular: 'BRIAN D', limite: 15000 },
+];
+let PARCELAMENTOS = [];
+
+function saveCartoesVis() {
+  try { localStorage.setItem('brian-cartoes-vis', JSON.stringify(CARTOES_VIS)); } catch(e) {}
+}
+function saveParcelamentos() {
+  try { localStorage.setItem('brian-parcelamentos', JSON.stringify(PARCELAMENTOS)); } catch(e) {}
+}
+
 let nextId = 1;
 let movs = [];
 
@@ -1360,6 +1412,9 @@ const S = {
   prevDiarioDias: 30,
   diarioCols: [48, 40, 40, 40, 40, 40, 160],
   diarioColsVis: [true, false, false, false, false, false, true],
+  cartaoEditId: null,
+  parcelaFormOpen: false,
+  parcelaFormEditId: null,
 };
 
 function toggleCol(key) { S.cols[key] = !S.cols[key]; render(); }
@@ -2697,45 +2752,273 @@ function renderHorizonte() {
 }
 
 // ─── CARTÃO ───
+function _reRenderCartao() {
+  if (S.page !== 'cartao') return;
+  const panel = document.querySelector('#main .panel.active');
+  if (panel) panel.innerHTML = renderCartao();
+  else render();
+}
+
+function _saveCartaoFormState() {
+  const c = CARTOES_VIS.find(x => x.id === S.cartaoEditId);
+  if (!c) return;
+  const n = document.getElementById('ceNome');
+  const t = document.getElementById('ceTitular');
+  const num = document.getElementById('ceNum');
+  const l = document.getElementById('ceLimite');
+  if (n) c.nome = n.value;
+  if (t) c.titular = t.value;
+  if (num) c.num = num.value.replace(/\D/g,'').slice(-4);
+  if (l) c.limite = parseFloat(l.value) || c.limite;
+}
+
+function toggleCartaoEdit(id) {
+  S.cartaoEditId = S.cartaoEditId === id ? null : id;
+  _reRenderCartao();
+}
+
+function setCartaoCor1(cor) {
+  _saveCartaoFormState();
+  const c = CARTOES_VIS.find(x => x.id === S.cartaoEditId);
+  if (c) { c.cor1 = cor; _reRenderCartao(); }
+}
+function setCartaoCor2(cor) {
+  _saveCartaoFormState();
+  const c = CARTOES_VIS.find(x => x.id === S.cartaoEditId);
+  if (c) { c.cor2 = cor; _reRenderCartao(); }
+}
+
+function saveCartaoConfig(id) {
+  const c = CARTOES_VIS.find(x => x.id === id);
+  if (!c) return;
+  _saveCartaoFormState();
+  S.cartaoEditId = null;
+  saveCartoesVis();
+  _reRenderCartao();
+}
+
+function addCartao() {
+  const id = 'cc-' + Date.now();
+  CARTOES_VIS.push({ id, nome: 'Novo Cartão', cor1: '#64748B', cor2: '#475569', num: '0000', titular: 'TITULAR', limite: 5000 });
+  S.cartaoEditId = id;
+  saveCartoesVis();
+  _reRenderCartao();
+}
+
+function deleteCartao(id) {
+  CARTOES_VIS = CARTOES_VIS.filter(c => c.id !== id);
+  PARCELAMENTOS = PARCELAMENTOS.filter(p => p.cartaoId !== id);
+  S.cartaoEditId = null;
+  saveCartoesVis();
+  saveParcelamentos();
+  _reRenderCartao();
+}
+
+function openParcelaForm(editId) {
+  S.parcelaFormOpen = true;
+  S.parcelaFormEditId = editId || null;
+  _reRenderCartao();
+}
+function closeParcelaForm() {
+  S.parcelaFormOpen = false;
+  S.parcelaFormEditId = null;
+  _reRenderCartao();
+}
+
+function saveParcelamento() {
+  const desc = document.getElementById('pfDesc')?.value?.trim();
+  const cartaoId = document.getElementById('pfCartao')?.value;
+  const valorParcela = parseFloat(document.getElementById('pfValor')?.value) || 0;
+  const totalParcelas = parseInt(document.getElementById('pfTotal')?.value) || 0;
+  const parcelaAtual = parseInt(document.getElementById('pfAtual')?.value) || 1;
+  if (!desc || !valorParcela || !totalParcelas) return;
+  if (S.parcelaFormEditId) {
+    const p = PARCELAMENTOS.find(x => x.id === S.parcelaFormEditId);
+    if (p) { p.desc = desc; p.cartaoId = cartaoId; p.valorParcela = valorParcela; p.totalParcelas = totalParcelas; p.parcelaAtual = parcelaAtual; }
+  } else {
+    PARCELAMENTOS.push({ id: 'p' + Date.now(), cartaoId, desc, valorParcela, totalParcelas, parcelaAtual });
+  }
+  saveParcelamentos();
+  closeParcelaForm();
+}
+
+function deleteParcelamento(id) {
+  PARCELAMENTOS = PARCELAMENTOS.filter(p => p.id !== id);
+  saveParcelamentos();
+  _reRenderCartao();
+}
+
 function renderCartao() {
+  const CARD_COLORS1 = ['#8A05BE','#EC7000','#CC092F','#EC0000','#005FAD','#FF7A00','#10B981','#6366F1','#F59E0B','#64748B'];
+  const CARD_COLORS2 = ['#5E038C','#C05500','#A00720','#B00000','#003F80','#CC6200','#047857','#4F46E5','#D97706','#475569'];
+
+  // fatura por cartão = soma dos parcelamentos ativos
+  const faturas = {};
+  for (const p of PARCELAMENTOS) {
+    faturas[p.cartaoId] = (faturas[p.cartaoId] || 0) + p.valorParcela;
+  }
+
+  // ── Card visuals ──
+  const cardsHtml = CARTOES_VIS.map(c => {
+    const fatura = faturas[c.id] || 0;
+    const isEd = S.cartaoEditId === c.id;
+    return `<div class="cartao-vis${isEd?' cartao-editing':''}" style="background:linear-gradient(135deg,${c.cor1},${c.cor2})" onclick="toggleCartaoEdit('${c.id}')">
+      <div class="cartao-edit-badge">${isEd ? '✕ fechar' : '✏ editar'}</div>
+      <div class="cartao-banco">${c.nome}</div>
+      <div>
+        <div class="cartao-num">•••• •••• •••• ${c.num}</div>
+        <div class="cartao-foot">
+          <div class="cartao-holder">${c.titular}</div>
+          <div class="cartao-val">${S.showBal ? fmt(fatura) : '•••••'}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── Edit panel ──
+  let editHtml = '';
+  if (S.cartaoEditId) {
+    const c = CARTOES_VIS.find(x => x.id === S.cartaoEditId);
+    if (c) editHtml = `
+      <div class="cartao-edit-panel">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:14px">Editar cartão</div>
+        <div class="cartao-edit-grid">
+          <div class="cartao-edit-field">
+            <label class="cartao-edit-label">Nome do banco</label>
+            <input class="cartao-edit-input" id="ceNome" value="${c.nome}">
+          </div>
+          <div class="cartao-edit-field">
+            <label class="cartao-edit-label">Titular</label>
+            <input class="cartao-edit-input" id="ceTitular" value="${c.titular}">
+          </div>
+          <div class="cartao-edit-field">
+            <label class="cartao-edit-label">Últimos 4 dígitos</label>
+            <input class="cartao-edit-input" id="ceNum" value="${c.num}" maxlength="4" placeholder="0000">
+          </div>
+          <div class="cartao-edit-field">
+            <label class="cartao-edit-label">Limite (R$)</label>
+            <input class="cartao-edit-input" id="ceLimite" type="number" value="${c.limite}">
+          </div>
+        </div>
+        <div class="cartao-edit-field" style="margin-bottom:12px">
+          <label class="cartao-edit-label">Cor primária</label>
+          <div class="color-swatches">${CARD_COLORS1.map(cor=>`<div class="color-swatch${c.cor1===cor?' selected':''}" style="background:${cor}" onclick="event.stopPropagation();setCartaoCor1('${cor}')"></div>`).join('')}</div>
+        </div>
+        <div class="cartao-edit-field" style="margin-bottom:18px">
+          <label class="cartao-edit-label">Cor secundária</label>
+          <div class="color-swatches">${CARD_COLORS2.map(cor=>`<div class="color-swatch${c.cor2===cor?' selected':''}" style="background:${cor}" onclick="event.stopPropagation();setCartaoCor2('${cor}')"></div>`).join('')}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button onclick="saveCartaoConfig('${c.id}')" style="background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer">Salvar</button>
+          <button onclick="toggleCartaoEdit(null)" style="background:var(--elevated);color:var(--text2);border:none;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer">Cancelar</button>
+          <button onclick="deleteCartao('${c.id}')" style="background:var(--expense-dim);color:var(--expense);border:none;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;margin-left:auto">Remover cartão</button>
+        </div>
+      </div>`;
+  }
+
+  // ── Limit bars ──
+  const limitsHtml = CARTOES_VIS.map(c => {
+    const fatura = faturas[c.id] || 0;
+    const pct = c.limite > 0 ? Math.min(fatura / c.limite * 100, 100) : 0;
+    const fillColor = pct > 80 ? 'var(--expense)' : pct > 50 ? '#F59E0B' : c.cor1;
+    return `<div class="limit-card">
+      <div class="limit-row">
+        <span class="limit-lbl">${c.nome} — Limite utilizado</span>
+        <span class="limit-amt">${S.showBal ? fmt(fatura) + ' / ' + fmt(c.limite) : '••••• / •••••'}</span>
+      </div>
+      <div class="limit-bar"><div class="limit-fill" style="width:${pct.toFixed(1)}%;background:${fillColor}"></div></div>
+    </div>`;
+  }).join('');
+
+  // ── Parcelamento form ──
+  let pfHtml = '';
+  if (S.parcelaFormOpen) {
+    const editP = S.parcelaFormEditId ? PARCELAMENTOS.find(p => p.id === S.parcelaFormEditId) : null;
+    const defCartao = editP?.cartaoId || CARTOES_VIS[0]?.id || '';
+    const cartoesOpts = CARTOES_VIS.map(c => `<option value="${c.id}"${defCartao===c.id?' selected':''}>${c.nome}</option>`).join('');
+    pfHtml = `<div class="pc-form">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:14px">${editP?'Editar parcelamento':'Novo parcelamento'}</div>
+      <div class="cartao-edit-field" style="margin-bottom:12px">
+        <label class="cartao-edit-label">Descrição</label>
+        <input class="cartao-edit-input" id="pfDesc" placeholder="Ex: iPhone, TV, Viagem…" value="${editP?.desc||''}">
+      </div>
+      <div class="pc-form-grid">
+        <div class="cartao-edit-field">
+          <label class="cartao-edit-label">Cartão</label>
+          <select class="cartao-edit-input" id="pfCartao">${cartoesOpts}</select>
+        </div>
+        <div class="cartao-edit-field">
+          <label class="cartao-edit-label">Valor por parcela (R$)</label>
+          <input class="cartao-edit-input" id="pfValor" type="number" step="0.01" placeholder="0,00" value="${editP?.valorParcela||''}">
+        </div>
+        <div class="cartao-edit-field">
+          <label class="cartao-edit-label">Total de parcelas</label>
+          <input class="cartao-edit-input" id="pfTotal" type="number" placeholder="12" value="${editP?.totalParcelas||''}">
+        </div>
+        <div class="cartao-edit-field">
+          <label class="cartao-edit-label">Parcela atual</label>
+          <input class="cartao-edit-input" id="pfAtual" type="number" placeholder="1" value="${editP?.parcelaAtual||''}">
+        </div>
+      </div>
+      <div class="pc-form-actions">
+        <button onclick="saveParcelamento()" style="background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer">Salvar</button>
+        <button onclick="closeParcelaForm()" style="background:var(--elevated);color:var(--text2);border:none;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer">Cancelar</button>
+      </div>
+    </div>`;
+  }
+
+  // ── Parcelamentos list ──
+  let listHtml = '';
+  if (PARCELAMENTOS.length === 0 && !S.parcelaFormOpen) {
+    listHtml = `<div class="pc-empty">Nenhum parcelamento cadastrado.<br>Clique em <strong>+ Adicionar</strong> para começar.</div>`;
+  } else {
+    listHtml = PARCELAMENTOS.map(p => {
+      const cartao = CARTOES_VIS.find(c => c.id === p.cartaoId);
+      const restantes = Math.max(p.totalParcelas - p.parcelaAtual + 1, 0);
+      const valorRestante = restantes * p.valorParcela;
+      const pct = p.totalParcelas > 0 ? Math.min((p.parcelaAtual - 1) / p.totalParcelas * 100, 100) : 0;
+      return `<div class="pc-item">
+        <div class="pc-item-top">
+          <div>
+            <div class="pc-item-desc">${p.desc}</div>
+            <div class="pc-item-card-lbl">${cartao?.nome || '—'}</div>
+          </div>
+          <div class="pc-item-right">
+            <div class="pc-item-val">${S.showBal ? fmt(p.valorParcela) : '•••••'}<span style="font-size:11px;font-weight:400;color:var(--text3)">/mês</span></div>
+            <div class="pc-item-rest">${S.showBal ? fmt(valorRestante) + ' restantes' : '•••••'}</div>
+          </div>
+        </div>
+        <div class="pc-bar"><div class="pc-fill" style="width:${pct.toFixed(1)}%;background:${cartao?.cor1||'var(--accent)'}"></div></div>
+        <div class="pc-item-footer">
+          <span>Parcela ${p.parcelaAtual} de ${p.totalParcelas}</span>
+          <div class="pc-item-actions">
+            <button class="pc-action-btn pc-btn-edit" onclick="openParcelaForm('${p.id}')">Editar</button>
+            <button class="pc-action-btn pc-btn-del" onclick="deleteParcelamento('${p.id}')">Excluir</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
   return `
     <div class="cartoes-row">
-      <div class="cartao-vis" style="background:linear-gradient(135deg,#8A05BE,#5E038C)">
-        <div class="cartao-banco">Nubank</div>
-        <div>
-          <div class="cartao-num">•••• •••• •••• 4812</div>
-          <div class="cartao-foot">
-            <div class="cartao-holder">BRENO S</div>
-            <div class="cartao-val">R$ 1.247,80</div>
-          </div>
-        </div>
-      </div>
-      <div class="cartao-vis" style="background:linear-gradient(135deg,#EC7000,#C05500)">
-        <div class="cartao-banco">Itaú Personnalité</div>
-        <div>
-          <div class="cartao-num">•••• •••• •••• 9031</div>
-          <div class="cartao-foot">
-            <div class="cartao-holder">BRENO S</div>
-            <div class="cartao-val">R$ 3.892,10</div>
-          </div>
-        </div>
-      </div>
+      ${cardsHtml}
+      <button class="cartao-add-card" onclick="addCartao()">
+        <span style="font-size:24px;line-height:1">+</span>
+        <span>novo cartão</span>
+      </button>
     </div>
-    <div style="max-width:500px;display:flex;flex-direction:column;gap:12px">
-      <div class="limit-card">
-        <div class="limit-row">
-          <span class="limit-lbl">Nubank — Limite utilizado</span>
-          <span class="limit-amt">R$ 1.247,80 / R$ 8.000</span>
-        </div>
-        <div class="limit-bar"><div class="limit-fill" style="width:${(1247.8/8000*100).toFixed(1)}%"></div></div>
+    ${editHtml}
+    <div style="max-width:640px;display:flex;flex-direction:column;gap:12px;margin-bottom:8px">
+      ${limitsHtml}
+    </div>
+    <div class="pc-section">
+      <div class="pc-section-header">
+        <div class="pc-section-title">Parcelamentos</div>
+        <button class="pc-add-btn" onclick="openParcelaForm()">+ Adicionar</button>
       </div>
-      <div class="limit-card">
-        <div class="limit-row">
-          <span class="limit-lbl">Itaú — Limite utilizado</span>
-          <span class="limit-amt">R$ 3.892,10 / R$ 15.000</span>
-        </div>
-        <div class="limit-bar"><div class="limit-fill" style="width:${(3892.1/15000*100).toFixed(1)}%"></div></div>
-      </div>
+      ${pfHtml}
+      ${listHtml}
     </div>`;
 }
 
@@ -3230,6 +3513,12 @@ async function bootApp() {
     }
     const savedVis = localStorage.getItem('brian-diario-vis');
     if (savedVis) S.diarioColsVis = JSON.parse(savedVis);
+  } catch(e) {}
+  try {
+    const savedCV = localStorage.getItem('brian-cartoes-vis');
+    if (savedCV) CARTOES_VIS = JSON.parse(savedCV);
+    const savedP = localStorage.getItem('brian-parcelamentos');
+    if (savedP) PARCELAMENTOS = JSON.parse(savedP);
   } catch(e) {}
   try {
     const savedMode = localStorage.getItem('brian-theme-mode');
