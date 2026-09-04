@@ -1487,6 +1487,7 @@ function toggleDiarioCol(ci) {
     for (let mi = 0; mi < 12; mi++) blocks.push(renderMonthBlock(y, mi, mob));
     outer.innerHTML = `<div class="diario-scroll-inner">${blocks.join('')}</div>`;
     outer.scrollLeft = savedScroll;
+    requestAnimationFrame(() => { outer.scrollLeft = savedScroll; });
   } else { render(); }
   try { localStorage.setItem('brian-diario-vis', JSON.stringify(S.diarioColsVis)); } catch(e) {}
 }
