@@ -295,6 +295,19 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 .diario-month-name { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text2); }
 .diario-month-hdr.cur-month .diario-month-name { color: var(--accent); }
 .diario-month-bal { font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.diario-col-resizer {
+  position: absolute; right: -2px; top: 0; bottom: 0; width: 6px;
+  cursor: col-resize; z-index: 10; user-select: none;
+}
+.diario-col-resizer::after {
+  content: ''; position: absolute; right: 2px; top: 25%; bottom: 25%;
+  width: 2px; border-radius: 1px;
+  background: var(--div); transition: background 0.15s;
+}
+.diario-col-resizer:hover::after, .diario-col-resizer.resizing::after { background: var(--accent); }
+.diario-month-block .col-lbl,
+.diario-month-block .saldo-hdr-cell { position: relative; }
+.diario-resizing-active * { user-select: none !important; }
 
 /* ─── MOVIMENTAÇÕES ─── */
 .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -1289,9 +1302,46 @@ const S = {
   menuSubPage: null,
   prevDiarioGastos: [],
   prevDiarioDias: 30,
+  diarioCols: [44, 110, 110, 76, 68, 68, 126],
 };
 
 function toggleCol(key) { S.cols[key] = !S.cols[key]; render(); }
+
+// ─── DIARIO COLUMN RESIZE ───
+function applyDiarioCols() {
+  const tpl = S.diarioCols.map(w => w + 'px').join(' ');
+  let el = document.getElementById('_diarioCols');
+  if (!el) { el = document.createElement('style'); el.id = '_diarioCols'; document.head.appendChild(el); }
+  el.textContent = `.diario-month-block .bal-head,.diario-month-block .bal-row,.diario-month-block .bal-totals-row{grid-template-columns:${tpl}!important}` +
+    `.diario-month-block{width:${S.diarioCols.reduce((a,b)=>a+b,0)+2}px!important}`;
+}
+
+let _rCol = null, _rX0 = 0, _rW0 = 0;
+function startColResize(e, ci) {
+  e.preventDefault(); e.stopPropagation();
+  _rCol = ci; _rX0 = e.clientX; _rW0 = S.diarioCols[ci];
+  e.target.classList.add('resizing');
+  document.body.classList.add('diario-resizing-active');
+  document.addEventListener('mousemove', _doColResize);
+  document.addEventListener('mouseup', _endColResize, { once: true });
+}
+function _doColResize(e) {
+  if (_rCol === null) return;
+  S.diarioCols[_rCol] = Math.max(32, Math.round(_rW0 + e.clientX - _rX0));
+  applyDiarioCols();
+}
+function _endColResize(e) {
+  document.removeEventListener('mousemove', _doColResize);
+  document.body.classList.remove('diario-resizing-active');
+  document.querySelectorAll('.diario-col-resizer.resizing').forEach(el => el.classList.remove('resizing'));
+  _rCol = null;
+  try { localStorage.setItem('brian-diario-cols', JSON.stringify(S.diarioCols)); } catch(e) {}
+}
+function resetDiarioCols() {
+  S.diarioCols = [44, 110, 110, 76, 68, 68, 126];
+  applyDiarioCols();
+  try { localStorage.removeItem('brian-diario-cols'); } catch(e) {}
+}
 
 function prevTotaisMes() {
   let y = S.totaisYear, m = S.totaisMes ?? new Date().getMonth();
@@ -1738,6 +1788,7 @@ function render() {
     main.innerHTML = hdrHtml + subtabsHtml + `<div class="panel active" ${panelStyle}>${panelHtml}</div>`;
 
     if (S.subtab === 'diario') {
+      applyDiarioCols();
       setTimeout(() => {
         const now = new Date();
         const targetMi = y === now.getFullYear() ? now.getMonth() : 0;
@@ -1982,19 +2033,21 @@ function renderMonthBlock(y, mi, mob) {
 
   const GRID = mob
     ? `40px 1fr 1fr 100px`
-    : `44px 110px 110px 76px 68px 68px 126px`;
+    : S.diarioCols.map(w => w + 'px').join(' ');
 
-  const colHdr = (bg, ico, lbl) =>
-    `<div class="col-lbl"><span class="col-ico" style="background:${bg}">${ico}</span>${lbl}</div>`;
+  const R = (ci) => mob ? '' : `<div class="diario-col-resizer" onmousedown="startColResize(event,${ci})" ondblclick="resetDiarioCols()" title="Arrastar para redimensionar · Duplo clique para resetar"></div>`;
+
+  const colHdr = (bg, ico, lbl, ci) =>
+    `<div class="col-lbl"><span class="col-ico" style="background:${bg}">${ico}</span>${lbl}${R(ci)}</div>`;
 
   const header = `<div class="bal-head" style="grid-template-columns:${GRID}">
-    <div class="col-lbl">Dia</div>
-    ${colHdr('#16A34A','↙', mob ? 'ent' : 'entrada')}
-    ${colHdr('#DC2626','↗', mob ? 'saí' : 'saída')}
-    ${mob ? '' : colHdr('#EC7000','I','invest.')}
-    ${mob ? '' : colHdr('#0891B2','D','diário')}
-    ${mob ? '' : colHdr('#7C3AED','C','cartão')}
-    <div class="saldo-hdr-cell">saldo</div>
+    <div class="col-lbl">Dia${R(0)}</div>
+    ${colHdr('#16A34A','↙', mob ? 'ent' : 'entrada', 1)}
+    ${colHdr('#DC2626','↗', mob ? 'saí' : 'saída', 2)}
+    ${mob ? '' : colHdr('#EC7000','I','invest.',3)}
+    ${mob ? '' : colHdr('#0891B2','D','diário',4)}
+    ${mob ? '' : colHdr('#7C3AED','C','cartão',5)}
+    <div class="saldo-hdr-cell">saldo${R(6)}</div>
   </div>`;
 
   const dCell = (delta) => {
@@ -3054,6 +3107,10 @@ async function bootApp() {
   await loadData();
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('app').hidden = false;
+  try {
+    const savedCols = localStorage.getItem('brian-diario-cols');
+    if (savedCols) S.diarioCols = JSON.parse(savedCols);
+  } catch(e) {}
   try {
     const savedMode = localStorage.getItem('brian-theme-mode');
     if (savedMode) S.themeMode = savedMode;
