@@ -1610,7 +1610,7 @@ function calcDailyBalances(y, m) {
         dayIn += mv.valor;
       } else if (mv.conta === 'cartao') {
         dayCartao += mv.valor;
-      } else if (mv.conta === 'itau') {
+      } else if (mv.conta === 'itau' || mv.tag === 'invest') {
         dayInvest += mv.valor;
       } else if (mv.tag === 'diário') {
         dayDiario += mv.valor;
