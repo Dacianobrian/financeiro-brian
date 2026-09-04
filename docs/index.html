@@ -1304,6 +1304,7 @@ const S = {
   prevDiarioGastos: [],
   prevDiarioDias: 30,
   diarioCols: [44, 120, 120, 78, 70, 70, 130],
+  diarioColsVis: [true, true, true, true, true, true, true],
 };
 
 function toggleCol(key) { S.cols[key] = !S.cols[key]; render(); }
@@ -1358,8 +1359,37 @@ function _endColResize(e) {
 
 function resetDiarioCols() {
   S.diarioCols = [44, 120, 120, 78, 70, 70, 130];
+  S.diarioColsVis = [true, true, true, true, true, true, true];
   applyDiarioCols();
   try { localStorage.removeItem('brian-diario-cols'); } catch(e) {}
+}
+
+const _DCOLS_DEFAULT = [44, 120, 120, 78, 70, 70, 130];
+
+function toggleDiarioCol(ci) {
+  const vis = S.diarioColsVis;
+  vis[ci] = !vis[ci];
+  if (vis[ci]) {
+    // Restaurar largura default (ou última usada antes de colapsar)
+    S.diarioCols[ci] = _DCOLS_DEFAULT[ci];
+  } else {
+    // Colapsar para ícone-only
+    S.diarioCols[ci] = 36;
+  }
+  applyDiarioCols();
+  // Re-renderiza só o conteúdo do diário (não o page inteiro)
+  const outer = document.getElementById('diarioScrollOuter');
+  if (outer) {
+    const y = S.diarioYear || new Date().getFullYear();
+    const mob = window.innerWidth < 640;
+    const blocks = [];
+    for (let mi = 0; mi < 12; mi++) blocks.push(renderMonthBlock(y, mi, mob));
+    outer.innerHTML = `<div class="diario-scroll-inner">${blocks.join('')}</div>`;
+    applyDiarioCols();
+  } else {
+    render();
+  }
+  try { localStorage.setItem('brian-diario-vis', JSON.stringify(vis)); } catch(e) {}
 }
 
 function prevTotaisMes() {
@@ -2056,8 +2086,18 @@ function renderMonthBlock(y, mi, mob) {
 
   const R = (ci) => mob ? '' : `<div class="diario-col-resizer" onmousedown="startColResize(event,${ci})" ondblclick="resetDiarioCols()" title="Arrastar para redimensionar · Duplo clique para resetar"></div>`;
 
-  const colHdr = (bg, ico, lbl, ci) =>
-    `<div class="col-lbl"><span class="col-ico" style="background:${bg}">${ico}</span>${lbl}${R(ci)}</div>`;
+  const v = S.diarioColsVis;
+
+  const colHdr = (bg, ico, lbl, ci) => {
+    const isVis = v[ci] !== false;
+    return isVis
+      ? `<div class="col-lbl col-toggle" onclick="event.stopPropagation();toggleDiarioCol(${ci})" title="Clique para ocultar ${lbl}">
+           <span class="col-ico" style="background:${bg}">${ico}</span>${lbl}${R(ci)}
+         </div>`
+      : `<div class="col-lbl col-toggle col-collapsed" onclick="event.stopPropagation();toggleDiarioCol(${ci})" title="Clique para mostrar ${lbl}" style="justify-content:center;padding:4px 0">
+           <span class="col-ico" style="background:${bg};opacity:0.6">${ico}</span>
+         </div>`;
+  };
 
   const header = `<div class="bal-head" style="grid-template-columns:${GRID}">
     <div class="col-lbl">Dia${R(0)}</div>
@@ -2069,7 +2109,8 @@ function renderMonthBlock(y, mi, mob) {
     <div class="saldo-hdr-cell">saldo${R(6)}</div>
   </div>`;
 
-  const dCell = (delta) => {
+  const dCell = (delta, vis = true) => {
+    if (!vis) return `<div class="bal-cell bal-cell-collapsed"></div>`;
     if (!S.showBal) return `<div class="bal-cell"><span class="bal-amt zer">•••</span></div>`;
     if (delta === 0) return `<div class="bal-cell"><span class="bal-amt zer">R$ 0</span></div>`;
     const cls = delta > 0 ? 'pos' : 'neg';
@@ -2095,8 +2136,8 @@ function renderMonthBlock(y, mi, mob) {
     </div>`;
     return `<div class="${cls}" style="grid-template-columns:${GRID}" onclick="openDayMovs(${r.date.getFullYear()},${r.date.getMonth()},${r.d})">
       <div class="day-cell"><div class="day-num">${String(r.d).padStart(2,'0')}</div><div class="day-wk">${WDAYS[r.date.getDay()]}</div></div>
-      ${dCell(r.dayIn)}${dCell(-r.dayOut)}
-      ${mob ? '' : dCell(-r.dayInvest) + dCell(-r.dayDiario) + dCell(-r.dayCartao)}
+      ${dCell(r.dayIn, v[1])}${dCell(-r.dayOut, v[2])}
+      ${mob ? '' : dCell(-r.dayInvest, v[3]) + dCell(-r.dayDiario, v[4]) + dCell(-r.dayCartao, v[5])}
       ${saldoCell}
     </div>`;
   }).join('');
@@ -2104,8 +2145,8 @@ function renderMonthBlock(y, mi, mob) {
   const lb = lastBal, lbg = S.showBal ? getSaldoColor(lb) : 'transparent';
   const footer = `<div class="bal-totals-row" style="grid-template-columns:${GRID}">
     <div class="day-cell" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)">Total</div>
-    ${dCell(totalIn)}${dCell(-rows.reduce((a,r)=>a+r.dayOut,0))}
-    ${mob ? '' : dCell(-rows.reduce((a,r)=>a+r.dayInvest,0)) + dCell(-rows.reduce((a,r)=>a+r.dayDiario,0)) + dCell(-rows.reduce((a,r)=>a+r.dayCartao,0))}
+    ${dCell(totalIn, v[1])}${dCell(-rows.reduce((a,r)=>a+r.dayOut,0), v[2])}
+    ${mob ? '' : dCell(-rows.reduce((a,r)=>a+r.dayInvest,0), v[3]) + dCell(-rows.reduce((a,r)=>a+r.dayDiario,0), v[4]) + dCell(-rows.reduce((a,r)=>a+r.dayCartao,0), v[5])}
     <div class="saldo-col" style="background:${lbg};color:${S.showBal ? getSaldoTextColor(lb) : 'var(--text3)'}">
       ${S.showBal ? fmt(lb) : '<span style="letter-spacing:.2em;opacity:.4">•••••</span>'}
     </div>
@@ -3129,6 +3170,8 @@ async function bootApp() {
   try {
     const savedCols = localStorage.getItem('brian-diario-cols');
     if (savedCols) S.diarioCols = JSON.parse(savedCols);
+    const savedVis = localStorage.getItem('brian-diario-vis');
+    if (savedVis) S.diarioColsVis = JSON.parse(savedVis);
   } catch(e) {}
   try {
     const savedMode = localStorage.getItem('brian-theme-mode');
