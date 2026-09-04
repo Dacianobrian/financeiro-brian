@@ -271,6 +271,9 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
   overflow-x: auto; overflow-y: visible;
   -webkit-overflow-scrolling: touch;
   padding: 16px 24px 20px;
+  /* largura via vw ignora a hierarquia flex que expande #main */
+  width: calc(100vw - 200px); max-width: calc(100vw - 200px);
+  box-sizing: border-box;
 }
 .diario-scroll-outer::-webkit-scrollbar { height: 6px; }
 .diario-scroll-outer::-webkit-scrollbar-track { background: transparent; }
@@ -734,6 +737,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
   .sidebar-footer { padding: 8px; flex-direction: column; gap: 6px; }
   .user-info, .user-plan { display: none; }
   .main { margin-left: 56px; }
+  .diario-scroll-outer { width: calc(100vw - 56px); max-width: calc(100vw - 56px); }
 }
 
 /* ─── MOBILE (≤640px) ─── */
@@ -753,6 +757,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
   .nav li button span { display: block; }
   .nav li button svg { width: 20px; height: 20px; }
   .main { margin-left: 0; margin-bottom: 54px; }
+  .diario-scroll-outer { width: 100vw; max-width: 100vw; }
 
   /* header */
   .page-hdr { padding: 12px 14px 0; gap: 8px; flex-wrap: wrap; }
