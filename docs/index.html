@@ -4,38 +4,43 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>
 :root {
-  --ground: #F5F5F5; --surface: #FFFFFF; --elevated: #EBEBEB; --input: #F0F0F0;
-  --text: #1D1F23; --text2: #616161; --text3: #9E9E9E;
-  --div: rgba(0,0,0,0.08); --div2: rgba(0,0,0,0.05);
-  --accent: #FF5917; --accent-dim: rgba(255,89,23,0.12);
-  --income: #529952; --income-dim: rgba(82,153,82,0.1);
-  --expense: #E62D2D; --expense-dim: rgba(230,45,45,0.08);
+  /* Breno color system — light */
+  --ground: #FFFFFF;   --surface: #FFFFFF;  --card: #FFFFFF;
+  --elevated: #EDEDEE; --input: #EDEDEE;
+  --text: #1D1F23;     --text2: #393E46;    --text3: #6C7179;
+  --div: #DADBDD;      --div2: rgba(29,31,35,0.10);
+  --accent: #FF5917;   --accent-dim: rgba(255,89,23,0.12);
+  --income: #529952;   --income-dim: rgba(82,153,82,0.10);
+  --expense: #E62D2D;  --expense-dim: rgba(230,45,45,0.08);
   --row-hover: rgba(0,0,0,0.03); --today-bg: rgba(255,89,23,0.06);
   --chip: rgba(0,0,0,0.06); --shadow: 0 2px 8px rgba(0,0,0,0.08);
-  --sidebar: #FFFFFF; --sidebar-border: rgba(0,0,0,0.08);
-  --nav-active: rgba(255,89,23,0.1);
+  --sidebar: #FFFFFF;  --sidebar-border: #DADBDD;
+  --nav-active: rgba(255,89,23,0.10);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --ground: #1D1F23; --surface: #2B2E34; --elevated: #34373F; --input: #3A3D45;
-    --text: #EDEDEE; --text2: #B6B8BC; --text3: #91949A;
+    /* Breno color system — dark */
+    --ground: #1D1F23;  --surface: #1D1F23;  --card: #2B2E34;
+    --elevated: #2B2E34; --input: #2B2E34;
+    --text: #EDEDEE;    --text2: #B6B8BC;    --text3: #91949A;
     --div: rgba(255,255,255,0.15); --div2: rgba(255,255,255,0.08);
-    --income: #529952; --income-dim: rgba(82,153,82,0.14);
+    --income: #529952;  --income-dim: rgba(82,153,82,0.14);
     --expense: #E62D2D; --expense-dim: rgba(230,45,45,0.12);
-    --row-hover: rgba(255,255,255,0.06); --today-bg: rgba(255,89,23,0.1);
-    --chip: rgba(255,255,255,0.10); --shadow: 0 2px 16px rgba(0,0,0,0.5);
+    --row-hover: rgba(255,255,255,0.06); --today-bg: rgba(255,89,23,0.10);
+    --chip: rgba(255,255,255,0.10); --shadow: 0 2px 16px rgba(0,0,0,0.50);
     --sidebar: #1D1F23; --sidebar-border: rgba(255,255,255,0.15);
     --nav-active: rgba(255,89,23,0.14);
   }
 }
 :root[data-theme="dark"] {
-  --ground: #1D1F23; --surface: #2B2E34; --elevated: #34373F; --input: #3A3D45;
-  --text: #EDEDEE; --text2: #B6B8BC; --text3: #91949A;
+  --ground: #1D1F23;  --surface: #1D1F23;  --card: #2B2E34;
+  --elevated: #2B2E34; --input: #2B2E34;
+  --text: #EDEDEE;    --text2: #B6B8BC;    --text3: #91949A;
   --div: rgba(255,255,255,0.15); --div2: rgba(255,255,255,0.08);
-  --income: #529952; --income-dim: rgba(82,153,82,0.14);
+  --income: #529952;  --income-dim: rgba(82,153,82,0.14);
   --expense: #E62D2D; --expense-dim: rgba(230,45,45,0.12);
-  --row-hover: rgba(255,255,255,0.06); --today-bg: rgba(255,89,23,0.1);
-  --chip: rgba(255,255,255,0.10); --shadow: 0 2px 16px rgba(0,0,0,0.5);
+  --row-hover: rgba(255,255,255,0.06); --today-bg: rgba(255,89,23,0.10);
+  --chip: rgba(255,255,255,0.10); --shadow: 0 2px 16px rgba(0,0,0,0.50);
   --sidebar: #1D1F23; --sidebar-border: rgba(255,255,255,0.15);
   --nav-active: rgba(255,89,23,0.14);
 }
