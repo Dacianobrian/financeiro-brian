@@ -1677,20 +1677,21 @@ function _hslLerp(G, value) {
 }
 
 function getSaldoColor(value) {
-  // Cores igual app Breno: âmbar para valores baixos/zero, verde para valores altos
-  const br = _saldoRef * 0.3; // break amber→verde em 30% da renda
+  // Cores copiadas exatamente do app.escoladobreno.com (RGB amostrado):
+  // rgb(139,30,32)=hsl(359,65%,33%) | rgb(163,76,78)=hsl(359,36%,47%)
+  // rgb(160,122,0)=hsl(46,100%,31%) | rgb(30,155,104)=hsl(156,68%,36%) | rgb(58,122,47)=hsl(111,44%,33%)
+  const br = _saldoRef * 0.15;
   return _hslLerp([
-    [-_saldoRef,      4,  88, 36],  // vermelho sangue
-    [-_saldoRef*0.08, 4,  80, 52],  // salmão forte
-    [0,              44,  88, 44],  // âmbar dourado (igual Breno)
-    [br * 0.8,       44,  85, 40],  // âmbar escuro pré-break
-    [br,            130,  65, 38],  // verde médio pós-break
-    [_saldoRef,     136,  72, 30],  // verde profundo
+    [-_saldoRef,         359, 65, 33],  // vermelho escuro  rgb(139,30,32)
+    [-_saldoRef * 0.05,  359, 36, 47],  // salmão           rgb(163,76,78)
+    [0,                   46, 100, 31],  // âmbar Breno      rgb(160,122,0)
+    [br,                 156, 68, 36],  // verde teal        rgb(30,155,104)
+    [_saldoRef,          111, 44, 33],  // verde escuro      rgb(58,122,47)
   ], value);
 }
 
 function getSaldoTextColor(value) {
-  return 'rgba(255,255,255,0.95)';
+  return 'rgb(237,237,238)'; // cor exata do texto do Breno
 }
 
 function getSaldoBg(value) {
