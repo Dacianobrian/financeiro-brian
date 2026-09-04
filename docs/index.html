@@ -227,13 +227,15 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
   display: flex; flex-direction: column; align-items: flex-end; gap: 1px;
   padding: 8px 10px 8px 0; justify-content: center; overflow: hidden; min-width: 0;
 }
-.bal-cell-inner { display: flex; align-items: center; gap: 4px; }
+.bal-cell-inner { display: flex; align-items: center; gap: 4px; min-width: 0; max-width: 100%; overflow: hidden; }
 .bal-dot {
   width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
 }
 .bal-amt {
   font-size: 12.5px; font-weight: 500;
   font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%;
 }
 .bal-amt.pos { color: var(--income); }
 .bal-amt.neg { color: var(--expense); }
@@ -1302,7 +1304,7 @@ const S = {
   menuSubPage: null,
   prevDiarioGastos: [],
   prevDiarioDias: 30,
-  diarioCols: [44, 110, 110, 76, 68, 68, 126],
+  diarioCols: [44, 120, 120, 78, 70, 70, 130],
 };
 
 function toggleCol(key) { S.cols[key] = !S.cols[key]; render(); }
@@ -1356,7 +1358,7 @@ function _endColResize(e) {
 }
 
 function resetDiarioCols() {
-  S.diarioCols = [44, 110, 110, 76, 68, 68, 126];
+  S.diarioCols = [44, 120, 120, 78, 70, 70, 130];
   applyDiarioCols();
   try { localStorage.removeItem('brian-diario-cols'); } catch(e) {}
 }
