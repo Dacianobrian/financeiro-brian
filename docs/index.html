@@ -2935,18 +2935,53 @@ function openTagEditor(k) {
   if (!t) return;
   const el = document.getElementById('tagEditorOverlay');
   el.dataset.cor = t.cor;
-  el.hidden = false;
-  requestAnimationFrame(() => {
-    document.getElementById('teNome').value = t.nome;
-    document.getElementById('teEmojiInput').value = t.emoji;
-    _updateTagEditorPreview();
-    el.querySelectorAll('.tag-editor-emojis button').forEach(b => {
-      b.classList.toggle('sel', b.dataset.emoji === t.emoji);
-    });
-    el.querySelectorAll('.tag-editor-colors button').forEach(b => {
-      b.classList.toggle('sel', b.dataset.cor === t.cor);
-    });
+
+  el.querySelector('.tag-editor-box').innerHTML = `
+    <div class="tag-editor-hdr">
+      <span class="tag-editor-title">Editar categoria</span>
+      <button class="tag-editor-close" onclick="closeTagEditor()">✕</button>
+    </div>
+    <div class="tag-editor-preview">
+      <div class="tag-editor-preview-emoji" id="tePreviewEmoji" style="background:${t.bg}">${t.emoji}</div>
+      <div class="tag-editor-preview-nome" id="tePreviewNome" style="color:${t.cor}">${t.nome}</div>
+    </div>
+    <div class="tag-editor-field">
+      <div class="tag-editor-label">Nome</div>
+      <input id="teNome" class="tag-editor-input" type="text" maxlength="24" oninput="_updateTagEditorPreview()" placeholder="Nome da categoria">
+    </div>
+    <div class="tag-editor-field">
+      <div class="tag-editor-label">Emoji</div>
+      <input id="teEmojiInput" class="tag-editor-input" type="text" maxlength="8" oninput="_updateTagEditorPreview()" placeholder="Emoji" style="margin-bottom:8px">
+      <div class="tag-editor-emojis" id="teEmojiGrid"></div>
+    </div>
+    <div class="tag-editor-field">
+      <div class="tag-editor-label">Cor</div>
+      <div class="tag-editor-colors" id="teColorGrid"></div>
+    </div>
+    <button class="tag-editor-save" onclick="saveTagEdit()">Salvar</button>`;
+
+  document.getElementById('teNome').value = t.nome;
+  document.getElementById('teEmojiInput').value = t.emoji;
+
+  const eg = document.getElementById('teEmojiGrid');
+  TAG_EMOJIS.forEach(e => {
+    const b = document.createElement('button');
+    b.textContent = e; b.dataset.emoji = e;
+    if (e === t.emoji) b.classList.add('sel');
+    b.onclick = () => teSelectEmoji(b, e);
+    eg.appendChild(b);
   });
+
+  const cg = document.getElementById('teColorGrid');
+  TAG_COLORS.forEach(c => {
+    const b = document.createElement('button');
+    b.style.background = c; b.dataset.cor = c;
+    if (c === t.cor) b.classList.add('sel');
+    b.onclick = () => teSelectColor(b, c);
+    cg.appendChild(b);
+  });
+
+  el.hidden = false;
 }
 
 function closeTagEditor() {
@@ -3035,23 +3070,5 @@ window.addEventListener('resize', () => {
   </div>
 </div>
 
-<script>
-(function() {
-  const emojisEl = document.getElementById('teEmojiGrid');
-  TAG_EMOJIS.forEach(e => {
-    const b = document.createElement('button');
-    b.textContent = e; b.dataset.emoji = e;
-    b.onclick = () => teSelectEmoji(b, e);
-    emojisEl.appendChild(b);
-  });
-  const colorsEl = document.getElementById('teColorGrid');
-  TAG_COLORS.forEach(c => {
-    const b = document.createElement('button');
-    b.style.background = c; b.dataset.cor = c;
-    b.onclick = () => teSelectColor(b, c);
-    colorsEl.appendChild(b);
-  });
-})();
-</script>
 
 </body></html>
