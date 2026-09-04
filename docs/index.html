@@ -4,51 +4,93 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>
 :root {
-  /* Breno color system — light */
   --ground: #FFFFFF;   --surface: #FFFFFF;  --card: #FFFFFF;
-  --elevated: #EDEDEE; --input: #EDEDEE;
+  --elevated: #EDEDEE; --input: #EDEDEE;    --bg-muted: #F8EDD9;
   --text: #1D1F23;     --text2: #393E46;    --text3: #6C7179;
+  --text-ghost: #B6B8BC; --text-accent: #4A1BB9;
   --div: #DADBDD;      --div2: rgba(29,31,35,0.10);
+  --border-hairline: rgba(0,0,0,0.15);
   --accent: #FF5917;   --accent-dim: rgba(255,89,23,0.12);
   --income: #529952;   --income-dim: rgba(82,153,82,0.10);
   --expense: #E62D2D;  --expense-dim: rgba(230,45,45,0.08);
   --row-hover: rgba(0,0,0,0.03); --today-bg: rgba(255,89,23,0.06);
-  --chip: rgba(0,0,0,0.06); --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --chip: rgba(0,0,0,0.06);
+  --shadow: 0 2px 8px rgba(0,0,0,0.08); --shadow-soft: rgba(0,0,0,0.08);
   --sidebar: #FFFFFF;  --sidebar-border: #DADBDD;
   --nav-active: rgba(255,89,23,0.10);
+  --table-weekend-bg: #EDEDEE;
+  --table-grid-line: rgba(0,0,0,0.15);
+  --table-cell-grid-line: rgba(29,31,35,0.10);
+  --table-cell-hover: linear-gradient(to right,#ffffff,#e7e7e8);
+  --table-icon-cell-hover: linear-gradient(to left,#ffffff,#e7e7e8);
+  --table-balance-hover: rgba(255,255,255,0.18);
+  --bal-green:#96D87D; --bal-green-txt:#213D21;
+  --bal-mint: #95FDB8; --bal-mint-txt: #315C31;
+  --bal-sand: #FCE9B5; --bal-sand-txt: #66561D;
+  --bal-rose: #F8BEBF; --bal-rose-txt: #8A1B1B;
+  --bal-red:  #F26D70; --bal-red-txt:  #5C1212;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    /* Breno color system — dark */
     --ground: #1D1F23;  --surface: #1D1F23;  --card: #2B2E34;
-    --elevated: #2B2E34; --input: #2B2E34;
+    --elevated: #2B2E34; --input: #2B2E34;   --bg-muted: #2B2E34;
     --text: #EDEDEE;    --text2: #B6B8BC;    --text3: #91949A;
+    --text-ghost: #484D57; --text-accent: #B089F4;
     --div: rgba(255,255,255,0.15); --div2: rgba(255,255,255,0.08);
+    --border-hairline: rgba(255,255,255,0.15);
     --income: #529952;  --income-dim: rgba(82,153,82,0.14);
     --expense: #E62D2D; --expense-dim: rgba(230,45,45,0.12);
     --row-hover: rgba(255,255,255,0.06); --today-bg: rgba(255,89,23,0.10);
-    --chip: rgba(255,255,255,0.10); --shadow: 0 2px 16px rgba(0,0,0,0.50);
+    --chip: rgba(255,255,255,0.10);
+    --shadow: 0 2px 16px rgba(0,0,0,0.50); --shadow-soft: rgba(0,0,0,0.50);
     --sidebar: #1D1F23; --sidebar-border: rgba(255,255,255,0.15);
     --nav-active: rgba(255,89,23,0.14);
+    --table-weekend-bg: #2B2E34;
+    --table-grid-line: rgba(255,255,255,0.15);
+    --table-cell-grid-line: rgba(255,255,255,0.15);
+    --table-cell-hover: linear-gradient(to right,#1D1F23,#2B2E34);
+    --table-icon-cell-hover: linear-gradient(to left,#1D1F23,#2B2E34);
+    --table-balance-hover: rgba(255,255,255,0.10);
+    --bal-green:#3A7A2F; --bal-green-txt:#EDEDEE;
+    --bal-mint: #1E9B68; --bal-mint-txt: #EDEDEE;
+    --bal-sand: #A07A00; --bal-sand-txt: #EDEDEE;
+    --bal-rose: #A34C4E; --bal-rose-txt: #EDEDEE;
+    --bal-red:  #8B1E20; --bal-red-txt:  #EDEDEE;
   }
 }
 :root[data-theme="dark"] {
   --ground: #1D1F23;  --surface: #1D1F23;  --card: #2B2E34;
-  --elevated: #2B2E34; --input: #2B2E34;
+  --elevated: #2B2E34; --input: #2B2E34;   --bg-muted: #2B2E34;
   --text: #EDEDEE;    --text2: #B6B8BC;    --text3: #91949A;
+  --text-ghost: #484D57; --text-accent: #B089F4;
   --div: rgba(255,255,255,0.15); --div2: rgba(255,255,255,0.08);
+  --border-hairline: rgba(255,255,255,0.15);
   --income: #529952;  --income-dim: rgba(82,153,82,0.14);
   --expense: #E62D2D; --expense-dim: rgba(230,45,45,0.12);
   --row-hover: rgba(255,255,255,0.06); --today-bg: rgba(255,89,23,0.10);
-  --chip: rgba(255,255,255,0.10); --shadow: 0 2px 16px rgba(0,0,0,0.50);
+  --chip: rgba(255,255,255,0.10);
+  --shadow: 0 2px 16px rgba(0,0,0,0.50); --shadow-soft: rgba(0,0,0,0.50);
   --sidebar: #1D1F23; --sidebar-border: rgba(255,255,255,0.15);
   --nav-active: rgba(255,89,23,0.14);
+  --table-weekend-bg: #2B2E34;
+  --table-grid-line: rgba(255,255,255,0.15);
+  --table-cell-grid-line: rgba(255,255,255,0.15);
+  --table-cell-hover: linear-gradient(to right,#1D1F23,#2B2E34);
+  --table-icon-cell-hover: linear-gradient(to left,#1D1F23,#2B2E34);
+  --table-balance-hover: rgba(255,255,255,0.10);
+  --bal-green:#3A7A2F; --bal-green-txt:#EDEDEE;
+  --bal-mint: #1E9B68; --bal-mint-txt: #EDEDEE;
+  --bal-sand: #A07A00; --bal-sand-txt: #EDEDEE;
+  --bal-rose: #A34C4E; --bal-rose-txt: #EDEDEE;
+  --bal-red:  #8B1E20; --bal-red-txt:  #EDEDEE;
 }
 
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; max-width: 100vw; overflow-x: hidden; }
+::selection { background: #DDFD5A; color: #0E2D23; }
+html { height: 100%; max-width: 100vw; overflow-x: hidden; overscroll-behavior-x: contain; scroll-behavior: smooth; }
+body { height: 100%; max-width: 100vw; overflow-x: hidden; }
 [hidden] { display: none !important; }
-body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground); color: var(--text); display: flex; min-height: 100vh; overflow-x: hidden; }
+body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground); color: var(--text); display: flex; min-height: 100vh; overflow-x: hidden; text-rendering: optimizelegibility; -webkit-font-smoothing: antialiased; }
 
 /* ─── SIDEBAR ─── */
 .sidebar {
@@ -190,6 +232,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 }
 .bal-row:hover { background: var(--row-hover); }
 .bal-row:last-child { border-bottom: none; }
+.bal-row.weekend-row { background: var(--table-weekend-bg); }
 .bal-row.today-row { background: var(--today-bg); }
 .bal-row.future-row { opacity: 0.6; }
 .bal-totals-row {
@@ -278,6 +321,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
   border-bottom: 1px solid var(--div2); transition: background 0.1s;
 }
 .br-row:hover { background: var(--row-hover); }
+.br-row.weekend-row { background: var(--table-weekend-bg); }
 .br-row.today-row { background: var(--today-bg); }
 .br-row.future-row { opacity: 0.55; }
 .br-row.br-head { height: 32px; background: var(--elevated); border-bottom: 1px solid var(--div); cursor: default; }
@@ -1834,6 +1878,7 @@ function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
 function sameDay(a, b) { return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
 function isToday(d) { return sameDay(d, TODAY); }
 function isFuture(d) { return d > TODAY; }
+function isWeekend(d) { const day = new Date(d).getDay(); return day === 0 || day === 6; }
 
 // ─── SALDO GRADIENT — fundos claros + texto escuro, estilo app original ───
 let _saldoRef = 5000; // atualizado no render
@@ -2249,6 +2294,7 @@ function renderDiario(y, m) {
   const tableRows = rows.map(r => {
     const cls = [
       'bal-row',
+      isWeekend(r.date) ? 'weekend-row' : '',
       isToday(r.date) ? 'today-row' : '',
       isFuture(r.date) ? 'future-row' : '',
     ].filter(Boolean).join(' ');
@@ -2385,7 +2431,7 @@ function renderMonthBlock(y, mi, mob) {
 
   const WK = ['dom','seg','ter','qua','qui','sex','sáb'];
   const tableRows = rows.map(r => {
-    const cls = ['br-row', isToday(r.date)?'today-row':'', isFuture(r.date)?'future-row':''].filter(Boolean).join(' ');
+    const cls = ['br-row', isWeekend(r.date)?'weekend-row':'', isToday(r.date)?'today-row':'', isFuture(r.date)?'future-row':''].filter(Boolean).join(' ');
     const dataCells = mob
       ? cell(r.dayIn,0)+cell(-r.dayOut,1)
       : cell(r.dayIn,0)+cell(-r.dayOut,1)+cell(-r.dayInvest,2)+cell(-r.dayDiario,3)+cell(-r.dayCartao,4);
