@@ -256,7 +256,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
   font-size: 9.5px; font-weight: 400; opacity: 0.65; margin-top: 1px;
   font-variant-numeric: tabular-nums; letter-spacing: 0;
 }
-.saldo-col.zero { color: var(--text3); background: transparent !important; }
+.saldo-col.zero { color: rgba(255,255,255,0.8); }
 .saldo-hdr-cell {
   display: flex; align-items: center; justify-content: flex-end;
   padding: 9px 16px 9px 10px;
@@ -1403,8 +1403,8 @@ function renderTotaisAnual() {
   const rows2 = monthData.map(({m, totalIn, totalOut, totalInv, totalDia, totalCart, finalSaldo}) => {
     const isCur = today.getFullYear()===y && today.getMonth()===m;
     _saldoRef = Math.max(totalIn, 2000);
-    const sbg = S.showBal && finalSaldo!==0 ? getSaldoColor(finalSaldo) : 'var(--div2)';
-    const stx = S.showBal && finalSaldo!==0 ? getSaldoTextColor(finalSaldo) : 'var(--text3)';
+    const sbg = S.showBal ? getSaldoColor(finalSaldo) : 'var(--div2)';
+    const stx = S.showBal ? getSaldoTextColor(finalSaldo) : 'var(--text3)';
     return `<tr class="${isCur?'ta-current':''}" onclick="goTotaisMes(${m})">
       <td>${MONTHS_S[m]}</td>
       <td>${z(totalIn,'ta-pos')}</td>
@@ -1417,8 +1417,8 @@ function renderTotaisAnual() {
   }).join('');
 
   _saldoRef = Math.max(annualIn, 2000);
-  const fsbg = S.showBal && decSaldo!==0 ? getSaldoColor(decSaldo) : 'var(--div2)';
-  const fstx = S.showBal && decSaldo!==0 ? getSaldoTextColor(decSaldo) : 'var(--text3)';
+  const fsbg = S.showBal ? getSaldoColor(decSaldo) : 'var(--div2)';
+  const fstx = S.showBal ? getSaldoTextColor(decSaldo) : 'var(--text3)';
 
   // KPI cards anuais (mesmo layout do mensal)
   const resultado  = annualIn - annualOut - annualInv - annualDia - annualCart;
@@ -1605,15 +1605,15 @@ function _hslLerp(G, value) {
 }
 
 function getSaldoColor(value) {
-  // Cores fortes igual app Breno: vermelho vivo → âmbar → verde saturado
-  const br = _saldoRef * 0.05; // break amber→verde
+  // Cores igual app Breno: âmbar para valores baixos/zero, verde para valores altos
+  const br = _saldoRef * 0.3; // break amber→verde em 30% da renda
   return _hslLerp([
     [-_saldoRef,      4,  88, 36],  // vermelho sangue
     [-_saldoRef*0.08, 4,  80, 52],  // salmão forte
-    [0,              44,  96, 46],  // âmbar vivo
-    [br,             44,  90, 38],  // âmbar escuro (pré-break)
-    [br,            136,  72, 36],  // verde forte (pós-break)
-    [_saldoRef,     136,  75, 26],  // verde profundo
+    [0,              44,  88, 44],  // âmbar dourado (igual Breno)
+    [br * 0.8,       44,  85, 40],  // âmbar escuro pré-break
+    [br,            130,  65, 38],  // verde médio pós-break
+    [_saldoRef,     136,  72, 30],  // verde profundo
   ], value);
 }
 
@@ -1975,13 +1975,13 @@ function renderDiario(y, m) {
       isFuture(r.date) ? 'future-row' : '',
     ].filter(Boolean).join(' ');
 
-    const saldoBg  = S.showBal && r.total !== 0 ? getSaldoColor(r.total) : 'transparent';
+    const saldoBg  = S.showBal ? getSaldoColor(r.total) : 'transparent';
     const saldoCls = `saldo-col${r.total === 0 && S.showBal ? ' zero' : ''}`;
     const prevRow  = rows[r.d - 2];
     const delta    = prevRow ? r.total - prevRow.total : r.totalDelta;
     const deltaSign = delta > 0 ? '+' : '';
 
-    const saldoCell = `<div class="${saldoCls}" style="background:${saldoBg};color:${S.showBal && r.total !== 0 ? getSaldoTextColor(r.total) : 'var(--text3)'}">
+    const saldoCell = `<div class="${saldoCls}" style="background:${saldoBg};color:${S.showBal ? getSaldoTextColor(r.total) : 'var(--text3)'}">
       ${S.showBal
         ? `${fmt(r.total)}${delta !== 0 ? `<div class="saldo-sub">${deltaSign}${fmt(Math.abs(delta))}</div>` : ''}`
         : '<span style="letter-spacing:.2em;opacity:.4">•••••</span>'}
@@ -2012,7 +2012,7 @@ function renderDiario(y, m) {
       ${mob ? '' : deltaCell(-rows.reduce((a,r)=>a+r.dayInvest,0),  !c.inv)}
       ${mob ? '' : deltaCell(-rows.reduce((a,r)=>a+r.dayDiario,0),  !c.d)}
       ${mob ? '' : deltaCell(-rows.reduce((a,r)=>a+r.dayCartao,0),  !c.c)}
-      <div class="saldo-col" style="background:${S.showBal && lastBal !== 0 ? getSaldoColor(lastBal) : 'transparent'};color:${S.showBal && lastBal !== 0 ? getSaldoTextColor(lastBal) : 'var(--text3)'}">
+      <div class="saldo-col" style="background:${S.showBal ? getSaldoColor(lastBal) : 'transparent'};color:${S.showBal ? getSaldoTextColor(lastBal) : 'var(--text3)'}">
         ${S.showBal ? fmt(lastBal) : '<span style="letter-spacing:.2em;opacity:.4">•••••</span>'}
       </div>
     </div>`;
@@ -2083,12 +2083,12 @@ function renderMonthBlock(y, mi, mob) {
 
   const tableRows = rows.map(r => {
     const cls = ['bal-row', isToday(r.date)?'today-row':'', isFuture(r.date)?'future-row':''].filter(Boolean).join(' ');
-    const sbg = S.showBal && r.total !== 0 ? getSaldoColor(r.total) : 'transparent';
+    const sbg = S.showBal ? getSaldoColor(r.total) : 'transparent';
     const scls = `saldo-col${r.total === 0 && S.showBal ? ' zero' : ''}`;
     const prev = rows[r.d - 2];
     const delta = prev ? r.total - prev.total : r.totalDelta;
     const ds = delta > 0 ? '+' : '';
-    const saldoCell = `<div class="${scls}" style="background:${sbg};color:${S.showBal && r.total !== 0 ? getSaldoTextColor(r.total) : 'var(--text3)'}">
+    const saldoCell = `<div class="${scls}" style="background:${sbg};color:${S.showBal ? getSaldoTextColor(r.total) : 'var(--text3)'}">
       ${S.showBal
         ? `${fmt(r.total)}${delta !== 0 ? `<div class="saldo-sub">${ds}${fmt(Math.abs(delta))}</div>` : ''}`
         : '<span style="letter-spacing:.2em;opacity:.4">•••••</span>'}
@@ -2101,12 +2101,12 @@ function renderMonthBlock(y, mi, mob) {
     </div>`;
   }).join('');
 
-  const lb = lastBal, lbg = S.showBal && lb !== 0 ? getSaldoColor(lb) : 'transparent';
+  const lb = lastBal, lbg = S.showBal ? getSaldoColor(lb) : 'transparent';
   const footer = `<div class="bal-totals-row" style="grid-template-columns:${GRID}">
     <div class="day-cell" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)">Total</div>
     ${dCell(totalIn)}${dCell(-rows.reduce((a,r)=>a+r.dayOut,0))}
     ${mob ? '' : dCell(-rows.reduce((a,r)=>a+r.dayInvest,0)) + dCell(-rows.reduce((a,r)=>a+r.dayDiario,0)) + dCell(-rows.reduce((a,r)=>a+r.dayCartao,0))}
-    <div class="saldo-col" style="background:${lbg};color:${S.showBal && lb !== 0 ? getSaldoTextColor(lb) : 'var(--text3)'}">
+    <div class="saldo-col" style="background:${lbg};color:${S.showBal ? getSaldoTextColor(lb) : 'var(--text3)'}">
       ${S.showBal ? fmt(lb) : '<span style="letter-spacing:.2em;opacity:.4">•••••</span>'}
     </div>
   </div>`;
