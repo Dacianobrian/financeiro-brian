@@ -972,6 +972,18 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
     </div>
     <button class="login-btn" id="loginBtn" onclick="doLogin()">Entrar</button>
     <div class="login-err" id="loginErr"></div>
+    <div style="text-align:center;margin-top:4px">
+      <span style="font-size:12px;color:var(--text3)">Primeira vez? </span>
+      <button onclick="toggleSignup()" style="font-size:12px;font-weight:600;color:var(--accent);background:none;border:none;cursor:pointer;padding:0">Criar conta</button>
+    </div>
+    <!-- Signup extra field (hidden by default) -->
+    <div id="signupBlock" hidden>
+      <div style="border-top:1px solid var(--div);padding-top:16px;display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Confirmar senha</div>
+        <input class="login-input" id="loginPass2" type="password" placeholder="repita a senha">
+        <button class="login-btn" id="signupBtn" onclick="doSignup()" style="background:var(--text2)">Criar minha conta</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2773,6 +2785,29 @@ document.addEventListener('keydown', e => {
 })();
 
 // ─── AUTH ───
+function toggleSignup() {
+  const b = document.getElementById('signupBlock');
+  b.hidden = !b.hidden;
+}
+
+async function doSignup() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const pass2 = document.getElementById('loginPass2').value;
+  const err   = document.getElementById('loginErr');
+  if (!email || !pass) { err.textContent = 'Preencha e-mail e senha.'; return; }
+  if (pass !== pass2)  { err.textContent = 'As senhas não conferem.'; return; }
+  if (pass.length < 6) { err.textContent = 'Senha deve ter ao menos 6 caracteres.'; return; }
+  err.textContent = '';
+  const btn = document.getElementById('signupBtn');
+  btn.disabled = true; btn.textContent = 'Criando…';
+  const { error } = await _sb.auth.signUp({ email, password: pass });
+  btn.disabled = false; btn.textContent = 'Criar minha conta';
+  if (error) { err.textContent = error.message; return; }
+  err.style.color = 'var(--income)';
+  err.textContent = '✓ Conta criada! Verifique seu e-mail para confirmar e depois faça login.';
+}
+
 async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const pass  = document.getElementById('loginPass').value;
