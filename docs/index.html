@@ -2227,8 +2227,8 @@ function renderDiario(y, m) {
   // ─ header ─
   const header = `<div class="bal-head" style="grid-template-columns:${GRID}">
     <div class="col-lbl">Dia</div>
-    ${colHdr('in',  '#16A34A', '↙', mob ? 'ent.' : 'entrada')}
-    ${colHdr('out', '#DC2626', '↗', mob ? 'saí.' : 'saida')}
+    ${colHdr('in',  '#16A34A', 'E', mob ? 'ent.' : 'entrada')}
+    ${colHdr('out', '#DC2626', 'S', mob ? 'saí.' : 'saida')}
     ${mob ? '' : colHdr('inv', '#EC7000', 'I', 'economia')}
     ${mob ? '' : colHdr('d',   '#0891B2', 'D', 'diario')}
     ${mob ? '' : colHdr('c',   '#7C3AED', 'C', 'cartao')}
@@ -2321,7 +2321,7 @@ function renderMonthBlock(y, mi, mob) {
   // ── Breno exact layout — colunas: 48 | 40/168 × 5 | 152 ──
   const v = S.diarioColsVis; // [true, false/true per col, ..., true]
   const COLORS = ['#529952','#E62D2D','#EC7000','#0891B2','#7C3AED'];
-  const ICOS   = ['↙','↗','I','D','C'];
+  const ICOS   = ['E','S','I','D','C'];
   const LBLS   = ['entrada','saida','economia','diario','cartao'];
   const nCols  = mob ? 2 : 5;
 
