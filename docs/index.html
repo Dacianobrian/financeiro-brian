@@ -268,6 +268,54 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 .bal-totals-row .bal-cell { }
 .bal-totals-row .saldo-col { border-radius: 0 0 12px 0; }
 
+/* ─── BRENO-STYLE DIARIO CELLS ─── */
+.br-row {
+  display: grid; grid-template-columns: 48px 40px 40px 40px 40px 40px 152px;
+  height: 40px; align-items: stretch; cursor: pointer;
+  border-bottom: 1px solid var(--div2); transition: background 0.1s;
+}
+.br-row:hover { background: var(--row-hover); }
+.br-row.today-row { background: var(--today-bg); }
+.br-row.future-row { opacity: 0.55; }
+.br-row.br-head { height: 32px; background: var(--elevated); border-bottom: 1px solid var(--div); cursor: default; }
+.br-row.br-head:hover { background: var(--elevated); }
+.br-row.br-foot { height: 40px; background: var(--elevated); border-top: 1px solid var(--div); border-bottom: none; cursor: default; }
+.br-row.br-foot:hover { background: var(--elevated); }
+.br-dia {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text);
+  background: var(--elevated);
+}
+.br-dia .br-wk { font-size: 8px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3); font-weight: 400; }
+.br-row.today-row .br-dia { color: var(--accent); }
+.br-dia-hdr { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); background: var(--elevated); }
+.br-icell {
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.br-ico {
+  width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; font-weight: 800; color: white; line-height: 1;
+}
+.br-ico-empty {
+  width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;
+  background: var(--elevated); opacity: 0.6;
+}
+.br-hdr-ico {
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; user-select: none; gap: 4px;
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text3);
+}
+.br-hdr-ico:hover { opacity: 0.75; }
+.br-saldo {
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 0 12px; border: none; background: transparent; cursor: pointer; width: 100%;
+  font-variant-numeric: tabular-nums; transition: background 0.2s;
+}
+.br-saldo span { font-size: 14px; font-weight: 500; color: rgba(237,237,238,0.95); letter-spacing: -0.02em; }
+.br-saldo.br-saldo-hidden span { color: var(--text3); font-size: 13px; }
+.br-saldo-hdr { display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); }
+
 /* ─── DIARIO MULTI-MONTH SCROLL ─── */
 .diario-scroll-outer {
   overflow-x: auto; overflow-y: visible;
@@ -286,7 +334,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 }
 .diario-month-block {
   background: var(--surface); border: 1px solid var(--div);
-  border-radius: 12px; overflow: hidden; width: 612px; flex-shrink: 0;
+  border-radius: 12px; overflow: hidden; width: 400px; flex-shrink: 0;
 }
 .diario-month-hdr {
   display: flex; align-items: center; justify-content: space-between;
@@ -1832,7 +1880,6 @@ function render() {
     main.innerHTML = hdrHtml + subtabsHtml + `<div class="panel active" ${panelStyle}>${panelHtml}</div>`;
 
     if (S.subtab === 'diario') {
-      applyDiarioCols();
       setTimeout(() => {
         const now = new Date();
         const targetMi = y === now.getFullYear() ? now.getMonth() : 0;
@@ -2075,81 +2122,48 @@ function renderMonthBlock(y, mi, mob) {
   const now = new Date();
   const isCur = mi === now.getMonth() && y === now.getFullYear();
 
-  const GRID = mob
-    ? `40px 1fr 1fr 100px`
-    : S.diarioCols.map(w => w + 'px').join(' ');
+  // ── Breno exact layout: 48px 40px 40px 40px 40px 40px 152px ──
+  const COLS = mob ? [48,40,40,152] : [48,40,40,40,40,40,152];
+  const GRID = COLS.map(w=>w+'px').join(' ');
+  const COLORS = ['#529952','#E62D2D','#EC7000','#0891B2','#7C3AED'];
+  const ICOS   = ['↙','↗','I','D','C'];
+  const LBLS   = ['entradas','saídas','invest.','diário','cartão'];
 
-  const R = () => '';
-
-  const v = S.diarioColsVis;
-
-  const colHdr = (bg, ico, lbl, ci) => {
-    const isVis = v[ci] !== false;
-    return isVis
-      ? `<div class="col-lbl col-toggle" onclick="event.stopPropagation();toggleDiarioCol(${ci})" title="Clique para ocultar ${lbl}">
-           <span class="col-ico" style="background:${bg}">${ico}</span>${lbl}${R(ci)}
-         </div>`
-      : `<div class="col-lbl col-toggle col-collapsed" onclick="event.stopPropagation();toggleDiarioCol(${ci})" title="Clique para mostrar ${lbl}" style="justify-content:center;padding:4px 0">
-           <span class="col-ico" style="background:${bg};opacity:0.6">${ico}</span>
-         </div>`;
+  const ico = (delta, ci) => {
+    if (!S.showBal) return `<div class="br-icell"><span class="br-ico-empty"></span></div>`;
+    if (delta !== 0) return `<div class="br-icell"><span class="br-ico" style="background:${COLORS[ci]}">${ICOS[ci]}</span></div>`;
+    return `<div class="br-icell"><span class="br-ico-empty"></span></div>`;
   };
 
-  const header = `<div class="bal-head" style="grid-template-columns:${GRID}">
-    <div class="col-lbl">Dia${R(0)}</div>
-    ${colHdr('#16A34A','↙', mob ? 'ent' : 'entrada', 1)}
-    ${colHdr('#DC2626','↗', mob ? 'saí' : 'saída', 2)}
-    ${mob ? '' : colHdr('#EC7000','I','invest.',3)}
-    ${mob ? '' : colHdr('#0891B2','D','diário',4)}
-    ${mob ? '' : colHdr('#7C3AED','C','cartão',5)}
-    <div class="saldo-hdr-cell">saldo${R(6)}</div>
+  const saldoCell = (total) => {
+    const sbg = S.showBal ? getSaldoColor(total) : 'var(--surface)';
+    const txt = S.showBal ? fmt(total) : '•••••';
+    return `<div class="br-saldo${S.showBal?'':' br-saldo-hidden'}" style="background:${sbg}"><span>${txt}</span></div>`;
+  };
+
+  const header = `<div class="br-row br-head" style="grid-template-columns:${GRID}">
+    <div class="br-dia-hdr">dia</div>
+    ${LBLS.slice(0, mob?2:5).map((l,i)=>`<div class="br-hdr-ico" onclick="event.stopPropagation()" title="${l}"><span class="br-ico" style="background:${COLORS[i]};opacity:0.7">${ICOS[i]}</span></div>`).join('')}
+    <div class="br-saldo-hdr">saldo</div>
   </div>`;
 
-  const dCell = (delta, vis = true) => {
-    if (!S.showBal) return `<div class="bal-cell" style="${!vis?'justify-content:center':''}"><span class="bal-amt zer">•••</span></div>`;
-    if (!vis) {
-      // Colapsado (40px): só dot colorido igual Breno, nada para zero
-      if (delta === 0) return `<div class="bal-cell bal-cell-collapsed"><span class="bal-dot-empty"></span></div>`;
-      const dc = delta > 0 ? 'var(--income)' : 'var(--expense)';
-      return `<div class="bal-cell bal-cell-collapsed"><span class="bal-dot" style="background:${dc}"></span></div>`;
-    }
-    if (delta === 0) return `<div class="bal-cell"><span class="bal-amt zer">R$ 0</span></div>`;
-    const cls = delta > 0 ? 'pos' : 'neg';
-    const sign = delta > 0 ? '+' : '';
-    const dc = delta > 0 ? 'var(--income)' : 'var(--expense)';
-    return `<div class="bal-cell"><div class="bal-cell-inner">
-      <span class="bal-dot" style="background:${dc}"></span>
-      <span class="bal-amt ${cls}">${sign}${fmt(Math.abs(delta))}</span>
-    </div></div>`;
-  };
-
+  const WK = ['dom','seg','ter','qua','qui','sex','sáb'];
   const tableRows = rows.map(r => {
-    const cls = ['bal-row', isToday(r.date)?'today-row':'', isFuture(r.date)?'future-row':''].filter(Boolean).join(' ');
-    const sbg = S.showBal ? getSaldoColor(r.total) : 'transparent';
-    const scls = `saldo-col${r.total === 0 && S.showBal ? ' zero' : ''}`;
-    const prev = rows[r.d - 2];
-    const delta = prev ? r.total - prev.total : r.totalDelta;
-    const ds = delta > 0 ? '+' : '';
-    const saldoCell = `<div class="${scls}" style="background:${sbg};color:${S.showBal ? getSaldoTextColor(r.total) : 'var(--text3)'}">
-      ${S.showBal
-        ? `${fmt(r.total)}${delta !== 0 ? `<div class="saldo-sub">${ds}${fmt(Math.abs(delta))}</div>` : ''}`
-        : '<span style="letter-spacing:.2em;opacity:.4">•••••</span>'}
-    </div>`;
+    const cls = ['br-row', isToday(r.date)?'today-row':'', isFuture(r.date)?'future-row':''].filter(Boolean).join(' ');
     return `<div class="${cls}" style="grid-template-columns:${GRID}" onclick="openDayMovs(${r.date.getFullYear()},${r.date.getMonth()},${r.d})">
-      <div class="day-cell"><div class="day-num">${String(r.d).padStart(2,'0')}</div><div class="day-wk">${WDAYS[r.date.getDay()]}</div></div>
-      ${dCell(r.dayIn, v[1])}${dCell(-r.dayOut, v[2])}
-      ${mob ? '' : dCell(-r.dayInvest, v[3]) + dCell(-r.dayDiario, v[4]) + dCell(-r.dayCartao, v[5])}
-      ${saldoCell}
+      <div class="br-dia"><span>${String(r.d).padStart(2,'0')}</span><span class="br-wk">${WK[r.date.getDay()]}</span></div>
+      ${ico(r.dayIn, 0)}${ico(-r.dayOut, 1)}
+      ${mob ? '' : ico(-r.dayInvest,2)+ico(-r.dayDiario,3)+ico(-r.dayCartao,4)}
+      ${saldoCell(r.total)}
     </div>`;
   }).join('');
 
-  const lb = lastBal, lbg = S.showBal ? getSaldoColor(lb) : 'transparent';
-  const footer = `<div class="bal-totals-row" style="grid-template-columns:${GRID}">
-    <div class="day-cell" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)">Total</div>
-    ${dCell(totalIn, v[1])}${dCell(-rows.reduce((a,r)=>a+r.dayOut,0), v[2])}
-    ${mob ? '' : dCell(-rows.reduce((a,r)=>a+r.dayInvest,0), v[3]) + dCell(-rows.reduce((a,r)=>a+r.dayDiario,0), v[4]) + dCell(-rows.reduce((a,r)=>a+r.dayCartao,0), v[5])}
-    <div class="saldo-col" style="background:${lbg};color:${S.showBal ? getSaldoTextColor(lb) : 'var(--text3)'}">
-      ${S.showBal ? fmt(lb) : '<span style="letter-spacing:.2em;opacity:.4">•••••</span>'}
-    </div>
+  const lb = lastBal;
+  const footer = `<div class="br-row br-foot" style="grid-template-columns:${GRID}">
+    <div class="br-dia" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);background:var(--elevated)">TOT</div>
+    ${ico(totalIn,0)}${ico(-rows.reduce((a,r)=>a+r.dayOut,0),1)}
+    ${mob?'':ico(-rows.reduce((a,r)=>a+r.dayInvest,0),2)+ico(-rows.reduce((a,r)=>a+r.dayDiario,0),3)+ico(-rows.reduce((a,r)=>a+r.dayCartao,0),4)}
+    ${saldoCell(lb)}
   </div>`;
 
   const balColor = lb < 0 ? 'var(--expense)' : lb > 0 ? 'var(--income)' : 'var(--text3)';
