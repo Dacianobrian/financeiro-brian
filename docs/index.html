@@ -1480,14 +1480,32 @@ function toggleDiarioCol(ci) {
   S.diarioColsVis[ci] = !S.diarioColsVis[ci];
   const outer = document.getElementById('diarioScrollOuter');
   if (outer) {
-    const savedScroll = outer.scrollLeft;
+    // Descobre qual mês está mais centralizado na tela antes do re-render
+    const viewCenter = outer.scrollLeft + outer.clientWidth / 2;
+    let anchorMi = 0, anchorOffset = 0, bestDist = Infinity;
+    for (let mi = 0; mi < 12; mi++) {
+      const block = document.getElementById('diario-month-' + mi);
+      if (block) {
+        const dist = Math.abs((block.offsetLeft + block.offsetWidth / 2) - viewCenter);
+        if (dist < bestDist) {
+          bestDist = dist;
+          anchorMi = mi;
+          anchorOffset = outer.scrollLeft - block.offsetLeft;
+        }
+      }
+    }
     const y = S.diarioYear || S.month?.y || new Date().getFullYear();
     const mob = window.innerWidth < 640;
     const blocks = [];
     for (let mi = 0; mi < 12; mi++) blocks.push(renderMonthBlock(y, mi, mob));
     outer.innerHTML = `<div class="diario-scroll-inner">${blocks.join('')}</div>`;
-    outer.scrollLeft = savedScroll;
-    requestAnimationFrame(() => { outer.scrollLeft = savedScroll; });
+    // Restaura posição relativa ao mesmo mês ancora
+    const restore = () => {
+      const block = document.getElementById('diario-month-' + anchorMi);
+      if (block) outer.scrollLeft = block.offsetLeft + anchorOffset;
+    };
+    restore();
+    requestAnimationFrame(restore);
   } else { render(); }
   try { localStorage.setItem('brian-diario-vis', JSON.stringify(S.diarioColsVis)); } catch(e) {}
 }
