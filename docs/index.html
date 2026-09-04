@@ -473,8 +473,8 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 .cartao-edit-input { background: var(--elevated); border: 1px solid var(--div); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: var(--text); outline: none; width: 100%; box-sizing: border-box; }
 .cartao-edit-input:focus { border-color: var(--accent); }
 .color-swatches { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
-.color-swatch { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s; flex-shrink: 0; }
-.color-swatch.selected { border-color: var(--text); transform: scale(1.2); }
+.color-swatch { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s; flex-shrink: 0; box-shadow: 0 0 0 1px rgba(128,128,128,0.35); }
+.color-swatch.selected { border-color: var(--text); transform: scale(1.2); box-shadow: 0 0 0 1px rgba(128,128,128,0.35); }
 .pc-section { margin-top: 24px; max-width: 640px; }
 .pc-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
 .pc-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text3); }
