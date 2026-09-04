@@ -266,6 +266,33 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 .bal-totals-row .bal-cell { }
 .bal-totals-row .saldo-col { border-radius: 0 0 12px 0; }
 
+/* ─── DIARIO MULTI-MONTH SCROLL ─── */
+.diario-scroll-outer {
+  overflow-x: auto; overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 24px 20px;
+}
+.diario-scroll-outer::-webkit-scrollbar { height: 6px; }
+.diario-scroll-outer::-webkit-scrollbar-track { background: transparent; }
+.diario-scroll-outer::-webkit-scrollbar-thumb { background: var(--div); border-radius: 3px; }
+.diario-scroll-inner {
+  display: flex; gap: 10px; align-items: flex-start;
+  min-width: max-content; padding: 0 2px 4px;
+}
+.diario-month-block {
+  background: var(--surface); border: 1px solid var(--div);
+  border-radius: 12px; overflow: hidden; width: 530px; flex-shrink: 0;
+}
+.diario-month-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 16px 8px; background: var(--elevated);
+  border-bottom: 1px solid var(--div);
+}
+.diario-month-hdr.cur-month { border-bottom: 2px solid var(--accent); }
+.diario-month-name { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text2); }
+.diario-month-hdr.cur-month .diario-month-name { color: var(--accent); }
+.diario-month-bal { font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+
 /* ─── MOVIMENTAÇÕES ─── */
 .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
 .chip {
@@ -1642,10 +1669,21 @@ function render() {
   const main = document.getElementById('main');
   const { y, m } = S.month;
   const monthLabel = `${MONTHS[m]} ${y}`;
+  const isSaldosScroll = S.page === 'saldos' && S.subtab === 'diario';
 
-  const hdrHtml = `
-    <div class="page-hdr">
-      <div class="period-nav">
+  const periodNav = isSaldosScroll
+    ? `<div class="period-nav">
+        <button class="period-btn period-btn-dbl" onclick="prevYear()" title="Ano anterior">«</button>
+        <button class="period-btn" onclick="scrollDiarioMonth(-1)" title="Mês anterior">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        </button>
+        <span class="period-label">Jan — Dez ${y}</span>
+        <button class="period-btn" onclick="scrollDiarioMonth(1)" title="Próximo mês">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+        </button>
+        <button class="period-btn period-btn-dbl" onclick="nextYear()" title="Próximo ano">»</button>
+      </div>`
+    : `<div class="period-nav">
         <button class="period-btn period-btn-dbl" onclick="prevYear()" title="Ano anterior">«</button>
         <button class="period-btn" onclick="prevMonth()" title="Mês anterior">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
@@ -1655,7 +1693,11 @@ function render() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
         </button>
         <button class="period-btn period-btn-dbl" onclick="nextYear()" title="Próximo ano">»</button>
-      </div>
+      </div>`;
+
+  const hdrHtml = `
+    <div class="page-hdr">
+      ${periodNav}
       <div class="hdr-actions">
         <button class="icon-btn" onclick="S.showBal=!S.showBal;render()" title="${S.showBal?'Ocultar':'Mostrar'} saldos">
           ${S.showBal
@@ -1683,11 +1725,22 @@ function render() {
       </div>`;
 
     let panelHtml = '';
-    if (S.subtab === 'diario') panelHtml = renderDiario(y, m);
+    if (S.subtab === 'diario') panelHtml = renderDiarioScroll(y);
     else if (S.subtab === 'horizonte') panelHtml = renderHorizonte();
     else panelHtml = renderMovsList(y, m);
 
-    main.innerHTML = hdrHtml + subtabsHtml + `<div class="panel active">${panelHtml}</div>`;
+    const panelStyle = S.subtab === 'diario' ? 'style="padding:0"' : '';
+    main.innerHTML = hdrHtml + subtabsHtml + `<div class="panel active" ${panelStyle}>${panelHtml}</div>`;
+
+    if (S.subtab === 'diario') {
+      requestAnimationFrame(() => {
+        const now = new Date();
+        const targetMi = y === now.getFullYear() ? now.getMonth() : 0;
+        const el = document.getElementById(`diario-month-${targetMi}`);
+        const container = document.getElementById('diarioScrollOuter');
+        if (el && container) container.scrollLeft = Math.max(0, el.offsetLeft - 8);
+      });
+    }
   } else if (S.page === 'movimentacoes') {
     const { y, m } = S.month;
     main.innerHTML = hdrHtml + `<div class="panel active">${renderMovsList(y, m)}</div>`;
@@ -1900,6 +1953,103 @@ function renderDiario(y, m) {
     </div>`;
 
   return summary + table;
+}
+
+// ─── DIARIO SCROLL ───
+function scrollDiarioMonth(dir) {
+  const container = document.getElementById('diarioScrollOuter');
+  if (!container) return;
+  const block = container.querySelector('.diario-month-block');
+  if (!block) return;
+  container.scrollBy({ left: dir * (block.offsetWidth + 10), behavior: 'smooth' });
+}
+
+function renderMonthBlock(y, mi, mob) {
+  const rows = calcDailyBalances(y, mi);
+  const allM = movs.filter(mv => mv.data.getFullYear()===y && mv.data.getMonth()===mi);
+  const totalIn  = allM.filter(mv=>mv.tipo==='entrada').reduce((a,mv)=>a+mv.valor,0);
+  const totalOut = allM.filter(mv=>mv.tipo==='saida').reduce((a,mv)=>a+mv.valor,0);
+  _saldoRef = Math.max(totalIn, 2000);
+  const lastBal = rows.length ? rows[rows.length-1].total : 0;
+
+  const now = new Date();
+  const isCur = mi === now.getMonth() && y === now.getFullYear();
+
+  const GRID = mob
+    ? `40px 1fr 1fr 100px`
+    : `44px 88px 88px 80px 76px 76px 124px`;
+
+  const colHdr = (bg, ico, lbl) =>
+    `<div class="col-lbl"><span class="col-ico" style="background:${bg}">${ico}</span>${lbl}</div>`;
+
+  const header = `<div class="bal-head" style="grid-template-columns:${GRID}">
+    <div class="col-lbl">Dia</div>
+    ${colHdr('#16A34A','↙', mob ? 'ent' : 'entrada')}
+    ${colHdr('#DC2626','↗', mob ? 'saí' : 'saída')}
+    ${mob ? '' : colHdr('#EC7000','I','invest.')}
+    ${mob ? '' : colHdr('#0891B2','D','diário')}
+    ${mob ? '' : colHdr('#7C3AED','C','cartão')}
+    <div class="saldo-hdr-cell">saldo</div>
+  </div>`;
+
+  const dCell = (delta) => {
+    if (!S.showBal) return `<div class="bal-cell"><span class="bal-amt zer">•••</span></div>`;
+    if (delta === 0) return `<div class="bal-cell"><span class="bal-amt zer">R$ 0</span></div>`;
+    const cls = delta > 0 ? 'pos' : 'neg';
+    const sign = delta > 0 ? '+' : '';
+    const dc = delta > 0 ? 'var(--income)' : 'var(--expense)';
+    return `<div class="bal-cell"><div class="bal-cell-inner">
+      <span class="bal-dot" style="background:${dc}"></span>
+      <span class="bal-amt ${cls}">${sign}${fmt(Math.abs(delta))}</span>
+    </div></div>`;
+  };
+
+  const tableRows = rows.map(r => {
+    const cls = ['bal-row', isToday(r.date)?'today-row':'', isFuture(r.date)?'future-row':''].filter(Boolean).join(' ');
+    const sbg = S.showBal && r.total !== 0 ? getSaldoColor(r.total) : 'transparent';
+    const scls = `saldo-col${r.total === 0 && S.showBal ? ' zero' : ''}`;
+    const prev = rows[r.d - 2];
+    const delta = prev ? r.total - prev.total : r.totalDelta;
+    const ds = delta > 0 ? '+' : '';
+    const saldoCell = `<div class="${scls}" style="background:${sbg};color:${S.showBal && r.total !== 0 ? getSaldoTextColor(r.total) : 'var(--text3)'}">
+      ${S.showBal
+        ? `${fmt(r.total)}${delta !== 0 ? `<div class="saldo-sub">${ds}${fmt(Math.abs(delta))}</div>` : ''}`
+        : '<span style="letter-spacing:.2em;opacity:.4">•••••</span>'}
+    </div>`;
+    return `<div class="${cls}" style="grid-template-columns:${GRID}" onclick="openDayMovs(${r.date.getFullYear()},${r.date.getMonth()},${r.d})">
+      <div class="day-cell"><div class="day-num">${String(r.d).padStart(2,'0')}</div><div class="day-wk">${WDAYS[r.date.getDay()]}</div></div>
+      ${dCell(r.dayIn)}${dCell(-r.dayOut)}
+      ${mob ? '' : dCell(-r.dayInvest) + dCell(-r.dayDiario) + dCell(-r.dayCartao)}
+      ${saldoCell}
+    </div>`;
+  }).join('');
+
+  const lb = lastBal, lbg = S.showBal && lb !== 0 ? getSaldoColor(lb) : 'transparent';
+  const footer = `<div class="bal-totals-row" style="grid-template-columns:${GRID}">
+    <div class="day-cell" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)">Total</div>
+    ${dCell(totalIn)}${dCell(-rows.reduce((a,r)=>a+r.dayOut,0))}
+    ${mob ? '' : dCell(-rows.reduce((a,r)=>a+r.dayInvest,0)) + dCell(-rows.reduce((a,r)=>a+r.dayDiario,0)) + dCell(-rows.reduce((a,r)=>a+r.dayCartao,0))}
+    <div class="saldo-col" style="background:${lbg};color:${S.showBal && lb !== 0 ? getSaldoTextColor(lb) : 'var(--text3)'}">
+      ${S.showBal ? fmt(lb) : '<span style="letter-spacing:.2em;opacity:.4">•••••</span>'}
+    </div>
+  </div>`;
+
+  const balColor = lb < 0 ? 'var(--expense)' : lb > 0 ? 'var(--income)' : 'var(--text3)';
+  const hdr = `<div class="diario-month-hdr${isCur ? ' cur-month' : ''}">
+    <span class="diario-month-name">${MONTHS[mi]}</span>
+    <span class="diario-month-bal" style="color:${balColor}">${S.showBal ? fmt(lb) : '•••••'}</span>
+  </div>`;
+
+  return `<div class="diario-month-block" id="diario-month-${mi}">${hdr}${header}${tableRows}${footer}</div>`;
+}
+
+function renderDiarioScroll(y) {
+  const mob = window.innerWidth < 640;
+  const blocks = [];
+  for (let mi = 0; mi < 12; mi++) blocks.push(renderMonthBlock(y, mi, mob));
+  return `<div class="diario-scroll-outer" id="diarioScrollOuter">
+    <div class="diario-scroll-inner">${blocks.join('')}</div>
+  </div>`;
 }
 
 // ─── DAY PANEL ───
