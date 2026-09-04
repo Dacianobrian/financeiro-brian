@@ -2932,20 +2932,21 @@ function saveTagCustomizations() {
 function openTagEditor(k) {
   _tagEditKey = k;
   const t = TAGS[k];
+  if (!t) return;
   const el = document.getElementById('tagEditorOverlay');
   el.dataset.cor = t.cor;
-  document.getElementById('teNome').value = t.nome;
-  document.getElementById('teEmojiInput').value = t.emoji;
-  _updateTagEditorPreview();
-  // mark selected emoji
-  el.querySelectorAll('.tag-editor-emojis button').forEach(b => {
-    b.classList.toggle('sel', b.dataset.emoji === t.emoji);
-  });
-  // mark selected color
-  el.querySelectorAll('.tag-editor-colors button').forEach(b => {
-    b.classList.toggle('sel', b.dataset.cor === t.cor);
-  });
   el.hidden = false;
+  requestAnimationFrame(() => {
+    document.getElementById('teNome').value = t.nome;
+    document.getElementById('teEmojiInput').value = t.emoji;
+    _updateTagEditorPreview();
+    el.querySelectorAll('.tag-editor-emojis button').forEach(b => {
+      b.classList.toggle('sel', b.dataset.emoji === t.emoji);
+    });
+    el.querySelectorAll('.tag-editor-colors button').forEach(b => {
+      b.classList.toggle('sel', b.dataset.cor === t.cor);
+    });
+  });
 }
 
 function closeTagEditor() {
