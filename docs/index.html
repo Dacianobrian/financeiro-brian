@@ -227,7 +227,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 .bal-row {
   display: grid; gap: 0;
   min-height: 42px;
-  align-items: stretch; border-bottom: 1px solid var(--div2);
+  align-items: stretch; border-bottom: 1px solid var(--div);
   cursor: pointer; transition: background 0.1s;
 }
 .bal-row:hover { background: var(--row-hover); }
@@ -321,7 +321,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 .br-row {
   display: grid; grid-template-columns: 48px 40px 40px 40px 40px 40px 152px;
   height: 40px; align-items: stretch; cursor: pointer;
-  border-bottom: 1px solid var(--div2); transition: background 0.1s;
+  border-bottom: 1px solid var(--div); transition: background 0.1s;
 }
 .br-row:hover { background: var(--row-hover); }
 .br-row.weekend-row { background: var(--table-weekend-bg); }
@@ -2595,6 +2595,15 @@ function renderMonthBlock(y, mi, mob) {
     return `<div class="br-saldo${S.showBal?'':' br-saldo-hidden'}" style="background:${sbg}"><span>${txt}</span></div>`;
   };
 
+  // Footer cell: always expanded regardless of column collapse
+  const footCell = (delta, ci) => {
+    if (!S.showBal) return `<div class="br-icell br-val-cell"><span class="br-amt zer">•••</span></div>`;
+    if (delta === 0) return `<div class="br-icell br-val-cell"><span class="br-ico">${catIco(ci, 0.35)}</span><span class="br-amt zer">–</span></div>`;
+    const cls = delta > 0 ? 'pos' : 'neg';
+    const sign = delta > 0 ? '+' : '';
+    return `<div class="br-icell br-val-cell"><span class="br-ico">${catIco(ci)}</span><span class="br-amt ${cls}">${sign}${fmt(Math.abs(delta))}</span></div>`;
+  };
+
   const hdrIcos = Array.from({length:nCols},(_,i)=>hdrIco(i)).join('');
   const header = `<div class="br-row br-head" style="grid-template-columns:${GRID}">
     <div class="br-dia-hdr">dia</div>
@@ -2621,10 +2630,12 @@ function renderMonthBlock(y, mi, mob) {
   const totInv = rows.reduce((a,r)=>a+r.dayInvest,0);
   const totDia = rows.reduce((a,r)=>a+r.dayDiario,0);
   const totCar = rows.reduce((a,r)=>a+r.dayCartao,0);
+  // Footer always shows all columns expanded, ignoring collapse state
+  const GRID_FOOT = mob ? '48px 168px 168px 152px' : '48px 168px 168px 168px 168px 168px 152px';
   const footCells = mob
-    ? cell(totalIn,0)+cell(-totOut,1)
-    : cell(totalIn,0)+cell(-totOut,1)+cell(-totInv,2)+cell(-totDia,3)+cell(-totCar,4);
-  const footer = `<div class="br-row br-foot" style="grid-template-columns:${GRID}">
+    ? footCell(totalIn,0)+footCell(-totOut,1)
+    : footCell(totalIn,0)+footCell(-totOut,1)+footCell(-totInv,2)+footCell(-totDia,3)+footCell(-totCar,4);
+  const footer = `<div class="br-row br-foot" style="grid-template-columns:${GRID_FOOT}">
     <div class="br-dia" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)">TOT</div>
     ${footCells}${saldoCell(lb)}
   </div>`;
