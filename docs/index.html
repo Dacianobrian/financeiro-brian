@@ -234,6 +234,9 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 .bal-row:last-child { border-bottom: none; }
 .bal-row.weekend-row { background: var(--table-weekend-bg); }
 .bal-row.today-row { background: var(--today-bg); }
+.bal-row.checkin-row .day-num { color: var(--income); }
+.day-check { font-size: 8px; color: var(--income); margin-left: 2px; font-weight: 700; vertical-align: super; }
+.day-cell { cursor: pointer; }
 .bal-row.future-row { opacity: 0.6; }
 .bal-totals-row {
   display: grid; gap: 0;
@@ -335,6 +338,8 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 }
 .br-dia .br-wk { font-size: 8px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3); font-weight: 400; }
 .br-row.today-row .br-dia { color: var(--accent); }
+.br-row.checkin-row .br-dia > span:first-child { color: var(--income); }
+.br-dia { cursor: pointer; }
 .br-dia-hdr { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); background: var(--elevated); }
 .br-icell {
   display: flex; align-items: center; justify-content: center; cursor: pointer;
@@ -1509,7 +1514,7 @@ const S = {
   totaisYear: 2026,
   totaisMes: null,
   totaisView: 'mensal', // 'mensal' | 'anual'
-  totaisSubPage: null, // null | 'custoDeVida'
+  totaisSubPage: null, // null | 'custoDeVida' | 'economizado' | 'performance' | 'diarioMedio'
   tagSearch: '',
   _tagPickerQ: '',
   themeMode: 'sistema',
@@ -1686,18 +1691,18 @@ function renderTotaisAnual() {
   const kpiCards = `
     <div class="tot-section-lbl">cálculos do ano</div>
     <div class="tot-cards">
-      <div class="tot-card">
+      <div class="tot-card" style="cursor:pointer" onclick="S.totaisSubPage='performance';render()">
         <div class="tot-card-name">performance</div>
         <div class="tot-formula">${B('e')}${Op('−')}${B('s')}${Op('−')}${B('d')}${Op('−')}${B('i')}${Op('−')}${B('c')}</div>
         <div class="tot-card-val ${resultado>=0?'ta-pos':'ta-neg'}">${h(resultado)}</div>
-        <div class="tot-card-sub">${perfLabel}</div>
+        <div class="tot-card-sub">${perfLabel} <span style="font-size:10px;color:var(--accent)">›</span></div>
       </div>
-      <div class="tot-card">
+      <div class="tot-card" style="cursor:pointer" onclick="S.totaisSubPage='economizado';render()">
         <div class="tot-card-name">economizado</div>
         <div class="tot-formula">${B('i')}${Op('/')}${B('e')}</div>
         <div class="tot-econ-bar"><div class="tot-econ-fill" style="width:${Math.min(econ*100,100).toFixed(1)}%"></div></div>
         <div class="tot-card-val">${S.showBal ? econPct+'%' : '•••'}</div>
-        <div class="tot-card-sub">${annualInv===0 ? 'nada guardado' : h(annualInv)+' guardados'}</div>
+        <div class="tot-card-sub">${annualInv===0 ? 'nada guardado' : h(annualInv)+' guardados'} <span style="font-size:10px;color:var(--accent)">›</span></div>
       </div>
       <div class="tot-card" style="cursor:pointer" onclick="S.totaisSubPage='custoDeVida';render()">
         <div class="tot-card-name">custo de vida</div>
@@ -1705,11 +1710,11 @@ function renderTotaisAnual() {
         <div class="tot-card-val ${custoVida>annualIn&&annualIn>0?'ta-neg':''}">${h(custoVida)}</div>
         <div class="tot-card-sub">${custoLabel} <span style="font-size:10px;color:var(--accent)">›</span></div>
       </div>
-      <div class="tot-card">
+      <div class="tot-card" style="cursor:pointer" onclick="S.totaisSubPage='diarioMedio';render()">
         <div class="tot-card-name">diário médio</div>
         <div class="tot-formula">${B('d')}${Op('/')}${Op(diasAno)}</div>
         <div class="tot-card-val">${h(diaMedio)}</div>
-        <div class="tot-card-sub">${B('pd')} ${h(annualDia)}</div>
+        <div class="tot-card-sub">${B('pd')} ${h(annualDia)} <span style="font-size:10px;color:var(--accent)">›</span></div>
       </div>
     </div>`;
 
@@ -1773,6 +1778,122 @@ function renderCustoDeVida() {
   </div>`;
 }
 
+function renderEconomizado() {
+  const y = S.totaisYear;
+  const h = (v) => S.showBal ? fmt(v) : '<span class="hidden-val">•••</span>';
+  const MONTHS_FULL = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+
+  const monthData = Array.from({length:12}, (_,m) => {
+    const rows = calcDailyBalances(y, m);
+    const totalInv = rows.reduce((a,r)=>a+r.dayInvest,0);
+    const totalIn  = rows.reduce((a,r)=>a+r.dayIn,0);
+    return {m, totalInv, totalIn};
+  });
+
+  const annualInv = monthData.reduce((a,d)=>a+d.totalInv,0);
+  const annualIn  = monthData.reduce((a,d)=>a+d.totalIn,0);
+  const pct = annualIn > 0 ? annualInv / annualIn * 100 : 0;
+
+  const monthRows = monthData.map(({m, totalInv, totalIn}) => {
+    const p = totalIn > 0 ? (totalInv / totalIn * 100).toFixed(1) : null;
+    return `<div class="cdv-mes-row">
+      <span class="cdv-mes-nome">${MONTHS_FULL[m]}</span>
+      <div style="display:flex;align-items:center;gap:8px;flex:1;justify-content:flex-end">
+        ${p ? `<span style="font-size:11px;color:var(--text3)">${p}%</span>` : ''}
+        <span class="cdv-mes-val">${totalInv > 0 ? h(totalInv) : '<span style="color:var(--text3)">—</span>'}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `<div class="tot-body">
+    <div class="cdv-total-card">
+      <div class="cdv-total-label">total guardado no ano</div>
+      <div class="cdv-total-val">${h(annualInv)}</div>
+      <div class="cdv-total-sub">${annualIn > 0 ? pct.toFixed(1)+'% da renda' : 'sem renda registrada'}</div>
+    </div>
+    <div class="tot-econ-bar" style="margin:12px 0 20px"><div class="tot-econ-fill" style="width:${Math.min(pct,100).toFixed(1)}%"></div></div>
+    <div class="tot-section-lbl" style="margin-top:4px">guardado por mês</div>
+    <div class="cdv-mes-list">${monthRows}</div>
+  </div>`;
+}
+
+function renderPerformance() {
+  const y = S.totaisYear;
+  const h = (v) => S.showBal ? fmt(v) : '<span class="hidden-val">•••</span>';
+  const MONTHS_FULL = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+
+  const monthData = Array.from({length:12}, (_,m) => {
+    const rows = calcDailyBalances(y, m);
+    const totalIn   = rows.reduce((a,r)=>a+r.dayIn,0);
+    const totalOut  = rows.reduce((a,r)=>a+r.dayOut,0);
+    const totalInv  = rows.reduce((a,r)=>a+r.dayInvest,0);
+    const totalDia  = rows.reduce((a,r)=>a+r.dayDiario,0);
+    const totalCart = rows.reduce((a,r)=>a+r.dayCartao,0);
+    const resultado = totalIn - totalOut - totalInv - totalDia - totalCart;
+    return {m, resultado, totalIn};
+  });
+
+  const annualRes = monthData.reduce((a,d)=>a+d.resultado,0);
+  const mesesPos  = monthData.filter(d=>d.resultado>0).length;
+  const mesesNeg  = monthData.filter(d=>d.resultado<0).length;
+
+  const monthRows = monthData.map(({m, resultado, totalIn}) => {
+    const hasData = totalIn > 0 || resultado !== 0;
+    return `<div class="cdv-mes-row">
+      <span class="cdv-mes-nome">${MONTHS_FULL[m]}</span>
+      <span class="cdv-mes-val ${resultado>=0?'ta-pos':'ta-neg'}">${hasData ? h(resultado) : '<span style="color:var(--text3)">—</span>'}</span>
+    </div>`;
+  }).join('');
+
+  return `<div class="tot-body">
+    <div class="cdv-total-card">
+      <div class="cdv-total-label">resultado do ano</div>
+      <div class="cdv-total-val ${annualRes>=0?'ta-pos':'ta-neg'}">${h(annualRes)}</div>
+      <div class="cdv-total-sub">${mesesPos} meses positivos · ${mesesNeg} negativos</div>
+    </div>
+    <div class="tot-section-lbl" style="margin-top:20px">resultado por mês</div>
+    <div class="cdv-mes-list">${monthRows}</div>
+  </div>`;
+}
+
+function renderDiarioMedio() {
+  const y = S.totaisYear;
+  const h = (v) => S.showBal ? fmt(v) : '<span class="hidden-val">•••</span>';
+  const MONTHS_FULL = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const today = new Date();
+
+  const monthData = Array.from({length:12}, (_,m) => {
+    const rows = calcDailyBalances(y, m);
+    const totalDia = rows.reduce((a,r)=>a+r.dayDiario,0);
+    const dias = daysInMonth(y, m);
+    const isThisMth = today.getFullYear()===y && today.getMonth()===m;
+    const diasPass = isThisMth ? today.getDate() : dias;
+    const media = diasPass > 0 && totalDia > 0 ? totalDia / diasPass : 0;
+    return {m, media, totalDia};
+  });
+
+  const annualDia   = monthData.reduce((a,d)=>a+d.totalDia,0);
+  const diasAno     = Array.from({length:12},(_,m)=>daysInMonth(y,m)).reduce((a,b)=>a+b,0);
+  const mediaAnual  = diasAno > 0 && annualDia > 0 ? annualDia / diasAno : 0;
+
+  const monthRows = monthData.map(({m, media}) => {
+    return `<div class="cdv-mes-row">
+      <span class="cdv-mes-nome">${MONTHS_FULL[m]}</span>
+      <span class="cdv-mes-val">${media > 0 ? h(media) : '<span style="color:var(--text3)">—</span>'}</span>
+    </div>`;
+  }).join('');
+
+  return `<div class="tot-body">
+    <div class="cdv-total-card">
+      <div class="cdv-total-label">média diária no ano</div>
+      <div class="cdv-total-val">${h(mediaAnual)}</div>
+      <div class="cdv-total-sub">${annualDia > 0 ? h(annualDia)+' total em diários' : 'sem diários registrados'}</div>
+    </div>
+    <div class="tot-section-lbl" style="margin-top:20px">média por mês</div>
+    <div class="cdv-mes-list">${monthRows}</div>
+  </div>`;
+}
+
 function renderTotais() {
   if (S.totaisView === 'anual') return renderTotaisAnual();
   const today = new Date();
@@ -1807,19 +1928,19 @@ function renderTotais() {
     <div class="tot-section-lbl">cálculos do mês</div>
     <div class="tot-cards">
 
-      <div class="tot-card">
+      <div class="tot-card" style="cursor:pointer" onclick="S.totaisSubPage='performance';render()">
         <div class="tot-card-name">performance</div>
         <div class="tot-formula">${B('e')}${Op('−')}${B('s')}${Op('−')}${B('d')}${Op('−')}${B('i')}${Op('−')}${B('c')}</div>
         <div class="tot-card-val ${resultado>=0?'ta-pos':'ta-neg'}">${h(resultado)}</div>
-        <div class="tot-card-sub">${perfLabel}</div>
+        <div class="tot-card-sub">${perfLabel} <span style="font-size:10px;color:var(--accent)">›</span></div>
       </div>
 
-      <div class="tot-card">
+      <div class="tot-card" style="cursor:pointer" onclick="S.totaisSubPage='economizado';render()">
         <div class="tot-card-name">economizado</div>
         <div class="tot-formula">${B('i')}${Op('/')}${B('e')}</div>
         <div class="tot-econ-bar"><div class="tot-econ-fill" style="width:${Math.min(econ*100,100).toFixed(1)}%"></div></div>
         <div class="tot-card-val">${S.showBal ? econPct+'%' : '•••'}</div>
-        <div class="tot-card-sub">${totalInv===0 ? 'nada guardado' : h(totalInv)+' guardados'}</div>
+        <div class="tot-card-sub">${totalInv===0 ? 'nada guardado' : h(totalInv)+' guardados'} <span style="font-size:10px;color:var(--accent)">›</span></div>
       </div>
 
       <div class="tot-card" style="cursor:pointer" onclick="S.totaisSubPage='custoDeVida';render()">
@@ -1829,11 +1950,11 @@ function renderTotais() {
         <div class="tot-card-sub">${custoLabel} <span style="font-size:10px;color:var(--accent)">›</span></div>
       </div>
 
-      <div class="tot-card">
+      <div class="tot-card" style="cursor:pointer" onclick="S.totaisSubPage='diarioMedio';render()">
         <div class="tot-card-name">diário médio</div>
         <div class="tot-formula">${B('d')}${Op('/')}${Op(diasPass)}</div>
         <div class="tot-card-val">${h(diaMedio)}</div>
-        <div class="tot-card-sub">${B('pd')} ${h(totalDia)}</div>
+        <div class="tot-card-sub">${B('pd')} ${h(totalDia)} <span style="font-size:10px;color:var(--accent)">›</span></div>
       </div>
 
     </div>
@@ -1879,6 +2000,23 @@ function sameDay(a, b) { return a.getFullYear()===b.getFullYear() && a.getMonth(
 function isToday(d) { return sameDay(d, TODAY); }
 function isFuture(d) { return d > TODAY; }
 function isWeekend(d) { const day = new Date(d).getDay(); return day === 0 || day === 6; }
+
+// ─── CHECK-IN POR DIA ───
+let _checkins = null;
+function _loadCheckins() {
+  if (_checkins) return;
+  try { _checkins = new Set(JSON.parse(localStorage.getItem('brian-checkins') || '[]')); } catch(e) { _checkins = new Set(); }
+}
+function toggleCheckin(dateStr) {
+  _loadCheckins();
+  _checkins.has(dateStr) ? _checkins.delete(dateStr) : _checkins.add(dateStr);
+  try { localStorage.setItem('brian-checkins', JSON.stringify([..._checkins])); } catch(e) {}
+}
+function isCheckin(d) {
+  _loadCheckins();
+  const s = d instanceof Date ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : d;
+  return _checkins.has(s);
+}
 
 // ─── SALDO GRADIENT — fundos claros + texto escuro, estilo app original ───
 let _saldoRef = 5000; // atualizado no render
@@ -2010,6 +2148,16 @@ function setSubtab(t) {
   render();
 }
 
+function irPraHoje() {
+  const container = document.getElementById('diarioScrollOuter');
+  if (container) {
+    const now = new Date();
+    const el = document.getElementById(`diario-month-${now.getMonth()}`);
+    if (el) { container.scrollLeft = Math.max(0, el.offsetLeft - 8); return; }
+  }
+  document.querySelector('.today-row')?.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
 // ─── THEME ───
 function setTheme(mode) {
   S.themeMode = mode;
@@ -2050,6 +2198,7 @@ function render() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
         </button>
         <button class="period-btn period-btn-dbl" onclick="nextYear()" title="Próximo ano">»</button>
+        <button class="period-btn" onclick="irPraHoje()" title="ir para hoje" style="font-size:11px;font-weight:600;padding:4px 8px">hoje</button>
       </div>`
     : `<div class="period-nav">
         <button class="period-btn period-btn-dbl" onclick="prevYear()" title="Ano anterior">«</button>
@@ -2172,6 +2321,27 @@ function render() {
           </div>
         </div>`;
       main.innerHTML = cdvHdr + `<div class="panel active" style="padding:12px 16px 24px">${renderCustoDeVida()}</div>`;
+    } else if (['economizado','performance','diarioMedio'].includes(S.totaisSubPage)) {
+      const _ty = S.totaisYear;
+      const _titles = {economizado:'economizado', performance:'performance', diarioMedio:'diário médio'};
+      const _renders = {economizado:renderEconomizado, performance:renderPerformance, diarioMedio:renderDiarioMedio};
+      const subHdr = `
+        <div class="page-hdr">
+          <button class="period-btn" style="padding:6px 10px;gap:4px;display:flex;align-items:center" onclick="S.totaisSubPage=null;render()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+          </button>
+          <span class="period-label" style="font-size:15px;font-weight:700">${_titles[S.totaisSubPage]}</span>
+          <div class="period-nav">
+            <button class="period-btn" onclick="S.totaisYear--;render()" title="Anterior">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </button>
+            <span class="period-label">${_ty}</span>
+            <button class="period-btn" onclick="S.totaisYear++;render()" title="Próximo">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+            </button>
+          </div>
+        </div>`;
+      main.innerHTML = subHdr + `<div class="panel active" style="padding:12px 16px 24px">${_renders[S.totaisSubPage]()}</div>`;
     } else {
       const _ty = S.totaisYear, _tm = S.totaisMes, _tv = S.totaisView;
       const _prevFn = _tv==='mensal' ? 'prevTotaisMes()' : 'prevTotaisAno()';
@@ -2292,11 +2462,14 @@ function renderDiario(y, m) {
 
   // ─ rows ─
   const tableRows = rows.map(r => {
+    const dateStr = `${r.date.getFullYear()}-${String(r.date.getMonth()+1).padStart(2,'0')}-${String(r.d).padStart(2,'0')}`;
+    const cin = isCheckin(r.date);
     const cls = [
       'bal-row',
       isWeekend(r.date) ? 'weekend-row' : '',
       isToday(r.date) ? 'today-row' : '',
       isFuture(r.date) ? 'future-row' : '',
+      cin ? 'checkin-row' : '',
     ].filter(Boolean).join(' ');
 
     const saldoBg  = S.showBal ? getSaldoColor(r.total) : 'transparent';
@@ -2313,8 +2486,8 @@ function renderDiario(y, m) {
 
     return `
       <div class="${cls}" data-day="${r.d}" style="grid-template-columns:${GRID}" onclick="openDayMovs(${r.date.getFullYear()},${r.date.getMonth()},${r.d})">
-        <div class="day-cell">
-          <div class="day-num">${String(r.d).padStart(2,'0')}</div>
+        <div class="day-cell" onclick="event.stopPropagation();toggleCheckin('${dateStr}');render()">
+          <div class="day-num">${String(r.d).padStart(2,'0')}${cin?'<span class="day-check">✓</span>':''}</div>
           <div class="day-wk">${WDAYS[r.date.getDay()]}</div>
         </div>
         ${deltaCell(r.dayIn,          !c.in)}
@@ -2431,12 +2604,14 @@ function renderMonthBlock(y, mi, mob) {
 
   const WK = ['dom','seg','ter','qua','qui','sex','sáb'];
   const tableRows = rows.map(r => {
-    const cls = ['br-row', isWeekend(r.date)?'weekend-row':'', isToday(r.date)?'today-row':'', isFuture(r.date)?'future-row':''].filter(Boolean).join(' ');
+    const dateStr = `${r.date.getFullYear()}-${String(r.date.getMonth()+1).padStart(2,'0')}-${String(r.d).padStart(2,'0')}`;
+    const cin = isCheckin(r.date);
+    const cls = ['br-row', isWeekend(r.date)?'weekend-row':'', isToday(r.date)?'today-row':'', isFuture(r.date)?'future-row':'', cin?'checkin-row':''].filter(Boolean).join(' ');
     const dataCells = mob
       ? cell(r.dayIn,0)+cell(-r.dayOut,1)
       : cell(r.dayIn,0)+cell(-r.dayOut,1)+cell(-r.dayInvest,2)+cell(-r.dayDiario,3)+cell(-r.dayCartao,4);
     return `<div class="${cls}" style="grid-template-columns:${GRID}" onclick="openDayMovs(${r.date.getFullYear()},${r.date.getMonth()},${r.d})">
-      <div class="br-dia"><span>${String(r.d).padStart(2,'0')}</span><span class="br-wk">${WK[r.date.getDay()]}</span></div>
+      <div class="br-dia" onclick="event.stopPropagation();toggleCheckin('${dateStr}');render()"><span>${String(r.d).padStart(2,'0')}${cin?'<span class="day-check">✓</span>':''}</span><span class="br-wk">${WK[r.date.getDay()]}</span></div>
       ${dataCells}${saldoCell(r.total)}
     </div>`;
   }).join('');
