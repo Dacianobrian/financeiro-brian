@@ -839,6 +839,11 @@ function scrollToMonth(i, behavior = 'smooth'){
   const pad = parseFloat(getComputedStyle(sc).paddingLeft) || 0;
   const alvo = sc.scrollLeft + s.getBoundingClientRect().left - sc.getBoundingClientRect().left - pad;
   mesVisivel = idx;
+  /* Enquanto a rolagem não assenta, o mês âncora é o PEDIDO, não o que estiver
+     passando na tela — senão um resize no meio do caminho fixa no mês errado. */
+  mesAlvo = idx;
+  clearTimeout(window.__alvoTimer);
+  window.__alvoTimer = setTimeout(() => { mesAlvo = null; }, behavior === 'smooth' ? 900 : 150);
   const inicio = sc.scrollLeft;
   sc.scrollTo({ left: alvo, behavior });
   /* Alguns renderizadores ignoram behavior:'smooth' silenciosamente. Se depois
@@ -854,7 +859,7 @@ function scrollToMonth(i, behavior = 'smooth'){
 }
 
 function updateMobileMonthLabel(){
-  const i = currentMonthIndex();
+  const i = mesAlvo !== null ? mesAlvo : currentMonthIndex();
   mesVisivel = i;
   document.getElementById('mobileMonthLabel').textContent = `${MESES_CAP[i]}/${S.ano}`;
 }
@@ -866,6 +871,7 @@ document.getElementById('monthsScroller').addEventListener('scroll', () => {
 
 /* Ao trocar de largura (girar o celular, desktop↔mobile) o mês visível é mantido. */
 let mesVisivel = 0;
+let mesAlvo = null;
 window.addEventListener('resize', () => {
   clearTimeout(window.__rzTimer);
   window.__rzTimer = setTimeout(() => {
