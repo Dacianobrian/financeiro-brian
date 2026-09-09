@@ -627,6 +627,7 @@ const S = {
   checkins: new Set(ls.json('brian-checkins', [])),
   movs: [],
   tags: [],
+  cartoes: [],
   saldoInicial: 0,
 };
 
@@ -1097,6 +1098,14 @@ function abrirEditor(dataKey, coluna, id){
           <option value="${esc(t.nome)}"${mv && mv.tag === t.nome ? ' selected' : ''}>${esc(t.nome)}</option>`).join('')}
       </select>
     </div>
+    <div class="campo" id="campoCartao"${colunaAtual === 'card' ? '' : ' hidden'}>
+      <label class="campo-rot" for="fCartao">cartão</label>
+      <select id="fCartao">
+        <option value="">sem cartão específico</option>
+        ${S.cartoes.map(c => `
+          <option value="${esc(c.id)}"${mv && String(mv.cartao_id || '') === String(c.id) ? ' selected' : ''}>${esc(c.nome)}${c.num ? ' ·••• ' + esc(c.num) : ''}</option>`).join('')}
+      </select>
+    </div>
     <div class="campo">
       <label class="campo-rot" for="fRec">repetição</label>
       <select id="fRec">
@@ -1137,6 +1146,7 @@ async function salvarLancamento(){
     /* A tag escolhida manda sobre a implícita da coluna. */
     tag: tagEscolhida || campos.tag,
     rec: document.getElementById('fRec').value || null,
+    cartao_id: coluna === 'card' ? (document.getElementById('fCartao').value || null) : null,
   };
 
   /* Algumas tags mudam a coluna: 'diário' joga em diários, 'invest' em
@@ -1223,6 +1233,9 @@ document.addEventListener('click', e => {
     if (q === 'coluna'){
       document.querySelectorAll('#chipsColuna .tipo-chip').forEach(c => c.classList.remove('is-on'));
       folha.classList.add('is-on');
+      /* Escolher o cartão só faz sentido na coluna cartão. */
+      const cc = document.getElementById('campoCartao');
+      if (cc) cc.hidden = folha.dataset.col !== 'card';
     }
     return;
   }
@@ -1320,6 +1333,7 @@ const DEMO = [
 function toMov(r){
   return {
     id:    r.id != null ? String(r.id) : null,
+    cartao_id: r.cartao_id || null,
     desc:  r.descricao || '',
     valor: parseFloat(r.valor),
     tipo:  r.tipo,
@@ -1341,12 +1355,14 @@ async function boot(){
     const { data: { session } } = await sb.auth.getSession();
     if (session){
       USER_ID = session.user.id;
-      const [mv, tg] = await Promise.all([
+      const [mv, tg, cc] = await Promise.all([
         sb.from('movimentos').select('*').order('data', { ascending: true }),
         sb.from('tags').select('*').order('created_at', { ascending: true }),
+        sb.from('cartoes').select('*').order('created_at', { ascending: true }),
       ]);
       if (!mv.error && mv.data) S.movs = mv.data.map(toMov);
       if (!tg.error && tg.data) S.tags = tg.data;
+      if (!cc.error && cc.data) S.cartoes = cc.data;
     } else {
       semSessao = true;
     }
