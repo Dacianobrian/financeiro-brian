@@ -837,13 +837,18 @@ function scrollToMonth(i, behavior = 'smooth'){
   if (!s) return;
   const sc = document.getElementById('monthsScroller');
   const pad = parseFloat(getComputedStyle(sc).paddingLeft) || 0;
-  const alvo = sc.scrollLeft + s.getBoundingClientRect().left - sc.getBoundingClientRect().left - pad;
+  const bruto = sc.scrollLeft + s.getBoundingClientRect().left - sc.getBoundingClientRect().left - pad;
+  /* Preso à faixa rolável: pedir além do fim faria o alvo nunca ser alcançado. */
+  const alvo = Math.max(0, Math.min(sc.scrollWidth - sc.clientWidth, bruto));
   mesVisivel = idx;
   /* Enquanto a rolagem não assenta, o mês âncora é o PEDIDO, não o que estiver
-     passando na tela — senão um resize no meio do caminho fixa no mês errado. */
+     passando na tela — senão um resize no meio do caminho fixa no mês errado.
+     A âncora é solta quando o scroll CHEGA (ver listener abaixo); um timer fixo
+     não serve, porque uma animação de 8000px dura bem mais que um mês vizinho. */
   mesAlvo = idx;
+  alvoX = alvo;
   clearTimeout(window.__alvoTimer);
-  window.__alvoTimer = setTimeout(() => { mesAlvo = null; }, behavior === 'smooth' ? 900 : 150);
+  window.__alvoTimer = setTimeout(() => { mesAlvo = null; alvoX = null; }, 4000);
   const inicio = sc.scrollLeft;
   sc.scrollTo({ left: alvo, behavior });
   /* Alguns renderizadores ignoram behavior:'smooth' silenciosamente. Se depois
@@ -864,14 +869,20 @@ function updateMobileMonthLabel(){
   document.getElementById('mobileMonthLabel').textContent = `${MESES_CAP[i]}/${S.ano}`;
 }
 
-document.getElementById('monthsScroller').addEventListener('scroll', () => {
+document.getElementById('monthsScroller').addEventListener('scroll', e => {
+  if (alvoX !== null && Math.abs(e.target.scrollLeft - alvoX) <= 2){
+    mesAlvo = null;
+    alvoX = null;
+    clearTimeout(window.__alvoTimer);
+  }
   clearTimeout(window.__mlTimer);
   window.__mlTimer = setTimeout(updateMobileMonthLabel, 60);
 }, { passive: true });
 
 /* Ao trocar de largura (girar o celular, desktop↔mobile) o mês visível é mantido. */
 let mesVisivel = 0;
-let mesAlvo = null;
+let mesAlvo = null;   /* mês pedido, enquanto a rolagem não chega */
+let alvoX = null;     /* scrollLeft de destino correspondente */
 window.addEventListener('resize', () => {
   clearTimeout(window.__rzTimer);
   window.__rzTimer = setTimeout(() => {
