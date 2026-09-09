@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview — Opções Projeção de Caixa</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0f1117;color:#e2e8f0;font-family:'Inter',system-ui,sans-serif;padding:32px 24px}
+  h1{font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+  .op-label{display:inline-block;background:#1e293b;border:1px solid #334155;border-radius:20px;padding:4px 14px;font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:18px}
+  .op-section{margin-bottom:52px}
+  .divider{border:none;border-top:1px solid #1e293b;margin:40px 0}
+
+  /* shared vars */
+  :root{
+    --green:#22c55e;--red:#f43f5e;--blue:#60a5fa;--yellow:#fbbf24;
+    --surface:#161b27;--surface2:#1a2030;--border:#1e293b;--border2:#2d3748;
+    --muted:#64748b;--muted2:#475569;--text:#e2e8f0;
+  }
+
+  /* ── OPÇÃO A ── */
+  .opa-wrap{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+  .opa-header{padding:14px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+  .opa-title{font-size:14px;font-weight:700}
+  .opa-badge{background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.3);color:#38bdf8;border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700}
+  .opa-weeks{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border-bottom:1px solid var(--border)}
+  .opa-week{padding:14px 16px;border-right:1px solid var(--border);cursor:pointer;transition:.15s}
+  .opa-week:last-child{border-right:none}
+  .opa-week:hover{background:rgba(255,255,255,.02)}
+  .opa-week.active{background:rgba(56,189,248,.05);border-bottom:2px solid #38bdf8}
+  .opa-wlabel{font-size:12px;font-weight:700;margin-bottom:2px}
+  .opa-wperiod{font-size:10px;color:var(--muted);margin-bottom:10px}
+  .opa-wnet{font-size:18px;font-weight:800;margin-bottom:3px}
+  .opa-win{font-size:10px;color:var(--green)}
+  .opa-wout{font-size:10px;color:var(--red)}
+  .opa-wcount{font-size:9px;color:var(--muted);margin-top:4px}
+  .opa-body{padding:0}
+  .opa-item{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.03)}
+  .opa-item:last-child{border-bottom:none}
+  .opa-day{font-size:12px;font-weight:700;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 7px;color:var(--muted2)}
+  .opa-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  .opa-name{flex:1;font-size:13px;font-weight:600}
+  .opa-name small{display:block;font-size:10px;color:var(--muted);margin-top:1px}
+  .opa-val{font-size:13px;font-weight:700;white-space:nowrap}
+  .opa-actions{display:flex;gap:5px}
+  .opa-btn-edit{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;opacity:.5}
+  .opa-btn-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;opacity:.4}
+  .opa-btn-ok{width:22px;height:22px;border-radius:50%;border:2px solid rgba(34,197,94,.3);background:rgba(34,197,94,.07);color:var(--green);cursor:pointer;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .opa-add{display:flex;gap:8px;padding:12px 18px;background:rgba(255,255,255,.008);border-top:1px solid var(--border);align-items:center;flex-wrap:wrap}
+  .opa-add input{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:7px 10px;font-size:12px;outline:none;font-family:inherit}
+  .opa-add-in{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.3)}
+  .opa-add-out{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:rgba(244,63,94,.1);color:#fb7185;border:1px solid rgba(244,63,94,.3)}
+  .opa-footer{padding:10px 18px;background:var(--surface2);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
+  .opa-footer span{font-size:16px;font-weight:800;color:var(--green)}
+
+  /* ── OPÇÃO B ── */
+  .opb-wrap{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+  .opb-topbar{padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+  .opb-title-row{display:flex;align-items:center;gap:10px}
+  .opb-title{font-size:14px;font-weight:700}
+  .opb-badge{background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.3);color:#38bdf8;border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700}
+  .opb-summary{display:flex;gap:20px;align-items:center}
+  .opb-s-item{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600}
+  .opb-tabs{display:flex;gap:0;border-bottom:1px solid var(--border)}
+  .opb-tab{padding:10px 16px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap}
+  .opb-tab.active{color:#38bdf8;border-bottom-color:#38bdf8;background:rgba(56,189,248,.04)}
+  .opb-tab .badge{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1px 6px;font-size:9px;margin-left:4px;color:var(--muted2)}
+  .opb-tab.active .badge{background:rgba(56,189,248,.15);border-color:rgba(56,189,248,.3);color:#38bdf8}
+  .opb-content{padding:0}
+  .opb-item{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.03)}
+  .opb-item:last-child{border-bottom:none}
+  .opb-date{font-size:11px;color:var(--muted);width:50px;flex-shrink:0;text-align:center;line-height:1.3}
+  .opb-date strong{display:block;font-size:15px;font-weight:800;color:var(--text)}
+  .opb-bar{width:3px;height:36px;border-radius:2px;flex-shrink:0}
+  .opb-info{flex:1}
+  .opb-iname{font-size:13px;font-weight:600}
+  .opb-imeta{font-size:10px;color:var(--muted);margin-top:2px}
+  .opb-ival{font-size:14px;font-weight:800;white-space:nowrap;text-align:right}
+  .opb-ibtns{display:flex;gap:4px;opacity:0}
+  .opb-item:hover .opb-ibtns{opacity:1}
+  .opb-ibtns button{background:none;border:none;cursor:pointer;font-size:12px;color:var(--muted2);padding:2px 4px}
+  .opb-add{display:flex;gap:8px;padding:12px 18px;background:rgba(255,255,255,.008);border-top:1px solid var(--border);align-items:center}
+  .opb-add input{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:7px 10px;font-size:12px;outline:none;font-family:inherit;flex:1}
+  .opb-add-in{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.3);white-space:nowrap}
+  .opb-add-out{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:rgba(244,63,94,.1);color:#fb7185;border:1px solid rgba(244,63,94,.3);white-space:nowrap}
+  .opb-footer{padding:10px 18px;background:var(--surface2);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
+  .opb-footer span{font-size:16px;font-weight:800;color:var(--green)}
+
+  /* ── OPÇÃO C ── */
+  .opc-wrap{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+  .opc-header{padding:16px 20px;border-bottom:1px solid var(--border)}
+  .opc-htop{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .opc-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .opc-badge{background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.3);color:#38bdf8;border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700}
+  .opc-tabs{display:flex;gap:5px}
+  .opc-tab{padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);font-size:11px;font-weight:600;color:var(--muted);cursor:pointer}
+  .opc-tab.active{background:rgba(56,189,248,.15);border-color:rgba(56,189,248,.3);color:#38bdf8}
+  .opc-kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .opc-kpi{border-radius:10px;padding:10px 14px}
+  .opc-kpi-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+  .opc-kpi-val{font-size:20px;font-weight:800;line-height:1}
+  .opc-kpi-sub{font-size:9px;color:var(--muted);margin-top:3px}
+  .opc-timeline{padding:20px}
+  .opc-week{margin-bottom:20px}
+  .opc-whead{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .opc-wdot{width:10px;height:10px;border-radius:50%;border:2px solid #38bdf8;background:rgba(56,189,248,.2);flex-shrink:0}
+  .opc-wdot.past{border-color:var(--muted);background:rgba(100,116,139,.2)}
+  .opc-wlabel{font-size:12px;font-weight:700}
+  .opc-wperiod{font-size:10px;color:var(--muted)}
+  .opc-wnet{margin-left:auto;font-size:14px;font-weight:800}
+  .opc-wbody{margin-left:17px;border-left:1px solid var(--border);padding-left:18px;display:flex;flex-direction:column;gap:6px}
+  .opc-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px}
+  .opc-iday{font-size:11px;font-weight:700;color:var(--muted2);width:24px;text-align:center;flex-shrink:0}
+  .opc-idot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  .opc-iname{flex:1;font-size:13px;font-weight:600}
+  .opc-iname small{display:block;font-size:10px;color:var(--muted);margin-top:1px}
+  .opc-ival{font-size:13px;font-weight:700;white-space:nowrap}
+  .opc-ibtns{display:flex;gap:3px}
+  .opc-ibtns button{background:none;border:none;cursor:pointer;font-size:11px;color:var(--muted2);padding:2px}
+  .opc-add-row{display:flex;gap:8px;margin-left:17px;padding-left:18px;border-left:1px solid var(--border);margin-bottom:20px}
+  .opc-add-row input{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:7px 10px;font-size:12px;outline:none;font-family:inherit}
+  .opc-add-in{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.3)}
+  .opc-add-out{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:rgba(244,63,94,.1);color:#fb7185;border:1px solid rgba(244,63,94,.3)}
+  .opc-footer{padding:12px 20px;background:var(--surface2);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
+  .opc-footer span{font-size:16px;font-weight:800;color:var(--green)}
+</style>
+</head>
+<body>
+
+<!-- ══ OPÇÃO A ══ -->
+<div class="op-section">
+  <div class="op-label">Opção A — Limpeza simples</div>
+  <p style="font-size:11px;color:#64748b;margin-bottom:16px">Sem cards de resumo no topo. Semanas em colunas, abas para navegar. Mais limpo e direto.</p>
+  <div class="opa-wrap">
+    <div class="opa-header">
+      <span style="font-size:16px">📆</span>
+      <span class="opa-title">Projeção de Caixa</span>
+      <span class="opa-badge">FUTURO</span>
+      <div style="margin-left:auto;display:flex;gap:5px">
+        <button style="background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.3);color:#38bdf8;border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700;cursor:pointer">30d</button>
+        <button style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:3px 12px;font-size:11px;cursor:pointer">60d</button>
+        <button style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:3px 12px;font-size:11px;cursor:pointer">90d</button>
+      </div>
+    </div>
+    <div class="opa-weeks">
+      <div class="opa-week active">
+        <div class="opa-wlabel">Esta semana</div>
+        <div class="opa-wperiod">27 Abr – 02 Mai</div>
+        <div class="opa-wnet" style="color:var(--green)">+R$ 11.405,95</div>
+        <div class="opa-win">↑ +R$ 15.405,95</div>
+        <div class="opa-wout">↓ -R$ 4.000,00</div>
+        <div class="opa-wcount">2 eventos</div>
+      </div>
+      <div class="opa-week">
+        <div class="opa-wlabel">Sem 2 · Mai</div>
+        <div class="opa-wperiod">03 Mai – 09 Mai</div>
+        <div class="opa-wnet" style="color:var(--red)">-R$ 315,25</div>
+        <div class="opa-wout">↓ -R$ 315,25</div>
+        <div class="opa-wcount">1 evento</div>
+      </div>
+      <div class="opa-week">
+        <div class="opa-wlabel">Sem 3 · Mai</div>
+        <div class="opa-wperiod">10 Mai – 16 Mai</div>
+        <div class="opa-wnet" style="color:var(--red)">-R$ 1.605,83</div>
+        <div class="opa-wout">↓ -R$ 1.605,83</div>
+        <div class="opa-wcount">12 eventos</div>
+      </div>
+      <div class="opa-week">
+        <div class="opa-wlabel">Sem 4 · Mai</div>
+        <div class="opa-wperiod">17 Mai – 23 Mai</div>
+        <div class="opa-wnet" style="color:var(--red)">-R$ 5.109,90</div>
+        <div class="opa-wout">↓ -R$ 5.109,90</div>
+        <div class="opa-wcount">3 eventos</div>
+      </div>
+      <div class="opa-week">
+        <div class="opa-wlabel">Sem 5 · Mai</div>
+        <div class="opa-wperiod">24 Mai – 27 Mai</div>
+        <div class="opa-wnet" style="color:var(--muted)">+R$ 0,00</div>
+        <div class="opa-wcount">0 eventos</div>
+      </div>
+    </div>
+    <div class="opa-body">
+      <div class="opa-item">
+        <span class="opa-day">28</span>
+        <span class="opa-dot" style="background:#60a5fa"></span>
+        <span class="opa-name">Casa Line<small>Ter · Fixo · ❤️ Bradesco</small></span>
+        <span class="opa-val" style="color:var(--red)">-R$ 4.000,00</span>
+        <div class="opa-actions"><button class="opa-btn-edit">✏️</button><button class="opa-btn-del">🗑️</button><button class="opa-btn-ok">✓</button></div>
+      </div>
+      <div class="opa-item">
+        <span class="opa-day">30</span>
+        <span class="opa-dot" style="background:#fbbf24"></span>
+        <span class="opa-name">Comissão Cliente<small>Qui · Manual · 💜 Nubank</small></span>
+        <span class="opa-val" style="color:var(--green)">+R$ 15.405,95</span>
+        <div class="opa-actions"><button class="opa-btn-edit">✏️</button><button class="opa-btn-del">🗑️</button><button class="opa-btn-ok">✓</button></div>
+      </div>
+    </div>
+    <div class="opa-add">
+      <input placeholder="Descrição..." style="flex:1;min-width:180px">
+      <input placeholder="R$ 0,00" style="width:110px">
+      <input type="date" value="2026-04-27" style="width:140px;color-scheme:dark">
+      <button class="opa-add-in">+ Receita</button>
+      <button class="opa-add-out">+ Despesa</button>
+    </div>
+    <div class="opa-footer">Impacto no saldo em 27 Mai <span>+R$ 4.374,97</span></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══ OPÇÃO B ══ -->
+<div class="op-section">
+  <div class="op-label">Opção B — Lista com abas por semana</div>
+  <p style="font-size:11px;color:#64748b;margin-bottom:16px">Resumo compacto no topo em linha. Abas para navegar entre semanas. Itens em lista clara com linha lateral colorida.</p>
+  <div class="opb-wrap">
+    <div class="opb-topbar">
+      <div class="opb-title-row">
+        <span style="font-size:16px">📆</span>
+        <span class="opb-title">Projeção de Caixa</span>
+        <span class="opb-badge">FUTURO</span>
+      </div>
+      <div class="opb-summary">
+        <div class="opb-s-item"><span style="color:var(--green)">↑</span><span style="color:var(--green)">R$ 15.405,95</span></div>
+        <div style="color:var(--border2)">·</div>
+        <div class="opb-s-item"><span style="color:var(--red)">↓</span><span style="color:var(--red)">R$ 11.030,98</span></div>
+        <div style="color:var(--border2)">·</div>
+        <div class="opb-s-item"><span style="font-weight:400;color:var(--muted)">Saldo</span><span style="color:var(--green);margin-left:5px">+R$ 4.374,97</span></div>
+        <div style="display:flex;gap:4px;margin-left:10px">
+          <button style="background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.3);color:#38bdf8;border-radius:20px;padding:3px 11px;font-size:10px;font-weight:700;cursor:pointer">30d</button>
+          <button style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:3px 11px;font-size:10px;cursor:pointer">60d</button>
+          <button style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:3px 11px;font-size:10px;cursor:pointer">90d</button>
+        </div>
+      </div>
+    </div>
+    <div class="opb-tabs">
+      <div class="opb-tab active">Esta semana <span class="badge">2</span></div>
+      <div class="opb-tab">Sem 2 · Mai <span class="badge">1</span></div>
+      <div class="opb-tab">Sem 3 · Mai <span class="badge">12</span></div>
+      <div class="opb-tab">Sem 4 · Mai <span class="badge">3</span></div>
+      <div class="opb-tab">Sem 5 · Mai <span class="badge">0</span></div>
+    </div>
+    <div class="opb-content">
+      <div class="opb-item">
+        <div class="opb-date"><strong>28</strong>Ter</div>
+        <div class="opb-bar" style="background:#60a5fa"></div>
+        <div class="opb-info">
+          <div class="opb-iname">Casa Line</div>
+          <div class="opb-imeta">Fixo · ❤️ Bradesco</div>
+        </div>
+        <div class="opb-ival" style="color:var(--red)">-R$ 4.000,00</div>
+        <div class="opb-ibtns"><button>✏️</button><button>🗑️</button><button style="width:22px;height:22px;border-radius:50%;border:2px solid rgba(34,197,94,.3);background:rgba(34,197,94,.07);color:var(--green);cursor:pointer;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center">✓</button></div>
+      </div>
+      <div class="opb-item">
+        <div class="opb-date"><strong>30</strong>Qui</div>
+        <div class="opb-bar" style="background:#fbbf24"></div>
+        <div class="opb-info">
+          <div class="opb-iname">Comissão Cliente</div>
+          <div class="opb-imeta">Manual · 💜 Nubank</div>
+        </div>
+        <div class="opb-ival" style="color:var(--green)">+R$ 15.405,95</div>
+        <div class="opb-ibtns"><button>✏️</button><button>🗑️</button><button style="width:22px;height:22px;border-radius:50%;border:2px solid rgba(34,197,94,.3);background:rgba(34,197,94,.07);color:var(--green);cursor:pointer;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center">✓</button></div>
+      </div>
+    </div>
+    <div class="opb-add">
+      <input placeholder="Descrição..." style="flex:2">
+      <input placeholder="R$ 0,00" style="width:110px">
+      <input type="date" value="2026-04-27" style="width:140px;color-scheme:dark">
+      <button class="opb-add-in">+ Receita</button>
+      <button class="opb-add-out">+ Despesa</button>
+    </div>
+    <div class="opb-footer">Impacto no saldo em 27 Mai <span>+R$ 4.374,97</span></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══ OPÇÃO C ══ -->
+<div class="op-section">
+  <div class="op-label">Opção C — Timeline vertical</div>
+  <p style="font-size:11px;color:#64748b;margin-bottom:16px">KPIs compactos no topo. Semanas como seções da timeline com linha lateral. Visual mais moderno e editorial.</p>
+  <div class="opc-wrap">
+    <div class="opc-header">
+      <div class="opc-htop">
+        <div class="opc-title">
+          <span>📆</span> Projeção de Caixa
+          <span class="opc-badge">FUTURO</span>
+        </div>
+        <div class="opc-tabs">
+          <button class="opc-tab active">30d</button>
+          <button class="opc-tab">60d</button>
+          <button class="opc-tab">90d</button>
+        </div>
+      </div>
+      <div class="opc-kpis">
+        <div class="opc-kpi" style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.18)">
+          <div class="opc-kpi-label" style="color:var(--green)">Receitas previstas</div>
+          <div class="opc-kpi-val" style="color:var(--green)">+R$ 15.405,95</div>
+          <div class="opc-kpi-sub">1 evento</div>
+        </div>
+        <div class="opc-kpi" style="background:rgba(244,63,94,.07);border:1px solid rgba(244,63,94,.18)">
+          <div class="opc-kpi-label" style="color:var(--red)">Despesas previstas</div>
+          <div class="opc-kpi-val" style="color:var(--red)">-R$ 11.030,98</div>
+          <div class="opc-kpi-sub">17 eventos</div>
+        </div>
+        <div class="opc-kpi" style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.15)">
+          <div class="opc-kpi-label" style="color:var(--muted)">Impacto no saldo</div>
+          <div class="opc-kpi-val" style="color:var(--green)">+R$ 4.374,97</div>
+          <div class="opc-kpi-sub">18 eventos em 30 dias</div>
+        </div>
+      </div>
+    </div>
+    <div class="opc-timeline">
+      <!-- Semana atual -->
+      <div class="opc-week">
+        <div class="opc-whead">
+          <div class="opc-wdot"></div>
+          <div>
+            <div class="opc-wlabel">Esta semana</div>
+            <div class="opc-wperiod">27 Abr – 02 Mai</div>
+          </div>
+          <div class="opc-wnet" style="color:var(--green)">+R$ 11.405,95</div>
+        </div>
+        <div class="opc-wbody">
+          <div class="opc-item">
+            <span class="opc-iday">28</span>
+            <span class="opc-idot" style="background:#60a5fa"></span>
+            <div class="opc-iname">Casa Line<small>Ter · Fixo · ❤️ Bradesco</small></div>
+            <span class="opc-ival" style="color:var(--red)">-R$ 4.000,00</span>
+            <div class="opc-ibtns"><button>✏️</button><button>🗑️</button><button style="width:20px;height:20px;border-radius:50%;border:2px solid rgba(34,197,94,.3);background:rgba(34,197,94,.07);color:var(--green);cursor:pointer;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center">✓</button></div>
+          </div>
+          <div class="opc-item">
+            <span class="opc-iday">30</span>
+            <span class="opc-idot" style="background:#fbbf24"></span>
+            <div class="opc-iname">Comissão Cliente<small>Qui · Manual · 💜 Nubank</small></div>
+            <span class="opc-ival" style="color:var(--green)">+R$ 15.405,95</span>
+            <div class="opc-ibtns"><button>✏️</button><button>🗑️</button><button style="width:20px;height:20px;border-radius:50%;border:2px solid rgba(34,197,94,.3);background:rgba(34,197,94,.07);color:var(--green);cursor:pointer;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center">✓</button></div>
+          </div>
+        </div>
+      </div>
+      <!-- Sem 2 -->
+      <div class="opc-week">
+        <div class="opc-whead">
+          <div class="opc-wdot past"></div>
+          <div>
+            <div class="opc-wlabel" style="color:var(--muted2)">Sem 2 · Mai</div>
+            <div class="opc-wperiod">03 Mai – 09 Mai</div>
+          </div>
+          <div class="opc-wnet" style="color:var(--red)">-R$ 315,25</div>
+        </div>
+        <div class="opc-wbody">
+          <div class="opc-item" style="opacity:.7">
+            <span class="opc-iday">05</span>
+            <span class="opc-idot" style="background:#60a5fa"></span>
+            <div class="opc-iname">Internet<small>Seg · Fixo · ❤️ Bradesco</small></div>
+            <span class="opc-ival" style="color:var(--red)">-R$ 315,25</span>
+            <div class="opc-ibtns"><button>✏️</button><button>🗑️</button><button style="width:20px;height:20px;border-radius:50%;border:2px solid rgba(34,197,94,.3);background:rgba(34,197,94,.07);color:var(--green);cursor:pointer;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center">✓</button></div>
+          </div>
+        </div>
+      </div>
+      <!-- Add row -->
+      <div class="opc-add-row">
+        <input placeholder="Descrição..." style="flex:2">
+        <input placeholder="R$ 0,00" style="width:110px">
+        <input type="date" value="2026-04-27" style="width:140px;color-scheme:dark">
+        <button class="opc-add-in">+ Receita</button>
+        <button class="opc-add-out">+ Despesa</button>
+      </div>
+    </div>
+    <div class="opc-footer">Impacto no saldo em 27 Mai <span>+R$ 4.374,97</span></div>
+  </div>
+</div>
+
+</body>
+</html>
