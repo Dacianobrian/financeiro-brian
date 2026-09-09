@@ -744,8 +744,11 @@ document.addEventListener('click', e => {
 
   const act = e.target.closest('[data-action]');
   if (act){
-    if (act.dataset.action === 'today') irPara(HOJE.getMonth(), HOJE.getFullYear());
-    if (act.dataset.action === 'add')   location.href = 'index.html#add';
+    if (act.dataset.action === 'today')   irPara(HOJE.getMonth(), HOJE.getFullYear());
+    if (act.dataset.action === 'horizon') location.href = 'horizonte.html';
+    /* O lançamento vive na tela de saldos; mandar para o app antigo tirava
+       o usuário do sistema novo no meio da tarefa. */
+    if (act.dataset.action === 'add')     location.href = 'saldos.html#novo';
     return;
   }
 

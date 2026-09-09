@@ -377,6 +377,47 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 }
 
 /* ══════════════════════════════════════════════════════════════
+   LANÇAMENTO (folha)
+   ══════════════════════════════════════════════════════════════ */
+.sheet-backdrop{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.45)}
+.sheet-backdrop[hidden]{display:none!important}
+@media(max-width:479px){.sheet-backdrop{align-items:flex-end;padding:0}}
+.sheet{width:100%;max-width:420px;max-height:calc(100vh - 32px);display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--border-hairline);border-radius:16px;background:var(--color-bg-surface);box-shadow:0 16px 48px var(--shadow-soft)}
+@media(max-width:479px){.sheet{max-width:none;max-height:88dvh;border-radius:16px 16px 0 0;border-bottom:0;padding-bottom:env(safe-area-inset-bottom)}}
+.sheet-head{display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid var(--border-hairline)}
+.sheet-title{flex:1;min-width:0;color:var(--color-text-primary);font-size:16px;line-height:24px;font-weight:700;text-transform:lowercase}
+.sheet-close{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;border:0;border-radius:8px;background:transparent;color:var(--color-text-muted);font-size:20px;line-height:1;cursor:pointer}
+.sheet-close:hover{background:var(--color-bg-subtle)}
+.sheet-body{flex:1;min-height:0;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.sheet-foot{display:flex;align-items:center;gap:8px;padding:16px;border-top:1px solid var(--border-hairline)}
+
+.campo{display:flex;flex-direction:column;gap:6px}
+.campo-rot{color:var(--color-text-muted);font-size:14px;line-height:20px;font-weight:700;text-transform:lowercase}
+.campo input,.campo select{width:100%;height:44px;padding:0 12px;border:1px solid var(--color-border-subtle);border-radius:10px;background:var(--color-bg-surface);color:var(--color-text-primary);font:inherit;font-size:16px;line-height:24px}
+.campo input:focus,.campo select:focus{outline:2px solid var(--color-border-focus);outline-offset:-1px}
+.campo input[type="number"]{font-weight:700;font-variant-numeric:tabular-nums}
+
+.tipo-chips{display:flex;flex-wrap:wrap;gap:6px}
+.tipo-chip{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border:1px solid var(--color-border-subtle);border-radius:999px;background:var(--color-bg-surface);color:var(--color-text-primary);font:inherit;font-size:14px;line-height:20px;font-weight:700;text-transform:lowercase;cursor:pointer}
+.tipo-chip .metric-icon{opacity:1}
+.tipo-chip.is-on{border-color:var(--metric-color,var(--color-text-primary));box-shadow:inset 0 0 0 1px var(--metric-color,var(--color-text-primary))}
+.tipo-chip.is-on .metric-icon{background-color:var(--metric-color)}
+
+.btn{height:44px;padding:0 16px;border:0;border-radius:10px;font:inherit;font-size:16px;line-height:24px;font-weight:700;cursor:pointer}
+.btn-salvar{flex:1;background:#FF5917;color:#fff}
+.btn-salvar:disabled{opacity:.5;cursor:not-allowed}
+.btn-apagar{background:transparent;color:var(--color-feedback-error);border:1px solid var(--color-border-subtle)}
+
+/* lista de lançamentos do dia */
+.lanc-lista{display:flex;flex-direction:column;gap:0}
+.lanc-item{display:flex;align-items:center;gap:12px;min-height:52px;padding:8px 0;border:0;border-bottom:1px solid var(--border-hairline);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.lanc-item:hover{background:var(--color-bg-subtle)}
+.lanc-desc{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--color-text-primary);font-size:16px;line-height:24px;font-weight:500}
+.lanc-valor{color:var(--color-text-primary);font-size:16px;line-height:24px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.lanc-vazio{color:var(--color-text-muted);font-size:14px;line-height:20px;padding:8px 0}
+.sheet-erro{color:var(--color-feedback-error);font-size:14px;line-height:20px;min-height:20px}
+
+/* ══════════════════════════════════════════════════════════════
    NAV INFERIOR (mobile)
    ══════════════════════════════════════════════════════════════ */
 .mobile-nav{display:none}
@@ -521,6 +562,18 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
     </button>
   </nav>
 </main>
+</div>
+
+<!-- ══════════ FOLHA DE LANÇAMENTO ══════════ -->
+<div class="sheet-backdrop" id="sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitulo">
+    <div class="sheet-head">
+      <h2 class="sheet-title" id="sheetTitulo">lançamento</h2>
+      <button class="sheet-close" type="button" data-sheet="fechar" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="sheet-body" id="sheetCorpo"></div>
+    <div class="sheet-foot" id="sheetRodape"></div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -944,6 +997,166 @@ window.addEventListener('hashchange', () => {
 });
 
 /* ══════════════════════════════════════════════════════════════
+   LANÇAMENTO
+   ══════════════════════════════════════════════════════════════ */
+/* Cada coluna corresponde a uma combinação de campos que a classify()
+   devolve de volta como aquela mesma coluna — o ida-e-volta tem que fechar. */
+const CAMPOS_POR_COLUNA = {
+  income:    { tipo:'entrada', conta:'nubank', tag:null },
+  expense:   { tipo:'saida',   conta:'nubank', tag:null },
+  recurring: { tipo:'saida',   conta:'nubank', tag:'diário' },
+  savings:   { tipo:'saida',   conta:'itau',   tag:null },
+  card:      { tipo:'saida',   conta:'cartao', tag:null },
+};
+
+const F = { aberta:false, data:null, coluna:'expense', editando:null };
+
+function movsDoDia(dataKey, coluna){
+  return S.movs.filter(mv => iso(mv.data) === dataKey && classify(mv) === coluna);
+}
+
+function fecharFolha(){
+  F.aberta = false;
+  F.editando = null;
+  document.getElementById('sheet').hidden = true;
+}
+
+function abrirLista(dataKey, coluna){
+  F.aberta = true; F.data = dataKey; F.coluna = coluna; F.editando = null;
+  const itens = movsDoDia(dataKey, coluna);
+  if (!itens.length){ abrirEditor(dataKey, coluna, null); return; }
+
+  const mt = metricInfo(coluna);
+  const [a, m, d] = dataKey.split('-');
+  document.getElementById('sheetTitulo').textContent = `${mt.label} · ${d}/${m}/${a}`;
+  document.getElementById('sheetCorpo').innerHTML =
+    `<div class="lanc-lista">` + itens.map(mv =>
+      `<button class="lanc-item" type="button"${mv.id ? ` data-sheet="editar" data-id="${esc(mv.id)}"` : ' disabled'}>
+         <span class="metric-icon ${mt.icon} has-value"></span>
+         <span class="lanc-desc">${esc(mv.desc || mt.label)}</span>
+         <span class="lanc-valor">${esc(fmt(mv.valor))}</span>
+       </button>`).join('') + `</div>`;
+  document.getElementById('sheetRodape').innerHTML =
+    `<button class="btn btn-salvar" type="button" data-sheet="novo">adicionar ${esc(mt.label)}</button>`;
+  document.getElementById('sheet').hidden = false;
+}
+
+function abrirEditor(dataKey, coluna, id){
+  F.aberta = true; F.data = dataKey; F.coluna = coluna; F.editando = id;
+  /* Sem id não há como identificar a linha: procurar por String(undefined)
+     casaria com qualquer outra que também não tenha id. */
+  const mv = (id != null && id !== 'null') ? S.movs.find(x => x.id != null && x.id === String(id)) : null;
+  const colunaAtual = mv ? classify(mv) : coluna;
+
+  document.getElementById('sheetTitulo').textContent = mv ? 'editar lançamento' : 'novo lançamento';
+  document.getElementById('sheetCorpo').innerHTML = `
+    <div class="campo">
+      <span class="campo-rot">coluna</span>
+      <div class="tipo-chips" id="chipsColuna">
+        ${METRICS.map(m => `
+          <button class="tipo-chip ${m.icon}${m.key === colunaAtual ? ' is-on' : ''}" type="button"
+                  data-sheet="coluna" data-col="${m.key}">
+            <span class="metric-icon ${m.icon}"></span>${esc(m.label)}
+          </button>`).join('')}
+      </div>
+    </div>
+    <div class="campo">
+      <label class="campo-rot" for="fValor">valor</label>
+      <input id="fValor" type="number" inputmode="decimal" step="0.01" min="0"
+             placeholder="0,00" value="${mv ? mv.valor : ''}">
+    </div>
+    <div class="campo">
+      <label class="campo-rot" for="fDesc">descrição</label>
+      <input id="fDesc" type="text" maxlength="120" placeholder="do que se trata"
+             value="${mv ? esc(mv.desc || '') : ''}">
+    </div>
+    <div class="campo">
+      <label class="campo-rot" for="fData">data</label>
+      <input id="fData" type="date" value="${esc(mv ? iso(mv.data) : dataKey)}">
+    </div>
+    <div class="sheet-erro" id="fErro"></div>`;
+  document.getElementById('sheetRodape').innerHTML = `
+    ${mv ? '<button class="btn btn-apagar" type="button" data-sheet="apagar">apagar</button>' : ''}
+    <button class="btn btn-salvar" type="button" data-sheet="salvar">salvar</button>`;
+  document.getElementById('sheet').hidden = false;
+  setTimeout(() => document.getElementById('fValor').focus(), 30);
+}
+
+function colunaSelecionada(){
+  const on = document.querySelector('#chipsColuna .tipo-chip.is-on');
+  return on ? on.dataset.col : F.coluna;
+}
+
+async function salvarLancamento(){
+  const erro  = document.getElementById('fErro');
+  const btn   = document.querySelector('[data-sheet="salvar"]');
+  const valor = parseFloat(document.getElementById('fValor').value);
+  const desc  = document.getElementById('fDesc').value.trim();
+  const dataStr = document.getElementById('fData').value;
+
+  if (!valor || isNaN(valor) || valor <= 0){ erro.textContent = 'Informe um valor maior que zero.'; return; }
+  if (!dataStr){ erro.textContent = 'Informe a data.'; return; }
+
+  const coluna = colunaSelecionada();
+  const campos = CAMPOS_POR_COLUNA[coluna] || CAMPOS_POR_COLUNA.expense;
+  const linha = {
+    descricao: desc || metricInfo(coluna).label,
+    valor, tipo: campos.tipo, data: dataStr,
+    conta: campos.conta, tag: campos.tag, rec: null,
+  };
+
+  erro.textContent = '';
+  btn.disabled = true;
+  try {
+    if (!SB) throw new Error('sem conexão');
+    if (F.editando != null){
+      const { error } = await SB.from('movimentos').update(linha).eq('id', F.editando);
+      if (error) throw error;
+      const i = S.movs.findIndex(x => x.id != null && x.id === String(F.editando));
+      if (i !== -1) S.movs[i] = toMov({ ...linha, id: F.editando });
+    } else {
+      const { data, error } = await SB.from('movimentos').insert({ ...linha, user_id: USER_ID }).select();
+      if (error) throw error;
+      S.movs.push(toMov(data[0]));
+    }
+  } catch (e) {
+    erro.textContent = 'Não deu para salvar. ' + (e.message || '');
+    btn.disabled = false;
+    return;
+  }
+  fecharFolha();
+  rerender(dataStr);
+}
+
+async function apagarLancamento(){
+  if (F.editando == null) return;
+  const erro = document.getElementById('fErro');
+  const btn  = document.querySelector('[data-sheet="apagar"]');
+  btn.disabled = true;
+  try {
+    if (!SB) throw new Error('sem conexão');
+    const { error } = await SB.from('movimentos').delete().eq('id', F.editando);
+    if (error) throw error;
+    S.movs = S.movs.filter(x => x.id !== String(F.editando));
+  } catch (e) {
+    erro.textContent = 'Não deu para apagar. ' + (e.message || '');
+    btn.disabled = false;
+    return;
+  }
+  const dia = F.data;
+  fecharFolha();
+  rerender(dia);
+}
+
+/* Redesenha mantendo o dia em vista — render() reconstrói o DOM inteiro. */
+function rerender(dataStr){
+  const ano = Number(String(dataStr).slice(0, 4));
+  if (ano && ano !== S.ano) S.ano = ano;
+  render();
+  goToDate(dataStr) || goToToday();
+}
+
+/* ══════════════════════════════════════════════════════════════
    EVENTOS
    ══════════════════════════════════════════════════════════════ */
 document.addEventListener('click', e => {
@@ -957,10 +1170,36 @@ document.addEventListener('click', e => {
     return;
   }
 
+  const folha = e.target.closest('[data-sheet]');
+  if (folha){
+    const q = folha.dataset.sheet;
+    if (q === 'fechar') fecharFolha();
+    if (q === 'novo')   abrirEditor(F.data, F.coluna, null);
+    if (q === 'editar') abrirEditor(F.data, F.coluna, folha.dataset.id);
+    if (q === 'salvar') salvarLancamento();
+    if (q === 'apagar') apagarLancamento();
+    if (q === 'coluna'){
+      document.querySelectorAll('#chipsColuna .tipo-chip').forEach(c => c.classList.remove('is-on'));
+      folha.classList.add('is-on');
+    }
+    return;
+  }
+  /* clicar fora da folha fecha */
+  if (e.target.id === 'sheet'){ fecharFolha(); return; }
+
+  const celula = e.target.closest('[data-role="cell"],[data-role="add"]');
+  if (celula){
+    const dia = celula.dataset.date, col = celula.dataset.kind;
+    if (celula.dataset.role === 'add') abrirEditor(dia, col, null);
+    else abrirLista(dia, col);
+    return;
+  }
+
   const act = e.target.closest('[data-action]');
   if (act){
-    if (act.dataset.action === 'today') goToToday();
-    if (act.dataset.action === 'add')   location.href = 'index.html#add';
+    if (act.dataset.action === 'today')   goToToday();
+    if (act.dataset.action === 'horizon') location.href = 'horizonte.html';
+    if (act.dataset.action === 'add')     abrirEditor(HOJE_KEY, 'expense', null);
     return;
   }
 
@@ -1010,6 +1249,10 @@ document.addEventListener('change', e => {
   bodies().forEach(b => { b.scrollTop = top; });
 });
 
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && F.aberta) fecharFolha();
+});
+
 /* ══════════════════════════════════════════════════════════════
    DADOS
    ══════════════════════════════════════════════════════════════ */
@@ -1034,6 +1277,8 @@ const DEMO = [
 
 function toMov(r){
   return {
+    id:    r.id != null ? String(r.id) : null,
+    desc:  r.descricao || '',
     valor: parseFloat(r.valor),
     tipo:  r.tipo,
     data:  new Date(r.data + 'T12:00:00'),
@@ -1043,12 +1288,17 @@ function toMov(r){
   };
 }
 
+let SB = null;
+let USER_ID = null;
+
 async function boot(){
   let semSessao = false;
   try {
     const sb = window.supabase.createClient(SB_URL, SB_KEY);
+    SB = sb;
     const { data: { session } } = await sb.auth.getSession();
     if (session){
+      USER_ID = session.user.id;
       const { data, error } = await sb.from('movimentos').select('*').order('data', { ascending: true });
       if (!error && data) S.movs = data.map(toMov);
     } else {
@@ -1066,9 +1316,15 @@ async function boot(){
     location.replace('index.html');
     return;
   }
-  if (!S.movs.length) S.movs = DEMO.map(toMov);
+  if (!S.movs.length) S.movs = DEMO.map((r, i) => toMov({ ...r, id: 'demo-' + (i + 1) }));
   render();
-  if (!goToDate((location.hash || '').slice(1))) goToToday();
+  const entrada = (location.hash || '').slice(1);
+  if (entrada === 'novo'){
+    goToToday();
+    abrirEditor(HOJE_KEY, 'expense', null);
+  } else if (!goToDate(entrada)) {
+    goToToday();
+  }
 }
 
 boot();
