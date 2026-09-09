@@ -381,9 +381,13 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
    ══════════════════════════════════════════════════════════════ */
 .sheet-backdrop{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.45)}
 .sheet-backdrop[hidden]{display:none!important}
-@media(max-width:479px){.sheet-backdrop{align-items:flex-end;padding:0}}
-.sheet{width:100%;max-width:420px;max-height:calc(100vh - 32px);display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--border-hairline);border-radius:16px;background:var(--color-bg-surface);box-shadow:0 16px 48px var(--shadow-soft)}
-@media(max-width:479px){.sheet{max-width:none;max-height:88dvh;border-radius:16px 16px 0 0;border-bottom:0;padding-bottom:env(safe-area-inset-bottom)}}
+@media(max-width:479px){.sheet-backdrop{padding:0}}
+.sheet{position:relative;width:100%;max-width:416px;max-height:calc(100dvh - 32px);display:flex;flex-direction:column;padding:0;overflow:hidden;border:1px solid var(--border-hairline);border-radius:16px;background:var(--color-bg-surface);box-shadow:0 0 16px var(--shadow-soft)}
+/* No celular o diálogo é tela cheia, não uma folha encostada embaixo. */
+@media(max-width:479px){
+  .sheet{max-width:none;max-height:none;min-height:100dvh;height:100dvh;border:0;border-radius:0;box-shadow:none}
+  .sheet-foot{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+}
 .sheet-head{display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid var(--border-hairline)}
 .sheet-title{flex:1;min-width:0;color:var(--color-text-primary);font-size:16px;line-height:24px;font-weight:700;text-transform:lowercase}
 .sheet-close{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;border:0;border-radius:8px;background:transparent;color:var(--color-text-muted);font-size:20px;line-height:1;cursor:pointer}
