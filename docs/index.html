@@ -219,7 +219,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 .hidden-val { letter-spacing: 0.2em; color: var(--text3); }
 
 /* ─── BALANCE TABLE ─── */
-.bal-wrap { background: var(--surface); border: 1px solid var(--div); border-radius: 12px; overflow: hidden; }
+.bal-wrap { background: var(--surface); border: 1px solid var(--div); border-radius: 12px; overflow: clip; }
 .bal-head {
   display: grid; gap: 0;
   background: var(--elevated); border-bottom: 1px solid var(--div);
@@ -242,6 +242,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
   display: grid; gap: 0;
   min-height: 40px; align-items: stretch;
   background: var(--elevated); border-top: 1px solid var(--div);
+  position: sticky; bottom: 0; z-index: 5;
 }
 
 .col-lbl {
@@ -329,7 +330,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 .br-row.future-row { }
 .br-row.br-head { height: 32px; background: var(--elevated); border-bottom: 1px solid var(--div); cursor: default; }
 .br-row.br-head:hover { background: var(--elevated); }
-.br-row.br-foot { height: 40px; background: var(--elevated); border-top: 1px solid var(--div); border-bottom: none; cursor: default; }
+.br-row.br-foot { height: 40px; background: var(--elevated); border-top: 1px solid var(--div); border-bottom: none; cursor: default; position: sticky; bottom: 0; z-index: 5; }
 .br-row.br-foot:hover { background: var(--elevated); }
 .br-dia {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
@@ -386,7 +387,7 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
 }
 .diario-month-block {
   background: var(--surface); border: 1px solid var(--div);
-  border-radius: 12px; overflow: hidden; width: 400px; flex-shrink: 0;
+  border-radius: 12px; overflow: clip; width: 400px; flex-shrink: 0;
 }
 .diario-month-hdr {
   display: flex; align-items: center; justify-content: space-between;
