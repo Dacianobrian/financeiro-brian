@@ -2801,17 +2801,19 @@ function renderMonthBlock(y, mi, mob) {
 
 function renderDiarioScroll(y) {
   const mob = window.innerWidth < 640;
-  const blocks = [];
-  for (let mi = 0; mi < 12; mi++) blocks.push(renderMonthBlock(y, mi, mob));
-  const scrollHtml = `<div class="diario-scroll-outer" id="diarioScrollOuter">
-    <div class="diario-scroll-inner">${blocks.join('')}</div>
-  </div>`;
+  const now = new Date();
+  const curMonth = now.getMonth();
 
+  // Mobile: só mês atual | Desktop: todos os 12 meses em scroll
   if (mob) {
-    return `<div class="mobile-hero"><div class="mobile-hero-content">${scrollHtml}</div></div>`;
+    return renderMonthBlock(y, curMonth, true);
   }
 
-  return scrollHtml;
+  const blocks = [];
+  for (let mi = 0; mi < 12; mi++) blocks.push(renderMonthBlock(y, mi, false));
+  return `<div class="diario-scroll-outer" id="diarioScrollOuter">
+    <div class="diario-scroll-inner">${blocks.join('')}</div>
+  </div>`;
 }
 
 // ─── DAY PANEL ───
