@@ -948,18 +948,6 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
     background: transparent;
   }
 
-  /* hero container */
-  .mobile-hero {
-    background: linear-gradient(135deg, var(--accent) 0%, #ff6b35 100%);
-    border-radius: 20px; margin: 0 12px;
-    padding: 12px; color: var(--text);
-    display: flex; flex-direction: column; gap: 0;
-  }
-
-  .mobile-hero-content {
-    background: var(--surface); border-radius: 14px;
-    padding: 0; overflow: hidden;
-  }
 
   /* summary cards */
   .summary-row {
@@ -2676,9 +2664,6 @@ function renderDiario(y, m) {
       </div>
     </div>`;
 
-  if (mob) {
-    return `<div class="mobile-hero"><div class="mobile-hero-content">${table}</div></div>`;
-  }
 
   return summary + table;
 }
