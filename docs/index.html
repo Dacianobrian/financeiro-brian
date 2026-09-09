@@ -40,7 +40,7 @@
     --border-hairline: rgba(255,255,255,0.15);
     --income: #529952;  --income-dim: rgba(82,153,82,0.14);
     --expense: #E62D2D; --expense-dim: rgba(230,45,45,0.12);
-    --row-hover: rgba(255,255,255,0.06); --today-bg: rgba(255,89,23,0.10);
+    --row-hover: rgba(255,255,255,0.06); --today-bg: rgba(200,38,38,0.22);
     --chip: rgba(255,255,255,0.10);
     --shadow: 0 2px 16px rgba(0,0,0,0.50); --shadow-soft: rgba(0,0,0,0.50);
     --sidebar: #1D1F23; --sidebar-border: rgba(255,255,255,0.15);
@@ -67,7 +67,7 @@
   --border-hairline: rgba(255,255,255,0.15);
   --income: #529952;  --income-dim: rgba(82,153,82,0.14);
   --expense: #E62D2D; --expense-dim: rgba(230,45,45,0.12);
-  --row-hover: rgba(255,255,255,0.06); --today-bg: rgba(255,89,23,0.10);
+  --row-hover: rgba(255,255,255,0.06); --today-bg: rgba(200,38,38,0.22);
   --chip: rgba(255,255,255,0.10);
   --shadow: 0 2px 16px rgba(0,0,0,0.50); --shadow-soft: rgba(0,0,0,0.50);
   --sidebar: #1D1F23; --sidebar-border: rgba(255,255,255,0.15);
@@ -2595,9 +2595,17 @@ function renderMonthBlock(y, mi, mob) {
     return `<div class="br-saldo${S.showBal?'':' br-saldo-hidden'}" style="background:${sbg}"><span>${txt}</span></div>`;
   };
 
-  // Footer cell: always expanded regardless of column collapse
+  // Footer cell: always shows value; collapsed columns use compact vertical text
   const footCell = (delta, ci) => {
-    if (!S.showBal) return `<div class="br-icell br-val-cell"><span class="br-amt zer">•••</span></div>`;
+    const exp = v[ci+1];
+    if (!S.showBal) return `<div class="br-icell${exp?' br-val-cell':''}"><span class="br-amt zer">•••</span></div>`;
+    if (!exp) {
+      if (delta === 0) return `<div class="br-icell" style="justify-content:center"><span style="color:var(--text3);font-size:9px">–</span></div>`;
+      const cls = delta > 0 ? 'pos' : 'neg';
+      const abs = Math.abs(delta);
+      const compact = abs >= 1000 ? (abs/1000).toFixed(1)+'k' : Math.round(abs).toString();
+      return `<div class="br-icell" style="overflow:hidden;justify-content:center"><span class="br-amt ${cls}" style="font-size:8px;white-space:nowrap;writing-mode:vertical-lr;transform:rotate(180deg)">${compact}</span></div>`;
+    }
     if (delta === 0) return `<div class="br-icell br-val-cell"><span class="br-ico">${catIco(ci, 0.35)}</span><span class="br-amt zer">–</span></div>`;
     const cls = delta > 0 ? 'pos' : 'neg';
     const sign = delta > 0 ? '+' : '';
@@ -2630,12 +2638,10 @@ function renderMonthBlock(y, mi, mob) {
   const totInv = rows.reduce((a,r)=>a+r.dayInvest,0);
   const totDia = rows.reduce((a,r)=>a+r.dayDiario,0);
   const totCar = rows.reduce((a,r)=>a+r.dayCartao,0);
-  // Footer always shows all columns expanded, ignoring collapse state
-  const GRID_FOOT = mob ? '48px 168px 168px 152px' : '48px 168px 168px 168px 168px 168px 152px';
   const footCells = mob
     ? footCell(totalIn,0)+footCell(-totOut,1)
     : footCell(totalIn,0)+footCell(-totOut,1)+footCell(-totInv,2)+footCell(-totDia,3)+footCell(-totCar,4);
-  const footer = `<div class="br-row br-foot" style="grid-template-columns:${GRID_FOOT}">
+  const footer = `<div class="br-row br-foot" style="grid-template-columns:${GRID}">
     <div class="br-dia" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)">TOT</div>
     ${footCells}${saldoCell(lb)}
   </div>`;
