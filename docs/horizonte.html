@@ -13,7 +13,13 @@
 (function () {
   try {
     var raw = localStorage.getItem("brian-theme");
-    var choice = raw ? (JSON.parse(raw).state || {}).choice || "system" : "system";
+    /* O index.html grava o tema como texto simples ("dark"); versões antigas
+       gravavam JSON. Aceita os dois, senão o modo escuro não atravessa telas. */
+    var choice = "system";
+    if (raw) {
+      if (raw === "dark" || raw === "light" || raw === "system") choice = raw;
+      else choice = (JSON.parse(raw).state || {}).choice || "system";
+    }
     var dark = choice === "dark" ||
       (choice === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
     document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
@@ -321,10 +327,10 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
           <button class="sidebar-item" type="button" onclick="location.href='totais.html'">
             <span class="sidebar-icon ic-totais"></span><span class="sidebar-label">totais</span>
           </button>
-          <button class="sidebar-item" type="button">
+          <button class="sidebar-item" type="button" onclick="location.href='index.html#tags'">
             <span class="sidebar-icon ic-tags"></span><span class="sidebar-label">tags</span>
           </button>
-          <button class="sidebar-item" type="button">
+          <button class="sidebar-item" type="button" onclick="location.href='index.html#menu'">
             <span class="sidebar-icon ic-menu"></span><span class="sidebar-label">menu</span>
           </button>
           <div class="sidebar-divider" role="separator"></div>
@@ -401,10 +407,10 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
       <span class="mn-icon ic-totais"></span><span class="mn-label">totais</span>
     </button>
     <button class="mn-add" type="button" aria-label="Adicionar" data-action="add"><span class="mn-icon"></span></button>
-    <button class="mn-item" type="button">
+    <button class="mn-item" type="button" onclick="location.href='index.html#tags'">
       <span class="mn-icon ic-tags"></span><span class="mn-label">tags</span>
     </button>
-    <button class="mn-item" type="button">
+    <button class="mn-item" type="button" onclick="location.href='index.html#menu'">
       <span class="mn-icon ic-menu"></span><span class="mn-label">menu</span>
     </button>
   </nav>
