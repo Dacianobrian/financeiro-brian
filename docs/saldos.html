@@ -851,6 +851,16 @@ function scrollToMonth(i, behavior = 'smooth'){
   window.__alvoTimer = setTimeout(() => { mesAlvo = null; alvoX = null; }, 4000);
   const inicio = sc.scrollLeft;
   sc.scrollTo({ left: alvo, behavior });
+  /* Se já estávamos no destino, nenhum evento de scroll vai vir para soltar a
+     âncora — ela ficaria presa e o rótulo pararia de seguir a rolagem manual. */
+  if (Math.abs(sc.scrollLeft - alvo) <= 2){
+    mesAlvo = null;
+    alvoX = null;
+    clearTimeout(window.__alvoTimer);
+  }
+  /* Escreve o rótulo agora, em vez de esperar um evento de scroll: o estado
+     final pode ser alcançado sem nenhum evento sobrando para atualizá-lo. */
+  updateMobileMonthLabel();
   /* Alguns renderizadores ignoram behavior:'smooth' silenciosamente. Se depois
      de 400ms o scroll não saiu NEM UM PIXEL do ponto de partida, o smooth não
      rolou e aplicamos direto. Se mudou (animou ou o usuário arrastou), não
