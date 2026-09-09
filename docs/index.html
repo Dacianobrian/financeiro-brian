@@ -4066,6 +4066,16 @@ async function bootApp() {
     return;
   }
   _userId = session.user.id;
+
+  /* O sistema agora É a tela refeita. Depois do login vai direto pra lá; só
+     permanece aqui quando a URL pede uma página que ainda não foi refeita. */
+  const entrada = (location.hash || '').slice(1);
+  const PAGINAS_AQUI = ['movimentacoes', 'cartao', 'config', 'tags', 'menu'];
+  if (!PAGINAS_AQUI.includes(entrada) && entrada !== 'add') {
+    location.replace('saldos.html');
+    return;
+  }
+
   await loadData();
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('app').hidden = false;
@@ -4101,10 +4111,7 @@ async function bootApp() {
   const _n = new Date();
   S.month = { y: _n.getFullYear(), m: _n.getMonth() };
 
-  /* Entrada vinda das telas novas: index.html#tags, #menu, #add.
-     Só páginas que ainda vivem aqui — as três refeitas voltariam a redirecionar. */
-  const entrada = (location.hash || '').slice(1);
-  const PAGINAS_AQUI = ['movimentacoes', 'cartao', 'config', 'tags', 'menu'];
+  /* Entrada vinda das telas refeitas: index.html#tags, #menu, #add. */
   if (PAGINAS_AQUI.includes(entrada)) {
     S.page = entrada;
     document.querySelectorAll('.nav li').forEach(li => {

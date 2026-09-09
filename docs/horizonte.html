@@ -715,15 +715,27 @@ document.addEventListener('keydown', e => {
 
 
 async function boot(){
+  let semSessao = false;
   try {
     const sb = window.supabase.createClient(SB_URL, SB_KEY);
     const { data: { session } } = await sb.auth.getSession();
     if (session){
       const { data, error } = await sb.from('movimentos').select('*').order('data', { ascending: true });
       if (!error && data) S.movs = data.map(toMov);
+    } else {
+      semSessao = true;
     }
   } catch (err) {
     console.warn('Supabase indisponível, usando dados de demonstração.', err);
+  }
+  /* Sem sessão vai pro login: mostrar números de demonstração para quem está
+     deslogado engana. Só vale quando a página é servida pela web de verdade —
+     aberta como arquivo (file:/data:) segue com a demonstração, senão não dá
+     pra conferir o layout fora do servidor. */
+  const naWeb = location.protocol === 'http:' || location.protocol === 'https:';
+  if (semSessao && naWeb){
+    location.replace('index.html');
+    return;
   }
   if (!S.movs.length) S.movs = DEMO.map(toMov);
   irParaHoje();
