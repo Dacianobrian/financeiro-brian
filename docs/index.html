@@ -952,19 +952,13 @@ body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--ground);
   .mobile-hero {
     background: linear-gradient(135deg, var(--accent) 0%, #ff6b35 100%);
     border-radius: 20px; margin: 0 12px;
-    padding: 20px; color: var(--text);
-    display: flex; flex-direction: column; gap: 12px;
-  }
-
-  .mobile-hero-title {
-    font-size: 16px; font-weight: 700;
-    color: var(--text); text-align: center;
-    line-height: 1.4;
+    padding: 12px; color: var(--text);
+    display: flex; flex-direction: column; gap: 0;
   }
 
   .mobile-hero-content {
-    background: var(--surface); border-radius: 16px;
-    padding: 16px; overflow: hidden;
+    background: var(--surface); border-radius: 14px;
+    padding: 0; overflow: hidden;
   }
 
   /* summary cards */
@@ -2108,7 +2102,7 @@ function renderTotais() {
 
   const mob = window.innerWidth < 640;
   if (mob) {
-    const body = `<div class="tot-body">
+    const totBody = `<div class="tot-body">
       <div class="tot-section-lbl">cálculos do mês</div>
       <div class="tot-cards">
         <div class="tot-card" style="cursor:pointer" onclick="S.totaisSubPage='performance';render()">
@@ -2136,10 +2130,7 @@ function renderTotais() {
       </div>
     </div>`;
 
-    return `<div class="mobile-hero">
-      <div class="mobile-hero-title">acompanhe sua performance,<br>economias e resultados</div>
-      <div class="mobile-hero-content">${body}</div>
-    </div>`;
+    return `<div class="mobile-hero"><div class="mobile-hero-content">${totBody}</div></div>`;
   }
 }
 
@@ -2686,15 +2677,7 @@ function renderDiario(y, m) {
     </div>`;
 
   if (mob) {
-    const monthName = MONTHS[new Date(new Date().getFullYear(), new Date().getMonth()).getMonth()] || '';
-    const hero = `
-      <div class="mobile-hero">
-        <div class="mobile-hero-title">veja seu saldo<br>dia a dia e mês a mês</div>
-        <div class="mobile-hero-content">
-          ${table}
-        </div>
-      </div>`;
-    return hero;
+    return `<div class="mobile-hero"><div class="mobile-hero-content">${table}</div></div>`;
   }
 
   return summary + table;
@@ -2837,10 +2820,7 @@ function renderDiarioScroll(y) {
   </div>`;
 
   if (mob) {
-    return `<div class="mobile-hero">
-      <div class="mobile-hero-title">veja seu saldo<br>futuro, dia a dia<br>e mês a mês</div>
-      <div class="mobile-hero-content">${scrollHtml}</div>
-    </div>`;
+    return `<div class="mobile-hero"><div class="mobile-hero-content">${scrollHtml}</div></div>`;
   }
 
   return scrollHtml;
@@ -3309,10 +3289,7 @@ function renderHorizonte() {
 
   const mob = window.innerWidth < 640;
   if (mob) {
-    return `<div class="mobile-hero">
-      <div class="mobile-hero-title">entenda o impacto real<br>de cada decisão antes<br>dela acontecer</div>
-      <div class="mobile-hero-content">${tableHtml}</div>
-    </div>`;
+    return `<div class="mobile-hero"><div class="mobile-hero-content">${tableHtml}</div></div>`;
   }
 
   return tableHtml;
