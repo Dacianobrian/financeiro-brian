@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="pt-BR" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="google" content="notranslate">
+<meta name="theme-color" content="#FFFFFF">
+<title>saldos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var raw = localStorage.getItem("brian-theme");
+    var choice = raw ? (JSON.parse(raw).state || {}).choice || "system" : "system";
+    var dark = choice === "dark" ||
+      (choice === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  } catch (e) {
+    document.documentElement.setAttribute("data-theme", "light");
+  }
+})();
+</script>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   TOKENS
+   ══════════════════════════════════════════════════════════════ */
+:root { --banner-offset: 0px; }
+
+:root[data-theme="light"], [data-theme="light"] {
+  color-scheme: light;
+  --color-bg-canvas:#FFFFFF; --color-bg-surface:#FFFFFF; --color-bg-subtle:#EDEDEE;
+  --color-bg-muted:#F8EDD9; --color-bg-inverse:#0E2D23;
+  --color-text-primary:#1D1F23; --color-text-secondary:#393E46; --color-text-muted:#6C7179;
+  --color-text-inverse:#FFFFFF; --color-text-brand:#0E2D23; --color-text-accent:#4A1BB9;
+  --color-border-subtle:#DADBDD; --color-border-default:#B6B8BC; --color-border-strong:#91949A;
+  --color-border-focus:#4A1BB9;
+  --color-feedback-success:#529952; --color-feedback-warning:#FFD748;
+  --color-feedback-error:#E62D2D; --color-feedback-info:#7C3AED;
+  --color-balance-green:#96D87D; --color-balance-mint:#95FDB8; --color-balance-sand:#FCE9B5;
+  --color-balance-rose:#F8BEBF; --color-balance-red:#F26D70;
+  --balance-text-lowest:#5C1212; --balance-text-low:#8A1B1B; --balance-text-base:#66561D;
+  --balance-text-high:#315C31; --balance-text-highest:#213D21;
+  --color-tag-gray:#E0E0E0; --color-tag-yellow:#F0F0B3; --color-tag-red:#FFB3B3;
+  --color-tag-pink:#FFCCD9; --color-tag-blue:#BEE0FF; --color-tag-purple:#CCB8F2;
+  --color-tag-green:#ADE695; --color-tag-brown:#E8D5C2;
+  --border-hairline:rgba(0,0,0,0.15); --color-bg-auth-splash:#FF5917;
+  --table-grid-line:rgba(0,0,0,0.15); --table-cell-grid-line:rgba(29,31,35,0.1);
+  --table-weekend-bg:#EDEDEE;
+  --table-cell-hover:linear-gradient(to right,#ffffff,#e7e7e8);
+  --table-icon-cell-hover:linear-gradient(to left,#ffffff,#e7e7e8);
+  --table-skeleton-bg:#F4F4F5; --table-shimmer:rgba(255,255,255,0.85);
+  --table-balance-hover-overlay:rgba(255,255,255,0.18);
+  --shadow-soft:rgba(0,0,0,0.08); --color-text-ghost:#B6B8BC;
+  --icon-placeholder:#DADBDD; --color-border-error:#F5ABAB; --icon-default-light:#484D57;
+}
+
+:root[data-theme="dark"], [data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg-canvas:#1D1F23; --color-bg-surface:#1D1F23; --color-bg-subtle:#2B2E34;
+  --color-bg-muted:#2B2E34; --color-bg-inverse:#EDEDEE;
+  --color-text-primary:#EDEDEE; --color-text-secondary:#B6B8BC; --color-text-muted:#91949A;
+  --color-text-inverse:#1D1F23; --color-text-brand:#EDEDEE; --color-text-accent:#B089F4;
+  --color-border-subtle:rgba(255,255,255,0.08); --color-border-default:rgba(255,255,255,0.15);
+  --color-border-strong:rgba(255,255,255,0.30); --color-border-focus:#EDEDEE;
+  --color-feedback-success:#529952; --color-feedback-warning:#FFD748;
+  --color-feedback-error:#E62D2D; --color-feedback-info:#9661F1;
+  --color-balance-green:#3A7A2F; --color-balance-mint:#1E9B68; --color-balance-sand:#A07A00;
+  --color-balance-rose:#A34C4E; --color-balance-red:#8B1E20;
+  --balance-text-lowest:#EDEDEE; --balance-text-low:#EDEDEE; --balance-text-base:#EDEDEE;
+  --balance-text-high:#EDEDEE; --balance-text-highest:#EDEDEE;
+  --color-tag-gray:#5A5A5A; --color-tag-yellow:#6E5A17; --color-tag-red:#993B3B;
+  --color-tag-pink:#8C4A5E; --color-tag-blue:#3E5E88; --color-tag-purple:#5B4B82;
+  --color-tag-green:#3E7C68; --color-tag-brown:#6E5035;
+  --border-hairline:rgba(255,255,255,0.15); --color-bg-auth-splash:#662409;
+  --color-text-ghost:#484D57; --icon-placeholder:#2B2E34;
+  --table-grid-line:rgba(255,255,255,0.15); --table-cell-grid-line:rgba(255,255,255,0.15);
+  --table-weekend-bg:#2B2E34;
+  --table-cell-hover:linear-gradient(to right,#1D1F23,#2B2E34);
+  --table-icon-cell-hover:linear-gradient(to left,#1D1F23,#2B2E34);
+  --table-skeleton-bg:#2B2E34; --table-shimmer:rgba(255,255,255,0.06);
+  --table-balance-hover-overlay:rgba(255,255,255,0.10);
+  --shadow-soft:rgba(0,0,0,0.5); --color-border-error:#B82424; --icon-default-light:#484D57;
+}
+
+/* ── ÍCONES (SVG data-URI usados como mask) ───────────────────── */
+:root {
+  --ic-income:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 5v6.17l2.59-2.58L17 12l-5 5-5-5 1.41-1.41L11 13.17V7h2z'/%3E%3C/svg%3E");
+  --ic-expense:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-6.17l-2.59 2.58L7 12l5-5 5 5-1.41 1.41L13 10.83V17h-2z'/%3E%3C/svg%3E");
+  --ic-recurring:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M19 3h-1V1h-2v2H8V1H6v2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 18H5V9h14v12zM7 11h5v5H7z'/%3E%3C/svg%3E");
+  --ic-savings:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M21 18v1c0 1.1-.9 2-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h9zm-9-2h10V8H12v8zm4-2.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z'/%3E%3C/svg%3E");
+  --ic-card:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z'/%3E%3C/svg%3E");
+  --ic-plus:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z'/%3E%3C/svg%3E");
+  --ic-plus-circle:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/%3E%3C/svg%3E");
+  --ic-chevron-down:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z'/%3E%3C/svg%3E");
+  --ic-chevron-left:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M15.41 16.59 10.83 12l4.58-4.59L14 6l-6 6 6 6z'/%3E%3C/svg%3E");
+  --ic-chevron-right:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z'/%3E%3C/svg%3E");
+  --ic-dbl-left:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M17.59 18 19 16.59 14.42 12 19 7.41 17.59 6l-6 6zM11 18l1.41-1.41L7.83 12l4.58-4.59L11 6l-6 6z'/%3E%3C/svg%3E");
+  --ic-dbl-right:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M6.41 6 5 7.41 9.58 12 5 16.59 6.41 18l6-6zM13 6l-1.41 1.41L16.17 12l-4.58 4.59L13 18l6-6z'/%3E%3C/svg%3E");
+  --ic-check:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+  --ic-grid:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5zm2 4v3h5V9H5zm7 0v3h7V9h-7zM5 14v3h5v-3H5zm7 0v3h7v-3h-7zM5 5v2h14V5H5z'/%3E%3C/svg%3E");
+  --ic-totals:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M4 21V9h4v12H4zm6 0V3h4v18h-4zm6 0v-8h4v8h-4z'/%3E%3C/svg%3E");
+  --ic-tags:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M21.41 11.58l-9-9A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7c0 .55.22 1.05.59 1.42l9 9A2 2 0 0 0 13 22a2 2 0 0 0 1.41-.59l7-7A2 2 0 0 0 22 13a2 2 0 0 0-.59-1.42zM6.5 8A1.5 1.5 0 1 1 8 6.5 1.5 1.5 0 0 1 6.5 8z'/%3E%3C/svg%3E");
+  --ic-menu:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z'/%3E%3C/svg%3E");
+  --ic-horizon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M3 4h18v4H3V4zm0 6h18v4H3v-4zm0 6h18v4H3v-4z'/%3E%3C/svg%3E");
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESET / BASE
+   ══════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box}
+html{font-size:16px;scroll-behavior:smooth;overscroll-behavior-x:contain}
+body{margin:0;min-width:320px;min-height:100vh;background:var(--color-bg-canvas);color:var(--color-text-primary);font-family:"DM Sans",sans-serif;font-size:16px;line-height:24px;font-weight:400;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body,button,input,textarea,select{font-family:"DM Sans",sans-serif}
+button,input,textarea,select{font:inherit}
+a{color:inherit;text-decoration:none}
+img,picture,svg,canvas{display:block;max-width:100%}
+h1,h2,h3,h4,h5,h6,p{margin:0}
+::selection{background:#DDFD5A;color:#0E2D23}
+#root{min-height:100vh}
+
+/* ══════════════════════════════════════════════════════════════
+   SHELL
+   ══════════════════════════════════════════════════════════════ */
+.app-main{width:100%;min-height:100vh;padding-top:var(--banner-offset,0px);background:var(--color-bg-surface)}
+.app-shell{width:100%;min-height:calc(100vh - var(--banner-offset,0px));height:calc(100vh - var(--banner-offset,0px));display:flex;background:var(--color-bg-surface);overflow:hidden}
+@media(max-width:479px){.app-shell{height:calc(100dvh - var(--banner-offset,0px));min-height:calc(100dvh - var(--banner-offset,0px));flex-direction:column}}
+.sidebar-wrap{display:flex;flex-shrink:0}
+@media(max-width:479px){.sidebar-wrap{display:none}}
+.content-col{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
+.desktop-header-wrap{display:block}
+@media(max-width:479px){.desktop-header-wrap{display:none}}
+
+/* ══════════════════════════════════════════════════════════════
+   SIDEBAR (desktop)
+   ══════════════════════════════════════════════════════════════ */
+.sidebar{position:relative;z-index:40;width:144px;display:flex;flex-direction:column;padding:12px 0 4px;border-right:1px solid var(--border-hairline);background:var(--color-bg-surface);transition:width 260ms ease;will-change:width}
+@media(max-width:479px){.sidebar{display:none}}
+.sidebar.is-collapsed{width:56px}
+.sidebar-logo{width:100%;display:flex;align-items:center;justify-content:flex-start;height:32px;padding:0 12px;margin-bottom:8px;border:0;background:transparent;cursor:pointer;transition:padding 260ms ease}
+.sidebar.is-collapsed .sidebar-logo{justify-content:center;padding:0}
+.sidebar-logo-mark{width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:6px;background:#FF5917;color:#fff;font-size:14px;line-height:24px;font-weight:700}
+.sidebar-nav{display:flex;flex:1;flex-direction:column;gap:4px}
+.sidebar-divider{height:1px;margin:4px 0;background:var(--border-hairline)}
+.sidebar-item{position:relative;display:flex;align-items:center;justify-content:flex-start;gap:8px;height:40px;padding:0 12px;border:0;background:transparent;color:var(--color-text-primary);font-size:14px;line-height:20px;font-weight:700;cursor:pointer;overflow:hidden;transition:padding 260ms ease,color 220ms ease}
+.sidebar-item::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:transparent}
+.sidebar-item.is-active{color:#FF5917}
+.sidebar-item.is-active::before{background:#FF5917}
+.sidebar-item:hover{background:var(--color-bg-subtle)}
+.sidebar-item:focus-visible{outline:2px solid #FF5917;outline-offset:-2px}
+.sidebar.is-collapsed .sidebar-item{justify-content:center;padding:0}
+.sidebar-collapse{justify-content:flex-end;margin-top:auto}
+.sidebar-label{display:inline-block;white-space:nowrap;overflow:hidden;max-width:72px;opacity:1;transform:translateX(0);transition:max-width 260ms ease,opacity 220ms ease,transform 260ms ease}
+.sidebar.is-collapsed .sidebar-label{max-width:0;opacity:0;transform:translateX(-8px)}
+.sidebar-icon{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.sidebar-icon::before{content:"";width:24px;height:24px;background-color:currentColor;-webkit-mask-size:24px 24px;mask-size:24px 24px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.sidebar-icon.ic-saldos::before{-webkit-mask-image:var(--ic-grid);mask-image:var(--ic-grid)}
+.sidebar-icon.ic-totais::before{-webkit-mask-image:var(--ic-totals);mask-image:var(--ic-totals)}
+.sidebar-icon.ic-tags::before{-webkit-mask-image:var(--ic-tags);mask-image:var(--ic-tags)}
+.sidebar-icon.ic-menu::before{-webkit-mask-image:var(--ic-menu);mask-image:var(--ic-menu)}
+.sidebar-icon.ic-collapse::before{-webkit-mask-image:var(--ic-dbl-left);mask-image:var(--ic-dbl-left)}
+.sidebar.is-collapsed .sidebar-icon.ic-collapse::before{-webkit-mask-image:var(--ic-dbl-right);mask-image:var(--ic-dbl-right)}
+.sidebar-add{position:relative;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:50%;background-color:var(--color-text-primary)}
+.sidebar-add::after{content:"";width:14px;height:14px;background-color:var(--color-bg-surface);-webkit-mask-image:var(--ic-plus);mask-image:var(--ic-plus);-webkit-mask-size:14px 14px;mask-size:14px 14px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+/* glifo "ir pra hoje" */
+.today-glyph{position:relative;width:24px;height:24px;flex-shrink:0}
+.today-glyph .tg-pin-l{position:absolute;top:2px;left:5px;width:3px;height:2px;background:var(--color-text-primary)}
+.today-glyph .tg-pin-r{position:absolute;top:2px;left:16px;width:3px;height:2px;background:var(--color-text-primary)}
+.today-glyph .tg-bar{position:absolute;top:4px;left:2px;width:20px;height:2px;background:#FF5917}
+.today-glyph .tg-num{position:absolute;top:6px;left:2px;width:20px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:0 0 2px 2px;background:var(--color-bg-subtle);color:var(--color-text-primary);font-size:12px;line-height:16px;font-weight:700}
+/* mini-grade horizonte */
+.horizon-mini{box-sizing:border-box;width:24px;height:24px;display:grid;grid-template-columns:20px;grid-template-rows:repeat(3,6px);gap:1px;padding:2px;flex-shrink:0;overflow:hidden;background:var(--color-bg-surface)}
+.horizon-mini > span:first-child{border-radius:4px 4px 0 0}
+.horizon-mini > span:last-child{border-radius:0 0 4px 4px}
+.hm-neutral{background:var(--color-bg-subtle)}
+.hm-lowest{background:var(--color-balance-red)}
+.hm-low{background:var(--color-balance-rose)}
+.hm-base{background:var(--color-balance-sand)}
+.hm-high{background:var(--color-balance-mint)}
+.hm-highest{background:var(--color-balance-green)}
+
+/* ══════════════════════════════════════════════════════════════
+   HEADER DESKTOP
+   ══════════════════════════════════════════════════════════════ */
+.desktop-header{text-transform:lowercase;min-height:56px;display:flex;align-items:center;gap:16px;padding:8px 16px;border-bottom:1px solid var(--border-hairline);background:var(--color-bg-surface)}
+.dh-title-wrap{flex:1 1 0;min-width:0;display:flex;align-items:center}
+.dh-title{color:var(--color-text-primary);font-size:20px;line-height:24px;font-weight:700;white-space:nowrap}
+.dh-nav{display:inline-flex;flex-shrink:0;align-items:center;justify-content:center;gap:8px}
+.dh-nav-btn{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:999px;background:transparent;cursor:pointer}
+.dh-nav-btn:hover{background:var(--color-bg-subtle)}
+.dh-nav-btn:focus-visible{outline:2px solid #FF5917;outline-offset:4px}
+.dh-nav-btn::before{content:"";width:24px;height:24px;background-color:#91949A;-webkit-mask-size:24px 24px;mask-size:24px 24px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.dh-nav-btn.nav-dbl-prev::before{-webkit-mask-image:var(--ic-dbl-left);mask-image:var(--ic-dbl-left)}
+.dh-nav-btn.nav-prev::before{-webkit-mask-image:var(--ic-chevron-left);mask-image:var(--ic-chevron-left)}
+.dh-nav-btn.nav-next::before{-webkit-mask-image:var(--ic-chevron-right);mask-image:var(--ic-chevron-right)}
+.dh-nav-btn.nav-dbl-next::before{-webkit-mask-image:var(--ic-dbl-right);mask-image:var(--ic-dbl-right)}
+.dh-range-pill{min-width:clamp(200px,18vw,250px);height:30px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 10px 0 14px;border:2px solid var(--color-border-subtle);border-radius:999px;background:var(--color-bg-surface);cursor:pointer}
+.dh-range-pill:focus-visible{outline:2px solid #FF5917;outline-offset:2px}
+.dh-range-label{color:var(--color-text-primary);font-size:16px;line-height:20px;font-weight:700;white-space:nowrap}
+.dh-chevron{width:24px;height:24px;flex-shrink:0;background-color:#91949A;-webkit-mask-image:var(--ic-chevron-down);mask-image:var(--ic-chevron-down);-webkit-mask-size:24px 24px;mask-size:24px 24px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+
+/* ══════════════════════════════════════════════════════════════
+   HEADER MOBILE
+   ══════════════════════════════════════════════════════════════ */
+.mobile-header{text-transform:lowercase;display:none}
+@media(max-width:479px){.mobile-header{display:flex;align-items:center;justify-content:space-between;height:120px;padding:48px 24px 16px;border-bottom:1px solid var(--border-hairline);background:var(--color-bg-surface)}}
+.mh-today{width:32px;display:flex;flex-direction:column;align-items:stretch;padding:0;border:0;border-radius:4px;background:transparent;cursor:pointer}
+.mh-today-top{height:8px;border-radius:4px 4px 0 0;background:linear-gradient(90deg,#FF5917 0 6px,transparent 6px 11px,#FF5917 11px 17px,transparent 17px 100%),var(--color-text-primary)}
+.mh-today-num{height:24px;display:flex;align-items:center;justify-content:center;border-radius:0 0 4px 4px;background:var(--color-bg-subtle);color:var(--color-text-primary);font-size:16px;line-height:24px;font-weight:700}
+.mh-center{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:0}
+.mh-arrow{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:0;background:transparent;cursor:pointer}
+.mh-arrow:disabled{opacity:.35;cursor:not-allowed}
+.mh-arrow::before{content:"";width:24px;height:24px;background-color:var(--color-text-primary);-webkit-mask-size:24px 24px;mask-size:24px 24px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.mh-arrow.nav-prev::before{-webkit-mask-image:var(--ic-chevron-left);mask-image:var(--ic-chevron-left)}
+.mh-arrow.nav-next::before{-webkit-mask-image:var(--ic-chevron-right);mask-image:var(--ic-chevron-right)}
+.mh-month{min-width:110px;color:var(--color-text-primary);font-size:20px;line-height:28px;font-weight:700;text-align:center;white-space:nowrap}
+.mh-horizon{width:32px;height:32px;display:grid;grid-template-columns:repeat(3,10px);grid-template-rows:repeat(3,10px);gap:1px;padding:0;border:0;border-radius:4px;background:var(--color-bg-surface);cursor:pointer}
+.mh-horizon > span{border-radius:1px}
+.mh-horizon .hm-neutral{background:var(--color-bg-subtle)}
+
+/* ══════════════════════════════════════════════════════════════
+   VIEWPORT DOS MESES + SCROLLBAR EXTERNA
+   ══════════════════════════════════════════════════════════════ */
+.months-viewport{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 18px;padding:0;overflow:hidden}
+.months-viewport::after{content:"";position:absolute;top:0;right:17px;bottom:0;z-index:4;width:1px;background:var(--border-hairline);pointer-events:none}
+@media(max-width:479px){
+  .months-viewport{display:block;padding:0 0 calc(73px + env(safe-area-inset-bottom))}
+  .months-viewport::after{display:none}
+}
+.months-scroller{box-sizing:border-box;min-width:0;padding:0 0 16px 16px;width:100%;height:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none}
+.months-scroller::-webkit-scrollbar{height:0;display:none}
+@media(max-width:479px){.months-scroller{padding:0;scroll-snap-type:x mandatory}}
+.months-track{display:inline-flex;gap:16px;height:100%;padding-right:32px}
+@media(max-width:479px){.months-track{gap:0;padding-right:0}}
+.days-scrollbar{grid-column:2;grid-row:1;min-height:0;margin:81px 0 57px 1px;overflow-x:hidden;overflow-y:scroll;overscroll-behavior-y:contain;background:var(--color-bg-surface)}
+.days-scrollbar:focus-visible{outline:2px solid var(--color-border-focus);outline-offset:-2px}
+@media(max-width:479px){
+  .days-scrollbar{position:absolute;top:56px;right:0;bottom:calc(89px + env(safe-area-inset-bottom));z-index:3;width:6px;margin:0}
+  .days-scrollbar::-webkit-scrollbar{width:6px}
+  .days-scrollbar::-webkit-scrollbar-thumb{border-width:1px}
+}
+.days-scrollbar-spacer{width:1px;min-height:100%;pointer-events:none}
+
+/* ══════════════════════════════════════════════════════════════
+   MÊS + TABELA
+   ══════════════════════════════════════════════════════════════ */
+.month-section{width:var(--month-width,1040px);min-width:var(--month-width,1040px);height:100%;min-height:0;display:flex;flex-direction:column;transition:width 180ms ease,min-width 180ms ease}
+@media(max-width:479px){.month-section{width:100vw;min-width:100vw;height:100%;scroll-snap-align:start}}
+.month-title-row{height:40px;display:flex;align-items:center}
+@media(max-width:479px){.month-title-row{display:none}}
+.month-title{color:var(--color-text-primary);font-size:16px;line-height:24px;font-weight:700;text-transform:lowercase}
+.month-table{--desktop-grid-template:48px 168px 168px 168px 168px 168px 152px;border:1px solid var(--table-grid-line);border-radius:12px;overflow:hidden;position:relative;background:var(--color-bg-surface);flex:1;min-height:0;display:flex;flex-direction:column}
+@media(max-width:479px){.month-table{border:0;border-radius:0}}
+.table-grid{display:grid;grid-template-columns:var(--desktop-grid-template);transition:grid-template-columns 180ms ease}
+@media(max-width:479px){.table-grid{grid-template-columns:56px minmax(0,1fr) minmax(136px,1fr)}}
+.table-head{flex-shrink:0;min-height:41px;border-bottom:1px solid var(--color-text-primary);background:var(--color-bg-surface)}
+@media(max-width:479px){.table-head{min-height:56px;align-items:center;padding:8px 0;border-bottom:1px solid var(--table-grid-line)}}
+.table-body{flex:1;min-height:0;height:auto;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;scrollbar-width:none}
+.table-body::-webkit-scrollbar{display:none}
+@media(max-width:479px){.table-body{padding-bottom:8px;-webkit-overflow-scrolling:touch}}
+.table-foot{flex-shrink:0;min-height:41px;border-top:1px solid var(--color-text-primary);background:var(--color-bg-surface)}
+@media(max-width:479px){.table-foot{display:none}}
+
+/* ── células do cabeçalho ─────────────────────────────────────── */
+.th{display:flex;align-items:center;gap:8px;min-height:41px;padding:0 12px;border-right:1px solid var(--table-grid-line);color:var(--color-text-primary);font-size:14px;line-height:20px;font-weight:700}
+.th:last-child{border-right:0;justify-content:flex-end}
+@media(max-width:479px){
+  .th{display:none;min-height:40px;padding:0 12px;border-right:0;font-size:16px;line-height:24px}
+  .th:last-child{display:flex}
+}
+.th--metric-slot{padding:0}
+@media(max-width:479px){.th--metric-slot{display:flex;justify-content:flex-start;min-width:0;padding:0 12px}}
+.th--day{justify-content:center;padding:0}
+@media(max-width:479px){.th--day{display:flex;justify-content:center;color:var(--color-text-muted);font-size:16px;line-height:24px}}
+.th--value{padding:0}
+.th-collapse{width:100%;min-width:0;min-height:41px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer}
+.th-collapse:hover{background:var(--table-cell-hover)}
+.th-collapse:focus-visible{outline:2px solid var(--color-border-focus);outline-offset:-2px}
+@media(max-width:479px){.th-collapse{display:none}}
+.th-collapse-label{min-width:0;display:inline;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+.th-collapse-icon{width:16px;height:16px;flex-shrink:0;background-color:var(--color-text-muted);-webkit-mask-size:16px 16px;mask-size:16px 16px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-image:var(--ic-dbl-left);mask-image:var(--ic-dbl-left)}
+.th.is-collapsed .th-collapse{justify-content:center}
+.th.is-collapsed .th-collapse-label{display:none}
+.th.is-collapsed .th-collapse-icon{-webkit-mask-image:var(--ic-dbl-right);mask-image:var(--ic-dbl-right)}
+
+/* ── pílula de métrica (mobile) ───────────────────────────────── */
+.metric-pill{display:none}
+@media(max-width:479px){
+  .metric-pill{position:relative;width:100%;max-width:168px;height:40px;display:inline-flex;align-items:center;gap:8px;padding:0 12px;border:2px solid var(--table-grid-line);border-radius:64px;background:var(--color-bg-surface);color:var(--color-text-primary);cursor:pointer}
+}
+.metric-pill-icon{width:16px;height:16px;flex-shrink:0;-webkit-mask-size:16px 16px;mask-size:16px 16px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.metric-pill-label{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px;line-height:24px;font-weight:700}
+.metric-pill-chevron{width:24px;height:24px;flex-shrink:0;background-color:var(--color-text-muted);-webkit-mask-image:var(--ic-chevron-down);mask-image:var(--ic-chevron-down);-webkit-mask-size:24px 24px;mask-size:24px 24px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.metric-pill-select{position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;cursor:pointer}
+
+/* ── linhas ───────────────────────────────────────────────────── */
+.row{--row-grid-line-color:var(--table-cell-grid-line);min-height:40px;background-color:transparent}
+.row > *{position:relative}
+.row > *::after{content:"";position:absolute;inset:0 0 auto 0;height:1px;background:var(--row-grid-line-color);pointer-events:none}
+.row:first-child > *::after{content:none}
+.row.row--after-today{--row-grid-line-color:var(--color-text-primary)}
+
+/* ── célula do dia ────────────────────────────────────────────── */
+.day-cell{position:relative;display:flex;align-items:center;justify-content:center;min-height:40px;padding:0;border:0;border-right:1px solid var(--table-grid-line);background-color:var(--color-bg-surface);color:var(--color-text-primary);font-size:14px;line-height:20px;font-weight:500;cursor:pointer}
+.day-cell.is-weekend{background-color:var(--table-weekend-bg)}
+.day-cell.is-today{background-color:var(--color-text-primary);color:var(--color-text-inverse)}
+.day-cell:focus-visible{outline:2px solid var(--color-border-focus);outline-offset:-2px;z-index:2}
+@media(max-width:479px){.day-cell{font-size:16px;line-height:24px}}
+.checkin{position:absolute;top:0;right:0;width:32px;height:32px;font-size:16px;pointer-events:none;z-index:1}
+.checkin::before{content:"";position:absolute;inset:0;background:var(--color-balance-green);clip-path:polygon(0 0,100% 0,100% 100%)}
+.checkin::after{content:"";position:absolute;top:0;right:2px;width:1em;height:1em;background-color:var(--color-bg-surface);-webkit-mask-image:var(--ic-check);mask-image:var(--ic-check);-webkit-mask-size:1em 1em;mask-size:1em 1em;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;z-index:1}
+
+/* ── células de métrica ───────────────────────────────────────── */
+.metric-cell{display:flex;align-items:center;gap:8px;min-height:40px;padding:0 12px;border-right:1px solid var(--table-grid-line);justify-content:flex-start;background:transparent;text-align:left;overflow:hidden}
+@media(max-width:479px){.metric-cell{display:none;justify-content:flex-start;min-width:0;padding:0 12px}}
+@media(max-width:479px){.metric-cell.is-selected{display:flex;justify-content:flex-start;min-width:0;padding:0 12px}}
+.metric-add{position:relative;width:48px;min-width:48px;align-self:stretch;display:inline-flex;align-items:center;justify-content:center;margin-left:-16px;margin-right:4px;border:0;background:transparent;color:var(--color-text-primary);cursor:pointer;transition:background 160ms ease}
+.metric-add::after{content:"";position:absolute;top:50%;left:50%;width:16px;height:16px;background-color:var(--color-text-primary);-webkit-mask-image:var(--ic-plus);mask-image:var(--ic-plus);-webkit-mask-size:16px 16px;mask-size:16px 16px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;opacity:0;transform:translate(-50%,-50%);transition:opacity 140ms ease;pointer-events:none}
+.metric-add:hover,.metric-add:focus-visible{background:var(--table-icon-cell-hover)}
+.metric-add:hover [data-role="metric-icon"],.metric-add:focus-visible [data-role="metric-icon"]{opacity:0;transform:scale(0.84)}
+.metric-add:hover::after,.metric-add:focus-visible::after{opacity:1}
+.metric-add:focus-visible{outline:2px solid var(--color-border-focus);outline-offset:-2px}
+@media(max-width:479px){.metric-add{width:40px;min-width:40px;margin-left:-12px;margin-right:8px}}
+.metric-icon{width:16px;height:16px;flex-shrink:0;background-color:var(--icon-placeholder);-webkit-mask-size:16px 16px;mask-size:16px 16px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;opacity:1;transform:scale(1);transition:opacity 140ms ease,transform 140ms ease}
+.metric-icon.has-value{background-color:var(--metric-color)}
+.mi-income{--metric-color:#529952;-webkit-mask-image:var(--ic-income);mask-image:var(--ic-income)}
+.mi-expense{--metric-color:#E62D2D;-webkit-mask-image:var(--ic-expense);mask-image:var(--ic-expense)}
+.mi-recurring{--metric-color:#EC4899;-webkit-mask-image:var(--ic-recurring);mask-image:var(--ic-recurring)}
+.mi-savings{--metric-color:#84CC16;-webkit-mask-image:var(--ic-savings);mask-image:var(--ic-savings)}
+.mi-card{--metric-color:#7C3AED;-webkit-mask-image:var(--ic-card);mask-image:var(--ic-card)}
+.metric-value-btn{min-width:0;flex:1;align-self:stretch;display:flex;align-items:center;justify-content:flex-end;margin-right:-12px;padding:0 12px 0 0;border:0;background:transparent;color:inherit;font:inherit;text-align:right;cursor:pointer;transition:background 160ms ease}
+.metric-value-btn:hover,.metric-value-btn:focus-visible{background:var(--table-cell-hover)}
+.metric-value-btn:focus-visible{outline:2px solid var(--color-border-focus);outline-offset:-2px}
+.metric-value{display:inline;color:var(--color-text-primary);font-size:14px;line-height:20px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.metric-value.is-zero{color:var(--color-text-ghost)}
+@media(max-width:479px){.metric-value{display:inline;min-width:0;text-align:right;flex:1;font-size:16px;line-height:24px}}
+
+/* ── células de saldo (5 tons) ────────────────────────────────── */
+.balance-cell{display:flex;align-items:center;justify-content:flex-end;min-height:40px;padding:0 12px;border:0;font:inherit;cursor:pointer;transition:box-shadow 160ms ease}
+@media(hover:hover) and (pointer:fine){.balance-cell:hover{box-shadow:inset 0 0 0 999px var(--table-balance-hover-overlay)}}
+.balance-cell:focus-visible{outline:2px solid var(--color-border-focus);outline-offset:-2px}
+@media(max-width:479px){.balance-cell{min-width:0;padding:0 12px;color:var(--color-text-primary)}}
+.balance-cell.tone-lowest{background:var(--color-balance-red);color:var(--balance-text-lowest)}
+.balance-cell.tone-low{background:var(--color-balance-rose);color:var(--balance-text-low)}
+.balance-cell.tone-base{background:var(--color-balance-sand);color:var(--balance-text-base)}
+.balance-cell.tone-high{background:var(--color-balance-mint);color:var(--balance-text-high)}
+.balance-cell.tone-highest{background:var(--color-balance-green);color:var(--balance-text-highest)}
+.balance-value{color:currentColor;font-size:14px;line-height:20px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:479px){.balance-value{font-size:16px;line-height:24px}}
+
+/* ── rodapé de totais ─────────────────────────────────────────── */
+.tf-day{min-height:40px;border-right:1px solid var(--table-grid-line)}
+.tf-cell{display:flex;align-items:center;gap:8px;min-height:40px;padding:0 12px;border-right:1px solid var(--table-grid-line);justify-content:space-between;border-top:0;border-bottom:0;border-left:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;transition:background 160ms ease}
+.tf-cell:hover,.tf-cell:focus-visible{background:var(--table-cell-hover)}
+.tf-cell:focus-visible{outline:2px solid var(--color-border-focus);outline-offset:-2px}
+.tf-value{flex:1;min-width:0;color:var(--color-text-primary);font-size:14px;line-height:20px;font-weight:700;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tf-value.is-zero{color:var(--color-text-ghost)}
+.tf-balance{min-height:40px}
+
+/* ── colunas recolhidas (só desktop) ─────────────────────────── */
+.metric-cell.is-collapsed{justify-content:center;padding:0}
+.metric-cell.is-collapsed .metric-value-btn{display:none}
+.metric-cell.is-collapsed .metric-add{width:48px;min-width:48px;margin:0}
+.tf-cell.is-collapsed{justify-content:center;padding:0}
+.tf-cell.is-collapsed .tf-value{display:none}
+@media(max-width:479px){
+  .metric-cell.is-collapsed{justify-content:flex-start;padding:0 12px}
+  .metric-cell.is-collapsed .metric-value-btn{display:flex}
+  .metric-cell.is-collapsed .metric-add{width:40px;min-width:40px;margin-left:-12px;margin-right:8px}
+}
+
+/* ══════════════════════════════════════════════════════════════
+   NAV INFERIOR (mobile)
+   ══════════════════════════════════════════════════════════════ */
+.mobile-nav{display:none}
+@media(max-width:479px){
+  .mobile-nav{position:fixed;left:0;right:0;bottom:0;z-index:30;min-height:calc(72px + env(safe-area-inset-bottom));display:flex;align-items:flex-start;justify-content:center;gap:12px;padding:0 16px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--border-hairline);background:var(--color-bg-surface)}
+}
+.mn-item{position:relative;width:64px;min-height:64px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 0 0;border:0;border-top:2px solid transparent;background:transparent;color:var(--color-text-primary);font-size:14px;line-height:20px;font-weight:700;cursor:pointer}
+.mn-item.is-active{border-top:2px solid #FF5917;color:#FF5917}
+.mn-icon{width:24px;height:24px;display:block;flex-shrink:0;background-color:currentColor;-webkit-mask-size:24px 24px;mask-size:24px 24px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.mn-icon.ic-saldos{-webkit-mask-image:var(--ic-grid);mask-image:var(--ic-grid)}
+.mn-icon.ic-totais{-webkit-mask-image:var(--ic-totals);mask-image:var(--ic-totals)}
+.mn-icon.ic-tags{-webkit-mask-image:var(--ic-tags);mask-image:var(--ic-tags)}
+.mn-icon.ic-menu{-webkit-mask-image:var(--ic-menu);mask-image:var(--ic-menu)}
+.mn-label{white-space:nowrap}
+.mn-add{width:54px;min-height:64px;display:flex;align-items:flex-start;justify-content:center;padding:8px 0 0;border:0;background:transparent;color:var(--color-text-primary);cursor:pointer}
+.mn-add .mn-icon{width:48px;height:48px;-webkit-mask-image:var(--ic-plus-circle);mask-image:var(--ic-plus-circle);-webkit-mask-size:48px 48px;mask-size:48px 48px}
+
+/* ══════════════════════════════════════════════════════════════
+   SKELETON
+   ══════════════════════════════════════════════════════════════ */
+@keyframes shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.skeleton-overlay{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+.skeleton-overlay::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent 0%,var(--table-shimmer) 50%,transparent 100%);will-change:transform;animation:shimmer 1.6s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){.skeleton-overlay::after{animation:none}}
+.sk-cell{min-height:40px;background:var(--table-skeleton-bg);border-right:1px solid var(--table-grid-line)}
+.sk-cell:last-child{border-right:0}
+.sk-bar{width:96px;height:12px;margin:14px 12px;border-radius:6px;background:#DADBDD}
+</style>
+</head>
+<body>
+<div id="root">
+<main class="app-main">
+  <section class="app-shell">
+
+    <!-- ══════════ SIDEBAR (desktop) ══════════ -->
+    <div class="sidebar-wrap">
+      <nav class="sidebar" id="sidebar" aria-label="Navegação principal">
+        <button class="sidebar-logo" type="button" title="Início" onclick="location.href='index.html'">
+          <span class="sidebar-logo-mark">B</span>
+        </button>
+        <div class="sidebar-nav">
+          <button class="sidebar-item is-active" type="button">
+            <span class="sidebar-icon ic-saldos"></span><span class="sidebar-label">saldos</span>
+          </button>
+          <button class="sidebar-item" type="button" onclick="location.href='totais.html'">
+            <span class="sidebar-icon ic-totais"></span><span class="sidebar-label">totais</span>
+          </button>
+          <button class="sidebar-item" type="button">
+            <span class="sidebar-icon ic-tags"></span><span class="sidebar-label">tags</span>
+          </button>
+          <button class="sidebar-item" type="button">
+            <span class="sidebar-icon ic-menu"></span><span class="sidebar-label">menu</span>
+          </button>
+          <div class="sidebar-divider" role="separator"></div>
+          <button class="sidebar-item" type="button" data-action="add">
+            <span class="sidebar-icon"><span class="sidebar-add"></span></span><span class="sidebar-label">adicionar</span>
+          </button>
+          <button class="sidebar-item" type="button" data-action="today">
+            <span class="today-glyph">
+              <span class="tg-pin-l"></span><span class="tg-pin-r"></span><span class="tg-bar"></span>
+              <span class="tg-num" id="sidebarTodayNum">9</span>
+            </span>
+            <span class="sidebar-label">ir pra hoje</span>
+          </button>
+          <button class="sidebar-item" type="button" data-action="horizon">
+            <span class="horizon-mini" id="sidebarHorizon">
+              <span class="hm-neutral"></span><span class="hm-neutral"></span><span class="hm-neutral"></span>
+            </span>
+            <span class="sidebar-label">horizonte</span>
+          </button>
+        </div>
+        <button class="sidebar-item sidebar-collapse" type="button" id="collapseBtn" aria-label="Recolher menu">
+          <span class="sidebar-icon ic-collapse"></span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- ══════════ COLUNA DE CONTEÚDO ══════════ -->
+    <div class="content-col">
+
+      <!-- Header desktop -->
+      <div class="desktop-header-wrap">
+        <header class="desktop-header">
+          <div class="dh-title-wrap"><h1 class="dh-title">saldos</h1></div>
+          <div class="dh-nav">
+            <button class="dh-nav-btn nav-dbl-prev" type="button" aria-label="Ano anterior" data-nav="year-prev"></button>
+            <button class="dh-nav-btn nav-prev" type="button" aria-label="Mês anterior" data-nav="month-prev"></button>
+            <button class="dh-range-pill" type="button" data-action="today">
+              <span class="dh-range-label" id="rangeLabel">jan/2026 - dez/2026</span>
+              <span class="dh-chevron"></span>
+            </button>
+            <button class="dh-nav-btn nav-next" type="button" aria-label="Próximo mês" data-nav="month-next"></button>
+            <button class="dh-nav-btn nav-dbl-next" type="button" aria-label="Próximo ano" data-nav="year-next"></button>
+          </div>
+        </header>
+      </div>
+
+      <!-- Header mobile -->
+      <header class="mobile-header">
+        <button class="mh-today" type="button" data-action="today" aria-label="Ir pra hoje">
+          <span class="mh-today-top"></span>
+          <span class="mh-today-num" id="mobileTodayNum">9</span>
+        </button>
+        <div class="mh-center">
+          <button class="mh-arrow nav-prev" type="button" aria-label="Mês anterior" data-nav="month-prev"></button>
+          <span class="mh-month" id="mobileMonthLabel">Set/2026</span>
+          <button class="mh-arrow nav-next" type="button" aria-label="Próximo mês" data-nav="month-next"></button>
+        </div>
+        <button class="mh-horizon" type="button" id="mobileHorizon" aria-label="Horizonte">
+          <span class="hm-neutral"></span><span class="hm-neutral"></span><span class="hm-neutral"></span>
+          <span class="hm-neutral"></span><span class="hm-neutral"></span><span class="hm-neutral"></span>
+          <span class="hm-neutral"></span><span class="hm-neutral"></span><span class="hm-neutral"></span>
+        </button>
+      </header>
+
+      <!-- Viewport dos meses -->
+      <div class="months-viewport">
+        <div class="months-scroller" id="monthsScroller" data-balance-months-viewport="true">
+          <div class="months-track" id="monthsTrack"></div>
+        </div>
+        <div class="days-scrollbar" id="daysScrollbar" tabindex="0" aria-label="Rolar dias dos meses">
+          <div class="days-scrollbar-spacer" id="daysScrollbarSpacer"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ NAV INFERIOR (mobile) ══════════ -->
+  <nav class="mobile-nav" aria-label="Navegação">
+    <button class="mn-item is-active" type="button">
+      <span class="mn-icon ic-saldos"></span><span class="mn-label">saldos</span>
+    </button>
+    <button class="mn-item" type="button" onclick="location.href='totais.html'">
+      <span class="mn-icon ic-totais"></span><span class="mn-label">totais</span>
+    </button>
+    <button class="mn-add" type="button" aria-label="Adicionar"><span class="mn-icon"></span></button>
+    <button class="mn-item" type="button">
+      <span class="mn-icon ic-tags"></span><span class="mn-label">tags</span>
+    </button>
+    <button class="mn-item" type="button">
+      <span class="mn-icon ic-menu"></span><span class="mn-label">menu</span>
+    </button>
+  </nav>
+</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   CONFIG
+   ══════════════════════════════════════════════════════════════ */
+const SB_URL = 'https://cathhujdhocioybdpnvc.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhdGhodWpkaG9jaW95YmRwbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTUxODgsImV4cCI6MjA5MTI5MTE4OH0.5zO8sxWV1R_fVt9FPN4bDGXaCophee4gCh0jjEVp9DQ';
+
+/* localStorage seguro: navegação privada, webviews e data: URLs bloqueiam Storage. */
+const ls = {
+  get(k, fallback = null){ try { const v = localStorage.getItem(k); return v === null ? fallback : v; } catch(e){ return fallback; } },
+  set(k, v){ try { localStorage.setItem(k, v); } catch(e){} },
+  json(k, fallback){ try { return JSON.parse(localStorage.getItem(k)) ?? fallback; } catch(e){ return fallback; } },
+};
+
+/* Referência que define as faixas de cor do saldo.
+   b < -R           → vermelho  (lowest)
+   -R <= b < 0      → rosa      (low)
+   0 <= b <= R      → areia     (base)
+   R < b <= 2R      → menta     (high)
+   b > 2R           → verde     (highest)                     */
+const REFERENCIA = Number(ls.get('brian-referencia')) || 1000;
+
+const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const MESES_CAP = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+const METRICS = [
+  { key:'income',    label:'entradas',  icon:'mi-income'    },
+  { key:'expense',   label:'saídas',    icon:'mi-expense'   },
+  { key:'recurring', label:'diários',   icon:'mi-recurring' },
+  { key:'savings',   label:'economias', icon:'mi-savings'   },
+  { key:'card',      label:'cartão',    icon:'mi-card'      },
+];
+
+/* ══════════════════════════════════════════════════════════════
+   ESTADO
+   ══════════════════════════════════════════════════════════════ */
+const HOJE = new Date();
+const HOJE_KEY = iso(HOJE);
+
+const S = {
+  ano: HOJE.getFullYear(),
+  metric: ls.get('brian-saldos-metric', 'card'),
+  collapsed: new Set(ls.json('brian-saldos-collapsed', [])),
+  checkins: new Set(ls.json('brian-checkins', [])),
+  movs: [],
+  saldoInicial: 0,
+};
+
+/* ══════════════════════════════════════════════════════════════
+   HELPERS
+   ══════════════════════════════════════════════════════════════ */
+function iso(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function diasNoMes(y,m){ return new Date(y, m+1, 0).getDate(); }
+function fmt(v){
+  const n = Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
+  return (v < 0 ? '-R$ ' : 'R$ ') + n;
+}
+function tone(saldo){
+  if (saldo < -REFERENCIA)  return 'lowest';
+  if (saldo < 0)            return 'low';
+  if (saldo <= REFERENCIA)  return 'base';
+  if (saldo <= REFERENCIA*2)return 'high';
+  return 'highest';
+}
+function metricInfo(key){ return METRICS.find(m => m.key === key) || METRICS[4]; }
+
+/* ══════════════════════════════════════════════════════════════
+   CLASSIFICAÇÃO — mesma regra do index.html
+   ══════════════════════════════════════════════════════════════ */
+function classify(mv){
+  if (mv.tipo === 'entrada')                       return 'income';
+  if (mv.conta === 'cartao')                       return 'card';
+  if (mv.conta === 'itau' || mv.tag === 'invest')  return 'savings';
+  if (mv.tag === 'diário' || mv.tag === 'diario')  return 'recurring';
+  return 'expense';
+}
+
+/* Constrói o ano inteiro: 12 meses × dias, com saldo acumulado. */
+function buildYear(ano){
+  const porDia = new Map();
+  for (const mv of S.movs){
+    const k = iso(mv.data);
+    if (!porDia.has(k)) porDia.set(k, { income:0, expense:0, recurring:0, savings:0, card:0, delta:0 });
+    const bucket = porDia.get(k);
+    const kind = classify(mv);
+    bucket[kind] += mv.valor;
+    bucket.delta += (mv.tipo === 'entrada' ? mv.valor : -mv.valor);
+  }
+
+  // saldo acumulado desde o começo até 31/dez do ano anterior
+  let saldo = S.saldoInicial;
+  for (const [k, b] of [...porDia.entries()].sort()){
+    if (k < ano + '-01-01') saldo += b.delta;
+  }
+
+  const meses = [];
+  for (let m = 0; m < 12; m++){
+    const dias = [];
+    const tot = { income:0, expense:0, recurring:0, savings:0, card:0 };
+    const n = diasNoMes(ano, m);
+    for (let d = 1; d <= n; d++){
+      const date = new Date(ano, m, d);
+      const k = iso(date);
+      const b = porDia.get(k) || { income:0, expense:0, recurring:0, savings:0, card:0, delta:0 };
+      saldo += b.delta;
+      for (const key of Object.keys(tot)) tot[key] += b[key];
+      const wd = date.getDay();
+      dias.push({
+        d, key:k, date,
+        weekend: wd === 0 || wd === 6,
+        isToday: k === HOJE_KEY,
+        values: { income:b.income, expense:b.expense, recurring:b.recurring, savings:b.savings, card:b.card },
+        saldo,
+        tone: tone(saldo),
+      });
+    }
+    meses.push({ m, dias, tot });
+  }
+  return meses;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GRID TEMPLATE (colunas recolhíveis)
+   ══════════════════════════════════════════════════════════════ */
+function gridTemplate(){
+  const cols = METRICS.map(mt => S.collapsed.has(mt.key) ? '48px' : '168px');
+  return '48px ' + cols.join(' ') + ' 152px';
+}
+function monthWidth(){
+  const soma = METRICS.reduce((a,mt) => a + (S.collapsed.has(mt.key) ? 48 : 168), 0);
+  return 48 + soma + 152;
+}
+function applyLayout(){
+  /* Só custom properties — a media query mobile (100vw) precisa continuar vencendo. */
+  document.documentElement.style.setProperty('--month-width', monthWidth() + 'px');
+  document.querySelectorAll('.month-table').forEach(t => t.style.setProperty('--desktop-grid-template', gridTemplate()));
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RENDER
+   ══════════════════════════════════════════════════════════════ */
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function headRow(){
+  const sel = metricInfo(S.metric);
+  const ths = METRICS.map(mt => {
+    const isSlot = mt.key === S.metric;
+    const collapsed = S.collapsed.has(mt.key) ? ' is-collapsed' : '';
+    const pill = isSlot ? `
+        <label class="metric-pill">
+          <span class="metric-pill-icon ${sel.icon} has-value" style="background-color:var(--metric-color)"></span>
+          <span class="metric-pill-label">${esc(sel.label)}</span>
+          <span class="metric-pill-chevron"></span>
+          <select class="metric-pill-select" aria-label="Selecionar coluna" data-role="metric-select">
+            ${METRICS.map(o => `<option value="${o.key}"${o.key===S.metric?' selected':''}>${esc(o.label)}</option>`).join('')}
+          </select>
+        </label>` : '';
+    return `<div class="th th--value${isSlot ? ' th--metric-slot' : ''}${collapsed}" data-col="${mt.key}">
+        <button class="th-collapse" type="button" data-role="collapse" data-col="${mt.key}">
+          <span class="th-collapse-label">${esc(mt.label)}</span>
+          <span class="th-collapse-icon"></span>
+        </button>${pill}
+      </div>`;
+  }).join('');
+  return `<div class="table-grid table-head">
+      <div class="th th--day">dia</div>
+      ${ths}
+      <div class="th">saldos</div>
+    </div>`;
+}
+
+function dayRow(dia, anterior){
+  const afterToday = anterior && anterior.isToday ? ' row--after-today' : '';
+  const dayCls = dia.isToday ? 'is-today' : (dia.weekend ? 'is-weekend' : '');
+  const checkin = S.checkins.has(dia.key) ? '<span class="checkin" aria-hidden="true"></span>' : '';
+
+  const cells = METRICS.map(mt => {
+    const v = dia.values[mt.key];
+    const has = v > 0;
+    const selected = mt.key === S.metric ? ' is-selected' : '';
+    const collapsed = S.collapsed.has(mt.key) ? ' is-collapsed' : '';
+    return `<div class="metric-cell${selected}${collapsed}" data-col="${mt.key}">
+        <button class="metric-add" type="button" tabindex="-1" aria-label="Adicionar ${esc(mt.label)} em ${dia.d}" data-role="add" data-date="${dia.key}" data-kind="${mt.key}">
+          <span class="metric-icon ${mt.icon}${has ? ' has-value' : ''}" data-role="metric-icon"></span>
+        </button>
+        <button class="metric-value-btn" type="button" data-role="cell" data-date="${dia.key}" data-kind="${mt.key}">
+          <span class="metric-value${has ? '' : ' is-zero'}">${fmt(v)}</span>
+        </button>
+      </div>`;
+  }).join('');
+
+  return `<div class="table-grid row${afterToday}"${dia.isToday ? ' data-current-day="true"' : ''} data-date="${dia.key}">
+      <button class="day-cell ${dayCls}" type="button" data-role="day" data-date="${dia.key}">${dia.d}${checkin}</button>
+      ${cells}
+      <button class="balance-cell tone-${dia.tone}" type="button" data-role="balance" data-date="${dia.key}">
+        <span class="balance-value">${fmt(dia.saldo)}</span>
+      </button>
+    </div>`;
+}
+
+function footRow(mes){
+  const cells = METRICS.map(mt => {
+    const v = mes.tot[mt.key];
+    return `<button class="tf-cell${S.collapsed.has(mt.key) ? ' is-collapsed' : ''}" type="button" data-col="${mt.key}" data-role="total" data-kind="${mt.key}">
+        <span class="metric-icon ${mt.icon}${v > 0 ? ' has-value' : ''}"></span>
+        <span class="tf-value${v > 0 ? '' : ' is-zero'}">${fmt(v)}</span>
+      </button>`;
+  }).join('');
+  return `<div class="table-grid table-foot">
+      <div class="tf-day"></div>
+      ${cells}
+      <div class="tf-balance"></div>
+    </div>`;
+}
+
+function monthSection(mes, ano){
+  const rows = mes.dias.map((d,i) => dayRow(d, i > 0 ? mes.dias[i-1] : null)).join('');
+  return `<section class="month-section" data-month="${mes.m}" data-year="${ano}">
+      <div class="month-title-row"><h2 class="month-title">${MESES[mes.m]}/${ano}</h2></div>
+      <div class="month-table">
+        ${headRow()}
+        <div class="table-body" data-role="body">${rows}</div>
+        ${footRow(mes)}
+      </div>
+    </section>`;
+}
+
+function render(){
+  const meses = buildYear(S.ano);
+  document.getElementById('monthsTrack').innerHTML = meses.map(m => monthSection(m, S.ano)).join('');
+  document.getElementById('rangeLabel').textContent = `jan/${S.ano} - dez/${S.ano}`;
+  document.getElementById('sidebarTodayNum').textContent = HOJE.getDate();
+  document.getElementById('mobileTodayNum').textContent = HOJE.getDate();
+  applyLayout();
+  wireBodies();
+  paintHorizon(meses);
+  updateMobileMonthLabel();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HORIZONTE (mini-grades)
+   ══════════════════════════════════════════════════════════════ */
+function paintHorizon(meses){
+  const flat = meses.flatMap(m => m.dias).filter(d => d.key >= HOJE_KEY);
+  const pick = n => Array.from({length:n}, (_,i) => flat[Math.floor(i * flat.length / n)] || null);
+
+  const side = document.getElementById('sidebarHorizon');
+  side.innerHTML = pick(3).map(d =>
+    `<span class="hm-${d ? d.tone : 'neutral'}"${d ? ` data-horizon-date="${d.key}" data-horizon-tone="${d.tone}"` : ''}></span>`
+  ).join('');
+
+  const mob = document.getElementById('mobileHorizon');
+  mob.innerHTML = pick(9).map(d =>
+    `<span class="hm-${d ? d.tone : 'neutral'}"${d ? ` data-horizon-date="${d.key}" data-horizon-tone="${d.tone}"` : ''}></span>`
+  ).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SCROLL: barra externa espelha o corpo das tabelas
+   ══════════════════════════════════════════════════════════════ */
+let scrollLock = false;
+function bodies(){ return [...document.querySelectorAll('.table-body')]; }
+
+function syncSpacer(){
+  const bs = bodies();
+  if (!bs.length) return;
+  document.getElementById('daysScrollbarSpacer').style.height =
+    Math.max(...bs.map(b => b.scrollHeight)) + 'px';
+}
+
+function wireBodies(){
+  const sb = document.getElementById('daysScrollbar');
+  requestAnimationFrame(syncSpacer);
+
+  bodies().forEach(b => {
+    b.addEventListener('scroll', () => {
+      if (scrollLock) return;
+      scrollLock = true;
+      sb.scrollTop = b.scrollTop;
+      bodies().forEach(o => { if (o !== b) o.scrollTop = b.scrollTop; });
+      requestAnimationFrame(() => { scrollLock = false; });
+    }, { passive: true });
+  });
+}
+
+document.getElementById('daysScrollbar').addEventListener('scroll', () => {
+  if (scrollLock) return;
+  scrollLock = true;
+  const t = document.getElementById('daysScrollbar').scrollTop;
+  bodies().forEach(b => { b.scrollTop = t; });
+  requestAnimationFrame(() => { scrollLock = false; });
+}, { passive: true });
+
+/* ══════════════════════════════════════════════════════════════
+   NAVEGAÇÃO
+   ══════════════════════════════════════════════════════════════ */
+function currentMonthIndex(){
+  const sc = document.getElementById('monthsScroller');
+  const secs = [...document.querySelectorAll('.month-section')];
+  if (!secs.length) return 0;
+  const x = sc.scrollLeft + sc.clientWidth / 2;
+  let best = 0, dist = Infinity;
+  secs.forEach((s, i) => {
+    const c = s.offsetLeft + s.offsetWidth / 2;
+    const d = Math.abs(c - x);
+    if (d < dist) { dist = d; best = i; }
+  });
+  return best;
+}
+
+function scrollToMonth(i, behavior = 'smooth'){
+  const idx = Math.max(0, Math.min(11, i));
+  const secs = [...document.querySelectorAll('.month-section')];
+  const s = secs[idx];
+  if (!s) return;
+  const sc = document.getElementById('monthsScroller');
+  const pad = parseFloat(getComputedStyle(sc).paddingLeft) || 0;
+  const alvo = sc.scrollLeft + s.getBoundingClientRect().left - sc.getBoundingClientRect().left - pad;
+  mesVisivel = idx;
+  const inicio = sc.scrollLeft;
+  sc.scrollTo({ left: alvo, behavior });
+  /* Alguns renderizadores ignoram behavior:'smooth' silenciosamente. Se depois
+     de 400ms o scroll não saiu NEM UM PIXEL do ponto de partida, o smooth não
+     rolou e aplicamos direto. Se mudou (animou ou o usuário arrastou), não
+     mexemos — senão roubaríamos o scroll da mão dele. */
+  if (behavior === 'smooth' && Math.abs(alvo - inicio) > 2){
+    clearTimeout(window.__smTimer);
+    window.__smTimer = setTimeout(() => {
+      if (sc.scrollLeft === inicio) sc.scrollLeft = alvo;
+    }, 400);
+  }
+}
+
+function updateMobileMonthLabel(){
+  const i = currentMonthIndex();
+  mesVisivel = i;
+  document.getElementById('mobileMonthLabel').textContent = `${MESES_CAP[i]}/${S.ano}`;
+}
+
+document.getElementById('monthsScroller').addEventListener('scroll', () => {
+  clearTimeout(window.__mlTimer);
+  window.__mlTimer = setTimeout(updateMobileMonthLabel, 60);
+}, { passive: true });
+
+/* Ao trocar de largura (girar o celular, desktop↔mobile) o mês visível é mantido. */
+let mesVisivel = 0;
+window.addEventListener('resize', () => {
+  clearTimeout(window.__rzTimer);
+  window.__rzTimer = setTimeout(() => {
+    syncSpacer();
+    scrollToMonth(mesVisivel, 'auto');
+    updateMobileMonthLabel();
+  }, 120);
+});
+
+const RE_DATA = /^\d{4}-\d{2}-\d{2}$/;
+
+/* Abre o mês do dia pedido e centraliza a linha dele.
+   É o destino de saldos.html#AAAA-MM-DD (o horizonte linka pra cá). */
+function goToDate(key){
+  if (!RE_DATA.test(key)) return false;
+  const ano = Number(key.slice(0, 4));
+  const mes = Number(key.slice(5, 7)) - 1;
+  if (mes < 0 || mes > 11) return false;
+  if (ano !== S.ano){ S.ano = ano; render(); }
+  scrollToMonth(mes);
+  requestAnimationFrame(() => {
+    const row = document.querySelector(`.row[data-date="${key}"]`);
+    if (!row) return;
+    const body = row.closest('.table-body');
+    if (!body) return;
+    /* offsetTop mede a partir do offsetParent (que inclui o cabeçalho);
+       o rect mede a partir do próprio corpo rolável. */
+    const rel = row.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop;
+    const top = Math.max(0, Math.min(
+      body.scrollHeight - body.clientHeight,
+      rel - (body.clientHeight - row.offsetHeight) / 2
+    ));
+    bodies().forEach(b => { b.scrollTop = top; });
+    document.getElementById('daysScrollbar').scrollTop = top;
+  });
+  return true;
+}
+
+function goToToday(){ goToDate(HOJE_KEY); }
+
+window.addEventListener('hashchange', () => {
+  goToDate((location.hash || '').slice(1));
+});
+
+/* ══════════════════════════════════════════════════════════════
+   EVENTOS
+   ══════════════════════════════════════════════════════════════ */
+document.addEventListener('click', e => {
+  const navBtn = e.target.closest('[data-nav]');
+  if (navBtn){
+    const dir = navBtn.dataset.nav;
+    if (dir === 'month-prev') scrollToMonth(currentMonthIndex() - 1);
+    if (dir === 'month-next') scrollToMonth(currentMonthIndex() + 1);
+    if (dir === 'year-prev'){ S.ano--; render(); scrollToMonth(0,'auto'); }
+    if (dir === 'year-next'){ S.ano++; render(); scrollToMonth(0,'auto'); }
+    return;
+  }
+
+  const act = e.target.closest('[data-action]');
+  if (act){
+    if (act.dataset.action === 'today') goToToday();
+    if (act.dataset.action === 'add')   location.href = 'index.html#add';
+    return;
+  }
+
+  const col = e.target.closest('[data-role="collapse"]');
+  if (col){
+    const k = col.dataset.col;
+    if (S.collapsed.has(k)) S.collapsed.delete(k); else S.collapsed.add(k);
+    ls.set('brian-saldos-collapsed', JSON.stringify([...S.collapsed]));
+    document.querySelectorAll(`[data-col="${k}"]`).forEach(el => el.classList.toggle('is-collapsed', S.collapsed.has(k)));
+    applyLayout();
+    /* A largura do mês muda em 180ms; re-encaixa o mês visível no fim da transição. */
+    clearTimeout(window.__cpTimer);
+    window.__cpTimer = setTimeout(() => scrollToMonth(mesVisivel, 'auto'), 220);
+    return;
+  }
+
+  const day = e.target.closest('[data-role="day"]');
+  if (day){
+    const k = day.dataset.date;
+    if (S.checkins.has(k)) S.checkins.delete(k); else S.checkins.add(k);
+    ls.set('brian-checkins', JSON.stringify([...S.checkins]));
+    document.querySelectorAll(`.day-cell[data-date="${k}"]`).forEach(cell => {
+      const mark = cell.querySelector('.checkin');
+      if (S.checkins.has(k)){
+        if (!mark) cell.insertAdjacentHTML('beforeend', '<span class="checkin" aria-hidden="true"></span>');
+      } else if (mark) mark.remove();
+    });
+    return;
+  }
+
+  const collapseBtn = e.target.closest('#collapseBtn');
+  if (collapseBtn){
+    document.getElementById('sidebar').classList.toggle('is-collapsed');
+    return;
+  }
+});
+
+document.addEventListener('change', e => {
+  const sel = e.target.closest('[data-role="metric-select"]');
+  if (!sel) return;
+  S.metric = sel.value;
+  ls.set('brian-saldos-metric', S.metric);
+  const scrollLeft = document.getElementById('monthsScroller').scrollLeft;
+  const top = bodies()[0] ? bodies()[0].scrollTop : 0;
+  render();
+  document.getElementById('monthsScroller').scrollLeft = scrollLeft;
+  bodies().forEach(b => { b.scrollTop = top; });
+});
+
+/* ══════════════════════════════════════════════════════════════
+   DADOS
+   ══════════════════════════════════════════════════════════════ */
+const DEMO = [
+  { data:'2026-08-17', valor:1000,  tipo:'entrada', conta:'nubank' },
+  { data:'2026-08-19', valor:9000,  tipo:'entrada', conta:'nubank' },
+  { data:'2026-08-20', valor:19.21, tipo:'entrada', conta:'nubank' },
+  { data:'2026-08-24', valor:250,   tipo:'entrada', conta:'nubank' },
+  { data:'2026-08-24', valor:7600,  tipo:'saida',   conta:'nubank' },
+  { data:'2026-08-26', valor:400,   tipo:'saida',   conta:'nubank' },
+  { data:'2026-08-28', valor:2000,  tipo:'saida',   conta:'nubank' },
+  { data:'2026-08-30', valor:300,   tipo:'saida',   conta:'nubank' },
+  { data:'2026-09-03', valor:4000,  tipo:'entrada', conta:'nubank' },
+  { data:'2026-09-06', valor:3800,  tipo:'saida',   conta:'nubank' },
+  { data:'2026-09-12', valor:150,   tipo:'saida',   conta:'nubank' },
+  { data:'2026-09-15', valor:1000,  tipo:'entrada', conta:'nubank' },
+  { data:'2026-09-22', valor:10000, tipo:'saida',   conta:'nubank' },
+  { data:'2026-10-25', valor:9000,  tipo:'saida',   conta:'nubank' },
+  { data:'2026-11-25', valor:9000,  tipo:'saida',   conta:'nubank' },
+  { data:'2026-12-25', valor:9000,  tipo:'saida',   conta:'nubank' },
+];
+
+function toMov(r){
+  return {
+    valor: parseFloat(r.valor),
+    tipo:  r.tipo,
+    data:  new Date(r.data + 'T12:00:00'),
+    conta: r.conta,
+    tag:   r.tag || null,
+    rec:   r.rec || null,
+  };
+}
+
+async function boot(){
+  try {
+    const sb = window.supabase.createClient(SB_URL, SB_KEY);
+    const { data: { session } } = await sb.auth.getSession();
+    if (session){
+      const { data, error } = await sb.from('movimentos').select('*').order('data', { ascending: true });
+      if (!error && data) S.movs = data.map(toMov);
+    }
+  } catch (err) {
+    console.warn('Supabase indisponível, usando dados de demonstração.', err);
+  }
+  if (!S.movs.length) S.movs = DEMO.map(toMov);
+  render();
+  if (!goToDate((location.hash || '').slice(1))) goToToday();
+}
+
+boot();
+</script>
+</body>
+</html>

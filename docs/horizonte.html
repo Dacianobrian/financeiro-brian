@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="pt-BR" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="google" content="notranslate">
+<meta name="theme-color" content="#FFFFFF">
+<title>horizonte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var raw = localStorage.getItem("brian-theme");
+    var choice = raw ? (JSON.parse(raw).state || {}).choice || "system" : "system";
+    var dark = choice === "dark" ||
+      (choice === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  } catch (e) {
+    document.documentElement.setAttribute("data-theme", "light");
+  }
+})();
+</script>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   TOKENS
+   ══════════════════════════════════════════════════════════════ */
+:root { --banner-offset: 0px; }
+
+:root[data-theme="light"], [data-theme="light"] {
+  color-scheme: light;
+  --color-bg-canvas:#FFFFFF; --color-bg-surface:#FFFFFF; --color-bg-subtle:#EDEDEE;
+  --color-bg-muted:#F8EDD9; --color-bg-inverse:#0E2D23;
+  --color-text-primary:#1D1F23; --color-text-secondary:#393E46; --color-text-muted:#6C7179;
+  --color-text-inverse:#FFFFFF; --color-text-brand:#0E2D23; --color-text-accent:#4A1BB9;
+  --color-border-subtle:#DADBDD; --color-border-default:#B6B8BC; --color-border-strong:#91949A;
+  --color-border-focus:#4A1BB9;
+  --color-feedback-success:#529952; --color-feedback-warning:#FFD748;
+  --color-feedback-error:#E62D2D; --color-feedback-info:#7C3AED;
+  --color-balance-green:#96D87D; --color-balance-mint:#95FDB8; --color-balance-sand:#FCE9B5;
+  --color-balance-rose:#F8BEBF; --color-balance-red:#F26D70;
+  --balance-text-lowest:#5C1212; --balance-text-low:#8A1B1B; --balance-text-base:#66561D;
+  --balance-text-high:#315C31; --balance-text-highest:#213D21;
+  --color-tag-gray:#E0E0E0; --color-tag-yellow:#F0F0B3; --color-tag-red:#FFB3B3;
+  --color-tag-pink:#FFCCD9; --color-tag-blue:#BEE0FF; --color-tag-purple:#CCB8F2;
+  --color-tag-green:#ADE695; --color-tag-brown:#E8D5C2;
+  --border-hairline:rgba(0,0,0,0.15); --color-bg-auth-splash:#FF5917;
+  --table-grid-line:rgba(0,0,0,0.15); --table-cell-grid-line:rgba(29,31,35,0.1);
+  --table-weekend-bg:#EDEDEE;
+  --table-cell-hover:linear-gradient(to right,#ffffff,#e7e7e8);
+  --table-icon-cell-hover:linear-gradient(to left,#ffffff,#e7e7e8);
+  --table-skeleton-bg:#F4F4F5; --table-shimmer:rgba(255,255,255,0.85);
+  --table-balance-hover-overlay:rgba(255,255,255,0.18);
+  --shadow-soft:rgba(0,0,0,0.08); --color-text-ghost:#B6B8BC;
+  --icon-placeholder:#DADBDD; --color-border-error:#F5ABAB; --icon-default-light:#484D57;
+}
+
+:root[data-theme="dark"], [data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg-canvas:#1D1F23; --color-bg-surface:#1D1F23; --color-bg-subtle:#2B2E34;
+  --color-bg-muted:#2B2E34; --color-bg-inverse:#EDEDEE;
+  --color-text-primary:#EDEDEE; --color-text-secondary:#B6B8BC; --color-text-muted:#91949A;
+  --color-text-inverse:#1D1F23; --color-text-brand:#EDEDEE; --color-text-accent:#B089F4;
+  --color-border-subtle:rgba(255,255,255,0.08); --color-border-default:rgba(255,255,255,0.15);
+  --color-border-strong:rgba(255,255,255,0.30); --color-border-focus:#EDEDEE;
+  --color-feedback-success:#529952; --color-feedback-warning:#FFD748;
+  --color-feedback-error:#E62D2D; --color-feedback-info:#9661F1;
+  --color-balance-green:#3A7A2F; --color-balance-mint:#1E9B68; --color-balance-sand:#A07A00;
+  --color-balance-rose:#A34C4E; --color-balance-red:#8B1E20;
+  --balance-text-lowest:#EDEDEE; --balance-text-low:#EDEDEE; --balance-text-base:#EDEDEE;
+  --balance-text-high:#EDEDEE; --balance-text-highest:#EDEDEE;
+  --color-tag-gray:#5A5A5A; --color-tag-yellow:#6E5A17; --color-tag-red:#993B3B;
+  --color-tag-pink:#8C4A5E; --color-tag-blue:#3E5E88; --color-tag-purple:#5B4B82;
+  --color-tag-green:#3E7C68; --color-tag-brown:#6E5035;
+  --border-hairline:rgba(255,255,255,0.15); --color-bg-auth-splash:#662409;
+  --color-text-ghost:#484D57; --icon-placeholder:#2B2E34;
+  --table-grid-line:rgba(255,255,255,0.15); --table-cell-grid-line:rgba(255,255,255,0.15);
+  --table-weekend-bg:#2B2E34;
+  --table-cell-hover:linear-gradient(to right,#1D1F23,#2B2E34);
+  --table-icon-cell-hover:linear-gradient(to left,#1D1F23,#2B2E34);
+  --table-skeleton-bg:#2B2E34; --table-shimmer:rgba(255,255,255,0.06);
+  --table-balance-hover-overlay:rgba(255,255,255,0.10);
+  --shadow-soft:rgba(0,0,0,0.5); --color-border-error:#B82424; --icon-default-light:#484D57;
+}
+
+/* ── ÍCONES (SVG data-URI usados como mask) ───────────────────── */
+:root {
+  --ic-income:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 5v6.17l2.59-2.58L17 12l-5 5-5-5 1.41-1.41L11 13.17V7h2z'/%3E%3C/svg%3E");
+  --ic-expense:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-6.17l-2.59 2.58L7 12l5-5 5 5-1.41 1.41L13 10.83V17h-2z'/%3E%3C/svg%3E");
+  --ic-recurring:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M19 3h-1V1h-2v2H8V1H6v2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 18H5V9h14v12zM7 11h5v5H7z'/%3E%3C/svg%3E");
+  --ic-savings:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M21 18v1c0 1.1-.9 2-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h9zm-9-2h10V8H12v8zm4-2.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z'/%3E%3C/svg%3E");
+  --ic-card:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z'/%3E%3C/svg%3E");
+  --ic-plus:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z'/%3E%3C/svg%3E");
+  --ic-plus-circle:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/%3E%3C/svg%3E");
+  --ic-chevron-down:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z'/%3E%3C/svg%3E");
+  --ic-chevron-left:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M15.41 16.59 10.83 12l4.58-4.59L14 6l-6 6 6 6z'/%3E%3C/svg%3E");
+  --ic-chevron-right:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z'/%3E%3C/svg%3E");
+  --ic-dbl-left:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M17.59 18 19 16.59 14.42 12 19 7.41 17.59 6l-6 6zM11 18l1.41-1.41L7.83 12l4.58-4.59L11 6l-6 6z'/%3E%3C/svg%3E");
+  --ic-dbl-right:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M6.41 6 5 7.41 9.58 12 5 16.59 6.41 18l6-6zM13 6l-1.41 1.41L16.17 12l-4.58 4.59L13 18l6-6z'/%3E%3C/svg%3E");
+  --ic-check:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+  --ic-grid:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5zm2 4v3h5V9H5zm7 0v3h7V9h-7zM5 14v3h5v-3H5zm7 0v3h7v-3h-7zM5 5v2h14V5H5z'/%3E%3C/svg%3E");
+  --ic-totals:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M4 21V9h4v12H4zm6 0V3h4v18h-4zm6 0v-8h4v8h-4z'/%3E%3C/svg%3E");
+  --ic-tags:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M21.41 11.58l-9-9A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7c0 .55.22 1.05.59 1.42l9 9A2 2 0 0 0 13 22a2 2 0 0 0 1.41-.59l7-7A2 2 0 0 0 22 13a2 2 0 0 0-.59-1.42zM6.5 8A1.5 1.5 0 1 1 8 6.5 1.5 1.5 0 0 1 6.5 8z'/%3E%3C/svg%3E");
+  --ic-menu:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z'/%3E%3C/svg%3E");
+  --ic-horizon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M3 4h18v4H3V4zm0 6h18v4H3v-4zm0 6h18v4H3v-4z'/%3E%3C/svg%3E");
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESET / BASE
+   ══════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box}
+html{font-size:16px;scroll-behavior:smooth;overscroll-behavior-x:contain}
+body{margin:0;min-width:320px;min-height:100vh;background:var(--color-bg-canvas);color:var(--color-text-primary);font-family:"DM Sans",sans-serif;font-size:16px;line-height:24px;font-weight:400;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body,button,input,textarea,select{font-family:"DM Sans",sans-serif}
+button,input,textarea,select{font:inherit}
+a{color:inherit;text-decoration:none}
+img,picture,svg,canvas{display:block;max-width:100%}
+h1,h2,h3,h4,h5,h6,p{margin:0}
+::selection{background:#DDFD5A;color:#0E2D23}
+#root{min-height:100vh}
+
+/* ══════════════════════════════════════════════════════════════
+   SHELL
+   ══════════════════════════════════════════════════════════════ */
+.app-main{width:100%;min-height:100vh;padding-top:var(--banner-offset,0px);background:var(--color-bg-surface)}
+.app-shell{width:100%;min-height:calc(100vh - var(--banner-offset,0px));height:calc(100vh - var(--banner-offset,0px));display:flex;background:var(--color-bg-surface);overflow:hidden}
+@media(max-width:479px){.app-shell{height:calc(100dvh - var(--banner-offset,0px));min-height:calc(100dvh - var(--banner-offset,0px));flex-direction:column}}
+.sidebar-wrap{display:flex;flex-shrink:0}
+@media(max-width:479px){.sidebar-wrap{display:none}}
+.content-col{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
+.desktop-header-wrap{display:block}
+@media(max-width:479px){.desktop-header-wrap{display:none}}
+
+/* ══════════════════════════════════════════════════════════════
+   SIDEBAR (desktop)
+   ══════════════════════════════════════════════════════════════ */
+.sidebar{position:relative;z-index:40;width:144px;display:flex;flex-direction:column;padding:12px 0 4px;border-right:1px solid var(--border-hairline);background:var(--color-bg-surface);transition:width 260ms ease;will-change:width}
+@media(max-width:479px){.sidebar{display:none}}
+.sidebar.is-collapsed{width:56px}
+.sidebar-logo{width:100%;display:flex;align-items:center;justify-content:flex-start;height:32px;padding:0 12px;margin-bottom:8px;border:0;background:transparent;cursor:pointer;transition:padding 260ms ease}
+.sidebar.is-collapsed .sidebar-logo{justify-content:center;padding:0}
+.sidebar-logo-mark{width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:6px;background:#FF5917;color:#fff;font-size:14px;line-height:24px;font-weight:700}
+.sidebar-nav{display:flex;flex:1;flex-direction:column;gap:4px}
+.sidebar-divider{height:1px;margin:4px 0;background:var(--border-hairline)}
+.sidebar-item{position:relative;display:flex;align-items:center;justify-content:flex-start;gap:8px;height:40px;padding:0 12px;border:0;background:transparent;color:var(--color-text-primary);font-size:14px;line-height:20px;font-weight:700;cursor:pointer;overflow:hidden;transition:padding 260ms ease,color 220ms ease}
+.sidebar-item::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:transparent}
+.sidebar-item.is-active{color:#FF5917}
+.sidebar-item.is-active::before{background:#FF5917}
+.sidebar-item:hover{background:var(--color-bg-subtle)}
+.sidebar-item:focus-visible{outline:2px solid #FF5917;outline-offset:-2px}
+.sidebar.is-collapsed .sidebar-item{justify-content:center;padding:0}
+.sidebar-collapse{justify-content:flex-end;margin-top:auto}
+.sidebar-label{display:inline-block;white-space:nowrap;overflow:hidden;max-width:72px;opacity:1;transform:translateX(0);transition:max-width 260ms ease,opacity 220ms ease,transform 260ms ease}
+.sidebar.is-collapsed .sidebar-label{max-width:0;opacity:0;transform:translateX(-8px)}
+.sidebar-icon{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.sidebar-icon::before{content:"";width:24px;height:24px;background-color:currentColor;-webkit-mask-size:24px 24px;mask-size:24px 24px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.sidebar-icon.ic-saldos::before{-webkit-mask-image:var(--ic-grid);mask-image:var(--ic-grid)}
+.sidebar-icon.ic-totais::before{-webkit-mask-image:var(--ic-totals);mask-image:var(--ic-totals)}
+.sidebar-icon.ic-tags::before{-webkit-mask-image:var(--ic-tags);mask-image:var(--ic-tags)}
+.sidebar-icon.ic-menu::before{-webkit-mask-image:var(--ic-menu);mask-image:var(--ic-menu)}
+.sidebar-icon.ic-collapse::before{-webkit-mask-image:var(--ic-dbl-left);mask-image:var(--ic-dbl-left)}
+.sidebar.is-collapsed .sidebar-icon.ic-collapse::before{-webkit-mask-image:var(--ic-dbl-right);mask-image:var(--ic-dbl-right)}
+.sidebar-add{position:relative;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:50%;background-color:var(--color-text-primary)}
+.sidebar-add::after{content:"";width:14px;height:14px;background-color:var(--color-bg-surface);-webkit-mask-image:var(--ic-plus);mask-image:var(--ic-plus);-webkit-mask-size:14px 14px;mask-size:14px 14px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+/* glifo "ir pra hoje" */
+.today-glyph{position:relative;width:24px;height:24px;flex-shrink:0}
+.today-glyph .tg-pin-l{position:absolute;top:2px;left:5px;width:3px;height:2px;background:var(--color-text-primary)}
+.today-glyph .tg-pin-r{position:absolute;top:2px;left:16px;width:3px;height:2px;background:var(--color-text-primary)}
+.today-glyph .tg-bar{position:absolute;top:4px;left:2px;width:20px;height:2px;background:#FF5917}
+.today-glyph .tg-num{position:absolute;top:6px;left:2px;width:20px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:0 0 2px 2px;background:var(--color-bg-subtle);color:var(--color-text-primary);font-size:12px;line-height:16px;font-weight:700}
+/* mini-grade horizonte */
+.horizon-mini{box-sizing:border-box;width:24px;height:24px;display:grid;grid-template-columns:20px;grid-template-rows:repeat(3,6px);gap:1px;padding:2px;flex-shrink:0;overflow:hidden;background:var(--color-bg-surface)}
+.horizon-mini > span:first-child{border-radius:4px 4px 0 0}
+.horizon-mini > span:last-child{border-radius:0 0 4px 4px}
+.hm-neutral{background:var(--color-bg-subtle)}
+.hm-lowest{background:var(--color-balance-red)}
+.hm-low{background:var(--color-balance-rose)}
+.hm-base{background:var(--color-balance-sand)}
+.hm-high{background:var(--color-balance-mint)}
+.hm-highest{background:var(--color-balance-green)}
+
+/* ══════════════════════════════════════════════════════════════
+   HEADER DESKTOP
+   ══════════════════════════════════════════════════════════════ */
+.desktop-header{text-transform:lowercase;min-height:56px;display:flex;align-items:center;gap:16px;padding:8px 16px;border-bottom:1px solid var(--border-hairline);background:var(--color-bg-surface)}
+.dh-title-wrap{flex:1 1 0;min-width:0;display:flex;align-items:center}
+.dh-title{color:var(--color-text-primary);font-size:20px;line-height:24px;font-weight:700;white-space:nowrap}
+.dh-nav{display:inline-flex;flex-shrink:0;align-items:center;justify-content:center;gap:8px}
+.dh-nav-btn{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:999px;background:transparent;cursor:pointer}
+.dh-nav-btn:hover{background:var(--color-bg-subtle)}
+.dh-nav-btn:focus-visible{outline:2px solid #FF5917;outline-offset:4px}
+.dh-nav-btn::before{content:"";width:24px;height:24px;background-color:#91949A;-webkit-mask-size:24px 24px;mask-size:24px 24px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.dh-nav-btn.nav-dbl-prev::before{-webkit-mask-image:var(--ic-dbl-left);mask-image:var(--ic-dbl-left)}
+.dh-nav-btn.nav-prev::before{-webkit-mask-image:var(--ic-chevron-left);mask-image:var(--ic-chevron-left)}
+.dh-nav-btn.nav-next::before{-webkit-mask-image:var(--ic-chevron-right);mask-image:var(--ic-chevron-right)}
+.dh-nav-btn.nav-dbl-next::before{-webkit-mask-image:var(--ic-dbl-right);mask-image:var(--ic-dbl-right)}
+.dh-range-pill{min-width:clamp(200px,18vw,250px);height:30px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 10px 0 14px;border:2px solid var(--color-border-subtle);border-radius:999px;background:var(--color-bg-surface);cursor:pointer}
+.dh-range-pill:focus-visible{outline:2px solid #FF5917;outline-offset:2px}
+.dh-range-label{color:var(--color-text-primary);font-size:16px;line-height:20px;font-weight:700;white-space:nowrap}
+.dh-chevron{width:24px;height:24px;flex-shrink:0;background-color:#91949A;-webkit-mask-image:var(--ic-chevron-down);mask-image:var(--ic-chevron-down);-webkit-mask-size:24px 24px;mask-size:24px 24px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+
+/* ══════════════════════════════════════════════════════════════
+   HEADER MOBILE
+   ══════════════════════════════════════════════════════════════ */
+.mobile-header{text-transform:lowercase;display:none}
+@media(max-width:479px){.mobile-header{display:flex;align-items:center;justify-content:space-between;height:120px;padding:48px 24px 16px;border-bottom:1px solid var(--border-hairline);background:var(--color-bg-surface)}}
+.mh-today{width:32px;display:flex;flex-direction:column;align-items:stretch;padding:0;border:0;border-radius:4px;background:transparent;cursor:pointer}
+.mh-today-top{height:8px;border-radius:4px 4px 0 0;background:linear-gradient(90deg,#FF5917 0 6px,transparent 6px 11px,#FF5917 11px 17px,transparent 17px 100%),var(--color-text-primary)}
+.mh-today-num{height:24px;display:flex;align-items:center;justify-content:center;border-radius:0 0 4px 4px;background:var(--color-bg-subtle);color:var(--color-text-primary);font-size:16px;line-height:24px;font-weight:700}
+.mh-center{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:0}
+.mh-arrow{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:0;background:transparent;cursor:pointer}
+.mh-arrow:disabled{opacity:.35;cursor:not-allowed}
+.mh-arrow::before{content:"";width:24px;height:24px;background-color:var(--color-text-primary);-webkit-mask-size:24px 24px;mask-size:24px 24px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.mh-arrow.nav-prev::before{-webkit-mask-image:var(--ic-chevron-left);mask-image:var(--ic-chevron-left)}
+.mh-arrow.nav-next::before{-webkit-mask-image:var(--ic-chevron-right);mask-image:var(--ic-chevron-right)}
+.mh-month{min-width:110px;color:var(--color-text-primary);font-size:20px;line-height:28px;font-weight:700;text-align:center;white-space:nowrap}
+.mh-horizon{width:32px;height:32px;display:grid;grid-template-columns:repeat(3,10px);grid-template-rows:repeat(3,10px);gap:1px;padding:0;border:0;border-radius:4px;background:var(--color-bg-surface);cursor:pointer}
+.mh-horizon > span{border-radius:1px}
+.mh-horizon .hm-neutral{background:var(--color-bg-subtle)}
+
+
+/* ══════════════════════════════════════════════════════════════
+   HORIZONTE
+   ══════════════════════════════════════════════════════════════ */
+.hz-wrap{flex:1;min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;background:var(--color-bg-surface);
+  scrollbar-width:thin;scrollbar-color:var(--color-border-default) transparent}
+@media(max-width:479px){.hz-wrap{padding-bottom:calc(80px + env(safe-area-inset-bottom))}}
+.hz-wrap::-webkit-scrollbar{width:8px;height:8px}
+.hz-wrap::-webkit-scrollbar-thumb{border-radius:4px;background:var(--color-border-default)}
+.hz-wrap::-webkit-scrollbar-track{background:transparent}
+
+.hz-table{border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* cabeçalho de mês: rótulo cobrindo o par dia+saldo */
+.hz-table thead th{position:sticky;top:0;z-index:3;padding:0;background:var(--color-bg-surface)}
+.hz-mth{display:flex;align-items:center;justify-content:center;height:40px;padding:0 8px;
+  border-right:1px solid var(--table-grid-line);border-bottom:1px solid var(--color-text-primary);
+  color:var(--color-text-primary);font-size:14px;line-height:20px;font-weight:700;text-transform:lowercase}
+.hz-mth-hdr.is-current .hz-mth{border-bottom:2px solid #FF5917;color:#FF5917}
+
+/* corpo */
+.hz-day{width:32px;min-width:32px;padding:0;border-right:1px solid var(--table-cell-grid-line);
+  color:var(--color-text-muted);font-size:12px;line-height:28px;font-weight:500;text-align:center}
+.hz-bal{width:88px;min-width:88px;height:28px;padding:0 8px;border-right:1px solid var(--table-grid-line);
+  font-size:13px;line-height:28px;font-weight:500;text-align:right;cursor:pointer}
+@media(max-width:479px){
+  .hz-day{width:26px;min-width:26px;font-size:11px}
+  .hz-bal{width:74px;min-width:74px;padding:0 6px;font-size:12px}
+  .hz-mth{height:36px;font-size:13px}
+}
+.hz-bal.tone-lowest {background:var(--color-balance-red);  color:var(--balance-text-lowest)}
+.hz-bal.tone-low    {background:var(--color-balance-rose); color:var(--balance-text-low)}
+.hz-bal.tone-base   {background:var(--color-balance-sand); color:var(--balance-text-base)}
+.hz-bal.tone-high   {background:var(--color-balance-mint); color:var(--balance-text-high)}
+.hz-bal.tone-highest{background:var(--color-balance-green);color:var(--balance-text-highest)}
+.hz-bal:hover{box-shadow:inset 0 0 0 999px var(--table-balance-hover-overlay)}
+.hz-bal:focus-visible{outline:2px solid var(--color-border-focus);outline-offset:-2px}
+
+/* dias que o mês não tem */
+.hz-day.is-empty,.hz-bal.is-empty{background:transparent;cursor:default;color:transparent}
+.hz-bal.is-empty:hover{box-shadow:none}
+
+/* linha de hoje: mesma marcação forte da tela de saldos */
+.hz-row.is-today .hz-day,.hz-row.is-today .hz-bal{box-shadow:inset 0 -1px 0 0 var(--color-text-primary)}
+.hz-day.is-today{background:var(--color-text-primary);color:var(--color-bg-surface);font-weight:700}
+
+/* rodapé: saldo de fechamento do mês */
+.hz-table tfoot td{position:sticky;bottom:0;z-index:2}
+.hz-foot-lbl{width:32px;min-width:32px;padding:0;border-right:1px solid var(--table-cell-grid-line);
+  border-top:1px solid var(--color-text-primary);background:var(--color-bg-surface);
+  color:var(--color-text-muted);font-size:11px;line-height:32px;font-weight:700;text-align:center}
+.hz-foot-bal{width:88px;min-width:88px;padding:0 8px;border-right:1px solid var(--table-grid-line);
+  border-top:1px solid var(--color-text-primary);font-size:13px;line-height:32px;font-weight:700;text-align:right}
+@media(max-width:479px){
+  .hz-foot-lbl{width:26px;min-width:26px}
+  .hz-foot-bal{width:74px;min-width:74px;padding:0 6px;font-size:12px}
+}
+.hz-foot-bal.tone-lowest {background:var(--color-balance-red);  color:var(--balance-text-lowest)}
+.hz-foot-bal.tone-low    {background:var(--color-balance-rose); color:var(--balance-text-low)}
+.hz-foot-bal.tone-base   {background:var(--color-balance-sand); color:var(--balance-text-base)}
+.hz-foot-bal.tone-high   {background:var(--color-balance-mint); color:var(--balance-text-high)}
+.hz-foot-bal.tone-highest{background:var(--color-balance-green);color:var(--balance-text-highest)}
+
+/* ══════════════════════════════════════════════════════════════
+   NAV INFERIOR (mobile)
+   ══════════════════════════════════════════════════════════════ */
+.mobile-nav{display:none}
+@media(max-width:479px){
+  .mobile-nav{position:fixed;left:0;right:0;bottom:0;z-index:30;min-height:calc(72px + env(safe-area-inset-bottom));display:flex;align-items:flex-start;justify-content:center;gap:12px;padding:0 16px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--border-hairline);background:var(--color-bg-surface)}
+}
+.mn-item{position:relative;width:64px;min-height:64px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 0 0;border:0;border-top:2px solid transparent;background:transparent;color:var(--color-text-primary);font-size:14px;line-height:20px;font-weight:700;cursor:pointer}
+.mn-item.is-active{border-top:2px solid #FF5917;color:#FF5917}
+.mn-icon{width:24px;height:24px;display:block;flex-shrink:0;background-color:currentColor;-webkit-mask-size:24px 24px;mask-size:24px 24px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.mn-icon.ic-saldos{-webkit-mask-image:var(--ic-grid);mask-image:var(--ic-grid)}
+.mn-icon.ic-totais{-webkit-mask-image:var(--ic-totals);mask-image:var(--ic-totals)}
+.mn-icon.ic-tags{-webkit-mask-image:var(--ic-tags);mask-image:var(--ic-tags)}
+.mn-icon.ic-menu{-webkit-mask-image:var(--ic-menu);mask-image:var(--ic-menu)}
+.mn-label{white-space:nowrap}
+.mn-add{width:54px;min-height:64px;display:flex;align-items:flex-start;justify-content:center;padding:8px 0 0;border:0;background:transparent;color:var(--color-text-primary);cursor:pointer}
+.mn-add .mn-icon{width:48px;height:48px;-webkit-mask-image:var(--ic-plus-circle);mask-image:var(--ic-plus-circle);-webkit-mask-size:48px 48px;mask-size:48px 48px}
+
+</style>
+</head>
+
+<body>
+<div id="root">
+<main class="app-main">
+  <section class="app-shell">
+
+    <!-- ══════════ SIDEBAR (desktop) ══════════ -->
+    <div class="sidebar-wrap">
+      <nav class="sidebar" id="sidebar" aria-label="Navegação principal">
+        <button class="sidebar-logo" type="button" title="Início" onclick="location.href='index.html'">
+          <span class="sidebar-logo-mark">B</span>
+        </button>
+        <div class="sidebar-nav">
+          <button class="sidebar-item" type="button" onclick="location.href='saldos.html'">
+            <span class="sidebar-icon ic-saldos"></span><span class="sidebar-label">saldos</span>
+          </button>
+          <button class="sidebar-item" type="button" onclick="location.href='totais.html'">
+            <span class="sidebar-icon ic-totais"></span><span class="sidebar-label">totais</span>
+          </button>
+          <button class="sidebar-item" type="button">
+            <span class="sidebar-icon ic-tags"></span><span class="sidebar-label">tags</span>
+          </button>
+          <button class="sidebar-item" type="button">
+            <span class="sidebar-icon ic-menu"></span><span class="sidebar-label">menu</span>
+          </button>
+          <div class="sidebar-divider" role="separator"></div>
+          <button class="sidebar-item" type="button" data-action="add">
+            <span class="sidebar-icon"><span class="sidebar-add"></span></span><span class="sidebar-label">adicionar</span>
+          </button>
+          <button class="sidebar-item" type="button" data-action="today">
+            <span class="today-glyph">
+              <span class="tg-pin-l"></span><span class="tg-pin-r"></span><span class="tg-bar"></span>
+              <span class="tg-num" id="sidebarTodayNum">9</span>
+            </span>
+            <span class="sidebar-label">ir pra hoje</span>
+          </button>
+          <button class="sidebar-item is-active" type="button">
+            <span class="horizon-mini" id="sidebarHorizon">
+              <span class="hm-neutral"></span><span class="hm-neutral"></span><span class="hm-neutral"></span>
+            </span>
+            <span class="sidebar-label">horizonte</span>
+          </button>
+        </div>
+        <button class="sidebar-item sidebar-collapse" type="button" id="collapseBtn" aria-label="Recolher menu">
+          <span class="sidebar-icon ic-collapse"></span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- ══════════ COLUNA DE CONTEÚDO ══════════ -->
+    <div class="content-col">
+
+      <div class="desktop-header-wrap">
+        <header class="desktop-header">
+          <div class="dh-title-wrap"><h1 class="dh-title">horizonte</h1></div>
+          <div class="dh-nav">
+            <button class="dh-nav-btn nav-dbl-prev" type="button" aria-label="Ano anterior" data-nav="year-prev"></button>
+            <button class="dh-nav-btn nav-prev" type="button" aria-label="Mês anterior" data-nav="month-prev"></button>
+            <button class="dh-range-pill" type="button" data-action="today">
+              <span class="dh-range-label" id="rangeLabel">jul/2026 - ago/2027</span>
+              <span class="dh-chevron"></span>
+            </button>
+            <button class="dh-nav-btn nav-next" type="button" aria-label="Próximo mês" data-nav="month-next"></button>
+            <button class="dh-nav-btn nav-dbl-next" type="button" aria-label="Próximo ano" data-nav="year-next"></button>
+          </div>
+        </header>
+      </div>
+
+      <header class="mobile-header">
+        <button class="mh-today" type="button" data-action="today" aria-label="Ir pra hoje">
+          <span class="mh-today-top"></span>
+          <span class="mh-today-num" id="mobileTodayNum">9</span>
+        </button>
+        <div class="mh-center">
+          <button class="mh-arrow nav-prev" type="button" aria-label="Mês anterior" data-nav="month-prev"></button>
+          <span class="mh-month" id="mobileMonthLabel">Horizonte</span>
+          <button class="mh-arrow nav-next" type="button" aria-label="Próximo mês" data-nav="month-next"></button>
+        </div>
+        <button class="mh-horizon" type="button" id="mobileHorizon" aria-label="Horizonte">
+          <span class="hm-neutral"></span><span class="hm-neutral"></span><span class="hm-neutral"></span>
+          <span class="hm-neutral"></span><span class="hm-neutral"></span><span class="hm-neutral"></span>
+          <span class="hm-neutral"></span><span class="hm-neutral"></span><span class="hm-neutral"></span>
+        </button>
+      </header>
+
+      <div class="hz-wrap" id="hzWrap">
+        <table class="hz-table" id="hzTable"></table>
+      </div>
+    </div>
+  </section>
+
+  <nav class="mobile-nav" aria-label="Navegação">
+    <button class="mn-item" type="button" onclick="location.href='saldos.html'">
+      <span class="mn-icon ic-saldos"></span><span class="mn-label">saldos</span>
+    </button>
+    <button class="mn-item" type="button" onclick="location.href='totais.html'">
+      <span class="mn-icon ic-totais"></span><span class="mn-label">totais</span>
+    </button>
+    <button class="mn-add" type="button" aria-label="Adicionar" data-action="add"><span class="mn-icon"></span></button>
+    <button class="mn-item" type="button">
+      <span class="mn-icon ic-tags"></span><span class="mn-label">tags</span>
+    </button>
+    <button class="mn-item" type="button">
+      <span class="mn-icon ic-menu"></span><span class="mn-label">menu</span>
+    </button>
+  </nav>
+</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   CONFIG
+   ══════════════════════════════════════════════════════════════ */
+const SB_URL = 'https://cathhujdhocioybdpnvc.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhdGhodWpkaG9jaW95YmRwbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTUxODgsImV4cCI6MjA5MTI5MTE4OH0.5zO8sxWV1R_fVt9FPN4bDGXaCophee4gCh0jjEVp9DQ';
+
+/* localStorage seguro: navegação privada, webviews e data: URLs bloqueiam Storage. */
+const ls = {
+  get(k, fallback = null){ try { const v = localStorage.getItem(k); return v === null ? fallback : v; } catch(e){ return fallback; } },
+  set(k, v){ try { localStorage.setItem(k, v); } catch(e){} },
+  json(k, fallback){ try { return JSON.parse(localStorage.getItem(k)) ?? fallback; } catch(e){ return fallback; } },
+};
+
+/* Referência que define as faixas de cor do saldo.
+   b < -R           → vermelho  (lowest)
+   -R <= b < 0      → rosa      (low)
+   0 <= b <= R      → areia     (base)
+   R < b <= 2R      → menta     (high)
+   b > 2R           → verde     (highest)                     */
+const REFERENCIA = Number(ls.get('brian-referencia')) || 1000;
+
+const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const MESES_CAP = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+const METRICS = [
+  { key:'income',    label:'entradas',  icon:'mi-income'    },
+  { key:'expense',   label:'saídas',    icon:'mi-expense'   },
+  { key:'recurring', label:'diários',   icon:'mi-recurring' },
+  { key:'savings',   label:'economias', icon:'mi-savings'   },
+  { key:'card',      label:'cartão',    icon:'mi-card'      },
+];
+
+/* ══════════════════════════════════════════════════════════════
+   ESTADO
+   ══════════════════════════════════════════════════════════════ */
+const HOJE = new Date();
+const HOJE_KEY = iso(HOJE);
+
+const S = {
+  ano: HOJE.getFullYear(),
+  mes: HOJE.getMonth(),
+  offset: 0,   /* deslocamento da janela, em meses */
+  metric: ls.get('brian-saldos-metric', 'card'),
+  collapsed: new Set(ls.json('brian-saldos-collapsed', [])),
+  checkins: new Set(ls.json('brian-checkins', [])),
+  movs: [],
+  saldoInicial: 0,
+};
+
+/* ══════════════════════════════════════════════════════════════
+   HELPERS
+   ══════════════════════════════════════════════════════════════ */
+function iso(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function diasNoMes(y,m){ return new Date(y, m+1, 0).getDate(); }
+function fmt(v){
+  const n = Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
+  return (v < 0 ? '-R$ ' : 'R$ ') + n;
+}
+function tone(saldo){
+  if (saldo < -REFERENCIA)  return 'lowest';
+  if (saldo < 0)            return 'low';
+  if (saldo <= REFERENCIA)  return 'base';
+  if (saldo <= REFERENCIA*2)return 'high';
+  return 'highest';
+}
+function metricInfo(key){ return METRICS.find(m => m.key === key) || METRICS[4]; }
+
+/* ══════════════════════════════════════════════════════════════
+   CLASSIFICAÇÃO — mesma regra do index.html
+   ══════════════════════════════════════════════════════════════ */
+function classify(mv){
+  if (mv.tipo === 'entrada')                       return 'income';
+  if (mv.conta === 'cartao')                       return 'card';
+  if (mv.conta === 'itau' || mv.tag === 'invest')  return 'savings';
+  if (mv.tag === 'diário' || mv.tag === 'diario')  return 'recurring';
+  return 'expense';
+}
+/* ══════════════════════════════════════════════════════════════
+   DADOS
+   ══════════════════════════════════════════════════════════════ */
+const DEMO = [
+  { data:'2026-08-17', valor:1000,  tipo:'entrada', conta:'nubank' },
+  { data:'2026-08-19', valor:9000,  tipo:'entrada', conta:'nubank' },
+  { data:'2026-08-20', valor:19.21, tipo:'entrada', conta:'nubank' },
+  { data:'2026-08-24', valor:250,   tipo:'entrada', conta:'nubank' },
+  { data:'2026-08-24', valor:7600,  tipo:'saida',   conta:'nubank' },
+  { data:'2026-08-26', valor:400,   tipo:'saida',   conta:'nubank' },
+  { data:'2026-08-28', valor:2000,  tipo:'saida',   conta:'nubank' },
+  { data:'2026-08-30', valor:300,   tipo:'saida',   conta:'nubank' },
+  { data:'2026-09-03', valor:4000,  tipo:'entrada', conta:'nubank' },
+  { data:'2026-09-06', valor:3800,  tipo:'saida',   conta:'nubank' },
+  { data:'2026-09-12', valor:150,   tipo:'saida',   conta:'nubank' },
+  { data:'2026-09-15', valor:1000,  tipo:'entrada', conta:'nubank' },
+  { data:'2026-09-22', valor:10000, tipo:'saida',   conta:'nubank' },
+  { data:'2026-10-25', valor:9000,  tipo:'saida',   conta:'nubank' },
+  { data:'2026-11-25', valor:9000,  tipo:'saida',   conta:'nubank' },
+  { data:'2026-12-25', valor:9000,  tipo:'saida',   conta:'nubank' },
+];
+
+function toMov(r){
+  return {
+    valor: parseFloat(r.valor),
+    tipo:  r.tipo,
+    data:  new Date(r.data + 'T12:00:00'),
+    conta: r.conta,
+    tag:   r.tag || null,
+    rec:   r.rec || null,
+  };
+}
+
+/* ══════════════════════════════════════════════════════════════
+   JANELA DE 14 MESES — 2 passados + atual + 11 futuros
+   ══════════════════════════════════════════════════════════════ */
+const JANELA = 14;
+const PASSADOS = 2;
+
+function mesesDaJanela(){
+  const base = HOJE.getMonth() + S.offset - PASSADOS;
+  const out = [];
+  for (let i = 0; i < JANELA; i++){
+    const d = new Date(HOJE.getFullYear(), base + i, 1);
+    out.push({ y: d.getFullYear(), m: d.getMonth() });
+  }
+  return out;
+}
+
+/* Saldo diário acumulado. O acumulado começa antes da janela: sem isso o
+   primeiro mês exibido apareceria zerado em vez de continuar o histórico. */
+function saldosDiarios(meses){
+  const porDia = new Map();
+  for (const mv of S.movs){
+    const k = iso(mv.data);
+    porDia.set(k, (porDia.get(k) || 0) + (mv.tipo === 'entrada' ? mv.valor : -mv.valor));
+  }
+  const inicio = iso(new Date(meses[0].y, meses[0].m, 1));
+
+  let saldo = S.saldoInicial;
+  for (const [k, delta] of [...porDia.entries()].sort()){
+    if (k < inicio) saldo += delta;
+  }
+
+  return meses.map(({ y, m }) => {
+    const n = diasNoMes(y, m);
+    const dias = [];
+    for (let d = 1; d <= n; d++){
+      const k = iso(new Date(y, m, d));
+      saldo += (porDia.get(k) || 0);
+      dias.push({ d, key: k, saldo, tone: tone(saldo) });
+    }
+    return { y, m, n, dias, fecha: dias[n-1] };
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RENDER
+   ══════════════════════════════════════════════════════════════ */
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* Compacto o bastante para a coluna, sem perder a ordem de grandeza:
+   3.969,21 → 3,97k   |   -36.870,79 → -36,87k   |   169,21 → 169,21
+   Arredondar para "4k" mentiria sobre o valor; o título traz os centavos. */
+function fmtCurto(v){
+  const abs = Math.abs(v);
+  const sinal = v < 0 ? '-' : '';
+  const num = (x, casas) => x.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
+  if (abs >= 1000000) return sinal + num(abs/1000000, 2) + 'M';
+  if (abs >= 1000)    return sinal + num(abs/1000, 2) + 'k';
+  return sinal + num(abs, 2);
+}
+
+function render(){
+  const meses = mesesDaJanela();
+  const dados = saldosDiarios(meses);
+  const hojeY = HOJE.getFullYear(), hojeM = HOJE.getMonth(), hojeD = HOJE.getDate();
+
+  let thead = '<thead><tr>';
+  for (const { y, m } of dados){
+    const atual = y === hojeY && m === hojeM;
+    thead += `<th class="hz-mth-hdr${atual ? ' is-current' : ''}" colspan="2" scope="col"` +
+             `${atual ? ' data-current-month="true"' : ''}>` +
+             `<span class="hz-mth">${MESES[m]}/${String(y).slice(2)}</span></th>`;
+  }
+  thead += '</tr></thead>';
+
+  let tbody = '<tbody>';
+  for (let d = 1; d <= 31; d++){
+    const linhaHoje = d === hojeD;
+    tbody += `<tr class="hz-row${linhaHoje ? ' is-today' : ''}">`;
+    for (const mes of dados){
+      if (d > mes.n){
+        tbody += '<td class="hz-day is-empty"></td><td class="hz-bal is-empty"></td>';
+        continue;
+      }
+      const dia = mes.dias[d-1];
+      const ehHoje = dia.key === HOJE_KEY;
+      tbody += `<td class="hz-day${ehHoje ? ' is-today' : ''}">${d}</td>`;
+      tbody += `<td class="hz-bal tone-${dia.tone}" tabindex="0" role="button"` +
+               ` data-date="${dia.key}" title="${esc(fmt(dia.saldo))}">${esc(fmtCurto(dia.saldo))}</td>`;
+    }
+    tbody += '</tr>';
+  }
+  tbody += '</tbody>';
+
+  let tfoot = '<tfoot><tr>';
+  for (const mes of dados){
+    const f = mes.fecha;
+    tfoot += '<td class="hz-foot-lbl">Σ</td>';
+    tfoot += `<td class="hz-foot-bal tone-${f.tone}" title="${esc(fmt(f.saldo))}">${esc(fmtCurto(f.saldo))}</td>`;
+  }
+  tfoot += '</tr></tfoot>';
+
+  document.getElementById('hzTable').innerHTML = thead + tbody + tfoot;
+
+  const pri = dados[0], ult = dados[dados.length-1];
+  const rotulo = `${MESES[pri.m]}/${pri.y} - ${MESES[ult.m]}/${ult.y}`;
+  document.getElementById('rangeLabel').textContent       = rotulo;
+  document.getElementById('mobileMonthLabel').textContent = `${MESES_CAP[pri.m]} - ${MESES_CAP[ult.m]}`;
+  document.getElementById('sidebarTodayNum').textContent  = hojeD;
+  document.getElementById('mobileTodayNum').textContent   = hojeD;
+  document.title = `horizonte · ${rotulo}`;
+
+  paintHorizonte(dados);
+}
+
+/* mini-grades do header, alimentadas pelos mesmos dados da tabela */
+function paintHorizonte(dados){
+  const futuros = dados.flatMap(m => m.dias).filter(d => d.key >= HOJE_KEY);
+  const pick = n => Array.from({length:n}, (_,i) => futuros[Math.floor(i * futuros.length / n)] || null);
+  const celulas = ds => ds.map(d =>
+    `<span class="hm-${d ? d.tone : 'neutral'}"${d ? ` data-horizon-date="${d.key}"` : ''}></span>`).join('');
+  document.getElementById('sidebarHorizon').innerHTML = celulas(pick(3));
+  document.getElementById('mobileHorizon').innerHTML  = celulas(pick(9));
+}
+
+/* Centraliza o mês atual — é o ponto de leitura natural da tela. */
+function irParaHoje(){
+  S.offset = 0;
+  render();
+  requestAnimationFrame(() => {
+    const wrap = document.getElementById('hzWrap');
+    const th = document.querySelector('[data-current-month="true"]');
+    if (!wrap || !th) return;
+    const alvo = th.getBoundingClientRect().left - wrap.getBoundingClientRect().left + wrap.scrollLeft
+               - (wrap.clientWidth - th.getBoundingClientRect().width) / 2;
+    wrap.scrollLeft = Math.max(0, alvo);
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   EVENTOS
+   ══════════════════════════════════════════════════════════════ */
+document.addEventListener('click', e => {
+  const navBtn = e.target.closest('[data-nav]');
+  if (navBtn){
+    const dir = navBtn.dataset.nav;
+    if (dir === 'month-prev') S.offset -= 1;
+    if (dir === 'month-next') S.offset += 1;
+    if (dir === 'year-prev')  S.offset -= 12;
+    if (dir === 'year-next')  S.offset += 12;
+    render();
+    return;
+  }
+
+  const act = e.target.closest('[data-action]');
+  if (act){
+    if (act.dataset.action === 'today') irParaHoje();
+    if (act.dataset.action === 'add')   location.href = 'index.html#add';
+    return;
+  }
+
+  const cel = e.target.closest('.hz-bal[data-date]');
+  if (cel){
+    location.href = 'saldos.html#' + cel.dataset.date;
+    return;
+  }
+
+  const collapseBtn = e.target.closest('#collapseBtn');
+  if (collapseBtn){
+    document.getElementById('sidebar').classList.toggle('is-collapsed');
+    return;
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const cel = e.target.closest('.hz-bal[data-date]');
+  if (!cel) return;
+  e.preventDefault();
+  location.href = 'saldos.html#' + cel.dataset.date;
+});
+
+
+async function boot(){
+  try {
+    const sb = window.supabase.createClient(SB_URL, SB_KEY);
+    const { data: { session } } = await sb.auth.getSession();
+    if (session){
+      const { data, error } = await sb.from('movimentos').select('*').order('data', { ascending: true });
+      if (!error && data) S.movs = data.map(toMov);
+    }
+  } catch (err) {
+    console.warn('Supabase indisponível, usando dados de demonstração.', err);
+  }
+  if (!S.movs.length) S.movs = DEMO.map(toMov);
+  irParaHoje();
+}
+
+boot();
+</script>
+</body>
+</html>
