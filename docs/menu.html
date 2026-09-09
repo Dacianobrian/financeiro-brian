@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="google" content="notranslate">
 <meta name="theme-color" content="#FFFFFF">
-<title>horizonte</title>
+<title>menu</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
@@ -28,6 +28,7 @@
   }
 })();
 </script>
+
 <style>
 /* ══════════════════════════════════════════════════════════════
    TOKENS
@@ -125,6 +126,7 @@ img,picture,svg,canvas{display:block;max-width:100%}
 h1,h2,h3,h4,h5,h6,p{margin:0}
 ::selection{background:#DDFD5A;color:#0E2D23}
 #root{min-height:100vh}
+
 
 /* ══════════════════════════════════════════════════════════════
    SHELL
@@ -226,67 +228,31 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 .mh-horizon .hm-neutral{background:var(--color-bg-subtle)}
 
 
+
 /* ══════════════════════════════════════════════════════════════
-   HORIZONTE
+   MENU
    ══════════════════════════════════════════════════════════════ */
-.hz-wrap{flex:1;min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;background:var(--color-bg-surface);
-  scrollbar-width:thin;scrollbar-color:var(--color-border-default) transparent}
-@media(max-width:479px){.hz-wrap{padding-bottom:calc(80px + env(safe-area-inset-bottom))}}
-.hz-wrap::-webkit-scrollbar{width:8px;height:8px}
-.hz-wrap::-webkit-scrollbar-thumb{border-radius:4px;background:var(--color-border-default)}
-.hz-wrap::-webkit-scrollbar-track{background:transparent}
+.menu-viewport{flex:1;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;background:var(--color-bg-surface)}
+@media(max-width:479px){.menu-viewport{padding-bottom:calc(88px + env(safe-area-inset-bottom))}}
+.menu-col{width:100%;max-width:560px;margin:0 auto;padding:8px 16px 24px}
+@media(max-width:479px){.menu-col{max-width:none;padding:0 24px 24px}}
 
-.hz-table{border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums;white-space:nowrap}
+.menu-item{width:100%;display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 0;border:0;border-bottom:1px solid var(--border-hairline);background:transparent;color:var(--color-text-primary);font:inherit;font-size:16px;line-height:24px;font-weight:700;text-align:left;text-transform:lowercase;cursor:pointer}
+.menu-item:last-child{border-bottom:0}
+.menu-item:hover{background:var(--color-bg-subtle)}
+.menu-item:focus-visible{outline:2px solid var(--color-border-focus);outline-offset:-2px}
+.menu-item[disabled]{cursor:default;color:var(--color-text-muted)}
+.menu-item[disabled]:hover{background:transparent}
+.menu-ico{width:24px;height:24px;flex-shrink:0;background-color:currentColor;-webkit-mask-size:24px 24px;mask-size:24px 24px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.menu-rot{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.menu-chevron{width:24px;height:24px;flex-shrink:0;background-color:var(--color-text-muted);-webkit-mask-image:var(--ic-chevron-right);mask-image:var(--ic-chevron-right);-webkit-mask-size:24px 24px;mask-size:24px 24px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.menu-tag{flex-shrink:0;padding:2px 8px;border-radius:999px;background:var(--color-bg-subtle);color:var(--color-text-muted);font-size:12px;line-height:18px;font-weight:700;text-transform:lowercase}
+.menu-versao{padding:16px 0 0;color:var(--color-text-muted);font-size:14px;line-height:20px}
 
-/* cabeçalho de mês: rótulo cobrindo o par dia+saldo */
-.hz-table thead th{position:sticky;top:0;z-index:3;padding:0;background:var(--color-bg-surface)}
-.hz-mth{display:flex;align-items:center;justify-content:center;height:40px;padding:0 8px;
-  border-right:1px solid var(--table-grid-line);border-bottom:1px solid var(--color-text-primary);
-  color:var(--color-text-primary);font-size:14px;line-height:20px;font-weight:700;text-transform:lowercase}
-.hz-mth-hdr.is-current .hz-mth{border-bottom:2px solid #FF5917;color:#FF5917}
-
-/* corpo */
-.hz-day{width:32px;min-width:32px;padding:0;border-right:1px solid var(--table-cell-grid-line);
-  color:var(--color-text-muted);font-size:12px;line-height:28px;font-weight:500;text-align:center}
-.hz-bal{width:88px;min-width:88px;height:28px;padding:0 8px;border-right:1px solid var(--table-grid-line);
-  font-size:13px;line-height:28px;font-weight:500;text-align:right;cursor:pointer}
-@media(max-width:479px){
-  .hz-day{width:26px;min-width:26px;font-size:11px}
-  .hz-bal{width:74px;min-width:74px;padding:0 6px;font-size:12px}
-  .hz-mth{height:36px;font-size:13px}
-}
-.hz-bal.tone-lowest {background:var(--color-balance-red);  color:var(--balance-text-lowest)}
-.hz-bal.tone-low    {background:var(--color-balance-rose); color:var(--balance-text-low)}
-.hz-bal.tone-base   {background:var(--color-balance-sand); color:var(--balance-text-base)}
-.hz-bal.tone-high   {background:var(--color-balance-mint); color:var(--balance-text-high)}
-.hz-bal.tone-highest{background:var(--color-balance-green);color:var(--balance-text-highest)}
-.hz-bal:hover{box-shadow:inset 0 0 0 999px var(--table-balance-hover-overlay)}
-.hz-bal:focus-visible{outline:2px solid var(--color-border-focus);outline-offset:-2px}
-
-/* dias que o mês não tem */
-.hz-day.is-empty,.hz-bal.is-empty{background:transparent;cursor:default;color:transparent}
-.hz-bal.is-empty:hover{box-shadow:none}
-
-/* linha de hoje: mesma marcação forte da tela de saldos */
-.hz-row.is-today .hz-day,.hz-row.is-today .hz-bal{box-shadow:inset 0 -1px 0 0 var(--color-text-primary)}
-.hz-day.is-today{background:var(--color-text-primary);color:var(--color-bg-surface);font-weight:700}
-
-/* rodapé: saldo de fechamento do mês */
-.hz-table tfoot td{position:sticky;bottom:0;z-index:2}
-.hz-foot-lbl{width:32px;min-width:32px;padding:0;border-right:1px solid var(--table-cell-grid-line);
-  border-top:1px solid var(--color-text-primary);background:var(--color-bg-surface);
-  color:var(--color-text-muted);font-size:11px;line-height:32px;font-weight:700;text-align:center}
-.hz-foot-bal{width:88px;min-width:88px;padding:0 8px;border-right:1px solid var(--table-grid-line);
-  border-top:1px solid var(--color-text-primary);font-size:13px;line-height:32px;font-weight:700;text-align:right}
-@media(max-width:479px){
-  .hz-foot-lbl{width:26px;min-width:26px}
-  .hz-foot-bal{width:74px;min-width:74px;padding:0 6px;font-size:12px}
-}
-.hz-foot-bal.tone-lowest {background:var(--color-balance-red);  color:var(--balance-text-lowest)}
-.hz-foot-bal.tone-low    {background:var(--color-balance-rose); color:var(--balance-text-low)}
-.hz-foot-bal.tone-base   {background:var(--color-balance-sand); color:var(--balance-text-base)}
-.hz-foot-bal.tone-high   {background:var(--color-balance-mint); color:var(--balance-text-high)}
-.hz-foot-bal.tone-highest{background:var(--color-balance-green);color:var(--balance-text-highest)}
+/* seletor de tema, dentro de configurações */
+.tema-linha{display:flex;align-items:center;gap:8px;padding:12px 0;border-bottom:1px solid var(--border-hairline)}
+.tema-chip{height:36px;padding:0 14px;border:1px solid var(--color-border-subtle);border-radius:999px;background:var(--color-bg-surface);color:var(--color-text-primary);font:inherit;font-size:14px;line-height:20px;font-weight:700;text-transform:lowercase;cursor:pointer}
+.tema-chip.is-on{border-color:#FF5917;color:#FF5917;box-shadow:inset 0 0 0 1px #FF5917}
 
 /* ══════════════════════════════════════════════════════════════
    NAV INFERIOR (mobile)
@@ -306,6 +272,7 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 .mn-add{width:54px;min-height:64px;display:flex;align-items:flex-start;justify-content:center;padding:8px 0 0;border:0;background:transparent;color:var(--color-text-primary);cursor:pointer}
 .mn-add .mn-icon{width:48px;height:48px;-webkit-mask-image:var(--ic-plus-circle);mask-image:var(--ic-plus-circle);-webkit-mask-size:48px 48px;mask-size:48px 48px}
 
+
 </style>
 </head>
 
@@ -314,10 +281,9 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 <main class="app-main">
   <section class="app-shell">
 
-    <!-- ══════════ SIDEBAR (desktop) ══════════ -->
     <div class="sidebar-wrap">
       <nav class="sidebar" id="sidebar" aria-label="Navegação principal">
-        <button class="sidebar-logo" type="button" title="Início" onclick="location.href='index.html'">
+        <button class="sidebar-logo" type="button" title="Início" onclick="location.href='saldos.html'">
           <span class="sidebar-logo-mark">B</span>
         </button>
         <div class="sidebar-nav">
@@ -330,7 +296,7 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
           <button class="sidebar-item" type="button" onclick="location.href='index.html#tags'">
             <span class="sidebar-icon ic-tags"></span><span class="sidebar-label">tags</span>
           </button>
-          <button class="sidebar-item" type="button" onclick="location.href='menu.html'">
+          <button class="sidebar-item is-active" type="button">
             <span class="sidebar-icon ic-menu"></span><span class="sidebar-label">menu</span>
           </button>
           <div class="sidebar-divider" role="separator"></div>
@@ -344,7 +310,7 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
             </span>
             <span class="sidebar-label">ir pra hoje</span>
           </button>
-          <button class="sidebar-item is-active" type="button">
+          <button class="sidebar-item" type="button" data-action="horizon">
             <span class="horizon-mini" id="sidebarHorizon">
               <span class="hm-neutral"></span><span class="hm-neutral"></span><span class="hm-neutral"></span>
             </span>
@@ -357,22 +323,10 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
       </nav>
     </div>
 
-    <!-- ══════════ COLUNA DE CONTEÚDO ══════════ -->
     <div class="content-col">
-
       <div class="desktop-header-wrap">
         <header class="desktop-header">
-          <div class="dh-title-wrap"><h1 class="dh-title">horizonte</h1></div>
-          <div class="dh-nav">
-            <button class="dh-nav-btn nav-dbl-prev" type="button" aria-label="Ano anterior" data-nav="year-prev"></button>
-            <button class="dh-nav-btn nav-prev" type="button" aria-label="Mês anterior" data-nav="month-prev"></button>
-            <button class="dh-range-pill" type="button" data-action="today">
-              <span class="dh-range-label" id="rangeLabel">jul/2026 - ago/2027</span>
-              <span class="dh-chevron"></span>
-            </button>
-            <button class="dh-nav-btn nav-next" type="button" aria-label="Próximo mês" data-nav="month-next"></button>
-            <button class="dh-nav-btn nav-dbl-next" type="button" aria-label="Próximo ano" data-nav="year-next"></button>
-          </div>
+          <div class="dh-title-wrap"><h1 class="dh-title">menu</h1></div>
         </header>
       </div>
 
@@ -381,20 +335,12 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
           <span class="mh-today-top"></span>
           <span class="mh-today-num" id="mobileTodayNum">9</span>
         </button>
-        <div class="mh-center">
-          <button class="mh-arrow nav-prev" type="button" aria-label="Mês anterior" data-nav="month-prev"></button>
-          <span class="mh-month" id="mobileMonthLabel">Horizonte</span>
-          <button class="mh-arrow nav-next" type="button" aria-label="Próximo mês" data-nav="month-next"></button>
-        </div>
-        <button class="mh-horizon" type="button" id="mobileHorizon" aria-label="Horizonte">
-          <span class="hm-neutral"></span><span class="hm-neutral"></span><span class="hm-neutral"></span>
-          <span class="hm-neutral"></span><span class="hm-neutral"></span><span class="hm-neutral"></span>
-          <span class="hm-neutral"></span><span class="hm-neutral"></span><span class="hm-neutral"></span>
-        </button>
+        <div class="mh-center"><span class="mh-month" id="mobileMonthLabel">menu</span></div>
+        <span style="width:32px"></span>
       </header>
 
-      <div class="hz-wrap" id="hzWrap">
-        <table class="hz-table" id="hzTable"></table>
+      <div class="menu-viewport">
+        <div class="menu-col" id="menuCol"></div>
       </div>
     </div>
   </section>
@@ -410,7 +356,7 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
     <button class="mn-item" type="button" onclick="location.href='index.html#tags'">
       <span class="mn-icon ic-tags"></span><span class="mn-label">tags</span>
     </button>
-    <button class="mn-item" type="button" onclick="location.href='menu.html'">
+    <button class="mn-item is-active" type="button">
       <span class="mn-icon ic-menu"></span><span class="mn-label">menu</span>
     </button>
   </nav>
@@ -441,307 +387,121 @@ const ls = {
    b > 2R           → verde     (highest)                     */
 const REFERENCIA = Number(ls.get('brian-referencia')) || 1000;
 
-const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-const MESES_CAP = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
-const METRICS = [
-  { key:'income',    label:'entradas',  icon:'mi-income'    },
-  { key:'expense',   label:'saídas',    icon:'mi-expense'   },
-  { key:'recurring', label:'diários',   icon:'mi-recurring' },
-  { key:'savings',   label:'economias', icon:'mi-savings'   },
-  { key:'card',      label:'cartão',    icon:'mi-card'      },
-];
 
 /* ══════════════════════════════════════════════════════════════
-   ESTADO
+   MENU — itens, rótulos e ordem conferidos contra o app de referência
    ══════════════════════════════════════════════════════════════ */
-const HOJE = new Date();
-const HOJE_KEY = iso(HOJE);
-
-const S = {
-  ano: HOJE.getFullYear(),
-  mes: HOJE.getMonth(),
-  offset: 0,   /* deslocamento da janela, em meses */
-  metric: ls.get('brian-saldos-metric', 'card'),
-  collapsed: new Set(ls.json('brian-saldos-collapsed', [])),
-  checkins: new Set(ls.json('brian-checkins', [])),
-  movs: [],
-  saldoInicial: 0,
+const SVG = {
+  profile:'M12 5.9c1.16 0 2.1.94 2.1 2.1s-.94 2.1-2.1 2.1S9.9 9.16 9.9 8s.94-2.1 2.1-2.1m0 9c2.97 0 6.1 1.46 6.1 2.1v1.1H5.9V17c0-.64 3.13-2.1 6.1-2.1M12 4C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 9c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4',
+  dailyForecast:'M9 11H7v2h2zm4 0h-2v2h2zm4 0h-2v2h2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 16H5V9h14z',
+  creditCard:'M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2m0 14H4v-6h16zm0-10H4V6h16z',
+  settings:'M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.09-.16-.26-.25-.44-.25-.06 0-.12.01-.17.03l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1q-.09-.03-.18-.03c-.17 0-.34.09-.43.25l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.09.16.26.25.44.25.06 0 .12-.01.17-.03l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1q.09.03.18.03c.17 0 .34-.09.43-.25l2-3.46c.12-.22.07-.49-.12-.64zM12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2',
+  suggestions:'M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2m0 14H6l-2 2V4h16z',
+  help:'M11 18h2v-2h-2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4',
+  referral:'M16 13c3.09-2.81 6-5.44 6-7.7C22 3.45 20.55 2 18.7 2c-1.04 0-2.05.49-2.7 1.25C15.34 2.49 14.34 2 13.3 2 11.45 2 10 3.45 10 5.3c0 2.26 2.91 4.89 6 7.7',
+  terms:'M14 17H4v2h10zm6-8H4v2h16zM4 15h16v-2H4zM4 5v2h16V5z',
+  logout:'m17 8-1.41 1.41L17.17 11H9v2h8.17l-1.58 1.58L17 16l4-4zM5 5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h7v-2H5z',
 };
 
-/* ══════════════════════════════════════════════════════════════
-   HELPERS
-   ══════════════════════════════════════════════════════════════ */
-function iso(d){
-  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-}
-function diasNoMes(y,m){ return new Date(y, m+1, 0).getDate(); }
-function fmt(v){
-  const n = Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
-  return (v < 0 ? '-R$ ' : 'R$ ') + n;
-}
-function tone(saldo){
-  if (saldo < -REFERENCIA)  return 'lowest';
-  if (saldo < 0)            return 'low';
-  if (saldo <= REFERENCIA)  return 'base';
-  if (saldo <= REFERENCIA*2)return 'high';
-  return 'highest';
-}
-function metricInfo(key){ return METRICS.find(m => m.key === key) || METRICS[4]; }
-
-/* ══════════════════════════════════════════════════════════════
-   CLASSIFICAÇÃO — mesma regra do index.html
-   ══════════════════════════════════════════════════════════════ */
-function classify(mv){
-  if (mv.tipo === 'entrada')                       return 'income';
-  if (mv.conta === 'cartao')                       return 'card';
-  if (mv.conta === 'itau' || mv.tag === 'invest')  return 'savings';
-  if (mv.tag === 'diário' || mv.tag === 'diario')  return 'recurring';
-  return 'expense';
-}
-/* ══════════════════════════════════════════════════════════════
-   DADOS
-   ══════════════════════════════════════════════════════════════ */
-const DEMO = [
-  { data:'2026-08-17', valor:1000,  tipo:'entrada', conta:'nubank' },
-  { data:'2026-08-19', valor:9000,  tipo:'entrada', conta:'nubank' },
-  { data:'2026-08-20', valor:19.21, tipo:'entrada', conta:'nubank' },
-  { data:'2026-08-24', valor:250,   tipo:'entrada', conta:'nubank' },
-  { data:'2026-08-24', valor:7600,  tipo:'saida',   conta:'nubank' },
-  { data:'2026-08-26', valor:400,   tipo:'saida',   conta:'nubank' },
-  { data:'2026-08-28', valor:2000,  tipo:'saida',   conta:'nubank' },
-  { data:'2026-08-30', valor:300,   tipo:'saida',   conta:'nubank' },
-  { data:'2026-09-03', valor:4000,  tipo:'entrada', conta:'nubank' },
-  { data:'2026-09-06', valor:3800,  tipo:'saida',   conta:'nubank' },
-  { data:'2026-09-12', valor:150,   tipo:'saida',   conta:'nubank' },
-  { data:'2026-09-15', valor:1000,  tipo:'entrada', conta:'nubank' },
-  { data:'2026-09-22', valor:10000, tipo:'saida',   conta:'nubank' },
-  { data:'2026-10-25', valor:9000,  tipo:'saida',   conta:'nubank' },
-  { data:'2026-11-25', valor:9000,  tipo:'saida',   conta:'nubank' },
-  { data:'2026-12-25', valor:9000,  tipo:'saida',   conta:'nubank' },
+const ITENS = [
+  { id:'edit-profile',   label:'editar perfil',             icon:'profile'       },
+  { id:'daily-forecast', label:'previsão de diário',        icon:'dailyForecast' },
+  { id:'credit-card',    label:'cartões de crédito',        icon:'creditCard'    },
+  { id:'settings',       label:'configurações',             icon:'settings',     acao:'tema' },
+  { id:'suggestions',    label:'mandar sugestões',          icon:'suggestions'   },
+  { id:'help',           label:'ajuda',                     icon:'help'          },
+  { id:'referral',       label:'indicar a escola do breno', icon:'referral'      },
+  { id:'terms',          label:'termos de uso',             icon:'terms'         },
+  { id:'privacy',        label:'política de privacidade',   icon:'terms'         },
+  { id:'logout',         label:'sair',                      icon:'logout',       acao:'sair' },
 ];
 
-function toMov(r){
-  return {
-    valor: parseFloat(r.valor),
-    tipo:  r.tipo,
-    data:  new Date(r.data + 'T12:00:00'),
-    conta: r.conta,
-    tag:   r.tag || null,
-    rec:   r.rec || null,
-  };
-}
-
-/* ══════════════════════════════════════════════════════════════
-   JANELA DE 14 MESES — 2 passados + atual + 11 futuros
-   ══════════════════════════════════════════════════════════════ */
-const JANELA = 14;
-const PASSADOS = 2;
-
-function mesesDaJanela(){
-  const base = HOJE.getMonth() + S.offset - PASSADOS;
-  const out = [];
-  for (let i = 0; i < JANELA; i++){
-    const d = new Date(HOJE.getFullYear(), base + i, 1);
-    out.push({ y: d.getFullYear(), m: d.getMonth() });
-  }
-  return out;
-}
-
-/* Saldo diário acumulado. O acumulado começa antes da janela: sem isso o
-   primeiro mês exibido apareceria zerado em vez de continuar o histórico. */
-function saldosDiarios(meses){
-  const porDia = new Map();
-  for (const mv of S.movs){
-    const k = iso(mv.data);
-    porDia.set(k, (porDia.get(k) || 0) + (mv.tipo === 'entrada' ? mv.valor : -mv.valor));
-  }
-  const inicio = iso(new Date(meses[0].y, meses[0].m, 1));
-
-  let saldo = S.saldoInicial;
-  for (const [k, delta] of [...porDia.entries()].sort()){
-    if (k < inicio) saldo += delta;
-  }
-
-  return meses.map(({ y, m }) => {
-    const n = diasNoMes(y, m);
-    const dias = [];
-    for (let d = 1; d <= n; d++){
-      const k = iso(new Date(y, m, d));
-      saldo += (porDia.get(k) || 0);
-      dias.push({ d, key: k, saldo, tone: tone(saldo) });
-    }
-    return { y, m, n, dias, fecha: dias[n-1] };
-  });
-}
-
-/* ══════════════════════════════════════════════════════════════
-   RENDER
-   ══════════════════════════════════════════════════════════════ */
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-/* Compacto o bastante para a coluna, sem perder a ordem de grandeza:
-   3.969,21 → 3,97k   |   -36.870,79 → -36,87k   |   169,21 → 169,21
-   Arredondar para "4k" mentiria sobre o valor; o título traz os centavos. */
-function fmtCurto(v){
-  const abs = Math.abs(v);
-  const sinal = v < 0 ? '-' : '';
-  const num = (x, casas) => x.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
-  if (abs >= 1000000) return sinal + num(abs/1000000, 2) + 'M';
-  if (abs >= 1000)    return sinal + num(abs/1000, 2) + 'k';
-  return sinal + num(abs, 2);
-}
+let temaAberto = false;
 
 function render(){
-  const meses = mesesDaJanela();
-  const dados = saldosDiarios(meses);
-  const hojeY = HOJE.getFullYear(), hojeM = HOJE.getMonth(), hojeD = HOJE.getDate();
+  const escolha = ls.get('brian-theme', 'system');
+  document.getElementById('menuCol').innerHTML = ITENS.map(it => {
+    /* Sem tela ainda: fica desabilitado e dito, em vez de um botão que não faz nada. */
+    const pendente = !it.acao;
+    return `
+      <button class="menu-item" type="button" data-id="${it.id}"${pendente ? ' disabled' : ''}>
+        <span class="menu-ico" style="-webkit-mask-image:url('data:image/svg+xml,${encodeURIComponent(
+          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="${SVG[it.icon]}"/></svg>`
+        )}');mask-image:url('data:image/svg+xml,${encodeURIComponent(
+          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="${SVG[it.icon]}"/></svg>`
+        )}')"></span>
+        <span class="menu-rot">${esc(it.label)}</span>
+        ${pendente ? '<span class="menu-tag">em breve</span>' : '<span class="menu-chevron"></span>'}
+      </button>
+      ${it.acao === 'tema' && temaAberto ? `
+        <div class="tema-linha">
+          ${['light','dark','system'].map(v => `
+            <button class="tema-chip${escolha === v ? ' is-on' : ''}" type="button" data-tema="${v}">
+              ${v === 'light' ? 'claro' : v === 'dark' ? 'escuro' : 'do sistema'}
+            </button>`).join('')}
+        </div>` : ''}`;
+  }).join('') + `<p class="menu-versao">versão beta</p>`;
 
-  let thead = '<thead><tr>';
-  for (const { y, m } of dados){
-    const atual = y === hojeY && m === hojeM;
-    thead += `<th class="hz-mth-hdr${atual ? ' is-current' : ''}" colspan="2" scope="col"` +
-             `${atual ? ' data-current-month="true"' : ''}>` +
-             `<span class="hz-mth">${MESES[m]}/${String(y).slice(2)}</span></th>`;
-  }
-  thead += '</tr></thead>';
-
-  let tbody = '<tbody>';
-  for (let d = 1; d <= 31; d++){
-    const linhaHoje = d === hojeD;
-    tbody += `<tr class="hz-row${linhaHoje ? ' is-today' : ''}">`;
-    for (const mes of dados){
-      if (d > mes.n){
-        tbody += '<td class="hz-day is-empty"></td><td class="hz-bal is-empty"></td>';
-        continue;
-      }
-      const dia = mes.dias[d-1];
-      const ehHoje = dia.key === HOJE_KEY;
-      tbody += `<td class="hz-day${ehHoje ? ' is-today' : ''}">${d}</td>`;
-      tbody += `<td class="hz-bal tone-${dia.tone}" tabindex="0" role="button"` +
-               ` data-date="${dia.key}" title="${esc(fmt(dia.saldo))}">${esc(fmtCurto(dia.saldo))}</td>`;
-    }
-    tbody += '</tr>';
-  }
-  tbody += '</tbody>';
-
-  let tfoot = '<tfoot><tr>';
-  for (const mes of dados){
-    const f = mes.fecha;
-    tfoot += '<td class="hz-foot-lbl">Σ</td>';
-    tfoot += `<td class="hz-foot-bal tone-${f.tone}" title="${esc(fmt(f.saldo))}">${esc(fmtCurto(f.saldo))}</td>`;
-  }
-  tfoot += '</tr></tfoot>';
-
-  document.getElementById('hzTable').innerHTML = thead + tbody + tfoot;
-
-  const pri = dados[0], ult = dados[dados.length-1];
-  const rotulo = `${MESES[pri.m]}/${pri.y} - ${MESES[ult.m]}/${ult.y}`;
-  document.getElementById('rangeLabel').textContent       = rotulo;
-  document.getElementById('mobileMonthLabel').textContent = `${MESES_CAP[pri.m]} - ${MESES_CAP[ult.m]}`;
-  document.getElementById('sidebarTodayNum').textContent  = hojeD;
-  document.getElementById('mobileTodayNum').textContent   = hojeD;
-  document.title = `horizonte · ${rotulo}`;
-
-  paintHorizonte(dados);
+  document.getElementById('sidebarTodayNum').textContent = new Date().getDate();
+  document.getElementById('mobileTodayNum').textContent  = new Date().getDate();
 }
 
-/* mini-grades do header, alimentadas pelos mesmos dados da tabela */
-function paintHorizonte(dados){
-  const futuros = dados.flatMap(m => m.dias).filter(d => d.key >= HOJE_KEY);
-  const pick = n => Array.from({length:n}, (_,i) => futuros[Math.floor(i * futuros.length / n)] || null);
-  const celulas = ds => ds.map(d =>
-    `<span class="hm-${d ? d.tone : 'neutral'}"${d ? ` data-horizon-date="${d.key}"` : ''}></span>`).join('');
-  document.getElementById('sidebarHorizon').innerHTML = celulas(pick(3));
-  document.getElementById('mobileHorizon').innerHTML  = celulas(pick(9));
-}
-
-/* Centraliza o mês atual — é o ponto de leitura natural da tela. */
-function irParaHoje(){
-  S.offset = 0;
+function aplicarTema(escolha){
+  ls.set('brian-theme', escolha);
+  const escuro = escolha === 'dark' ||
+    (escolha === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme', escuro ? 'dark' : 'light');
   render();
-  requestAnimationFrame(() => {
-    const wrap = document.getElementById('hzWrap');
-    const th = document.querySelector('[data-current-month="true"]');
-    if (!wrap || !th) return;
-    const alvo = th.getBoundingClientRect().left - wrap.getBoundingClientRect().left + wrap.scrollLeft
-               - (wrap.clientWidth - th.getBoundingClientRect().width) / 2;
-    wrap.scrollLeft = Math.max(0, alvo);
-  });
 }
 
-/* ══════════════════════════════════════════════════════════════
-   EVENTOS
-   ══════════════════════════════════════════════════════════════ */
+async function sair(){
+  try { if (SB) await SB.auth.signOut(); } catch(e){}
+  location.replace('index.html');
+}
+
 document.addEventListener('click', e => {
-  const navBtn = e.target.closest('[data-nav]');
-  if (navBtn){
-    const dir = navBtn.dataset.nav;
-    if (dir === 'month-prev') S.offset -= 1;
-    if (dir === 'month-next') S.offset += 1;
-    if (dir === 'year-prev')  S.offset -= 12;
-    if (dir === 'year-next')  S.offset += 12;
-    render();
+  const tema = e.target.closest('[data-tema]');
+  if (tema){ aplicarTema(tema.dataset.tema); return; }
+
+  const item = e.target.closest('.menu-item[data-id]');
+  if (item){
+    const it = ITENS.find(x => x.id === item.dataset.id);
+    if (!it) return;
+    if (it.acao === 'tema'){ temaAberto = !temaAberto; render(); }
+    if (it.acao === 'sair')  sair();
     return;
   }
 
   const act = e.target.closest('[data-action]');
   if (act){
-    if (act.dataset.action === 'today')   irParaHoje();
+    if (act.dataset.action === 'today')   location.href = 'saldos.html';
     if (act.dataset.action === 'horizon') location.href = 'horizonte.html';
-    /* O lançamento vive na tela de saldos; mandar para o app antigo tirava
-       o usuário do sistema novo no meio da tarefa. */
     if (act.dataset.action === 'add')     location.href = 'saldos.html#novo';
     return;
   }
 
-  const cel = e.target.closest('.hz-bal[data-date]');
-  if (cel){
-    location.href = 'saldos.html#' + cel.dataset.date;
-    return;
-  }
-
   const collapseBtn = e.target.closest('#collapseBtn');
-  if (collapseBtn){
-    document.getElementById('sidebar').classList.toggle('is-collapsed');
-    return;
-  }
+  if (collapseBtn){ document.getElementById('sidebar').classList.toggle('is-collapsed'); }
 });
 
-document.addEventListener('keydown', e => {
-  if (e.key !== 'Enter' && e.key !== ' ') return;
-  const cel = e.target.closest('.hz-bal[data-date]');
-  if (!cel) return;
-  e.preventDefault();
-  location.href = 'saldos.html#' + cel.dataset.date;
-});
 
+let SB = null;
 
 async function boot(){
   let semSessao = false;
   try {
-    const sb = window.supabase.createClient(SB_URL, SB_KEY);
-    const { data: { session } } = await sb.auth.getSession();
-    if (session){
-      const { data, error } = await sb.from('movimentos').select('*').order('data', { ascending: true });
-      if (!error && data) S.movs = data.map(toMov);
-    } else {
-      semSessao = true;
-    }
+    SB = window.supabase.createClient(SB_URL, SB_KEY);
+    const { data: { session } } = await SB.auth.getSession();
+    if (!session) semSessao = true;
   } catch (err) {
-    console.warn('Supabase indisponível, usando dados de demonstração.', err);
+    console.warn('Supabase indisponível.', err);
   }
-  /* Sem sessão vai pro login: mostrar números de demonstração para quem está
-     deslogado engana. Só vale quando a página é servida pela web de verdade —
-     aberta como arquivo (file:/data:) segue com a demonstração, senão não dá
-     pra conferir o layout fora do servidor. */
   const naWeb = location.protocol === 'http:' || location.protocol === 'https:';
-  if (semSessao && naWeb){
-    location.replace('index.html');
-    return;
-  }
-  if (!S.movs.length) S.movs = DEMO.map(toMov);
-  irParaHoje();
+  if (semSessao && naWeb){ location.replace('index.html'); return; }
+  render();
 }
 
 boot();
