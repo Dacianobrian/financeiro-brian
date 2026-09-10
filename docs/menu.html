@@ -459,7 +459,7 @@ function aplicarTema(escolha){
 
 async function sair(){
   try { if (SB) await SB.auth.signOut(); } catch(e){}
-  location.replace('index.html');
+  location.replace('entrar.html');
 }
 
 document.addEventListener('click', e => {
@@ -501,7 +501,7 @@ async function boot(){
     console.warn('Supabase indisponível.', err);
   }
   const naWeb = location.protocol === 'http:' || location.protocol === 'https:';
-  if (semSessao && naWeb){ location.replace('index.html'); return; }
+  if (semSessao && naWeb){ location.replace('entrar.html'); return; }
   render();
 }
 

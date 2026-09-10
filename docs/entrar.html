@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-BR" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="google" content="notranslate">
+<meta name="theme-color" content="#FFFFFF">
+<title>entrar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var raw = localStorage.getItem("brian-theme");
+    /* O index.html grava o tema como texto simples ("dark"); versões antigas
+       gravavam JSON. Aceita os dois, senão o modo escuro não atravessa telas. */
+    var choice = "system";
+    if (raw) {
+      if (raw === "dark" || raw === "light" || raw === "system") choice = raw;
+      else choice = (JSON.parse(raw).state || {}).choice || "system";
+    }
+    var dark = choice === "dark" ||
+      (choice === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  } catch (e) {
+    document.documentElement.setAttribute("data-theme", "light");
+  }
+})();
+</script>
+
+<style>
+/* ══════════════════════════════════════════════════════════════
+   TOKENS
+   ══════════════════════════════════════════════════════════════ */
+:root { --banner-offset: 0px; }
+
+:root[data-theme="light"], [data-theme="light"] {
+  color-scheme: light;
+  --color-bg-canvas:#FFFFFF; --color-bg-surface:#FFFFFF; --color-bg-subtle:#EDEDEE;
+  --color-bg-muted:#F8EDD9; --color-bg-inverse:#0E2D23;
+  --color-text-primary:#1D1F23; --color-text-secondary:#393E46; --color-text-muted:#6C7179;
+  --color-text-inverse:#FFFFFF; --color-text-brand:#0E2D23; --color-text-accent:#4A1BB9;
+  --color-border-subtle:#DADBDD; --color-border-default:#B6B8BC; --color-border-strong:#91949A;
+  --color-border-focus:#4A1BB9;
+  --color-feedback-success:#529952; --color-feedback-warning:#FFD748;
+  --color-feedback-error:#E62D2D; --color-feedback-info:#7C3AED;
+  --color-balance-green:#96D87D; --color-balance-mint:#95FDB8; --color-balance-sand:#FCE9B5;
+  --color-balance-rose:#F8BEBF; --color-balance-red:#F26D70;
+  --balance-text-lowest:#5C1212; --balance-text-low:#8A1B1B; --balance-text-base:#66561D;
+  --balance-text-high:#315C31; --balance-text-highest:#213D21;
+  --color-tag-gray:#E0E0E0; --color-tag-yellow:#F0F0B3; --color-tag-red:#FFB3B3;
+  --color-tag-pink:#FFCCD9; --color-tag-blue:#BEE0FF; --color-tag-purple:#CCB8F2;
+  --color-tag-green:#ADE695; --color-tag-brown:#E8D5C2;
+  --border-hairline:rgba(0,0,0,0.15); --color-bg-auth-splash:#FF5917;
+  --table-grid-line:rgba(0,0,0,0.15); --table-cell-grid-line:rgba(29,31,35,0.1);
+  --table-weekend-bg:#EDEDEE;
+  --table-cell-hover:linear-gradient(to right,#ffffff,#e7e7e8);
+  --table-icon-cell-hover:linear-gradient(to left,#ffffff,#e7e7e8);
+  --table-skeleton-bg:#F4F4F5; --table-shimmer:rgba(255,255,255,0.85);
+  --table-balance-hover-overlay:rgba(255,255,255,0.18);
+  --shadow-soft:rgba(0,0,0,0.08); --color-text-ghost:#B6B8BC;
+  --icon-placeholder:#DADBDD; --color-border-error:#F5ABAB; --icon-default-light:#484D57;
+}
+
+:root[data-theme="dark"], [data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg-canvas:#1D1F23; --color-bg-surface:#1D1F23; --color-bg-subtle:#2B2E34;
+  --color-bg-muted:#2B2E34; --color-bg-inverse:#EDEDEE;
+  --color-text-primary:#EDEDEE; --color-text-secondary:#B6B8BC; --color-text-muted:#91949A;
+  --color-text-inverse:#1D1F23; --color-text-brand:#EDEDEE; --color-text-accent:#B089F4;
+  --color-border-subtle:rgba(255,255,255,0.08); --color-border-default:rgba(255,255,255,0.15);
+  --color-border-strong:rgba(255,255,255,0.30); --color-border-focus:#EDEDEE;
+  --color-feedback-success:#529952; --color-feedback-warning:#FFD748;
+  --color-feedback-error:#E62D2D; --color-feedback-info:#9661F1;
+  --color-balance-green:#3A7A2F; --color-balance-mint:#1E9B68; --color-balance-sand:#A07A00;
+  --color-balance-rose:#A34C4E; --color-balance-red:#8B1E20;
+  --balance-text-lowest:#EDEDEE; --balance-text-low:#EDEDEE; --balance-text-base:#EDEDEE;
+  --balance-text-high:#EDEDEE; --balance-text-highest:#EDEDEE;
+  --color-tag-gray:#5A5A5A; --color-tag-yellow:#6E5A17; --color-tag-red:#993B3B;
+  --color-tag-pink:#8C4A5E; --color-tag-blue:#3E5E88; --color-tag-purple:#5B4B82;
+  --color-tag-green:#3E7C68; --color-tag-brown:#6E5035;
+  --border-hairline:rgba(255,255,255,0.15); --color-bg-auth-splash:#662409;
+  --color-text-ghost:#484D57; --icon-placeholder:#2B2E34;
+  --table-grid-line:rgba(255,255,255,0.15); --table-cell-grid-line:rgba(255,255,255,0.15);
+  --table-weekend-bg:#2B2E34;
+  --table-cell-hover:linear-gradient(to right,#1D1F23,#2B2E34);
+  --table-icon-cell-hover:linear-gradient(to left,#1D1F23,#2B2E34);
+  --table-skeleton-bg:#2B2E34; --table-shimmer:rgba(255,255,255,0.06);
+  --table-balance-hover-overlay:rgba(255,255,255,0.10);
+  --shadow-soft:rgba(0,0,0,0.5); --color-border-error:#B82424; --icon-default-light:#484D57;
+}
+
+/* ── ÍCONES (SVG data-URI usados como mask) ───────────────────── */
+:root {
+  --ic-income:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 5v6.17l2.59-2.58L17 12l-5 5-5-5 1.41-1.41L11 13.17V7h2z'/%3E%3C/svg%3E");
+  --ic-expense:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-6.17l-2.59 2.58L7 12l5-5 5 5-1.41 1.41L13 10.83V17h-2z'/%3E%3C/svg%3E");
+  --ic-recurring:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M19 3h-1V1h-2v2H8V1H6v2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 18H5V9h14v12zM7 11h5v5H7z'/%3E%3C/svg%3E");
+  --ic-savings:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M21 18v1c0 1.1-.9 2-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h9zm-9-2h10V8H12v8zm4-2.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z'/%3E%3C/svg%3E");
+  --ic-card:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z'/%3E%3C/svg%3E");
+  --ic-plus:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z'/%3E%3C/svg%3E");
+  --ic-plus-circle:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/%3E%3C/svg%3E");
+  --ic-chevron-down:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z'/%3E%3C/svg%3E");
+  --ic-chevron-left:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M15.41 16.59 10.83 12l4.58-4.59L14 6l-6 6 6 6z'/%3E%3C/svg%3E");
+  --ic-chevron-right:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z'/%3E%3C/svg%3E");
+  --ic-dbl-left:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M17.59 18 19 16.59 14.42 12 19 7.41 17.59 6l-6 6zM11 18l1.41-1.41L7.83 12l4.58-4.59L11 6l-6 6z'/%3E%3C/svg%3E");
+  --ic-dbl-right:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M6.41 6 5 7.41 9.58 12 5 16.59 6.41 18l6-6zM13 6l-1.41 1.41L16.17 12l-4.58 4.59L13 18l6-6z'/%3E%3C/svg%3E");
+  --ic-check:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+  --ic-grid:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5zm2 4v3h5V9H5zm7 0v3h7V9h-7zM5 14v3h5v-3H5zm7 0v3h7v-3h-7zM5 5v2h14V5H5z'/%3E%3C/svg%3E");
+  --ic-totals:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M4 21V9h4v12H4zm6 0V3h4v18h-4zm6 0v-8h4v8h-4z'/%3E%3C/svg%3E");
+  --ic-tags:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M21.41 11.58l-9-9A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7c0 .55.22 1.05.59 1.42l9 9A2 2 0 0 0 13 22a2 2 0 0 0 1.41-.59l7-7A2 2 0 0 0 22 13a2 2 0 0 0-.59-1.42zM6.5 8A1.5 1.5 0 1 1 8 6.5 1.5 1.5 0 0 1 6.5 8z'/%3E%3C/svg%3E");
+  --ic-menu:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z'/%3E%3C/svg%3E");
+  --ic-horizon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M3 4h18v4H3V4zm0 6h18v4H3v-4zm0 6h18v4H3v-4z'/%3E%3C/svg%3E");
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESET / BASE
+   ══════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box}
+html{font-size:16px;scroll-behavior:smooth;overscroll-behavior-x:contain}
+body{margin:0;min-width:320px;min-height:100vh;background:var(--color-bg-canvas);color:var(--color-text-primary);font-family:"DM Sans",sans-serif;font-size:16px;line-height:24px;font-weight:400;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body,button,input,textarea,select{font-family:"DM Sans",sans-serif}
+button,input,textarea,select{font:inherit}
+a{color:inherit;text-decoration:none}
+img,picture,svg,canvas{display:block;max-width:100%}
+h1,h2,h3,h4,h5,h6,p{margin:0}
+::selection{background:#DDFD5A;color:#0E2D23}
+#root{min-height:100vh}
+
+
+
+/* ══════════════════════════════════════════════════════════════
+   ENTRAR — declarações conferidas contra o app de referência
+   ══════════════════════════════════════════════════════════════ */
+@keyframes sobe{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* A tela de autenticação é sempre clara, mesmo com o tema escuro escolhido. */
+.auth{width:100%;min-height:100vh;display:flex;flex-direction:column;background:var(--color-bg-auth-splash)}
+.auth-header{width:100%;display:flex;align-items:flex-start;padding:32px 32px 0}
+.auth-logo{width:27px;height:24px;display:block;padding:0;border:0;background:transparent;cursor:pointer}
+.auth-logo-mark{width:27px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:#1D1F23;color:#fff;font-size:14px;line-height:24px;font-weight:700}
+.auth-body{width:100%;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:0 32px 32px}
+@media(max-width:479px){.auth-body{align-items:flex-start;padding:48px 16px 24px}}
+
+.auth-form{width:100%;max-width:416px;min-width:0;display:flex;flex-direction:column;align-items:stretch;padding:32px;border-radius:24px;background:var(--color-bg-surface);overflow-x:auto;overflow-y:clip;animation:sobe 260ms ease}
+@media(prefers-reduced-motion:reduce){.auth-form{animation:none}}
+@media(max-width:479px){.auth-form{padding:28px 24px}}
+
+.auth-cab{width:100%;display:flex;flex-direction:column;gap:8px}
+.auth-titulo{width:100%;color:var(--color-text-primary);font-size:24px;line-height:28px;font-weight:700;letter-spacing:0}
+.auth-desc{width:100%;color:var(--color-text-muted);font-size:16px;line-height:24px;font-weight:500}
+
+.auth-campos{width:100%;display:flex;flex-direction:column;gap:8px;padding-top:16px}
+.auth-campo{width:100%;display:flex;align-items:flex-start;gap:8px;padding:8px 0 12px;border-bottom:1px solid var(--border-hairline)}
+.auth-campo-txt{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.auth-rot{width:100%;color:var(--color-text-muted);font-size:14px;line-height:20px;font-weight:700}
+.auth-input{width:100%;height:24px;padding:0;border:0;outline:0;background:transparent;color:var(--color-text-primary);font-family:inherit;font-size:16px;line-height:24px;font-weight:500}
+.auth-input::placeholder{color:var(--color-text-muted)}
+.auth-olho{width:24px;height:24px;flex-shrink:0;align-self:center;display:inline-flex;align-items:center;justify-content:center;padding:0;border:0;background:transparent;cursor:pointer}
+.auth-olho::before{content:"";width:24px;height:24px;background-color:var(--color-text-muted);-webkit-mask-size:24px 24px;mask-size:24px 24px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-image:var(--ic-olho);mask-image:var(--ic-olho)}
+.auth-olho.is-off::before{-webkit-mask-image:var(--ic-olho-off);mask-image:var(--ic-olho-off)}
+
+.auth-erro{width:100%;color:var(--color-feedback-error);font-size:14px;line-height:20px;font-weight:700;text-align:center;min-height:20px;padding-top:12px}
+
+.auth-acoes{width:100%;display:flex;flex-direction:column;gap:8px;padding-top:16px}
+.auth-btn{width:100%;height:40px;display:inline-flex;align-items:center;justify-content:center;padding:12px 24px;border-radius:64px;font-family:inherit;font-size:16px;line-height:24px;font-weight:700;cursor:pointer}
+.auth-btn:disabled{cursor:not-allowed;opacity:.72}
+.auth-btn--principal{border:2px solid var(--color-text-primary);background:var(--color-text-primary);color:var(--color-text-inverse)}
+.auth-btn--secundario{border:2px solid var(--border-hairline);background:var(--color-bg-surface);color:var(--color-text-primary)}
+.auth-btn--link{border:0;background:transparent;color:var(--color-text-primary)}
+
+:root{
+  --ic-olho:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 6c3.79 0 7.17 2.13 8.82 5.5C19.17 14.87 15.79 17 12 17s-7.17-2.13-8.82-5.5C4.83 8.13 8.21 6 12 6m0-2C7 4 2.73 7.11 1 11.5 2.73 15.89 7 19 12 19s9.27-3.11 11-7.5C21.27 7.11 17 4 12 4m0 5a2.5 2.5 0 0 0 0 5 2.5 2.5 0 0 0 0-5m0-2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9'/%3E%3C/svg%3E");
+  --ic-olho-off:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 6c3.79 0 7.17 2.13 8.82 5.5a10.6 10.6 0 0 1-2.1 2.95l1.42 1.42A12.5 12.5 0 0 0 23 11.5C21.27 7.11 17 4 12 4a11.8 11.8 0 0 0-4.06.72l1.64 1.63A9.8 9.8 0 0 1 12 6M2 4.27l2.28 2.28.46.46A11.8 11.8 0 0 0 1 11.5C2.73 15.89 7 19 12 19c1.55 0 3.03-.3 4.38-.84l.42.42L19.73 21 21 19.73 3.27 3M7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65a3 3 0 0 0 3 3c.22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53a5 5 0 0 1-5-5c0-.79.2-1.53.53-2.2'/%3E%3C/svg%3E");
+}
+
+</style>
+</head>
+
+<body>
+<div id="root">
+<main class="auth" data-theme="light">
+  <header class="auth-header">
+    <button class="auth-logo" type="button" aria-label="Início" onclick="location.href='saldos.html'">
+      <span class="auth-logo-mark">B</span>
+    </button>
+  </header>
+
+  <section class="auth-body">
+    <form class="auth-form" id="form" novalidate>
+      <div class="auth-cab">
+        <h1 class="auth-titulo" id="titulo">entrar</h1>
+        <p class="auth-desc" id="desc">seu controle financeiro pessoal</p>
+      </div>
+
+      <div class="auth-campos">
+        <label class="auth-campo">
+          <span class="auth-campo-txt">
+            <span class="auth-rot">e-mail</span>
+            <input class="auth-input" id="fEmail" type="email" inputmode="email"
+                   autocomplete="email" placeholder="voce@email.com" required>
+          </span>
+        </label>
+        <label class="auth-campo">
+          <span class="auth-campo-txt">
+            <span class="auth-rot">senha</span>
+            <input class="auth-input" id="fSenha" type="password"
+                   autocomplete="current-password" placeholder="sua senha" required>
+          </span>
+          <button class="auth-olho is-off" type="button" id="verSenha"
+                  aria-label="Mostrar senha" aria-pressed="false"></button>
+        </label>
+      </div>
+
+      <p class="auth-erro" id="erro" role="alert" aria-live="polite"></p>
+
+      <div class="auth-acoes">
+        <button class="auth-btn auth-btn--principal" type="submit" id="btnEntrar">entrar</button>
+        <button class="auth-btn auth-btn--secundario" type="button" id="btnCriar">criar conta</button>
+        <button class="auth-btn auth-btn--link" type="button" id="btnEsqueci">esqueci minha senha</button>
+      </div>
+    </form>
+  </section>
+</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   CONFIG
+   ══════════════════════════════════════════════════════════════ */
+const SB_URL = 'https://cathhujdhocioybdpnvc.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhdGhodWpkaG9jaW95YmRwbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTUxODgsImV4cCI6MjA5MTI5MTE4OH0.5zO8sxWV1R_fVt9FPN4bDGXaCophee4gCh0jjEVp9DQ';
+
+/* localStorage seguro: navegação privada, webviews e data: URLs bloqueiam Storage. */
+const ls = {
+  get(k, fallback = null){ try { const v = localStorage.getItem(k); return v === null ? fallback : v; } catch(e){ return fallback; } },
+  set(k, v){ try { localStorage.setItem(k, v); } catch(e){} },
+  json(k, fallback){ try { return JSON.parse(localStorage.getItem(k)) ?? fallback; } catch(e){ return fallback; } },
+};
+
+/* Referência que define as faixas de cor do saldo.
+   b < -R           → vermelho  (lowest)
+   -R <= b < 0      → rosa      (low)
+   0 <= b <= R      → areia     (base)
+   R < b <= 2R      → menta     (high)
+   b > 2R           → verde     (highest)                     */
+const REFERENCIA = Number(ls.get('brian-referencia')) || 1000;
+
+
+
+let SB = null;
+let modo = 'entrar';   /* entrar | criar | recuperar */
+
+const $ = id => document.getElementById(id);
+const erro = () => $('erro');
+
+function setModo(novo){
+  modo = novo;
+  const senha = $('fSenha').closest('.auth-campo');
+  erro().textContent = '';
+  if (modo === 'entrar'){
+    $('titulo').textContent = 'entrar';
+    $('desc').textContent   = 'seu controle financeiro pessoal';
+    $('btnEntrar').textContent = 'entrar';
+    $('btnCriar').textContent  = 'criar conta';
+    $('btnEsqueci').textContent = 'esqueci minha senha';
+    senha.hidden = false;
+    $('fSenha').setAttribute('autocomplete','current-password');
+  } else if (modo === 'criar'){
+    $('titulo').textContent = 'criar conta';
+    $('desc').textContent   = 'a senha precisa ter ao menos 6 caracteres';
+    $('btnEntrar').textContent = 'criar conta';
+    $('btnCriar').textContent  = 'já tenho conta';
+    $('btnEsqueci').textContent = 'esqueci minha senha';
+    senha.hidden = false;
+    $('fSenha').setAttribute('autocomplete','new-password');
+  } else {
+    $('titulo').textContent = 'recuperar senha';
+    $('desc').textContent   = 'enviamos um link para o seu e-mail';
+    $('btnEntrar').textContent = 'enviar link';
+    $('btnCriar').textContent  = 'voltar para entrar';
+    $('btnEsqueci').textContent = '';
+    $('btnEsqueci').hidden = true;
+    senha.hidden = true;
+  }
+  if (modo !== 'recuperar') $('btnEsqueci').hidden = false;
+}
+
+/* Mensagens do Supabase vêm em inglês e cruas; traduz as que o usuário
+   realmente encontra e deixa o resto passar em vez de engolir o motivo. */
+function traduzir(msg){
+  const m = String(msg || '').toLowerCase();
+  if (m.includes('invalid login credentials')) return 'E-mail ou senha incorretos.';
+  if (m.includes('email not confirmed'))       return 'Confirme o e-mail antes de entrar.';
+  if (m.includes('user already registered'))   return 'Esse e-mail já tem conta. Tente entrar.';
+  if (m.includes('password should be at least')) return 'A senha precisa ter ao menos 6 caracteres.';
+  if (m.includes('unable to validate email'))  return 'E-mail inválido.';
+  if (m.includes('rate limit') || m.includes('too many')) return 'Muitas tentativas. Espere um pouco.';
+  return msg || 'Não deu para completar. Tente de novo.';
+}
+
+async function enviar(e){
+  e.preventDefault();
+  const btn   = $('btnEntrar');
+  const email = $('fEmail').value.trim();
+  const senha = $('fSenha').value;
+
+  if (!email){ erro().textContent = 'Informe o e-mail.'; $('fEmail').focus(); return; }
+  if (modo !== 'recuperar' && !senha){ erro().textContent = 'Informe a senha.'; $('fSenha').focus(); return; }
+
+  erro().textContent = '';
+  btn.disabled = true;
+  const rotulo = btn.textContent;
+  btn.textContent = 'aguarde…';
+
+  try {
+    if (!SB) throw new Error('sem conexão');
+    if (modo === 'entrar'){
+      const { error } = await SB.auth.signInWithPassword({ email, password: senha });
+      if (error) throw error;
+      location.replace('saldos.html');
+      return;
+    }
+    if (modo === 'criar'){
+      const { data, error } = await SB.auth.signUp({ email, password: senha });
+      if (error) throw error;
+      /* Com confirmação de e-mail ligada não vem sessão: dizer isso é melhor
+         que mandar para uma tela que vai rebater para cá. */
+      if (data.session){ location.replace('saldos.html'); return; }
+      erro().textContent = 'Conta criada. Confirme o e-mail para entrar.';
+    } else {
+      const { error } = await SB.auth.resetPasswordForEmail(email, { redirectTo: location.href });
+      if (error) throw error;
+      erro().textContent = 'Link enviado. Confira seu e-mail.';
+    }
+  } catch (err) {
+    erro().textContent = traduzir(err.message);
+  }
+  btn.disabled = false;
+  btn.textContent = rotulo;
+}
+
+$('form').addEventListener('submit', enviar);
+$('btnCriar').addEventListener('click', () => setModo(modo === 'entrar' ? 'criar' : 'entrar'));
+$('btnEsqueci').addEventListener('click', () => setModo('recuperar'));
+$('verSenha').addEventListener('click', () => {
+  const i = $('fSenha'), b = $('verSenha');
+  const mostrando = i.type === 'text';
+  i.type = mostrando ? 'password' : 'text';
+  b.classList.toggle('is-off', mostrando);
+  b.setAttribute('aria-pressed', String(!mostrando));
+  b.setAttribute('aria-label', mostrando ? 'Mostrar senha' : 'Ocultar senha');
+  i.focus();
+});
+
+async function boot(){
+  try {
+    SB = window.supabase.createClient(SB_URL, SB_KEY);
+    const { data: { session } } = await SB.auth.getSession();
+    /* Já autenticado não tem o que fazer aqui. */
+    if (session){ location.replace('saldos.html'); return; }
+  } catch (err) {
+    erro().textContent = 'Não deu para falar com o servidor.';
+  }
+  setModo('entrar');
+  $('fEmail').focus();
+}
+
+boot();
+</script>
+</body>
+</html>

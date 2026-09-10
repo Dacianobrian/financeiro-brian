@@ -4061,8 +4061,9 @@ async function loadData() {
 async function bootApp() {
   const { data: { session } } = await _sb.auth.getSession();
   if (!session) {
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('app').hidden = true;
+    /* O login agora tem tela própria, no padrão das outras. A marcação antiga
+       continua no arquivo, apenas sem ser exibida. */
+    location.replace('entrar.html');
     return;
   }
   _userId = session.user.id;

@@ -820,7 +820,7 @@ async function boot(){
     console.warn('Supabase indisponível, usando dados de demonstração.', err);
   }
   const naWeb = location.protocol === 'http:' || location.protocol === 'https:';
-  if (semSessao && naWeb){ location.replace('index.html'); return; }
+  if (semSessao && naWeb){ location.replace('entrar.html'); return; }
   if (!S.movs.length) S.movs = DEMO.map((r, i) => toMov({ ...r, id: 'demo-' + (i + 1) }));
   if (!S.tags.length) S.tags = DEMO_TAGS;
   render();

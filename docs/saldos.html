@@ -1375,7 +1375,7 @@ async function boot(){
      pra conferir o layout fora do servidor. */
   const naWeb = location.protocol === 'http:' || location.protocol === 'https:';
   if (semSessao && naWeb){
-    location.replace('index.html');
+    location.replace('entrar.html');
     return;
   }
   if (!S.movs.length) S.movs = DEMO.map((r, i) => toMov({ ...r, id: 'demo-' + (i + 1) }));
