@@ -590,18 +590,24 @@ const FLAGS = [
 
 S.mes = HOJE.getMonth();
 S.tags = [];
+S.vinculos = {};   /* id do movimento -> [id de tag] */
 S.busca = '';
 const E = { editando:null, cor:'verde', flags:{} };
 
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function hex(c){ return CORES[c] || CORES.verde; }
 
-/* Um movimento aponta para a tag pelo nome, então o casamento é por nome. */
-function movsDaTag(nome){
-  return S.movs.filter(mv =>
-    mv.tag === nome &&
-    mv.data.getFullYear() === S.ano &&
-    mv.data.getMonth() === S.mes);
+/* Conta pelos vínculos, não pelo nome: com várias tags por lançamento, a
+   coluna movimentos.tag guarda só a principal, e contar por ela perderia
+   todo lançamento em que esta tag é secundária. O nome ainda entra como
+   reserva, para linhas antigas que nunca ganharam vínculo. */
+function movsDaTag(tag){
+  return S.movs.filter(mv => {
+    if (mv.data.getFullYear() !== S.ano || mv.data.getMonth() !== S.mes) return false;
+    const v = S.vinculos[String(mv.id)];
+    if (v && v.length) return v.includes(String(tag.id));
+    return mv.tag === tag.nome;
+  });
 }
 
 function render(){
@@ -609,7 +615,7 @@ function render(){
   const lista = S.tags.filter(t => !termo || (t.nome || '').toLowerCase().includes(termo));
 
   document.getElementById('tagsLista').innerHTML = lista.length ? lista.map(t => {
-    const ms = movsDaTag(t.nome);
+    const ms = movsDaTag(t);
     const total = ms.reduce((a, mv) => a + mv.valor, 0);
     return `
       <button class="tag-row" type="button" data-tag="editar" data-id="${esc(t.id)}">
@@ -719,7 +725,11 @@ async function apagarTag(){
   if (E.editando == null) return;
   const erro = document.getElementById('fErro');
   const btn  = document.querySelector('[data-tag="apagar"]');
-  const usada = S.movs.filter(mv => mv.tag === (S.tags.find(t => String(t.id) === String(E.editando)) || {}).nome).length;
+  const alvo = S.tags.find(t => String(t.id) === String(E.editando)) || {};
+  const usada = S.movs.filter(mv => {
+    const v = S.vinculos[String(mv.id)];
+    return (v && v.length) ? v.includes(String(E.editando)) : mv.tag === alvo.nome;
+  }).length;
   /* Apagar a tag não apaga os lançamentos dela — avisa antes em vez de sumir em silêncio. */
   if (usada && !btn.dataset.confirmado){
     erro.textContent = `${usada} lançamento(s) usam esta tag e vão ficar sem tag. Toque em apagar de novo para confirmar.`;
@@ -828,6 +838,13 @@ async function boot(){
       ]);
       if (!mv.error && mv.data) S.movs = mv.data.map(toMov);
       if (!tg.error && tg.data) S.tags = tg.data;
+      const vl = await SB.from('movimento_tags').select('movimento_id,tag_id');
+      if (!vl.error && vl.data){
+        vl.data.forEach(v => {
+          const k = String(v.movimento_id);
+          (S.vinculos[k] = S.vinculos[k] || []).push(String(v.tag_id));
+        });
+      }
     } else {
       semSessao = true;
     }

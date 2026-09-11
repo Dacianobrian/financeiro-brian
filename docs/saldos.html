@@ -419,6 +419,13 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 .btn-salvar:disabled{opacity:.5;cursor:not-allowed}
 .btn-apagar{background:transparent;color:var(--color-feedback-error);border:1px solid var(--color-border-subtle)}
 
+/* ── chips de tag no lançamento ──────────────────────────────── */
+.tag-chips{display:flex;flex-wrap:wrap;gap:6px}
+.tag-chip{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border:1px solid var(--color-border-subtle);border-radius:999px;background:var(--color-bg-surface);color:var(--color-text-primary);font:inherit;font-size:14px;line-height:20px;font-weight:700;cursor:pointer}
+.tag-chip.is-on{border-color:var(--tag-cor);box-shadow:inset 0 0 0 1px var(--tag-cor)}
+.tag-ponto{width:10px;height:10px;flex-shrink:0;border-radius:50%;background:var(--tag-cor)}
+.tag-chip:focus-visible{outline:2px solid var(--color-border-focus);outline-offset:2px}
+
 /* lista de lançamentos do dia */
 .lanc-lista{display:flex;flex-direction:column;gap:0}
 .lanc-item{display:flex;align-items:center;gap:12px;min-height:52px;padding:8px 0;border:0;border-bottom:1px solid var(--border-hairline);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
@@ -646,6 +653,7 @@ const S = {
   checkins: new Set(ls.json('brian-checkins', [])),
   movs: [],
   tags: [],
+  vinculos: {},   /* id do movimento -> [id de tag] */
   cartoes: [],
   saldoInicial: 0,
 };
@@ -1079,6 +1087,11 @@ window.addEventListener('hashchange', () => {
    ══════════════════════════════════════════════════════════════ */
 /* Cada coluna corresponde a uma combinação de campos que a classify()
    devolve de volta como aquela mesma coluna — o ida-e-volta tem que fechar. */
+const CORES_TAG = {
+  cinza:'#9CA3AF', azul:'#3B82F6', amarelo:'#CA8A04', verde:'#10B981',
+  vermelho:'#EF4444', roxo:'#8B5CF6', rosa:'#EC4899', marrom:'#A16207',
+};
+
 const CAMPOS_POR_COLUNA = {
   income:    { tipo:'entrada', conta:'nubank', tag:null },
   expense:   { tipo:'saida',   conta:'nubank', tag:null },
@@ -1138,6 +1151,8 @@ function abrirEditor(dataKey, coluna, id){
   const mv = (id != null && id !== 'null') ? S.movs.find(x => x.id != null && x.id === String(id)) : null;
   const colunaAtual = mv ? classify(mv) : coluna;
 
+  /* O vínculo é a fonte; a coluna tag do movimento é só a principal. */
+  const escolhidas = (mv && S.vinculos[mv.id]) ? S.vinculos[mv.id].map(String) : [];
   document.getElementById('sheetTitulo').textContent = mv ? 'editar lançamento' : 'novo lançamento';
   document.getElementById('sheetCorpo').innerHTML = `
     <div class="campo">
@@ -1165,12 +1180,15 @@ function abrirEditor(dataKey, coluna, id){
       <input id="fData" type="date" value="${esc(mv ? iso(mv.data) : dataKey)}">
     </div>
     <div class="campo">
-      <label class="campo-rot" for="fTag">tag</label>
-      <select id="fTag">
-        <option value=""${!mv || !mv.tag ? ' selected' : ''}>sem tag</option>
-        ${S.tags.map(t => `
-          <option value="${esc(t.nome)}"${mv && mv.tag === t.nome ? ' selected' : ''}>${esc(t.nome)}</option>`).join('')}
-      </select>
+      <span class="campo-rot">tags</span>
+      <div class="tag-chips" id="tagChips">
+        ${S.tags.length ? S.tags.map(t => `
+          <button class="tag-chip${(escolhidas.includes(String(t.id))) ? ' is-on' : ''}" type="button"
+                  data-tag-id="${esc(t.id)}" style="--tag-cor:${esc(CORES_TAG[t.cor] || CORES_TAG.verde)}">
+            <span class="tag-ponto"></span>${esc(t.nome)}
+          </button>`).join('')
+        : '<span class="campo-rot">nenhuma tag cadastrada</span>'}
+      </div>
     </div>
     <div class="campo" id="campoCartao"${colunaAtual === 'card' ? '' : ' hidden'}>
       <label class="campo-rot" for="fCartao">cartão</label>
@@ -1195,9 +1213,38 @@ function abrirEditor(dataKey, coluna, id){
   setTimeout(() => document.getElementById('fValor').focus(), 30);
 }
 
+function tagsSelecionadas(){
+  return [...document.querySelectorAll('#tagChips .tag-chip.is-on')].map(c => c.dataset.tagId);
+}
+
+/* A coluna do lançamento depende de uma tag específica ('diário' move para
+   diários, 'invest' para economias). Com várias tags, a que decide é a
+   primeira escolhida que tenha esse efeito — e se nenhuma tiver, vale a da
+   coluna. Sem isso o destino da linha dependeria da ordem de clique. */
+function tagPrincipal(ids, tagDaColuna){
+  const nomes = ids.map(id => (S.tags.find(t => String(t.id) === String(id)) || {}).nome).filter(Boolean);
+  const decisiva = nomes.find(n => n === 'diário' || n === 'diario' || n === 'invest');
+  return decisiva || tagDaColuna || nomes[0] || null;
+}
+
 function colunaSelecionada(){
   const on = document.querySelector('#chipsColuna .tipo-chip.is-on');
   return on ? on.dataset.col : F.coluna;
+}
+
+/* Regrava o conjunto de tags de um lançamento: apaga o que havia e insere o
+   escolhido. Mais simples e mais seguro que calcular diferenças — o conjunto
+   é pequeno e assim não sobra vínculo órfão de uma edição anterior. */
+async function gravarVinculos(movId, idsTags){
+  if (!SB || !movId) return;
+  const { error: e1 } = await SB.from('movimento_tags').delete().eq('movimento_id', movId);
+  if (e1) throw e1;
+  if (idsTags.length){
+    const { error: e2 } = await SB.from('movimento_tags')
+      .insert(idsTags.map(tag_id => ({ movimento_id: movId, tag_id, user_id: USER_ID })));
+    if (e2) throw e2;
+  }
+  S.vinculos[String(movId)] = idsTags.map(String);
 }
 
 async function salvarLancamento(){
@@ -1212,13 +1259,12 @@ async function salvarLancamento(){
 
   const coluna = colunaSelecionada();
   const campos = CAMPOS_POR_COLUNA[coluna] || CAMPOS_POR_COLUNA.expense;
-  const tagEscolhida = document.getElementById('fTag').value || null;
+  const idsTags = tagsSelecionadas();
   const linha = {
     descricao: desc || metricInfo(coluna).label,
     valor, tipo: campos.tipo, data: dataStr,
     conta: campos.conta,
-    /* A tag escolhida manda sobre a implícita da coluna. */
-    tag: tagEscolhida || campos.tag,
+    tag: tagPrincipal(idsTags, campos.tag),
     rec: document.getElementById('fRec').value || null,
     cartao_id: coluna === 'card' ? (document.getElementById('fCartao').value || null) : null,
   };
@@ -1227,7 +1273,7 @@ async function salvarLancamento(){
      economias. Avisa em vez de mover a linha em silêncio. */
   const colunaFinal = classify({ tipo: linha.tipo, conta: linha.conta, tag: linha.tag });
   if (colunaFinal !== coluna){
-    erro.textContent = `A tag "${tagEscolhida}" move este lançamento para a coluna ${metricInfo(colunaFinal).label}. Toque em salvar de novo para confirmar.`;
+    erro.textContent = `A tag "${linha.tag}" move este lançamento para a coluna ${metricInfo(colunaFinal).label}. Toque em salvar de novo para confirmar.`;
     if (!btn.dataset.confirmado){ btn.dataset.confirmado = '1'; return; }
   }
 
@@ -1260,6 +1306,7 @@ async function salvarLancamento(){
         const i = S.movs.findIndex(x => x.id != null && x.id === String(F.editando));
         if (i !== -1) S.movs[i] = toMov({ ...linha, id: F.editando, serie_id: serie });
       }
+      await gravarVinculos(F.editando, idsTags);
 
     } else if (linha.rec){
       /* Repetição cria as ocorrências de verdade: o saldo continua sendo só
@@ -1271,11 +1318,14 @@ async function salvarLancamento(){
       const { data, error } = await SB.from('movimentos').insert(linhas).select();
       if (error) throw error;
       data.forEach(r => S.movs.push(toMov(r)));
+      /* Toda ocorrência da série recebe o mesmo conjunto de tags. */
+      for (const r of data) await gravarVinculos(r.id, idsTags);
 
     } else {
       const { data, error } = await SB.from('movimentos').insert({ ...linha, user_id: USER_ID }).select();
       if (error) throw error;
       S.movs.push(toMov(data[0]));
+      await gravarVinculos(data[0].id, idsTags);
     }
   } catch (e) {
     erro.textContent = 'Não deu para salvar. ' + (e.message || '');
@@ -1396,6 +1446,9 @@ document.addEventListener('click', e => {
     if (dir === 'month-prev' || dir === 'month-next') return;
     return;
   }
+
+  const tagChip = e.target.closest('[data-tag-id]');
+  if (tagChip){ tagChip.classList.toggle('is-on'); return; }
 
   const folha = e.target.closest('[data-sheet]');
   if (folha){
@@ -1555,6 +1608,14 @@ async function boot(){
       if (!mv.error && mv.data) S.movs = mv.data.map(toMov);
       if (!tg.error && tg.data) S.tags = tg.data;
       if (!cc.error && cc.data) S.cartoes = cc.data;
+      const vl = await sb.from('movimento_tags').select('movimento_id,tag_id');
+      if (!vl.error && vl.data){
+        S.vinculos = {};
+        vl.data.forEach(v => {
+          const k = String(v.movimento_id);
+          (S.vinculos[k] = S.vinculos[k] || []).push(String(v.tag_id));
+        });
+      }
     } else {
       semSessao = true;
     }
