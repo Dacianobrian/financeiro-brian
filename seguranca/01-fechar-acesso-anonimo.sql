@@ -2,6 +2,9 @@
 --  FECHA O ACESSO ANÔNIMO NO SUPABASE
 --  Projeto: cathhujdhocioybdpnvc
 --
+--  >>> JÁ APLICADO EM 11/09/2026. Este arquivo fica como registro do que foi
+--  >>> feito. Rodar de novo não causa problema (é idempotente).
+--
 --  PROBLEMA
 --  A chave "anon" fica publicada no HTML do site (isso é normal e esperado —
 --  ela é pública por design). Quem protege os dados é o RLS. Só que 20 tabelas
@@ -27,8 +30,10 @@
 --  - Qualquer app seu que leia estas tabelas com a chave anon SEM fazer login.
 --    Se algo parar de funcionar, o rollback está no arquivo 02.
 --
---  COMO RODAR
---  Supabase → SQL Editor → cole tudo → Run
+--  VERIFICADO DEPOIS DE APLICAR
+--  - como anon:    ERROR 42501 permission denied for table transactions
+--  - como logado:  711 lançamentos, tudo no lugar
+--  - painel:       alerta crítico de RLS desapareceu
 -- ============================================================================
 
 do $$
