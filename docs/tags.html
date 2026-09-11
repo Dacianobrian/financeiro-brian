@@ -684,8 +684,21 @@ async function salvarTag(){
   try {
     if (!SB) throw new Error('sem conexão');
     if (E.editando != null){
+      const antiga = S.tags.find(x => String(x.id) === String(E.editando));
+      const nomeAntigo = antiga ? antiga.nome : null;
+
       const { error } = await SB.from('tags').update(linha).eq('id', E.editando);
       if (error) throw error;
+
+      /* O lançamento aponta para a tag pelo NOME. Renomear sem levar os
+         lançamentos junto deixaria todos eles órfãos, apontando para um nome
+         que não existe mais. */
+      if (nomeAntigo && nomeAntigo !== nome){
+        const { error: e2 } = await SB.from('movimentos').update({ tag: nome }).eq('tag', nomeAntigo);
+        if (e2) throw e2;
+        S.movs.forEach(mv => { if (mv.tag === nomeAntigo) mv.tag = nome; });
+      }
+
       const i = S.tags.findIndex(x => String(x.id) === String(E.editando));
       if (i !== -1) S.tags[i] = { ...S.tags[i], ...linha };
     } else {
