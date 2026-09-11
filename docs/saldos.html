@@ -525,7 +525,8 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
           <div class="dh-nav">
             <button class="dh-nav-btn nav-dbl-prev" type="button" aria-label="Ano anterior" data-nav="year-prev"></button>
             <button class="dh-nav-btn nav-prev" type="button" aria-label="Mês anterior" data-nav="month-prev"></button>
-            <button class="dh-range-pill" type="button" data-action="today">
+            <button class="dh-range-pill" type="button" data-action="periodo"
+                    title="Trocar o período exibido">
               <span class="dh-range-label" id="rangeLabel">jan/2026 - dez/2026</span>
               <span class="dh-chevron"></span>
             </button>
@@ -638,6 +639,8 @@ const HOJE_KEY = iso(HOJE);
 
 const S = {
   ano: HOJE.getFullYear(),
+  baseMes: null,   /* âncora da janela; null = mês de hoje */
+  periodo: null,   /* preenchido por periodoAtual() */
   metric: ls.get('brian-saldos-metric', 'card'),
   collapsed: new Set(ls.json('brian-saldos-collapsed', [])),
   checkins: new Set(ls.json('brian-checkins', [])),
@@ -678,6 +681,41 @@ function classify(mv){
   return 'expense';
 }
 
+/* As três opções de período do app de referência. A janela deixa de ser
+   sempre jan–dez: "mês atual + 11" é o padrão lá, e faz mais sentido para
+   quem olha o que vem pela frente. */
+const PERIODOS = [
+  { valor:'mes-atual-11',   label:'mês atual + 11 meses'   },
+  { valor:'mes-anterior-11',label:'mês anterior + 11 meses'},
+  { valor:'ano-atual',      label:'ano atual'              },
+];
+
+/* A escolha vive na memória; o armazenamento é só conveniência entre sessões.
+   Depender dele deixava o botão inerte quando o navegador bloqueia storage
+   (navegação privada), sem nenhum sinal do porquê. */
+function periodoAtual(){
+  if (!PERIODOS.some(p => p.valor === S.periodo)){
+    const v = ls.get('brian-saldos-periodo', 'mes-atual-11');
+    S.periodo = PERIODOS.some(p => p.valor === v) ? v : 'mes-atual-11';
+  }
+  return S.periodo;
+}
+
+/* Devolve os 12 meses da janela, cada um com ano e mês próprios — a janela
+   atravessa o ano, então não dá mais para assumir um ano só. */
+function janela(){
+  const p = periodoAtual();
+  if (p === 'ano-atual'){
+    return Array.from({length:12}, (_, m) => ({ y: S.ano, m }));
+  }
+  const desloc = p === 'mes-anterior-11' ? -1 : 0;
+  const base = new Date(S.ano, (S.baseMes !== null ? S.baseMes : HOJE.getMonth()) + desloc, 1);
+  return Array.from({length:12}, (_, i) => {
+    const d = new Date(base.getFullYear(), base.getMonth() + i, 1);
+    return { y: d.getFullYear(), m: d.getMonth() };
+  });
+}
+
 /* Constrói o ano inteiro: 12 meses × dias, com saldo acumulado. */
 function buildYear(ano){
   const porDia = new Map();
@@ -690,19 +728,22 @@ function buildYear(ano){
     bucket.delta += (mv.tipo === 'entrada' ? mv.valor : -mv.valor);
   }
 
-  // saldo acumulado desde o começo até 31/dez do ano anterior
+  /* Acumula tudo que é anterior ao primeiro mês da janela — que nem sempre é
+     1º de janeiro, já que a janela pode começar em qualquer mês. */
+  const j = janela();
+  const inicio = iso(new Date(j[0].y, j[0].m, 1));
   let saldo = S.saldoInicial;
   for (const [k, b] of [...porDia.entries()].sort()){
-    if (k < ano + '-01-01') saldo += b.delta;
+    if (k < inicio) saldo += b.delta;
   }
 
   const meses = [];
-  for (let m = 0; m < 12; m++){
+  for (const { y, m } of janela()){
     const dias = [];
     const tot = { income:0, expense:0, recurring:0, savings:0, card:0 };
-    const n = diasNoMes(ano, m);
+    const n = diasNoMes(y, m);
     for (let d = 1; d <= n; d++){
-      const date = new Date(ano, m, d);
+      const date = new Date(y, m, d);
       const k = iso(date);
       const b = porDia.get(k) || { income:0, expense:0, recurring:0, savings:0, card:0, delta:0 };
       saldo += b.delta;
@@ -717,7 +758,7 @@ function buildYear(ano){
         tone: tone(saldo),
       });
     }
-    meses.push({ m, dias, tot });
+    meses.push({ y, m, dias, tot });
   }
   return meses;
 }
@@ -819,7 +860,7 @@ function footRow(mes){
 function monthSection(mes, ano){
   const rows = mes.dias.map((d,i) => dayRow(d, i > 0 ? mes.dias[i-1] : null)).join('');
   return `<section class="month-section" data-month="${mes.m}" data-year="${ano}">
-      <div class="month-title-row"><h2 class="month-title">${MESES[mes.m]}/${ano}</h2></div>
+      <div class="month-title-row"><h2 class="month-title">${MESES[mes.m]}/${mes.y}</h2></div>
       <div class="month-table">
         ${headRow()}
         <div class="table-body" data-role="body">${rows}</div>
@@ -831,7 +872,9 @@ function monthSection(mes, ano){
 function render(){
   const meses = buildYear(S.ano);
   document.getElementById('monthsTrack').innerHTML = meses.map(m => monthSection(m, S.ano)).join('');
-  document.getElementById('rangeLabel').textContent = `jan/${S.ano} - dez/${S.ano}`;
+  const j = janela();
+  document.getElementById('rangeLabel').textContent =
+    `${MESES[j[0].m]}/${j[0].y} - ${MESES[j[11].m]}/${j[11].y}`;
   document.getElementById('sidebarTodayNum').textContent = HOJE.getDate();
   document.getElementById('mobileTodayNum').textContent = HOJE.getDate();
   applyLayout();
@@ -957,7 +1000,9 @@ function scrollToMonth(i, behavior = 'smooth'){
 function updateMobileMonthLabel(){
   const i = mesAlvo !== null ? mesAlvo : currentMonthIndex();
   mesVisivel = i;
-  document.getElementById('mobileMonthLabel').textContent = `${MESES_CAP[i]}/${S.ano}`;
+  /* A janela pode atravessar o ano, então o rótulo vem do mês em si. */
+  const j = janela()[i] || { m: i, y: S.ano };
+  document.getElementById('mobileMonthLabel').textContent = `${MESES_CAP[j.m]}/${j.y}`;
 }
 
 document.getElementById('monthsScroller').addEventListener('scroll', e => {
@@ -992,8 +1037,19 @@ function goToDate(key){
   const ano = Number(key.slice(0, 4));
   const mes = Number(key.slice(5, 7)) - 1;
   if (mes < 0 || mes > 11) return false;
-  if (ano !== S.ano){ S.ano = ano; render(); }
-  scrollToMonth(mes);
+
+  /* A posição na tela é o índice DENTRO da janela, não o mês do calendário:
+     com "mês atual + 11", setembro pode ser a coluna 0. Se a data pedida não
+     está na janela, a janela se move para conter o mês pedido. */
+  let i = janela().findIndex(j => j.y === ano && j.m === mes);
+  if (i === -1){
+    S.ano = ano;
+    S.baseMes = mes;
+    render();
+    i = janela().findIndex(j => j.y === ano && j.m === mes);
+    if (i === -1) return false;
+  }
+  scrollToMonth(i);
   requestAnimationFrame(() => {
     const row = document.querySelector(`.row[data-date="${key}"]`);
     if (!row) return;
@@ -1337,6 +1393,7 @@ document.addEventListener('click', e => {
     if (dir === 'month-next') scrollToMonth(currentMonthIndex() + 1);
     if (dir === 'year-prev'){ S.ano--; render(); scrollToMonth(0,'auto'); }
     if (dir === 'year-next'){ S.ano++; render(); scrollToMonth(0,'auto'); }
+    if (dir === 'month-prev' || dir === 'month-next') return;
     return;
   }
 
@@ -1372,6 +1429,18 @@ document.addEventListener('click', e => {
 
   const act = e.target.closest('[data-action]');
   if (act){
+    if (act.dataset.action === 'periodo'){
+      /* Cicla entre as três opções: um seletor só para três itens seria
+         mais peso do que utilidade. */
+      const atual = periodoAtual();
+      const i = PERIODOS.findIndex(p => p.valor === atual);
+      const prox = PERIODOS[(i + 1) % PERIODOS.length].valor;
+      S.periodo = prox;
+      ls.set('brian-saldos-periodo', prox);
+      render();
+      goToToday();
+      return;
+    }
     if (act.dataset.action === 'today')   goToToday();
     if (act.dataset.action === 'horizon') location.href = 'horizonte.html';
     if (act.dataset.action === 'add')     abrirEditor(HOJE_KEY, 'expense', null);

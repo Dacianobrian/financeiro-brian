@@ -612,9 +612,13 @@ function toMov(r){
    É só leitura — não cria lançamento nenhum, para não inventar gasto.
    ══════════════════════════════════════════════════════════════ */
 S.mes = HOJE.getMonth();
+S.metas = {};   /* 'ano-mes' -> valor */
 
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-function metaMensal(){ return Number(ls.get('brian-previsao-diario')) || 0; }
+/* Uma meta por mês, no banco: o valor de janeiro não é o de fevereiro, e
+   guardado no navegador não valia em outro aparelho. */
+function chaveMes(){ return S.ano + '-' + S.mes; }
+function metaMensal(){ return Number(S.metas[chaveMes()]) || 0; }
 
 function gastoDoMes(){
   return S.movs
@@ -648,6 +652,7 @@ function render(){
         <label class="pv-rot" for="fMeta">diário do mês</label>
         <input class="pv-input" id="fMeta" type="number" inputmode="decimal" step="0.01" min="0"
                placeholder="0,00" value="${meta || ''}">
+        <span class="pv-dica" id="pvAviso" style="color:var(--color-feedback-error)"></span>
         <span class="pv-dica">${meta > 0
           ? `dá ${esc(fmt(porDia))} por dia em ${n} dias`
           : 'informe o valor para ver a previsão'}</span>
@@ -699,9 +704,29 @@ function render(){
   document.title = `previsão de diário · ${MESES[S.mes]}/${S.ano}`;
 }
 
+async function gravarMeta(valor){
+  const chave = chaveMes();
+  S.metas[chave] = valor;
+  if (!SB || !USER_ID) return;
+  try {
+    /* upsert pela chave (usuário, ano, mês): digitar de novo no mesmo mês
+       atualiza a linha em vez de criar outra. */
+    const { error } = await SB.from('previsao_diario')
+      .upsert({ user_id: USER_ID, ano: S.ano, mes: S.mes, valor: valor || 0 },
+              { onConflict: 'user_id,ano,mes' });
+    if (error) throw error;
+    const av = document.getElementById('pvAviso');
+    if (av) av.textContent = '';
+  } catch (err) {
+    const av = document.getElementById('pvAviso');
+    if (av) av.textContent = 'Não deu para salvar: ' + (err.message || '');
+  }
+}
+
 document.addEventListener('input', e => {
   if (e.target.id !== 'fMeta') return;
-  ls.set('brian-previsao-diario', e.target.value || '');
+  clearTimeout(window.__pvSave);
+  window.__pvSave = setTimeout(() => gravarMeta(Number(e.target.value) || 0), 600);
   clearTimeout(window.__pvTimer);
   /* Redesenha depois da digitação parar, para o cursor não saltar a cada tecla. */
   window.__pvTimer = setTimeout(() => {
@@ -724,7 +749,8 @@ document.addEventListener('click', e => {
   }
   const act = e.target.closest('[data-action]');
   if (act){
-    if (act.dataset.action === 'today'){ S.ano = HOJE.getFullYear(); S.mes = HOJE.getMonth(); render(); }
+    if (act.dataset.action === 'today'){ S.ano = HOJE.getFullYear(); S.mes = HOJE.getMonth();
+S.metas = {};   /* 'ano-mes' -> valor */ render(); }
     if (act.dataset.action === 'horizon') location.href = 'horizonte.html';
     if (act.dataset.action === 'add')     location.href = 'saldos.html#novo';
     if (act.dataset.action === 'escopo')  return;
@@ -736,6 +762,7 @@ document.addEventListener('click', e => {
 
 
 let SB = null;
+let USER_ID = null;
 
 async function boot(){
   let semSessao = false;
@@ -745,8 +772,13 @@ async function boot(){
     const { data: { session } } = await SB.auth.getSession();
     if (session){
       autenticado = true;
-      const { data, error } = await SB.from('movimentos').select('*').order('data', { ascending: true });
-      if (!error && data) S.movs = data.map(toMov);
+      USER_ID = session.user.id;
+      const [mv, pv] = await Promise.all([
+        SB.from('movimentos').select('*').order('data', { ascending: true }),
+        SB.from('previsao_diario').select('*'),
+      ]);
+      if (!mv.error && mv.data) S.movs = mv.data.map(toMov);
+      if (!pv.error && pv.data) pv.data.forEach(r => { S.metas[r.ano + '-' + r.mes] = Number(r.valor); });
     } else {
       semSessao = true;
     }
