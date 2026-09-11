@@ -815,10 +815,12 @@ const DEMO_TAGS = [
 
 async function boot(){
   let semSessao = false;
+  let autenticado = false;
   try {
     SB = window.supabase.createClient(SB_URL, SB_KEY);
     const { data: { session } } = await SB.auth.getSession();
     if (session){
+      autenticado = true;
       USER_ID = session.user.id;
       const [mv, tg] = await Promise.all([
         SB.from('movimentos').select('*').order('data', { ascending: true }),
@@ -834,8 +836,11 @@ async function boot(){
   }
   const naWeb = location.protocol === 'http:' || location.protocol === 'https:';
   if (semSessao && naWeb){ location.replace('entrar.html'); return; }
-  if (!S.movs.length) S.movs = DEMO.map((r, i) => toMov({ ...r, id: 'demo-' + (i + 1) }));
-  if (!S.tags.length) S.tags = DEMO_TAGS;
+  /* Base vazia de usuário logado é base vazia — a demonstração só entra quando
+     não há sessão nenhuma (arquivo aberto direto, para conferir layout).
+     Inventar número para quem está autenticado é mentir sobre dinheiro. */
+  if (!autenticado && !S.movs.length) S.movs = DEMO.map((r, i) => toMov({ ...r, id: 'demo-' + (i + 1) }));
+  if (!autenticado && !S.tags.length) S.tags = DEMO_TAGS;
   render();
 }
 

@@ -719,10 +719,12 @@ document.addEventListener('keydown', e => {
 
 async function boot(){
   let semSessao = false;
+  let autenticado = false;
   try {
     const sb = window.supabase.createClient(SB_URL, SB_KEY);
     const { data: { session } } = await sb.auth.getSession();
     if (session){
+      autenticado = true;
       const { data, error } = await sb.from('movimentos').select('*').order('data', { ascending: true });
       if (!error && data) S.movs = data.map(toMov);
     } else {
@@ -740,7 +742,10 @@ async function boot(){
     location.replace('entrar.html');
     return;
   }
-  if (!S.movs.length) S.movs = DEMO.map(toMov);
+  /* Base vazia de usuário logado é base vazia — a demonstração só entra quando
+     não há sessão nenhuma (arquivo aberto direto, para conferir layout).
+     Inventar número para quem está autenticado é mentir sobre dinheiro. */
+  if (!autenticado && !S.movs.length) S.movs = DEMO.map(toMov);
   irParaHoje();
 }
 

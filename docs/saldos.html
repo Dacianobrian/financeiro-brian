@@ -1356,11 +1356,13 @@ let USER_ID = null;
 
 async function boot(){
   let semSessao = false;
+  let autenticado = false;
   try {
     const sb = window.supabase.createClient(SB_URL, SB_KEY);
     SB = sb;
     const { data: { session } } = await sb.auth.getSession();
     if (session){
+      autenticado = true;
       USER_ID = session.user.id;
       const [mv, tg, cc] = await Promise.all([
         sb.from('movimentos').select('*').order('data', { ascending: true }),
@@ -1385,7 +1387,10 @@ async function boot(){
     location.replace('entrar.html');
     return;
   }
-  if (!S.movs.length) S.movs = DEMO.map((r, i) => toMov({ ...r, id: 'demo-' + (i + 1) }));
+  /* Base vazia de usuário logado é base vazia — a demonstração só entra quando
+     não há sessão nenhuma (arquivo aberto direto, para conferir layout).
+     Inventar número para quem está autenticado é mentir sobre dinheiro. */
+  if (!autenticado && !S.movs.length) S.movs = DEMO.map((r, i) => toMov({ ...r, id: 'demo-' + (i + 1) }));
   render();
   const entrada = (location.hash || '').slice(1);
   if (entrada === 'novo'){
