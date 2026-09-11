@@ -220,7 +220,11 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 .mh-arrow::before{content:"";width:24px;height:24px;background-color:var(--color-text-primary);-webkit-mask-size:24px 24px;mask-size:24px 24px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
 .mh-arrow.nav-prev::before{-webkit-mask-image:var(--ic-chevron-left);mask-image:var(--ic-chevron-left)}
 .mh-arrow.nav-next::before{-webkit-mask-image:var(--ic-chevron-right);mask-image:var(--ic-chevron-right)}
-.mh-month{min-width:110px;color:var(--color-text-primary);font-size:20px;line-height:28px;font-weight:700;text-align:center;white-space:nowrap}
+.mh-month{min-width:110px;padding:0;border:0;background:transparent;font-family:inherit;color:var(--color-text-primary);font-size:20px;line-height:28px;font-weight:700;text-align:center;white-space:nowrap;cursor:pointer}
+.mh-month:focus-visible{outline:2px solid #FF5917;outline-offset:4px;border-radius:6px}
+/* Sinaliza que o rótulo alterna mês/ano — no celular ele é o único caminho,
+   porque o cabeçalho desktop, onde vive a pílula, fica escondido. */
+.mh-month::after{content:"";display:inline-block;width:16px;height:16px;margin-left:4px;vertical-align:-2px;background-color:var(--color-text-muted);-webkit-mask-image:var(--ic-chevron-down);mask-image:var(--ic-chevron-down);-webkit-mask-size:16px 16px;mask-size:16px 16px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
 .mh-horizon{width:32px;height:32px;display:grid;grid-template-columns:repeat(3,10px);grid-template-rows:repeat(3,10px);gap:1px;padding:0;border:0;border-radius:4px;background:var(--color-bg-surface);cursor:pointer}
 .mh-horizon > span{border-radius:1px}
 .mh-horizon .hm-neutral{background:var(--color-bg-subtle)}
@@ -388,7 +392,8 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
         </button>
         <div class="mh-center">
           <button class="mh-arrow nav-prev" type="button" aria-label="Mês anterior" data-nav="month-prev"></button>
-          <span class="mh-month" id="mobileMonthLabel">Set/2026</span>
+          <button class="mh-month" id="mobileMonthLabel" type="button" data-action="escopo"
+                  title="Alternar entre mês e ano">Set/2026</button>
           <button class="mh-arrow nav-next" type="button" aria-label="Próximo mês" data-nav="month-next"></button>
         </div>
         <button class="mh-horizon" type="button" id="mobileHorizon" aria-label="Horizonte">
