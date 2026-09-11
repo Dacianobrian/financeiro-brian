@@ -22,3 +22,6 @@ pip-wheel-metadata/
 .DS_Store
 *.log
 *.tmp
+
+# Backups com dados financeiros reais — nunca no git
+backups/
