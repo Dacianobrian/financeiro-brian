@@ -404,8 +404,15 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 .tipo-chips{display:flex;flex-wrap:wrap;gap:6px}
 .tipo-chip{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border:1px solid var(--color-border-subtle);border-radius:999px;background:var(--color-bg-surface);color:var(--color-text-primary);font:inherit;font-size:14px;line-height:20px;font-weight:700;text-transform:lowercase;cursor:pointer}
 .tipo-chip .metric-icon{opacity:1}
-.tipo-chip.is-on{border-color:var(--metric-color,var(--color-text-primary));box-shadow:inset 0 0 0 1px var(--metric-color,var(--color-text-primary))}
-.tipo-chip.is-on .metric-icon{background-color:var(--metric-color)}
+/* A cor vem numa variável própria: usar a classe mi-* aqui aplicaria o
+   mask-image no botão e recortaria o texto junto com o ícone. */
+.tipo-chip.c-income{--chip-cor:#529952}
+.tipo-chip.c-expense{--chip-cor:#E62D2D}
+.tipo-chip.c-recurring{--chip-cor:#EC4899}
+.tipo-chip.c-savings{--chip-cor:#84CC16}
+.tipo-chip.c-card{--chip-cor:#7C3AED}
+.tipo-chip.is-on{border-color:var(--chip-cor,var(--color-text-primary));box-shadow:inset 0 0 0 1px var(--chip-cor,var(--color-text-primary))}
+.tipo-chip.is-on .metric-icon{background-color:var(--chip-cor)}
 
 .btn{height:44px;padding:0 16px;border:0;border-radius:10px;font:inherit;font-size:16px;line-height:24px;font-weight:700;cursor:pointer}
 .btn-salvar{flex:1;background:#FF5917;color:#fff}
@@ -1070,7 +1077,7 @@ function abrirEditor(dataKey, coluna, id){
       <span class="campo-rot">coluna</span>
       <div class="tipo-chips" id="chipsColuna">
         ${METRICS.map(m => `
-          <button class="tipo-chip ${m.icon}${m.key === colunaAtual ? ' is-on' : ''}" type="button"
+          <button class="tipo-chip c-${m.key}${m.key === colunaAtual ? ' is-on' : ''}" type="button"
                   data-sheet="coluna" data-col="${m.key}">
             <span class="metric-icon ${m.icon}"></span>${esc(m.label)}
           </button>`).join('')}
