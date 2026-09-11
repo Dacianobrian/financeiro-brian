@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="google" content="notranslate">
 <meta name="theme-color" content="#FFFFFF">
-<title>totais</title>
+<title>previsão de diário</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
@@ -28,6 +28,7 @@
   }
 })();
 </script>
+
 <style>
 /* ══════════════════════════════════════════════════════════════
    TOKENS
@@ -233,6 +234,7 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 .mi-savings{--metric-color:#84CC16;-webkit-mask-image:var(--ic-savings);mask-image:var(--ic-savings)}
 .mi-card{--metric-color:#7C3AED;-webkit-mask-image:var(--ic-card);mask-image:var(--ic-card)}
 
+
 /* ══════════════════════════════════════════════════════════════
    CONTEÚDO (totais)
    ══════════════════════════════════════════════════════════════ */
@@ -278,17 +280,20 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 @media(prefers-reduced-motion:reduce){.tt-meter-fill{transition:none}}
 .tt-stack-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px}
 
-/* ── tabela mês a mês (recorte anual) ────────────────────────── */
-.ano-tabela{width:100%;border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
-.ano-tabela th,.ano-tabela td{padding:8px 0;border-bottom:1px solid var(--border-hairline);white-space:nowrap}
-.ano-tabela th{color:var(--color-text-muted);font-size:14px;line-height:20px;font-weight:700;text-transform:lowercase;text-align:right}
-.ano-tabela th:first-child,.ano-tabela td:first-child{text-align:left}
-.ano-tabela td{color:var(--color-text-primary);font-size:14px;line-height:20px;font-weight:500;text-align:right}
-.ano-mes{font-weight:700;text-transform:lowercase}
-.ano-tabela td.is-zero{color:var(--color-text-ghost)}
-.ano-tabela tr.is-atual td{color:#FF5917}
-.ano-tabela tfoot td{padding-top:12px;border-bottom:0;border-top:1px solid var(--color-text-primary);font-size:16px;line-height:24px;font-weight:700}
-.ano-pct{width:64px}
+
+
+/* ══════════════════════════════════════════════════════════════
+   PREVISÃO DE DIÁRIO
+   ══════════════════════════════════════════════════════════════ */
+.pv-campo{display:flex;flex-direction:column;gap:6px;padding:16px 0;border-bottom:1px solid var(--border-hairline)}
+.pv-rot{color:var(--color-text-muted);font-size:14px;line-height:20px;font-weight:700;text-transform:lowercase}
+.pv-input{width:100%;height:48px;padding:0 12px;border:1px solid var(--color-border-subtle);border-radius:10px;background:var(--color-bg-surface);color:var(--color-text-primary);font:inherit;font-size:20px;line-height:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.pv-input:focus{outline:2px solid var(--color-border-focus);outline-offset:-1px}
+.pv-dica{color:var(--color-text-muted);font-size:14px;line-height:20px}
+.pv-barra{height:20px;margin-top:4px;border-radius:10px;border:2px solid var(--color-feedback-success);background:var(--color-bg-subtle);overflow:hidden}
+.pv-fill{height:100%;width:0;border-radius:8px;background:var(--color-feedback-success);transition:width 320ms ease}
+.pv-fill.is-alto{background:var(--color-feedback-error)}
+@media(prefers-reduced-motion:reduce){.pv-fill{transition:none}}
 
 /* ══════════════════════════════════════════════════════════════
    NAV INFERIOR (mobile)
@@ -308,9 +313,9 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 .mn-add{width:54px;min-height:64px;display:flex;align-items:flex-start;justify-content:center;padding:8px 0 0;border:0;background:transparent;color:var(--color-text-primary);cursor:pointer}
 .mn-add .mn-icon{width:48px;height:48px;-webkit-mask-image:var(--ic-plus-circle);mask-image:var(--ic-plus-circle);-webkit-mask-size:48px 48px;mask-size:48px 48px}
 
+
 </style>
 </head>
-
 <body>
 <div id="root">
 <main class="app-main">
@@ -326,13 +331,13 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
           <button class="sidebar-item" type="button" onclick="location.href='saldos.html'">
             <span class="sidebar-icon ic-saldos"></span><span class="sidebar-label">saldos</span>
           </button>
-          <button class="sidebar-item is-active" type="button">
+          <button class="sidebar-item" type="button" onclick="location.href='totais.html'">
             <span class="sidebar-icon ic-totais"></span><span class="sidebar-label">totais</span>
           </button>
           <button class="sidebar-item" type="button" onclick="location.href='tags.html'">
             <span class="sidebar-icon ic-tags"></span><span class="sidebar-label">tags</span>
           </button>
-          <button class="sidebar-item" type="button" onclick="location.href='menu.html'">
+          <button class="sidebar-item is-active" type="button" onclick="location.href='menu.html'">
             <span class="sidebar-icon ic-menu"></span><span class="sidebar-label">menu</span>
           </button>
           <div class="sidebar-divider" role="separator"></div>
@@ -365,7 +370,7 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
       <!-- Header desktop -->
       <div class="desktop-header-wrap">
         <header class="desktop-header">
-          <div class="dh-title-wrap"><h1 class="dh-title">totais</h1></div>
+          <div class="dh-title-wrap"><h1 class="dh-title">previsão de diário</h1></div>
           <div class="dh-nav">
             <button class="dh-nav-btn nav-dbl-prev" type="button" aria-label="Ano anterior" data-nav="year-prev"></button>
             <button class="dh-nav-btn nav-prev" type="button" aria-label="Mês anterior" data-nav="month-prev"></button>
@@ -400,7 +405,7 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 
       <!-- Conteúdo -->
       <div class="totais-viewport">
-        <div class="totais-col" id="totaisCol"></div>
+        <div class="totais-col" id="pvCol"></div>
       </div>
     </div>
   </section>
@@ -410,14 +415,14 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
     <button class="mn-item" type="button" onclick="location.href='saldos.html'">
       <span class="mn-icon ic-saldos"></span><span class="mn-label">saldos</span>
     </button>
-    <button class="mn-item is-active" type="button">
+    <button class="mn-item" type="button" onclick="location.href='totais.html'">
       <span class="mn-icon ic-totais"></span><span class="mn-label">totais</span>
     </button>
     <button class="mn-add" type="button" aria-label="Adicionar" data-action="add"><span class="mn-icon"></span></button>
     <button class="mn-item" type="button" onclick="location.href='tags.html'">
       <span class="mn-icon ic-tags"></span><span class="mn-label">tags</span>
     </button>
-    <button class="mn-item" type="button" onclick="location.href='menu.html'">
+    <button class="mn-item is-active" type="button" onclick="location.href='menu.html'">
       <span class="mn-icon ic-menu"></span><span class="mn-label">menu</span>
     </button>
   </nav>
@@ -598,282 +603,158 @@ function toMov(r){
   };
 }
 
-/* ══════════════════════════════════════════════════════════════
-   AGREGAÇÃO DO MÊS
-   ══════════════════════════════════════════════════════════════ */
-/* mes === null agrega o ano inteiro. O resto do cálculo é idêntico — só muda
-   a janela e quantos dias já passaram dentro dela. */
-function totaisDoPeriodo(ano, mes){
-  const t = { income:0, expense:0, recurring:0, savings:0, card:0 };
-  const diasVistos = new Set();
-  for (const mv of S.movs){
-    if (mv.data.getFullYear() !== ano) continue;
-    if (mes !== null && mv.data.getMonth() !== mes) continue;
-    const kind = classify(mv);
-    t[kind] += mv.valor;
-    if (kind === 'recurring') diasVistos.add(iso(mv.data));
-  }
 
-  /* Dias decorridos: no período corrente conta até hoje; nos passados, o
-     período todo; nos futuros, zero — dividir por dias que ainda não
-     aconteceram mentiria na média. */
-  const bissexto = (ano % 4 === 0 && ano % 100 !== 0) || ano % 400 === 0;
-  const total = mes === null ? (bissexto ? 366 : 365) : diasNoMes(ano, mes);
-  const inicio = mes === null ? new Date(ano, 0, 1) : new Date(ano, mes, 1);
-  const inicioAtual = mes === null
-    ? new Date(HOJE.getFullYear(), 0, 1)
-    : new Date(HOJE.getFullYear(), HOJE.getMonth(), 1);
-
-  let decorridos;
-  if (inicio.getTime() === inicioAtual.getTime()){
-    decorridos = mes === null
-      ? Math.round((HOJE - new Date(ano, 0, 1)) / 86400000) + 1
-      : HOJE.getDate();
-  } else if (inicio < inicioAtual) {
-    decorridos = total;
-  } else {
-    decorridos = 0;
-  }
-
-  t.custoDeVida    = t.expense + t.recurring + t.card;
-  t.performance    = t.income - t.custoDeVida - t.savings;
-  t.decorridos     = decorridos;
-  t.diasComDiario  = diasVistos.size;
-  t.diarioMedio    = decorridos > 0 ? t.recurring / decorridos : 0;
-  t.economizadoPct = t.income > 0 ? Math.max(0, Math.min(100, (t.savings / t.income) * 100)) : 0;
-  return t;
-}
 
 /* ══════════════════════════════════════════════════════════════
-   RENDER
+   PREVISÃO DE DIÁRIO
+   Você declara quanto pretende gastar por mês em diários; a tela mostra
+   quanto isso dá por dia e como o mês está indo contra essa meta.
+   É só leitura — não cria lançamento nenhum, para não inventar gasto.
    ══════════════════════════════════════════════════════════════ */
+S.mes = HOJE.getMonth();
+
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function metaMensal(){ return Number(ls.get('brian-previsao-diario')) || 0; }
 
-function chip(key){
-  const mt = metricInfo(key);
-  return `<span class="tt-chip c-${key}"><span class="metric-icon ${mt.icon}"></span></span>`;
-}
-function formula(keys, op){
-  return keys.map(k => chip(k)).join(`<span class="tt-op">${esc(op)}</span>`);
-}
-function zeroCls(v){ return v === 0 ? ' is-zero' : ''; }
-
-function linha({ formulaHTML, label, valor, valorCls = '', status }){
-  const multi = (formulaHTML.match(/tt-chip/g) || []).length >= 3 ? ' is-multi' : '';
-  return `
-    <div class="tt-row">
-      <div class="tt-left${multi}">
-        <div class="tt-formula">${formulaHTML}</div>
-        <span class="tt-label">${esc(label)}</span>
-      </div>
-      <div class="tt-right">
-        <span class="tt-value${valorCls}${zeroCls(valor)}">${fmt(valor)}</span>
-        ${status ? `<span class="tt-status">${esc(status)}</span>` : ''}
-      </div>
-    </div>`;
+function gastoDoMes(){
+  return S.movs
+    .filter(mv => mv.data.getFullYear() === S.ano && mv.data.getMonth() === S.mes && classify(mv) === 'recurring')
+    .reduce((a, mv) => a + mv.valor, 0);
 }
 
-/* Mês a mês do ano, no formato da planilha: entradas, economia e a razão
-   entre as duas. O rodapé soma o ano — e a % do ano é a razão dos totais,
-   não a média das mensais, que daria outro número. */
-function tabelaDoAno(){
-  const linhas = [];
-  let totEntradas = 0, totEconomia = 0;
-  for (let m = 0; m < 12; m++){
-    const t = totaisDoPeriodo(S.ano, m);
-    totEntradas += t.income;
-    totEconomia += t.savings;
-    linhas.push({ m, entradas: t.income, economia: t.savings,
-                  pct: t.income > 0 ? (t.savings / t.income) * 100 : null });
-  }
-  const pctAno = totEntradas > 0 ? (totEconomia / totEntradas) * 100 : null;
-  const ehAtual = m => S.ano === HOJE.getFullYear() && m === HOJE.getMonth();
-  const cls = v => v === 0 ? ' class="is-zero"' : '';
-
-  return `
-    <section class="tt-section">
-      <h2 class="tt-section-title">mês a mês</h2>
-      <div style="overflow-x:auto">
-        <table class="ano-tabela">
-          <thead><tr><th>mês</th><th>entradas</th><th>economia</th><th class="ano-pct">%</th></tr></thead>
-          <tbody>
-            ${linhas.map(l => `
-              <tr class="${ehAtual(l.m) ? 'is-atual' : ''}">
-                <td class="ano-mes">${MESES[l.m]}</td>
-                <td${cls(l.entradas)}>${fmt(l.entradas)}</td>
-                <td${cls(l.economia)}>${fmt(l.economia)}</td>
-                <td class="ano-pct${l.pct === null ? ' is-zero' : ''}">${l.pct === null ? '—' : Math.round(l.pct) + '%'}</td>
-              </tr>`).join('')}
-          </tbody>
-          <tfoot>
-            <tr>
-              <td class="ano-mes">${S.ano}</td>
-              <td>${fmt(totEntradas)}</td>
-              <td>${fmt(totEconomia)}</td>
-              <td class="ano-pct">${pctAno === null ? '—' : Math.round(pctAno) + '%'}</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    </section>`;
+function diasDecorridos(){
+  const n = diasNoMes(S.ano, S.mes);
+  if (S.ano === HOJE.getFullYear() && S.mes === HOJE.getMonth()) return HOJE.getDate();
+  return new Date(S.ano, S.mes, 1) < new Date(HOJE.getFullYear(), HOJE.getMonth(), 1) ? n : 0;
 }
 
 function render(){
-  const anual = S.escopo === 'ano';
-  const t = totaisDoPeriodo(S.ano, anual ? null : S.mes);
+  const meta   = metaMensal();
+  const n      = diasNoMes(S.ano, S.mes);
+  const porDia = meta / n;
+  const gasto  = gastoDoMes();
+  const dec    = diasDecorridos();
+  const previsto = porDia * dec;                     /* quanto já era pra ter gasto */
+  const pct    = meta > 0 ? Math.min(100, (gasto / meta) * 100) : 0;
+  const sobra  = meta - gasto;
+  const restantes = Math.max(0, n - dec);
+  /* Com o mês já vencido não há "por dia daqui pra frente" — evita dividir por zero. */
+  const porDiaRestante = restantes > 0 ? Math.max(0, sobra) / restantes : null;
 
-  const perfCls    = t.performance < 0 ? ' is-neg' : (t.performance > 0 ? ' is-pos' : '');
-  const perfStatus = t.performance < 0 ? 'faltou dinheiro'
-                   : t.performance > 0 ? 'sobrou dinheiro'
-                   : 'fechou no zero';
-  const custoStatus = t.income === 0 ? (t.custoDeVida > 0 ? `sem renda no ${anual ? 'ano' : 'mês'}` : 'sem gastos')
-                    : t.custoDeVida > t.income ? 'acima da renda' : 'dentro da renda';
-  const pct = Math.round(t.economizadoPct);
-  const ecoStatus = t.savings === 0 ? 'nada guardado' : `${pct}% da renda guardada`;
-
-  document.getElementById('totaisCol').innerHTML = `
+  document.getElementById('pvCol').innerHTML = `
     <section class="tt-section">
-      <h2 class="tt-section-title">cálculos do ${anual ? 'ano' : 'mês'}</h2>
+      <h2 class="tt-section-title">quanto você pretende gastar por mês</h2>
+      <div class="pv-campo">
+        <label class="pv-rot" for="fMeta">diário do mês</label>
+        <input class="pv-input" id="fMeta" type="number" inputmode="decimal" step="0.01" min="0"
+               placeholder="0,00" value="${meta || ''}">
+        <span class="pv-dica">${meta > 0
+          ? `dá ${esc(fmt(porDia))} por dia em ${n} dias`
+          : 'informe o valor para ver a previsão'}</span>
+      </div>
+    </section>
 
-      ${linha({
-        formulaHTML: chip('income') + '<span class="tt-op">−</span>' +
-                     formula(['expense','recurring','card','savings'], '−'),
-        label: 'performance', valor: t.performance, valorCls: perfCls, status: perfStatus })}
+    ${meta > 0 ? `
+    <section class="tt-section">
+      <h2 class="tt-section-title">como o mês está indo</h2>
 
       <div class="tt-row tt-row--stack">
         <div class="tt-stack-top">
-          <div class="tt-left">
-            <div class="tt-formula">${chip('savings')}</div>
-            <span class="tt-label">economizado</span>
-          </div>
-          <div class="tt-right">
-            <span class="tt-value${t.savings === 0 ? ' is-zero' : ''}">${pct}%</span>
-          </div>
+          <div class="tt-left"><span class="tt-label">gasto até agora</span></div>
+          <div class="tt-right"><span class="tt-value${gasto === 0 ? ' is-zero' : ''}">${esc(fmt(gasto))}</span></div>
         </div>
-        <div class="tt-meter" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-             aria-valuenow="${pct}" aria-label="Percentual da renda economizado">
-          <div class="tt-meter-fill" id="ecoFill" style="width:${t.economizadoPct}%"></div>
+        <div class="pv-barra" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+             aria-valuenow="${Math.round(pct)}" aria-label="Percentual do diário do mês já gasto">
+          <div class="pv-fill${gasto > meta ? ' is-alto' : ''}" id="pvFill" style="width:${pct}%"></div>
         </div>
         <div class="tt-stack-bottom">
-          <span class="tt-status">${esc(ecoStatus)}</span>
-          <span class="tt-status">${fmt(t.savings)}</span>
+          <span class="tt-status">${Math.round(pct)}% do previsto para o mês</span>
+          <span class="tt-status">${esc(fmt(meta))}</span>
         </div>
       </div>
 
-      ${linha({
-        formulaHTML: formula(['expense','recurring','card'], '+'),
-        label: 'custo de vida', valor: t.custoDeVida, status: custoStatus })}
+      <div class="tt-row">
+        <div class="tt-left"><span class="tt-label">ritmo até hoje</span></div>
+        <div class="tt-right">
+          <span class="tt-value${gasto > previsto ? ' is-neg' : ' is-pos'}">${esc(fmt(gasto - previsto))}</span>
+          <span class="tt-status">${dec ? (gasto > previsto ? 'acima do previsto' : 'dentro do previsto') : 'mês não começou'}</span>
+        </div>
+      </div>
 
-      ${linha({
-        formulaHTML: chip('recurring') + `<span class="tt-divisor">/${t.decorridos}</span>`,
-        label: 'diário médio', valor: t.diarioMedio,
-        status: t.decorridos ? `${t.diasComDiario} de ${t.decorridos} dias`
-                             : (anual ? 'ano ainda não começou' : 'mês ainda não começou') })}
-    </section>
+      <div class="tt-row">
+        <div class="tt-left"><span class="tt-label">sobra do mês</span></div>
+        <div class="tt-right">
+          <span class="tt-value${sobra < 0 ? ' is-neg' : ''}">${esc(fmt(sobra))}</span>
+          <span class="tt-status">${porDiaRestante === null
+            ? 'mês encerrado'
+            : `${esc(fmt(porDiaRestante))} por dia nos ${restantes} dias que faltam`}</span>
+        </div>
+      </div>
+    </section>` : ''}`;
 
-    ${anual ? tabelaDoAno() : ''}
-
-    <section class="tt-section">
-      <h2 class="tt-section-title">movimentações do ${anual ? 'ano' : 'mês'}</h2>
-      ${linha({ formulaHTML: chip('income'),    label: 'entradas', valor: t.income,  valorCls: t.income  ? ' is-pos' : '' })}
-      ${linha({ formulaHTML: chip('expense'),   label: 'saídas',   valor: t.expense })}
-      ${linha({ formulaHTML: chip('recurring'), label: 'diários',  valor: t.recurring })}
-      ${linha({ formulaHTML: chip('savings'),   label: 'economias',valor: t.savings })}
-      ${linha({ formulaHTML: chip('card'),      label: 'cartão',   valor: t.card })}
-    </section>`;
-
-  /* A largura vai no próprio markup: depender de requestAnimationFrame deixava
-     a barra em zero se o quadro não fosse agendado — barra vazia mentindo
-     sobre quanto já foi gasto. */
-
-  paintHorizon(buildYear(HOJE.getFullYear()));
-
-  const rotulo = anual ? String(S.ano) : `${MESES[S.mes]}/${S.ano}`;
-  document.getElementById('rangeLabel').textContent       = rotulo;
-  document.getElementById('mobileMonthLabel').textContent = anual ? String(S.ano) : `${MESES_CAP[S.mes]}/${S.ano}`;
-  /* No ano inteiro não há mês para avançar. */
-  document.querySelectorAll('[data-nav="month-prev"],[data-nav="month-next"]')
-    .forEach(b => { b.disabled = anual; b.style.opacity = anual ? '.35' : ''; });
-  document.getElementById('sidebarTodayNum').textContent = HOJE.getDate();
-  document.getElementById('mobileTodayNum').textContent  = HOJE.getDate();
-  document.title = `totais · ${rotulo}`;
+  document.getElementById('rangeLabel').textContent       = `${MESES[S.mes]}/${S.ano}`;
+  document.getElementById('mobileMonthLabel').textContent = `${MESES_CAP[S.mes]}/${S.ano}`;
+  document.getElementById('sidebarTodayNum').textContent  = HOJE.getDate();
+  document.getElementById('mobileTodayNum').textContent   = HOJE.getDate();
+  document.title = `previsão de diário · ${MESES[S.mes]}/${S.ano}`;
 }
 
-/* ══════════════════════════════════════════════════════════════
-   NAVEGAÇÃO / EVENTOS
-   ══════════════════════════════════════════════════════════════ */
-function irPara(mes, ano){
-  S.ano = ano;
-  S.mes = ((mes % 12) + 12) % 12;
-  render();
-}
+document.addEventListener('input', e => {
+  if (e.target.id !== 'fMeta') return;
+  ls.set('brian-previsao-diario', e.target.value || '');
+  clearTimeout(window.__pvTimer);
+  /* Redesenha depois da digitação parar, para o cursor não saltar a cada tecla. */
+  window.__pvTimer = setTimeout(() => {
+    const foco = document.activeElement === e.target;
+    render();
+    if (foco){ const i = document.getElementById('fMeta'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+  }, 500);
+});
 
 document.addEventListener('click', e => {
   const navBtn = e.target.closest('[data-nav]');
   if (navBtn){
-    const dir = navBtn.dataset.nav;
-    if (dir === 'month-prev') irPara(S.mes - 1, S.mes === 0  ? S.ano - 1 : S.ano);
-    if (dir === 'month-next') irPara(S.mes + 1, S.mes === 11 ? S.ano + 1 : S.ano);
-    if (dir === 'year-prev')  irPara(S.mes, S.ano - 1);
-    if (dir === 'year-next')  irPara(S.mes, S.ano + 1);
+    const d = navBtn.dataset.nav;
+    if (d === 'month-prev'){ if (S.mes === 0){ S.mes = 11; S.ano--; } else S.mes--; }
+    if (d === 'month-next'){ if (S.mes === 11){ S.mes = 0; S.ano++; } else S.mes++; }
+    if (d === 'year-prev')  S.ano--;
+    if (d === 'year-next')  S.ano++;
+    render();
     return;
   }
-
   const act = e.target.closest('[data-action]');
   if (act){
-    if (act.dataset.action === 'escopo'){
-      S.escopo = S.escopo === 'ano' ? 'mes' : 'ano';
-      ls.set('brian-totais-escopo', S.escopo);
-      render();
-    }
-    if (act.dataset.action === 'today'){
-      S.escopo = 'mes';
-      ls.set('brian-totais-escopo', 'mes');
-      irPara(HOJE.getMonth(), HOJE.getFullYear());
-    }
+    if (act.dataset.action === 'today'){ S.ano = HOJE.getFullYear(); S.mes = HOJE.getMonth(); render(); }
     if (act.dataset.action === 'horizon') location.href = 'horizonte.html';
-    /* O lançamento vive na tela de saldos; mandar para o app antigo tirava
-       o usuário do sistema novo no meio da tarefa. */
     if (act.dataset.action === 'add')     location.href = 'saldos.html#novo';
+    if (act.dataset.action === 'escopo')  return;
     return;
   }
-
   const collapseBtn = e.target.closest('#collapseBtn');
-  if (collapseBtn){
-    document.getElementById('sidebar').classList.toggle('is-collapsed');
-    return;
-  }
+  if (collapseBtn){ document.getElementById('sidebar').classList.toggle('is-collapsed'); }
 });
 
+
+let SB = null;
 
 async function boot(){
   let semSessao = false;
   let autenticado = false;
   try {
-    const sb = window.supabase.createClient(SB_URL, SB_KEY);
-    const { data: { session } } = await sb.auth.getSession();
+    SB = window.supabase.createClient(SB_URL, SB_KEY);
+    const { data: { session } } = await SB.auth.getSession();
     if (session){
       autenticado = true;
-      const { data, error } = await sb.from('movimentos').select('*').order('data', { ascending: true });
+      const { data, error } = await SB.from('movimentos').select('*').order('data', { ascending: true });
       if (!error && data) S.movs = data.map(toMov);
     } else {
       semSessao = true;
     }
   } catch (err) {
-    console.warn('Supabase indisponível, usando dados de demonstração.', err);
+    console.warn('Supabase indisponível.', err);
   }
-  /* Sem sessão vai pro login: mostrar números de demonstração para quem está
-     deslogado engana. Só vale quando a página é servida pela web de verdade —
-     aberta como arquivo (file:/data:) segue com a demonstração, senão não dá
-     pra conferir o layout fora do servidor. */
   const naWeb = location.protocol === 'http:' || location.protocol === 'https:';
-  if (semSessao && naWeb){
-    location.replace('entrar.html');
-    return;
-  }
-  /* Base vazia de usuário logado é base vazia — a demonstração só entra quando
-     não há sessão nenhuma (arquivo aberto direto, para conferir layout).
-     Inventar número para quem está autenticado é mentir sobre dinheiro. */
+  if (semSessao && naWeb){ location.replace('entrar.html'); return; }
   if (!autenticado && !S.movs.length) S.movs = DEMO.map(toMov);
   render();
 }

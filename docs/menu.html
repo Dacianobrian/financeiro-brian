@@ -254,6 +254,28 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 .tema-chip{height:36px;padding:0 14px;border:1px solid var(--color-border-subtle);border-radius:999px;background:var(--color-bg-surface);color:var(--color-text-primary);font:inherit;font-size:14px;line-height:20px;font-weight:700;text-transform:lowercase;cursor:pointer}
 .tema-chip.is-on{border-color:#FF5917;color:#FF5917;box-shadow:inset 0 0 0 1px #FF5917}
 
+/* ── folha do perfil ─────────────────────────────────────────── */
+.sheet-backdrop{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.45)}
+.sheet-backdrop[hidden]{display:none!important}
+@media(max-width:479px){.sheet-backdrop{padding:0}}
+.sheet{position:relative;width:100%;max-width:416px;max-height:calc(100dvh - 32px);display:flex;flex-direction:column;padding:0;overflow:hidden;border:1px solid var(--border-hairline);border-radius:16px;background:var(--color-bg-surface);box-shadow:0 0 16px var(--shadow-soft)}
+@media(max-width:479px){.sheet{max-width:none;max-height:none;min-height:100dvh;height:100dvh;border:0;border-radius:0;box-shadow:none}}
+.sheet-head{display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid var(--border-hairline)}
+.sheet-title{flex:1;min-width:0;color:var(--color-text-primary);font-size:16px;line-height:24px;font-weight:700;text-transform:lowercase}
+.sheet-close{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;border:0;border-radius:8px;background:transparent;color:var(--color-text-muted);font-size:20px;line-height:1;cursor:pointer}
+.sheet-body{flex:1;min-height:0;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.sheet-foot{display:flex;align-items:center;gap:8px;padding:16px;border-top:1px solid var(--border-hairline)}
+.campo{display:flex;flex-direction:column;gap:6px}
+.campo-rot{color:var(--color-text-muted);font-size:14px;line-height:20px;font-weight:700;text-transform:lowercase}
+.campo input{width:100%;height:44px;padding:0 12px;border:1px solid var(--color-border-subtle);border-radius:10px;background:var(--color-bg-surface);color:var(--color-text-primary);font:inherit;font-size:16px;line-height:24px}
+.campo input:focus{outline:2px solid var(--color-border-focus);outline-offset:-1px}
+.campo input:disabled{color:var(--color-text-muted)}
+.btn{height:44px;padding:0 16px;border:0;border-radius:10px;font:inherit;font-size:16px;line-height:24px;font-weight:700;cursor:pointer}
+.btn-salvar{flex:1;background:#FF5917;color:#fff}
+.btn-salvar:disabled{opacity:.5;cursor:not-allowed}
+.sheet-erro{color:var(--color-feedback-error);font-size:14px;line-height:20px;min-height:20px}
+.sheet-ok{color:var(--color-feedback-success);font-size:14px;line-height:20px;min-height:20px}
+
 /* ══════════════════════════════════════════════════════════════
    NAV INFERIOR (mobile)
    ══════════════════════════════════════════════════════════════ */
@@ -363,6 +385,17 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 </main>
 </div>
 
+<div class="sheet-backdrop" id="sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitulo">
+    <div class="sheet-head">
+      <h2 class="sheet-title" id="sheetTitulo">editar perfil</h2>
+      <button class="sheet-close" type="button" data-perfil="fechar" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="sheet-body" id="sheetCorpo"></div>
+    <div class="sheet-foot" id="sheetRodape"></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 
 <script>
@@ -405,16 +438,11 @@ const SVG = {
 };
 
 const ITENS = [
-  { id:'edit-profile',   label:'editar perfil',             icon:'profile'       },
-  { id:'daily-forecast', label:'previsão de diário',        icon:'dailyForecast' },
-  { id:'credit-card',    label:'cartões de crédito',        icon:'creditCard',   acao:'cartoes' },
-  { id:'settings',       label:'configurações',             icon:'settings',     acao:'tema' },
-  { id:'suggestions',    label:'mandar sugestões',          icon:'suggestions'   },
-  { id:'help',           label:'ajuda',                     icon:'help'          },
-  { id:'referral',       label:'indicar a escola do breno', icon:'referral'      },
-  { id:'terms',          label:'termos de uso',             icon:'terms'         },
-  { id:'privacy',        label:'política de privacidade',   icon:'terms'         },
-  { id:'logout',         label:'sair',                      icon:'logout',       acao:'sair' },
+  { id:'edit-profile',   label:'editar perfil',      icon:'profile',       acao:'perfil'   },
+  { id:'daily-forecast', label:'previsão de diário', icon:'dailyForecast', acao:'previsao' },
+  { id:'credit-card',    label:'cartões de crédito', icon:'creditCard',    acao:'cartoes'  },
+  { id:'settings',       label:'configurações',      icon:'settings',      acao:'tema'     },
+  { id:'logout',         label:'sair',               icon:'logout',        acao:'sair'     },
 ];
 
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -424,17 +452,15 @@ let temaAberto = false;
 function render(){
   const escolha = ls.get('brian-theme', 'system');
   document.getElementById('menuCol').innerHTML = ITENS.map(it => {
-    /* Sem tela ainda: fica desabilitado e dito, em vez de um botão que não faz nada. */
-    const pendente = !it.acao;
     return `
-      <button class="menu-item" type="button" data-id="${it.id}"${pendente ? ' disabled' : ''}>
+      <button class="menu-item" type="button" data-id="${it.id}">
         <span class="menu-ico" style="-webkit-mask-image:url('data:image/svg+xml,${encodeURIComponent(
           `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="${SVG[it.icon]}"/></svg>`
         )}');mask-image:url('data:image/svg+xml,${encodeURIComponent(
           `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="${SVG[it.icon]}"/></svg>`
         )}')"></span>
         <span class="menu-rot">${esc(it.label)}</span>
-        ${pendente ? '<span class="menu-tag">em breve</span>' : '<span class="menu-chevron"></span>'}
+        <span class="menu-chevron"></span>
       </button>
       ${it.acao === 'tema' && temaAberto ? `
         <div class="tema-linha">
@@ -447,6 +473,61 @@ function render(){
 
   document.getElementById('sidebarTodayNum').textContent = new Date().getDate();
   document.getElementById('mobileTodayNum').textContent  = new Date().getDate();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PERFIL
+   ══════════════════════════════════════════════════════════════ */
+function fecharPerfil(){ document.getElementById('sheet').hidden = true; }
+
+function abrirPerfil(){
+  document.getElementById('sheetCorpo').innerHTML = `
+    <div class="campo">
+      <label class="campo-rot" for="pEmail">e-mail</label>
+      <input id="pEmail" type="email" value="${esc(EMAIL || '')}" disabled>
+    </div>
+    <div class="campo">
+      <label class="campo-rot" for="pSenha">nova senha</label>
+      <input id="pSenha" type="password" autocomplete="new-password"
+             placeholder="deixe em branco para não trocar" minlength="6">
+    </div>
+    <div class="campo">
+      <label class="campo-rot" for="pSenha2">repita a nova senha</label>
+      <input id="pSenha2" type="password" autocomplete="new-password" placeholder="repita">
+    </div>
+    <p class="sheet-erro" id="pErro"></p>
+    <p class="sheet-ok" id="pOk"></p>`;
+  document.getElementById('sheetRodape').innerHTML =
+    `<button class="btn btn-salvar" type="button" data-perfil="salvar">salvar</button>`;
+  document.getElementById('sheet').hidden = false;
+  setTimeout(() => document.getElementById('pSenha').focus(), 30);
+}
+
+async function salvarPerfil(){
+  const erro = document.getElementById('pErro');
+  const ok   = document.getElementById('pOk');
+  const btn  = document.querySelector('[data-perfil="salvar"]');
+  const s1 = document.getElementById('pSenha').value;
+  const s2 = document.getElementById('pSenha2').value;
+  erro.textContent = ''; ok.textContent = '';
+
+  if (!s1){ erro.textContent = 'Digite a nova senha, ou feche sem salvar.'; return; }
+  if (s1.length < 6){ erro.textContent = 'A senha precisa ter ao menos 6 caracteres.'; return; }
+  /* Confirmação é obrigatória: senha errada por erro de digitação tranca a conta. */
+  if (s1 !== s2){ erro.textContent = 'As duas senhas não são iguais.'; return; }
+
+  btn.disabled = true;
+  try {
+    if (!SB) throw new Error('sem conexão');
+    const { error } = await SB.auth.updateUser({ password: s1 });
+    if (error) throw error;
+    ok.textContent = 'Senha atualizada.';
+    document.getElementById('pSenha').value = '';
+    document.getElementById('pSenha2').value = '';
+  } catch (e) {
+    erro.textContent = 'Não deu para atualizar. ' + (e.message || '');
+  }
+  btn.disabled = false;
 }
 
 function aplicarTema(escolha){
@@ -463,6 +544,14 @@ async function sair(){
 }
 
 document.addEventListener('click', e => {
+  const perfil = e.target.closest('[data-perfil]');
+  if (perfil){
+    if (perfil.dataset.perfil === 'fechar') fecharPerfil();
+    if (perfil.dataset.perfil === 'salvar') salvarPerfil();
+    return;
+  }
+  if (e.target.id === 'sheet'){ fecharPerfil(); return; }
+
   const tema = e.target.closest('[data-tema]');
   if (tema){ aplicarTema(tema.dataset.tema); return; }
 
@@ -471,8 +560,10 @@ document.addEventListener('click', e => {
     const it = ITENS.find(x => x.id === item.dataset.id);
     if (!it) return;
     if (it.acao === 'tema'){ temaAberto = !temaAberto; render(); }
-    if (it.acao === 'sair')    sair();
-    if (it.acao === 'cartoes') location.href = 'cartoes.html';
+    if (it.acao === 'sair')     sair();
+    if (it.acao === 'cartoes')  location.href = 'cartoes.html';
+    if (it.acao === 'previsao') location.href = 'previsao.html';
+    if (it.acao === 'perfil')   abrirPerfil();
     return;
   }
 
@@ -490,13 +581,14 @@ document.addEventListener('click', e => {
 
 
 let SB = null;
+let EMAIL = null;
 
 async function boot(){
   let semSessao = false;
   try {
     SB = window.supabase.createClient(SB_URL, SB_KEY);
     const { data: { session } } = await SB.auth.getSession();
-    if (!session) semSessao = true;
+    if (session) EMAIL = session.user.email; else semSessao = true;
   } catch (err) {
     console.warn('Supabase indisponível.', err);
   }
