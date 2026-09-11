@@ -1032,7 +1032,7 @@ const REPETICOES = [
   { valor:'anual',   label:'repete o mesmo valor anualmente' },
 ];
 
-const F = { aberta:false, data:null, coluna:'expense', editando:null };
+const F = { aberta:false, data:null, coluna:'expense', editando:null, alcance:null, acaoPendente:null };
 
 function movsDoDia(dataKey, coluna){
   return S.movs.filter(mv => iso(mv.data) === dataKey && classify(mv) === coluna);
@@ -1041,6 +1041,8 @@ function movsDoDia(dataKey, coluna){
 function fecharFolha(){
   F.aberta = false;
   F.editando = null;
+  F.alcance = null;
+  F.acaoPendente = null;
   document.getElementById('sheet').hidden = true;
 }
 
@@ -1168,11 +1170,43 @@ async function salvarLancamento(){
   btn.disabled = true;
   try {
     if (!SB) throw new Error('sem conexão');
+
     if (F.editando != null){
-      const { error } = await SB.from('movimentos').update(linha).eq('id', F.editando);
+      const atual = S.movs.find(x => x.id === String(F.editando));
+      const serie = atual && atual.serie_id;
+      /* Numa série, editar sem perguntar mexeria em ocorrências que o usuário
+         não está vendo. F.alcance guarda a resposta dele. */
+      if (serie && !F.alcance){ pedirAlcance('editar'); btn.disabled = false; return; }
+
+      if (serie && F.alcance === 'daqui'){
+        const { error } = await SB.from('movimentos')
+          .update({ descricao: linha.descricao, valor: linha.valor, tipo: linha.tipo,
+                    conta: linha.conta, tag: linha.tag, cartao_id: linha.cartao_id })
+          .eq('serie_id', serie).gte('data', atual ? iso(atual.data) : dataStr);
+        if (error) throw error;
+        S.movs.forEach(mv => {
+          if (mv.serie_id === serie && iso(mv.data) >= iso(atual.data))
+            Object.assign(mv, { desc: linha.descricao, valor: linha.valor, tipo: linha.tipo,
+                                conta: linha.conta, tag: linha.tag, cartao_id: linha.cartao_id });
+        });
+      } else {
+        const { error } = await SB.from('movimentos').update(linha).eq('id', F.editando);
+        if (error) throw error;
+        const i = S.movs.findIndex(x => x.id != null && x.id === String(F.editando));
+        if (i !== -1) S.movs[i] = toMov({ ...linha, id: F.editando, serie_id: serie });
+      }
+
+    } else if (linha.rec){
+      /* Repetição cria as ocorrências de verdade: o saldo continua sendo só
+         uma soma, sem lógica de projeção paralela que possa divergir. */
+      const serie = (crypto.randomUUID && crypto.randomUUID()) ||
+                    (Date.now() + '-' + Math.random().toString(16).slice(2));
+      const linhas = datasDaSerie(dataStr, linha.rec)
+        .map(d => ({ ...linha, data: d, serie_id: serie, user_id: USER_ID }));
+      const { data, error } = await SB.from('movimentos').insert(linhas).select();
       if (error) throw error;
-      const i = S.movs.findIndex(x => x.id != null && x.id === String(F.editando));
-      if (i !== -1) S.movs[i] = toMov({ ...linha, id: F.editando });
+      data.forEach(r => S.movs.push(toMov(r)));
+
     } else {
       const { data, error } = await SB.from('movimentos').insert({ ...linha, user_id: USER_ID }).select();
       if (error) throw error;
@@ -1191,12 +1225,23 @@ async function apagarLancamento(){
   if (F.editando == null) return;
   const erro = document.getElementById('fErro');
   const btn  = document.querySelector('[data-sheet="apagar"]');
+  const atual = S.movs.find(x => x.id === String(F.editando));
+  const serie = atual && atual.serie_id;
+  if (serie && !F.alcance){ pedirAlcance('apagar'); return; }
+
   btn.disabled = true;
   try {
     if (!SB) throw new Error('sem conexão');
-    const { error } = await SB.from('movimentos').delete().eq('id', F.editando);
-    if (error) throw error;
-    S.movs = S.movs.filter(x => x.id !== String(F.editando));
+    if (serie && F.alcance === 'daqui'){
+      const desde = iso(atual.data);
+      const { error } = await SB.from('movimentos').delete().eq('serie_id', serie).gte('data', desde);
+      if (error) throw error;
+      S.movs = S.movs.filter(x => !(x.serie_id === serie && iso(x.data) >= desde));
+    } else {
+      const { error } = await SB.from('movimentos').delete().eq('id', F.editando);
+      if (error) throw error;
+      S.movs = S.movs.filter(x => x.id !== String(F.editando));
+    }
   } catch (e) {
     erro.textContent = 'Não deu para apagar. ' + (e.message || '');
     btn.disabled = false;
@@ -1213,6 +1258,63 @@ function rerender(dataStr){
   if (ano && ano !== S.ano) S.ano = ano;
   render();
   goToDate(dataStr) || goToToday();
+}
+
+/* Ocorrência de série: "só esta" ou "esta e as próximas". Nunca decide
+   sozinho — as outras ocorrências estão fora da tela. */
+function pedirAlcance(acao){
+  const rodape = document.getElementById('sheetRodape');
+  document.getElementById('fErro').textContent =
+    acao === 'apagar' ? 'Este lançamento se repete. Apagar o quê?'
+                      : 'Este lançamento se repete. Aplicar a mudança em quê?';
+  rodape.innerHTML = `
+    <button class="btn btn-apagar" type="button" data-sheet="alcance-so-este">só esta</button>
+    <button class="btn btn-salvar" type="button" data-sheet="alcance-daqui">esta e as próximas</button>`;
+  F.acaoPendente = acao;
+}
+
+function responderAlcance(qual){
+  F.alcance = qual;
+  const acao = F.acaoPendente;
+  F.acaoPendente = null;
+  if (acao === 'apagar') apagarLancamento(); else salvarLancamento();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SÉRIES DE REPETIÇÃO
+   ══════════════════════════════════════════════════════════════ */
+/* Quantas ocorrências cada frequência gera. O limite existe para a série não
+   crescer sem fim: cobre com folga a janela de 14 meses do horizonte. */
+const ALCANCE = { diario: 90, semanal: 52, mensal: 24, anual: 5 };
+
+/* Somar mês a mês estoura em dia 29-31: 31/01 + 1 mês não é 31/02. Prende no
+   último dia do mês de destino, que é o que uma conta mensal faz na vida real. */
+function somaMeses(base, n){
+  const d = new Date(base.getFullYear(), base.getMonth() + n, 1);
+  const ultimo = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(base.getDate(), ultimo));
+  return d;
+}
+
+function datasDaSerie(dataStr, rec){
+  const [a, m, d] = dataStr.split('-').map(Number);
+  const base = new Date(a, m - 1, d);
+  const n = ALCANCE[rec] || 0;
+  const out = [];
+  for (let i = 0; i < n; i++){
+    let dt;
+    if (rec === 'diario')       dt = new Date(a, m - 1, d + i);
+    else if (rec === 'semanal') dt = new Date(a, m - 1, d + i * 7);
+    else if (rec === 'mensal')  dt = somaMeses(base, i);
+    else if (rec === 'anual')   dt = somaMeses(base, i * 12);
+    else break;
+    out.push(iso(dt));
+  }
+  return out;
+}
+
+function ocorrenciasDaSerie(serieId){
+  return S.movs.filter(mv => mv.serie_id && mv.serie_id === serieId);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1237,6 +1339,8 @@ document.addEventListener('click', e => {
     if (q === 'editar') abrirEditor(F.data, F.coluna, folha.dataset.id);
     if (q === 'salvar') salvarLancamento();
     if (q === 'apagar') apagarLancamento();
+    if (q === 'alcance-so-este') responderAlcance('so-este');
+    if (q === 'alcance-daqui')   responderAlcance('daqui');
     if (q === 'coluna'){
       document.querySelectorAll('#chipsColuna .tipo-chip').forEach(c => c.classList.remove('is-on'));
       folha.classList.add('is-on');
@@ -1341,6 +1445,7 @@ function toMov(r){
   return {
     id:    r.id != null ? String(r.id) : null,
     cartao_id: r.cartao_id || null,
+    serie_id:  r.serie_id || null,
     desc:  r.descricao || '',
     valor: parseFloat(r.valor),
     tipo:  r.tipo,
