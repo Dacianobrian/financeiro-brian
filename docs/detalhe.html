@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="google" content="notranslate">
 <meta name="theme-color" content="#FFFFFF">
-<title>totais</title>
+<title>detalhe</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
@@ -28,6 +28,7 @@
   }
 })();
 </script>
+
 <style>
 /* ══════════════════════════════════════════════════════════════
    TOKENS
@@ -312,9 +313,29 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 .mn-add{width:54px;min-height:64px;display:flex;align-items:flex-start;justify-content:center;padding:8px 0 0;border:0;background:transparent;color:var(--color-text-primary);cursor:pointer}
 .mn-add .mn-icon{width:48px;height:48px;-webkit-mask-image:var(--ic-plus-circle);mask-image:var(--ic-plus-circle);-webkit-mask-size:48px 48px;mask-size:48px 48px}
 
+
+
+/* ══════════════════════════════════════════════════════════════
+   DETALHE
+   ══════════════════════════════════════════════════════════════ */
+.dt-hero{padding:16px 0 8px;border-bottom:1px solid var(--border-hairline)}
+.dt-valor{color:var(--color-text-primary);font-size:32px;line-height:40px;font-weight:700;font-variant-numeric:tabular-nums}
+.dt-valor.is-neg{color:var(--color-feedback-error)}
+.dt-valor.is-pos{color:var(--color-feedback-success)}
+.dt-legenda{color:var(--color-text-muted);font-size:16px;line-height:24px;padding-top:2px}
+.dt-formula{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding-top:10px}
+.dt-mov{display:flex;align-items:center;gap:12px;min-height:52px;padding:8px 0;border-bottom:1px solid var(--border-hairline)}
+.dt-mov:last-child{border-bottom:0}
+.dt-mov-desc{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--color-text-primary);font-size:16px;line-height:24px;font-weight:500}
+.dt-mov-dia{flex-shrink:0;width:28px;color:var(--color-text-muted);font-size:14px;line-height:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.dt-mov-valor{flex-shrink:0;color:var(--color-text-primary);font-size:16px;line-height:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.dt-vazio{padding:20px 0;color:var(--color-text-muted);font-size:16px;line-height:24px;text-align:center}
+.dt-voltar{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px 0 8px;border:0;border-radius:999px;background:transparent;color:var(--color-text-primary);font:inherit;font-size:14px;line-height:20px;font-weight:700;cursor:pointer}
+.dt-voltar:hover{background:var(--color-bg-subtle)}
+.dt-voltar::before{content:"";width:20px;height:20px;background-color:currentColor;-webkit-mask-image:var(--ic-chevron-left);mask-image:var(--ic-chevron-left);-webkit-mask-size:20px 20px;mask-size:20px 20px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+
 </style>
 </head>
-
 <body>
 <div id="root">
 <main class="app-main">
@@ -330,7 +351,7 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
           <button class="sidebar-item" type="button" onclick="location.href='saldos.html'">
             <span class="sidebar-icon ic-saldos"></span><span class="sidebar-label">saldos</span>
           </button>
-          <button class="sidebar-item is-active" type="button">
+          <button class="sidebar-item is-active" type="button" onclick="location.href='totais.html'">
             <span class="sidebar-icon ic-totais"></span><span class="sidebar-label">totais</span>
           </button>
           <button class="sidebar-item" type="button" onclick="location.href='tags.html'">
@@ -369,7 +390,7 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
       <!-- Header desktop -->
       <div class="desktop-header-wrap">
         <header class="desktop-header">
-          <div class="dh-title-wrap"><h1 class="dh-title">totais</h1></div>
+          <div class="dh-title-wrap"><h1 class="dh-title" id="titulo">detalhe</h1></div>
           <div class="dh-nav">
             <button class="dh-nav-btn nav-dbl-prev" type="button" aria-label="Ano anterior" data-nav="year-prev"></button>
             <button class="dh-nav-btn nav-prev" type="button" aria-label="Mês anterior" data-nav="month-prev"></button>
@@ -405,7 +426,7 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 
       <!-- Conteúdo -->
       <div class="totais-viewport">
-        <div class="totais-col" id="totaisCol"></div>
+        <div class="totais-col" id="dtCol"></div>
       </div>
     </div>
   </section>
@@ -603,9 +624,7 @@ function toMov(r){
   };
 }
 
-/* ══════════════════════════════════════════════════════════════
-   AGREGAÇÃO DO MÊS
-   ══════════════════════════════════════════════════════════════ */
+
 /* mes === null agrega o ano inteiro. O resto do cálculo é idêntico — só muda
    a janela e quantos dias já passaram dentro dela. */
 function totaisDoPeriodo(ano, mes){
@@ -649,252 +668,176 @@ function totaisDoPeriodo(ano, mes){
   return t;
 }
 
+
+
 /* ══════════════════════════════════════════════════════════════
-   RENDER
+   DETALHE DE UM CÁLCULO
    ══════════════════════════════════════════════════════════════ */
+S.mes = HOJE.getMonth();
+S.escopo = 'mes';
+
+/* Cada cálculo diz de que colunas é feito e como se lê o resultado. Manter a
+   definição num lugar só evita a conta divergir da que a tela de totais faz. */
+const CALCULOS = {
+  performance: {
+    titulo:'performance',
+    formula:[['income','+'],['expense','−'],['recurring','−'],['card','−'],['savings','−']],
+    valor:  t => t.performance,
+    colunas:['income','expense','recurring','card','savings'],
+    legenda:t => t.performance < 0 ? 'faltou dinheiro' : t.performance > 0 ? 'sobrou dinheiro' : 'fechou no zero',
+    sinal:  true,
+  },
+  economizado: {
+    titulo:'economizado',
+    formula:[['savings','÷'],['income','']],
+    valor:  t => t.savings,
+    colunas:['savings'],
+    legenda:t => t.income > 0 ? `${Math.round(t.economizadoPct)}% da renda guardada` : 'sem renda no período',
+    pct:    true,
+  },
+  'custo-de-vida': {
+    titulo:'custo de vida',
+    formula:[['expense','+'],['recurring','+'],['card','']],
+    valor:  t => t.custoDeVida,
+    colunas:['expense','recurring','card'],
+    legenda:t => t.income === 0 ? 'sem renda no período'
+               : t.custoDeVida > t.income ? 'acima da renda' : 'dentro da renda',
+  },
+  'diario-medio': {
+    titulo:'diário médio',
+    formula:[['recurring','÷']],
+    valor:  t => t.diarioMedio,
+    colunas:['recurring'],
+    legenda:t => t.decorridos ? `${t.diasComDiario} de ${t.decorridos} dias` : 'período não começou',
+    divisor:true,
+  },
+};
+
+function calcAtual(){
+  const q = new URLSearchParams(location.search).get('calc');
+  return CALCULOS[q] ? q : 'performance';
+}
+
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 function chip(key){
   const mt = metricInfo(key);
   return `<span class="tt-chip c-${key}"><span class="metric-icon ${mt.icon}"></span></span>`;
 }
-function formula(keys, op){
-  return keys.map(k => chip(k)).join(`<span class="tt-op">${esc(op)}</span>`);
-}
-function zeroCls(v){ return v === 0 ? ' is-zero' : ''; }
 
-function linha({ formulaHTML, label, valor, valorCls = '', status, calc }){
-  const multi = (formulaHTML.match(/tt-chip/g) || []).length >= 3 ? ' is-multi' : '';
-  /* Com destino, a linha inteira vira o alvo do toque — área maior que um
-     chevron, e o cursor avisa que dá para abrir. */
-  const abre = calc ? ` role="link" tabindex="0" data-calc="${calc}" style="cursor:pointer"` : '';
-  return `
-    <div class="tt-row"${abre}>
-      <div class="tt-left${multi}">
-        <div class="tt-formula">${formulaHTML}</div>
-        <span class="tt-label">${esc(label)}</span>
+function render(){
+  const k = calcAtual();
+  const c = CALCULOS[k];
+  const t = totaisDoPeriodo(S.ano, S.mes);
+  const v = c.valor(t);
+
+  /* Os lançamentos que compõem o número, para a conta deixar de ser opaca. */
+  const movs = S.movs
+    .filter(mv => mv.data.getFullYear() === S.ano && mv.data.getMonth() === S.mes
+                  && c.colunas.includes(classify(mv)))
+    .sort((a, b) => a.data - b.data);
+
+  const cls = c.sinal ? (v < 0 ? ' is-neg' : v > 0 ? ' is-pos' : '') : '';
+
+  /* Mês a mês do ano, para ver a curva e não só o retrato do mês. */
+  const serie = Array.from({length:12}, (_, m) => ({ m, v: c.valor(totaisDoPeriodo(S.ano, m)) }));
+  const totalAno = c.divisor || c.pct ? null : serie.reduce((a, x) => a + x.v, 0);
+
+  document.getElementById('titulo').textContent = c.titulo;
+  document.getElementById('dtCol').innerHTML = `
+    <button class="dt-voltar" type="button" onclick="location.href='totais.html'">totais</button>
+
+    <div class="dt-hero">
+      <div class="dt-valor${cls}">${c.pct ? Math.round(t.economizadoPct) + '%' : esc(fmt(v))}</div>
+      <div class="dt-legenda">${esc(c.legenda(t))}</div>
+      <div class="dt-formula">
+        ${c.formula.map(([col, op]) => chip(col) + (op ? `<span class="tt-op">${op}</span>` : '')).join('')}
+        ${c.divisor ? `<span class="tt-divisor">${t.decorridos} dias</span>` : ''}
+        ${c.pct ? `<span class="tt-divisor">entradas</span>` : ''}
       </div>
-      <div class="tt-right">
-        <span class="tt-value${valorCls}${zeroCls(valor)}">${fmt(valor)}</span>
-        ${status ? `<span class="tt-status">${esc(status)}</span>` : ''}
-      </div>
-    </div>`;
-}
+    </div>
 
-/* Mês a mês do ano, no formato da planilha: entradas, economia e a razão
-   entre as duas. O rodapé soma o ano — e a % do ano é a razão dos totais,
-   não a média das mensais, que daria outro número. */
-function tabelaDoAno(){
-  const linhas = [];
-  let totEntradas = 0, totEconomia = 0;
-  for (let m = 0; m < 12; m++){
-    const t = totaisDoPeriodo(S.ano, m);
-    totEntradas += t.income;
-    totEconomia += t.savings;
-    linhas.push({ m, entradas: t.income, economia: t.savings,
-                  pct: t.income > 0 ? (t.savings / t.income) * 100 : null });
-  }
-  const pctAno = totEntradas > 0 ? (totEconomia / totEntradas) * 100 : null;
-  const ehAtual = m => S.ano === HOJE.getFullYear() && m === HOJE.getMonth();
-  const cls = v => v === 0 ? ' class="is-zero"' : '';
+    <section class="tt-section">
+      <h2 class="tt-section-title">lançamentos de ${MESES[S.mes]}</h2>
+      ${movs.length ? movs.map(mv => `
+        <div class="dt-mov">
+          <span class="dt-mov-dia">${mv.data.getDate()}</span>
+          <span class="metric-icon ${metricInfo(classify(mv)).icon} has-value"
+                style="--metric-color:${CORES_METRICA[classify(mv)]}"></span>
+          <span class="dt-mov-desc">${esc(mv.desc || metricInfo(classify(mv)).label)}</span>
+          <span class="dt-mov-valor">${esc(fmt(mv.valor))}</span>
+        </div>`).join('')
+      : `<p class="dt-vazio">nenhum lançamento neste mês</p>`}
+    </section>
 
-  return `
     <section class="tt-section">
       <h2 class="tt-section-title">mês a mês</h2>
       <div style="overflow-x:auto">
         <table class="ano-tabela">
-          <thead><tr><th>mês</th><th>entradas</th><th>economia</th><th class="ano-pct">%</th></tr></thead>
+          <thead><tr><th>mês</th><th>${esc(c.titulo)}</th></tr></thead>
           <tbody>
-            ${linhas.map(l => `
-              <tr class="${ehAtual(l.m) ? 'is-atual' : ''}">
-                <td class="ano-mes">${MESES[l.m]}</td>
-                <td${cls(l.entradas)}>${fmt(l.entradas)}</td>
-                <td${cls(l.economia)}>${fmt(l.economia)}</td>
-                <td class="ano-pct${l.pct === null ? ' is-zero' : ''}">${l.pct === null ? '—' : Math.round(l.pct) + '%'}</td>
+            ${serie.map(x => `
+              <tr class="${S.ano === HOJE.getFullYear() && x.m === HOJE.getMonth() ? 'is-atual' : ''}">
+                <td class="ano-mes">${MESES[x.m]}</td>
+                <td${x.v === 0 ? ' class="is-zero"' : ''}>${esc(fmt(x.v))}</td>
               </tr>`).join('')}
           </tbody>
-          <tfoot>
-            <tr>
-              <td class="ano-mes">${S.ano}</td>
-              <td>${fmt(totEntradas)}</td>
-              <td>${fmt(totEconomia)}</td>
-              <td class="ano-pct">${pctAno === null ? '—' : Math.round(pctAno) + '%'}</td>
-            </tr>
-          </tfoot>
+          ${totalAno !== null ? `<tfoot><tr>
+            <td class="ano-mes">${S.ano}</td><td>${esc(fmt(totalAno))}</td>
+          </tr></tfoot>` : ''}
         </table>
       </div>
     </section>`;
+
+  document.getElementById('rangeLabel').textContent       = `${MESES[S.mes]}/${S.ano}`;
+  document.getElementById('mobileMonthLabel').textContent = `${MESES_CAP[S.mes]}/${S.ano}`;
+  document.getElementById('sidebarTodayNum').textContent  = HOJE.getDate();
+  document.getElementById('mobileTodayNum').textContent   = HOJE.getDate();
+  document.title = `${c.titulo} · ${MESES[S.mes]}/${S.ano}`;
 }
 
-function render(){
-  const anual = S.escopo === 'ano';
-  const t = totaisDoPeriodo(S.ano, anual ? null : S.mes);
-
-  const perfCls    = t.performance < 0 ? ' is-neg' : (t.performance > 0 ? ' is-pos' : '');
-  const perfStatus = t.performance < 0 ? 'faltou dinheiro'
-                   : t.performance > 0 ? 'sobrou dinheiro'
-                   : 'fechou no zero';
-  const custoStatus = t.income === 0 ? (t.custoDeVida > 0 ? `sem renda no ${anual ? 'ano' : 'mês'}` : 'sem gastos')
-                    : t.custoDeVida > t.income ? 'acima da renda' : 'dentro da renda';
-  const pct = Math.round(t.economizadoPct);
-  const ecoStatus = t.savings === 0 ? 'nada guardado' : `${pct}% da renda guardada`;
-
-  document.getElementById('totaisCol').innerHTML = `
-    <section class="tt-section">
-      <h2 class="tt-section-title">cálculos do ${anual ? 'ano' : 'mês'}</h2>
-
-      ${linha({
-        formulaHTML: chip('income') + '<span class="tt-op">−</span>' +
-                     formula(['expense','recurring','card','savings'], '−'),
-        label: 'performance', calc: 'performance', valor: t.performance, valorCls: perfCls, status: perfStatus })}
-
-      <div class="tt-row tt-row--stack" role="link" tabindex="0" data-calc="economizado" style="cursor:pointer">
-        <div class="tt-stack-top">
-          <div class="tt-left">
-            <div class="tt-formula">${chip('savings')}</div>
-            <span class="tt-label">economizado</span>
-          </div>
-          <div class="tt-right">
-            <span class="tt-value${t.savings === 0 ? ' is-zero' : ''}">${pct}%</span>
-          </div>
-        </div>
-        <div class="tt-meter" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-             aria-valuenow="${pct}" aria-label="Percentual da renda economizado">
-          <div class="tt-meter-fill" id="ecoFill" style="width:${t.economizadoPct}%"></div>
-        </div>
-        <div class="tt-stack-bottom">
-          <span class="tt-status">${esc(ecoStatus)}</span>
-          <span class="tt-status">${fmt(t.savings)}</span>
-        </div>
-      </div>
-
-      ${linha({
-        formulaHTML: formula(['expense','recurring','card'], '+'),
-        label: 'custo de vida', calc: 'custo-de-vida', valor: t.custoDeVida, status: custoStatus })}
-
-      ${linha({
-        formulaHTML: chip('recurring') + `<span class="tt-divisor">/${t.decorridos}</span>`,
-        label: 'diário médio', calc: 'diario-medio', valor: t.diarioMedio,
-        status: t.decorridos ? `${t.diasComDiario} de ${t.decorridos} dias`
-                             : (anual ? 'ano ainda não começou' : 'mês ainda não começou') })}
-    </section>
-
-    ${anual ? tabelaDoAno() : ''}
-
-    <section class="tt-section">
-      <h2 class="tt-section-title">movimentações do ${anual ? 'ano' : 'mês'}</h2>
-      ${linha({ formulaHTML: chip('income'),    label: 'entradas', valor: t.income,  valorCls: t.income  ? ' is-pos' : '' })}
-      ${linha({ formulaHTML: chip('expense'),   label: 'saídas',   valor: t.expense })}
-      ${linha({ formulaHTML: chip('recurring'), label: 'diários',  valor: t.recurring })}
-      ${linha({ formulaHTML: chip('savings'),   label: 'economias',valor: t.savings })}
-      ${linha({ formulaHTML: chip('card'),      label: 'cartão',   valor: t.card })}
-    </section>`;
-
-  /* A largura vai no próprio markup: depender de requestAnimationFrame deixava
-     a barra em zero se o quadro não fosse agendado — barra vazia mentindo
-     sobre quanto já foi gasto. */
-
-  paintHorizon(buildYear(HOJE.getFullYear()));
-
-  const rotulo = anual ? String(S.ano) : `${MESES[S.mes]}/${S.ano}`;
-  document.getElementById('rangeLabel').textContent       = rotulo;
-  document.getElementById('mobileMonthLabel').textContent = anual ? String(S.ano) : `${MESES_CAP[S.mes]}/${S.ano}`;
-  /* No ano inteiro não há mês para avançar. */
-  document.querySelectorAll('[data-nav="month-prev"],[data-nav="month-next"]')
-    .forEach(b => { b.disabled = anual; b.style.opacity = anual ? '.35' : ''; });
-  document.getElementById('sidebarTodayNum').textContent = HOJE.getDate();
-  document.getElementById('mobileTodayNum').textContent  = HOJE.getDate();
-  document.title = `totais · ${rotulo}`;
-}
-
-/* ══════════════════════════════════════════════════════════════
-   NAVEGAÇÃO / EVENTOS
-   ══════════════════════════════════════════════════════════════ */
-function irPara(mes, ano){
-  S.ano = ano;
-  S.mes = ((mes % 12) + 12) % 12;
-  render();
-}
-
-function abrirDetalhe(calc){ location.href = 'detalhe.html?calc=' + encodeURIComponent(calc); }
-
-document.addEventListener('keydown', e => {
-  if (e.key !== 'Enter' && e.key !== ' ') return;
-  const alvo = e.target.closest('[data-calc]');
-  if (!alvo) return;
-  e.preventDefault();
-  abrirDetalhe(alvo.dataset.calc);
-});
+const CORES_METRICA = { income:'#529952', expense:'#E62D2D', recurring:'#EC4899',
+                        savings:'#84CC16', card:'#7C3AED' };
 
 document.addEventListener('click', e => {
-  const det = e.target.closest('[data-calc]');
-  if (det && !e.target.closest('[data-nav],[data-action]')){ abrirDetalhe(det.dataset.calc); return; }
-
   const navBtn = e.target.closest('[data-nav]');
   if (navBtn){
-    const dir = navBtn.dataset.nav;
-    if (dir === 'month-prev') irPara(S.mes - 1, S.mes === 0  ? S.ano - 1 : S.ano);
-    if (dir === 'month-next') irPara(S.mes + 1, S.mes === 11 ? S.ano + 1 : S.ano);
-    if (dir === 'year-prev')  irPara(S.mes, S.ano - 1);
-    if (dir === 'year-next')  irPara(S.mes, S.ano + 1);
+    const d = navBtn.dataset.nav;
+    if (d === 'month-prev'){ if (S.mes === 0){ S.mes = 11; S.ano--; } else S.mes--; }
+    if (d === 'month-next'){ if (S.mes === 11){ S.mes = 0; S.ano++; } else S.mes++; }
+    if (d === 'year-prev')  S.ano--;
+    if (d === 'year-next')  S.ano++;
+    render();
     return;
   }
-
   const act = e.target.closest('[data-action]');
   if (act){
-    if (act.dataset.action === 'escopo'){
-      S.escopo = S.escopo === 'ano' ? 'mes' : 'ano';
-      ls.set('brian-totais-escopo', S.escopo);
-      render();
-    }
-    if (act.dataset.action === 'today'){
-      S.escopo = 'mes';
-      ls.set('brian-totais-escopo', 'mes');
-      irPara(HOJE.getMonth(), HOJE.getFullYear());
-    }
+    if (act.dataset.action === 'today'){ S.ano = HOJE.getFullYear(); S.mes = HOJE.getMonth(); render(); }
     if (act.dataset.action === 'horizon') location.href = 'horizonte.html';
-    /* O lançamento vive na tela de saldos; mandar para o app antigo tirava
-       o usuário do sistema novo no meio da tarefa. */
     if (act.dataset.action === 'add')     location.href = 'saldos.html#novo';
+    if (act.dataset.action === 'escopo')  return;
     return;
   }
-
   const collapseBtn = e.target.closest('#collapseBtn');
-  if (collapseBtn){
-    document.getElementById('sidebar').classList.toggle('is-collapsed');
-    return;
-  }
+  if (collapseBtn){ document.getElementById('sidebar').classList.toggle('is-collapsed'); }
 });
 
 
+let SB = null;
+
 async function boot(){
-  let semSessao = false;
-  let autenticado = false;
+  let semSessao = false, autenticado = false;
   try {
-    const sb = window.supabase.createClient(SB_URL, SB_KEY);
-    const { data: { session } } = await sb.auth.getSession();
+    SB = window.supabase.createClient(SB_URL, SB_KEY);
+    const { data: { session } } = await SB.auth.getSession();
     if (session){
       autenticado = true;
-      const { data, error } = await sb.from('movimentos').select('*').order('data', { ascending: true });
+      const { data, error } = await SB.from('movimentos').select('*').order('data', { ascending: true });
       if (!error && data) S.movs = data.map(toMov);
-    } else {
-      semSessao = true;
-    }
-  } catch (err) {
-    console.warn('Supabase indisponível, usando dados de demonstração.', err);
-  }
-  /* Sem sessão vai pro login: mostrar números de demonstração para quem está
-     deslogado engana. Só vale quando a página é servida pela web de verdade —
-     aberta como arquivo (file:/data:) segue com a demonstração, senão não dá
-     pra conferir o layout fora do servidor. */
+    } else { semSessao = true; }
+  } catch (err) { console.warn('Supabase indisponível.', err); }
   const naWeb = location.protocol === 'http:' || location.protocol === 'https:';
-  if (semSessao && naWeb){
-    location.replace('entrar.html');
-    return;
-  }
-  /* Base vazia de usuário logado é base vazia — a demonstração só entra quando
-     não há sessão nenhuma (arquivo aberto direto, para conferir layout).
-     Inventar número para quem está autenticado é mentir sobre dinheiro. */
+  if (semSessao && naWeb){ location.replace('entrar.html'); return; }
   if (!autenticado && !S.movs.length) S.movs = DEMO.map(toMov);
   render();
 }
