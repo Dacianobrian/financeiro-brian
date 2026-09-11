@@ -74,7 +74,7 @@ ping do keep-alive responder 200 sem vazar nada.
 Verificado com Chromium headless: as 10 páginas carregam com **zero violações de
 CSP**.
 
-## 🔴 Falta — 3 coisas que dependem de você
+## 🔴 Falta — o que depende de você
 
 ### 1. Dois cliques no painel do Supabase
 
@@ -105,20 +105,52 @@ site, só o aviso de "projeto inativo" do Supabase.
 
 ### 3. O backup com seus valores reais
 
-`backups/backup_2026-09-11.md` tem seus lançamentos de verdade — aluguel,
-comissões, consórcios, plano de saúde — num repositório **público**.
+**Feito em parte.** O arquivo `backups/backup_2026-09-11.md` saiu do repositório e
+a pasta `backups/` entrou no `.gitignore`, então nunca mais volta. O conteúdo foi
+devolvido para você guardar fora do GitHub.
 
-Apagar o arquivo não basta: ele continua no histórico do git, e qualquer pessoa
-consegue recuperá-lo. Limpar de verdade exige reescrever o histórico do
-repositório, o que é uma operação delicada. As opções, da mais simples à mais
-completa:
+**O que continua exposto:** o arquivo ainda está alcançável no commit `f38207c`.
+Apagar não apaga o passado.
 
-1. **Tornar o repositório privado** (Settings → General → Change visibility).
-   Resolve tudo de uma vez, mas derruba o GitHub Pages no plano gratuito —
-   o site sairia do ar.
-2. **Reescrever o histórico** para remover só esse arquivo. O site continua no ar
-   e o dado some. Dá para fazer, mas precisa da sua autorização explícita.
-3. **Deixar como está** e daqui pra frente guardar backup fora do git.
+**Por que eu não reescrevi o histórico:** duas razões.
+
+A primeira é prática — o sistema de permissões deste ambiente bloqueia reescrita
+de histórico e `push --force`.
+
+A segunda é mais importante, e mudaria a recomendação mesmo sem o bloqueio:
+**reescrever o histórico e dar force-push não garante que o dado sai do GitHub.**
+Os commits antigos deixam de aparecer na listagem, mas continuam acessíveis por
+URL direta com o SHA (`github.com/.../commit/f38207c`) até o GitHub fazer coleta
+de lixo — o que não tem prazo e, na prática, só acontece se você abrir um chamado
+no Suporte pedindo. Ou seja: o trabalho todo, e o dado possivelmente continua lá.
+
+**As opções reais, então:**
+
+| Opção | Resolve de verdade? | Custo |
+|---|---|---|
+| Reescrever histórico + force-push | Parcial — some da listagem, pode continuar acessível por SHA | Quebra clones locais |
+| Reescrever + abrir chamado no Suporte do GitHub pedindo a coleta de lixo | Sim | Trabalhoso, depende do Suporte |
+| Apagar o repositório e criar de novo, só com os arquivos atuais | Sim, definitivo | Perde todo o histórico de commits |
+| Tornar o repositório privado | Sim | Derruba o site (Pages gratuito exige repositório público) |
+| Não fazer nada além do que já foi feito | Não | Zero |
+
+**Sugestão honesta:** o que vazou são seus gastos pessoais — aluguel, comissões,
+consórcio. Não é senha nem chave, então não há nada para "rotacionar" e o estrago
+não cresce com o tempo. O repositório tem **0 forks**, ou seja, ninguém copiou.
+Se isso te incomoda de verdade, a opção limpa é apagar e recriar o repositório.
+Se é aceitável, o mais importante já está feito: não acontece de novo.
+
+Os comandos, se você optar por reescrever:
+
+```bash
+git clone https://github.com/Dacianobrian/financeiro-brian.git
+cd financeiro-brian
+git filter-branch --index-filter \
+  'git rm --cached --ignore-unmatch backups/backup_2026-09-11.md' \
+  --prune-empty -- --all
+git push --force --all
+git push --force --tags
+```
 
 ## Opcional — SRI no script do Supabase
 
