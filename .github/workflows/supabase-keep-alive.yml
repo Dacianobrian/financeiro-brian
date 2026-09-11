@@ -15,19 +15,25 @@ jobs:
     steps:
       - name: Ping Supabase REST API
         run: |
+          # Consulta a tabela protegida por RLS. Sem sessão o RLS devolve lista
+          # vazia — nenhum dado sai daqui, e o projeto conta como ativo.
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "https://cathhujdhocioybdpnvc.supabase.co/rest/v1/accounts?select=id&limit=1" \
-            -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhdGhodWpkaG9jaW95YmRwbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTUxODgsImV4cCI6MjA5MTI5MTE4OH0.5zO8sxWV1R_fVt9FPN4bDGXaCophee4gCh0jjEVp9DQ" \
-            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhdGhodWpkaG9jaW95YmRwbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTUxODgsImV4cCI6MjA5MTI5MTE4OH0.5zO8sxWV1R_fVt9FPN4bDGXaCophee4gCh0jjEVp9DQ")
+            "https://cathhujdhocioybdpnvc.supabase.co/rest/v1/movimentos?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
 
           echo "Status HTTP: $HTTP_STATUS"
 
-          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+          # Qualquer resposta HTTP do Supabase (inclusive 401) prova que o projeto
+          # está de pé. Só 5xx ou ausência de resposta indicam problema real.
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 500 ]; then
             echo "✅ Supabase ativo e respondendo."
           else
             echo "⚠️ Supabase retornou status inesperado: $HTTP_STATUS"
             exit 1
           fi
+        env:
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: Log horário do ping
         run: |

@@ -1,4 +1,6 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<!doctype html><html><head><meta charset=utf8>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://cathhujdhocioybdpnvc.supabase.co; worker-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'self'; object-src 'none'">
+<meta name="referrer" content="no-referrer"><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
 <title>App do Brian</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -2126,6 +2128,8 @@ function renderTotais() {
 }
 
 // ─── UTILS ───
+function esc(s){ return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
 const fmt = v => v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
 const fmtSm = v => {
   if (!S.showBal) return '<span class="hidden-val">•••••</span>';
@@ -2912,7 +2916,7 @@ function renderDayPanel() {
         <div class="dp-mov" onclick="editMov(${mv.id})">
           <div class="dp-mov-icon ${mv.tipo==='entrada'?'e':'s'}">${mv.tipo==='entrada'?'📥':'📤'}</div>
           <div class="dp-mov-body">
-            <div class="dp-mov-desc">${mv.desc}</div>
+            <div class="dp-mov-desc">${esc(mv.desc)}</div>
             <div class="dp-mov-sub">${sub}</div>
           </div>
           <div class="dp-mov-amt ${mv.tipo==='entrada'?'e':'s'}">${mv.tipo==='entrada'?'+':'-'}${fmt(mv.valor)}</div>
@@ -2985,7 +2989,7 @@ function renderMovsList(y, m) {
         <div class="mov-item" onclick="editMov(${mv.id})">
           <div class="mov-icon ${mv.tipo==='entrada'?'e':'s'}">${mv.tipo==='entrada'?'📥':'📤'}</div>
           <div class="mov-body">
-            <div class="mov-desc">${mv.desc}</div>
+            <div class="mov-desc">${esc(mv.desc)}</div>
             <div class="mov-meta">
               <span class="mov-sub" style="color:${conta.cor};font-weight:600">${conta.nome}</span>
               ${recHtml}
@@ -3024,7 +3028,7 @@ function renderTagsList() {
     return `<div class="tag-card2" onclick="openEditTag('${t.id}')">
       <div class="tag-card2-top">
         <div class="tag-card2-dot" style="background:${hex}"></div>
-        <div class="tag-card2-nome">${t.nome}</div>
+        <div class="tag-card2-nome">${esc(t.nome)}</div>
         <button class="tag-card2-edit" onclick="event.stopPropagation();openEditTag('${t.id}')" title="editar">✏️</button>
       </div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:${cnt>0?'6px':'0'}">${cnt} lançamento${cnt!==1?'s':''}</div>
@@ -3122,7 +3126,7 @@ function renderPrevDiario() {
     ? `<div class="prev-input-row"><span style="color:var(--text3);font-size:13px">Nenhum gasto fixo adicionado ainda</span></div>`
     : gastos.map((g,i) => `
       <div class="prev-input-row">
-        <span class="prev-input-lbl">${g.desc}</span>
+        <span class="prev-input-lbl">${esc(g.desc)}</span>
         <span style="font-weight:600;font-variant-numeric:tabular-nums;color:var(--expense);margin-right:8px;font-size:13px">${fmt(g.valor)}</span>
         <button onclick="removePrevGasto(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1;padding:0;width:20px">×</button>
       </div>`).join('');
@@ -3524,7 +3528,7 @@ function renderCartao() {
       return `<div class="pc-item">
         <div class="pc-item-top">
           <div>
-            <div class="pc-item-desc">${p.desc}</div>
+            <div class="pc-item-desc">${esc(p.desc)}</div>
             <div class="pc-item-card-lbl">${cartao?.nome || '—'}</div>
           </div>
           <div class="pc-item-right">
@@ -3682,7 +3686,7 @@ function renderDrawerFields() {
         <div class="picker-row" onclick="selectRec('${o.val}')">
           <div class="picker-info">
             <div class="picker-label">${o.label}</div>
-            ${o.desc ? `<div class="picker-desc">${o.desc}</div>` : ''}
+            ${o.desc ? `<div class="picker-desc">${esc(o.desc)}</div>` : ''}
           </div>
           ${S.drawerRec === o.val ? '<span class="picker-check">✓</span>' : ''}
         </div>`).join('')}`;
@@ -3697,7 +3701,7 @@ function renderDrawerFields() {
       : filtered.map(t => `
           <div class="tpk-row" onclick="selectTag('${t.id}')">
             <div class="tpk-dot" style="background:${getTagHex(t.cor)}"></div>
-            <div class="tpk-label">${t.nome}</div>
+            <div class="tpk-label">${esc(t.nome)}</div>
             ${S.drawerTag === t.id ? '<span class="tpk-check">✓</span>' : ''}
           </div>`).join('');
     el.innerHTML = `
