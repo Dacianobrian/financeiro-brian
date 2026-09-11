@@ -495,9 +495,11 @@ function metricInfo(key){ return METRICS.find(m => m.key === key) || METRICS[4];
    CLASSIFICAÇÃO — mesma regra do index.html
    ══════════════════════════════════════════════════════════════ */
 function classify(mv){
+  /* Economia antes de entrada: resgatar da caixinha é uma entrada que tem
+     que cair na coluna economias. Mesma regra do saldos.html. */
+  if (mv.conta === 'itau' || mv.conta === 'economia' || mv.tag === 'invest') return 'savings';
   if (mv.tipo === 'entrada')                       return 'income';
   if (mv.conta === 'cartao')                       return 'card';
-  if (mv.conta === 'itau' || mv.tag === 'invest')  return 'savings';
   if (mv.tag === 'diário' || mv.tag === 'diario')  return 'recurring';
   return 'expense';
 }

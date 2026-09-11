@@ -2253,12 +2253,14 @@ function calcDailyBalances(y, m) {
     for (const mv of dayMovs) {
       const sign = mv.tipo === 'entrada' ? mv.valor : -mv.valor;
       deltaMap[mv.conta] += sign;
-      if (mv.tipo === 'entrada') {
+      /* Economia antes de entrada, como nas telas novas: resgatar da caixinha
+         é entrada, mas pertence à economia — e entra negativo, porque sai de lá. */
+      if (mv.conta === 'itau' || mv.conta === 'economia' || mv.tag === 'invest') {
+        dayInvest += (mv.tipo === 'entrada' ? -mv.valor : mv.valor);
+      } else if (mv.tipo === 'entrada') {
         dayIn += mv.valor;
       } else if (mv.conta === 'cartao') {
         dayCartao += mv.valor;
-      } else if (mv.conta === 'itau' || mv.tag === 'invest') {
-        dayInvest += mv.valor;
       } else if (mv.tag === 'diário') {
         dayDiario += mv.valor;
       } else {

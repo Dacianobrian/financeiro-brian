@@ -345,7 +345,10 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 @media(max-width:479px){.metric-value{display:inline;min-width:0;text-align:right;flex:1;font-size:16px;line-height:24px}}
 
 /* ── células de saldo (5 tons) ────────────────────────────────── */
-.balance-cell{display:flex;align-items:center;justify-content:flex-end;min-height:40px;padding:0 12px;border:0;font:inherit;cursor:pointer;transition:box-shadow 160ms ease}
+.balance-cell{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:1px;min-height:40px;padding:0 12px;border:0;font:inherit;cursor:pointer;transition:box-shadow 160ms ease}
+/* O saldo da conta manda na célula; o total com a caixinha vem discreto
+   embaixo, só quando existe algo guardado. */
+.balance-total{font-size:10px;line-height:1;font-weight:600;opacity:.72;white-space:nowrap}
 @media(hover:hover) and (pointer:fine){.balance-cell:hover{box-shadow:inset 0 0 0 999px var(--table-balance-hover-overlay)}}
 .balance-cell:focus-visible{outline:2px solid var(--color-border-focus);outline-offset:-2px}
 @media(max-width:479px){.balance-cell{min-width:0;padding:0 12px;color:var(--color-text-primary)}}
@@ -683,10 +686,17 @@ function metricInfo(key){ return METRICS.find(m => m.key === key) || METRICS[4];
 /* ══════════════════════════════════════════════════════════════
    CLASSIFICAÇÃO — mesma regra do index.html
    ══════════════════════════════════════════════════════════════ */
+/* 'itau' é apelido histórico do balde economias, não banco nenhum. Aceita
+   'economia' junto pra o dia em que esse nome for migrado. */
+function ehEconomia(mv){
+  return mv.conta === 'itau' || mv.conta === 'economia' || mv.tag === 'invest';
+}
 function classify(mv){
+  /* Economia vem antes de entrada de propósito: resgatar da caixinha é uma
+     entrada que tem que cair na coluna economias, não na de entradas. */
+  if (ehEconomia(mv))                              return 'savings';
   if (mv.tipo === 'entrada')                       return 'income';
   if (mv.conta === 'cartao')                       return 'card';
-  if (mv.conta === 'itau' || mv.tag === 'invest')  return 'savings';
   if (mv.tag === 'diário' || mv.tag === 'diario')  return 'recurring';
   return 'expense';
 }
@@ -731,11 +741,15 @@ function buildYear(ano){
   const porDia = new Map();
   for (const mv of S.movs){
     const k = iso(mv.data);
-    if (!porDia.has(k)) porDia.set(k, { income:0, expense:0, recurring:0, savings:0, card:0, delta:0 });
+    if (!porDia.has(k)) porDia.set(k, { income:0, expense:0, recurring:0, savings:0, card:0, delta:0, guardadoDelta:0 });
     const bucket = porDia.get(k);
     const kind = classify(mv);
-    bucket[kind] += mv.valor;
-    bucket.delta += (mv.tipo === 'entrada' ? mv.valor : -mv.valor);
+    const entrada = mv.tipo === 'entrada';
+    /* Na economia o sinal importa: guardar engorda a caixinha, resgatar
+       devolve o dinheiro pra conta e tira de lá. */
+    bucket[kind] += (kind === 'savings' && entrada) ? -mv.valor : mv.valor;
+    if (kind === 'savings') bucket.guardadoDelta += entrada ? -mv.valor : mv.valor;
+    bucket.delta += entrada ? mv.valor : -mv.valor;
   }
 
   /* Acumula tudo que é anterior ao primeiro mês da janela — que nem sempre é
@@ -743,8 +757,9 @@ function buildYear(ano){
   const j = janela();
   const inicio = iso(new Date(j[0].y, j[0].m, 1));
   let saldo = S.saldoInicial;
+  let guardado = 0;
   for (const [k, b] of [...porDia.entries()].sort()){
-    if (k < inicio) saldo += b.delta;
+    if (k < inicio){ saldo += b.delta; guardado += b.guardadoDelta; }
   }
 
   const meses = [];
@@ -755,8 +770,9 @@ function buildYear(ano){
     for (let d = 1; d <= n; d++){
       const date = new Date(y, m, d);
       const k = iso(date);
-      const b = porDia.get(k) || { income:0, expense:0, recurring:0, savings:0, card:0, delta:0 };
+      const b = porDia.get(k) || { income:0, expense:0, recurring:0, savings:0, card:0, delta:0, guardadoDelta:0 };
       saldo += b.delta;
+      guardado += b.guardadoDelta;
       for (const key of Object.keys(tot)) tot[key] += b[key];
       const wd = date.getDay();
       dias.push({
@@ -765,6 +781,9 @@ function buildYear(ano){
         isToday: k === HOJE_KEY,
         values: { income:b.income, expense:b.expense, recurring:b.recurring, savings:b.savings, card:b.card },
         saldo,
+        guardado,
+        /* O que você tem de fato: o que está na conta mais o que está guardado. */
+        patrimonio: saldo + guardado,
         tone: tone(saldo),
       });
     }
@@ -830,7 +849,8 @@ function dayRow(dia, anterior){
 
   const cells = METRICS.map(mt => {
     const v = dia.values[mt.key];
-    const has = v > 0;
+    /* Resgate deixa a economia negativa no dia; isso é valor, não vazio. */
+    const has = v !== 0;
     const selected = mt.key === S.metric ? ' is-selected' : '';
     const collapsed = S.collapsed.has(mt.key) ? ' is-collapsed' : '';
     return `<div class="metric-cell${selected}${collapsed}" data-col="${mt.key}">
@@ -848,6 +868,7 @@ function dayRow(dia, anterior){
       ${cells}
       <button class="balance-cell tone-${dia.tone}" type="button" data-role="balance" data-date="${dia.key}">
         <span class="balance-value">${fmt(dia.saldo)}</span>
+        ${dia.guardado !== 0 ? `<span class="balance-total" title="na conta + guardado na caixinha">total ${esc(fmt(dia.patrimonio))}</span>` : ''}
       </button>
     </div>`;
 }
@@ -856,8 +877,8 @@ function footRow(mes){
   const cells = METRICS.map(mt => {
     const v = mes.tot[mt.key];
     return `<button class="tf-cell${S.collapsed.has(mt.key) ? ' is-collapsed' : ''}" type="button" data-col="${mt.key}" data-role="total" data-kind="${mt.key}">
-        <span class="metric-icon ${mt.icon}${v > 0 ? ' has-value' : ''}"></span>
-        <span class="tf-value${v > 0 ? '' : ' is-zero'}">${fmt(v)}</span>
+        <span class="metric-icon ${mt.icon}${v !== 0 ? ' has-value' : ''}"></span>
+        <span class="tf-value${v !== 0 ? '' : ' is-zero'}">${fmt(v)}</span>
       </button>`;
   }).join('');
   return `<div class="table-grid table-foot">
@@ -1098,6 +1119,8 @@ const CAMPOS_POR_COLUNA = {
   income:    { tipo:'entrada', conta:'nubank', tag:null },
   expense:   { tipo:'saida',   conta:'nubank', tag:null },
   recurring: { tipo:'saida',   conta:'nubank', tag:'diário' },
+  /* tipo padrão da economia é saída (guardar); resgatar troca pra entrada
+     na hora de salvar, mantendo conta:'itau' pra cair nesta mesma coluna. */
   savings:   { tipo:'saida',   conta:'itau',   tag:null },
   card:      { tipo:'saida',   conta:'cartao', tag:null },
 };
@@ -1152,6 +1175,8 @@ function abrirEditor(dataKey, coluna, id){
      casaria com qualquer outra que também não tenha id. */
   const mv = (id != null && id !== 'null') ? S.movs.find(x => x.id != null && x.id === String(id)) : null;
   const colunaAtual = mv ? classify(mv) : coluna;
+  /* Guardar sai da conta (saída); resgatar volta pra conta (entrada). */
+  const direcaoAtual = (mv && mv.tipo === 'entrada' && ehEconomia(mv)) ? 'resgatar' : 'guardar';
 
   /* O vínculo é a fonte; a coluna tag do movimento é só a principal. */
   const escolhidas = (mv && S.vinculos[mv.id]) ? S.vinculos[mv.id].map(String) : [];
@@ -1165,6 +1190,19 @@ function abrirEditor(dataKey, coluna, id){
                   data-sheet="coluna" data-col="${m.key}">
             <span class="metric-icon ${m.icon}"></span>${esc(m.label)}
           </button>`).join('')}
+      </div>
+    </div>
+    <div class="campo" id="campoDirecao"${colunaAtual === 'savings' ? '' : ' hidden'}>
+      <span class="campo-rot">o dinheiro está</span>
+      <div class="tipo-chips" id="chipsDirecao">
+        <button class="tipo-chip c-savings${direcaoAtual === 'guardar' ? ' is-on' : ''}" type="button"
+                data-sheet="direcao" data-dir="guardar">
+          <span class="metric-icon mi-savings"></span>entrando na economia
+        </button>
+        <button class="tipo-chip c-income${direcaoAtual === 'resgatar' ? ' is-on' : ''}" type="button"
+                data-sheet="direcao" data-dir="resgatar">
+          <span class="metric-icon mi-income"></span>saindo da economia
+        </button>
       </div>
     </div>
     <div class="campo">
@@ -1234,6 +1272,11 @@ function colunaSelecionada(){
   return on ? on.dataset.col : F.coluna;
 }
 
+function direcaoSelecionada(){
+  const on = document.querySelector('#chipsDirecao .tipo-chip.is-on');
+  return on ? on.dataset.dir : 'guardar';
+}
+
 /* Regrava o conjunto de tags de um lançamento: apaga o que havia e insere o
    escolhido. Mais simples e mais seguro que calcular diferenças — o conjunto
    é pequeno e assim não sobra vínculo órfão de uma edição anterior. */
@@ -1262,9 +1305,13 @@ async function salvarLancamento(){
   const coluna = colunaSelecionada();
   const campos = CAMPOS_POR_COLUNA[coluna] || CAMPOS_POR_COLUNA.expense;
   const idsTags = tagsSelecionadas();
+  /* Resgatar da caixinha é entrada: o dinheiro volta pra conta. Guardar
+     continua sendo saída. O resto da coluna não muda. */
+  const tipo = (coluna === 'savings' && direcaoSelecionada() === 'resgatar')
+    ? 'entrada' : campos.tipo;
   const linha = {
     descricao: desc || metricInfo(coluna).label,
-    valor, tipo: campos.tipo, data: dataStr,
+    valor, tipo, data: dataStr,
     conta: campos.conta,
     tag: tagPrincipal(idsTags, campos.tag),
     rec: document.getElementById('fRec').value || null,
@@ -1468,6 +1515,13 @@ document.addEventListener('click', e => {
       /* Escolher o cartão só faz sentido na coluna cartão. */
       const cc = document.getElementById('campoCartao');
       if (cc) cc.hidden = folha.dataset.col !== 'card';
+      /* E a direção, só na coluna economias. */
+      const cd = document.getElementById('campoDirecao');
+      if (cd) cd.hidden = folha.dataset.col !== 'savings';
+    }
+    if (q === 'direcao'){
+      document.querySelectorAll('#chipsDirecao .tipo-chip').forEach(c => c.classList.remove('is-on'));
+      folha.classList.add('is-on');
     }
     return;
   }
