@@ -278,6 +278,18 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 @media(prefers-reduced-motion:reduce){.tt-meter-fill{transition:none}}
 .tt-stack-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px}
 
+/* ── tabela mês a mês (recorte anual) ────────────────────────── */
+.ano-tabela{width:100%;border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
+.ano-tabela th,.ano-tabela td{padding:8px 0;border-bottom:1px solid var(--border-hairline);white-space:nowrap}
+.ano-tabela th{color:var(--color-text-muted);font-size:14px;line-height:20px;font-weight:700;text-transform:lowercase;text-align:right}
+.ano-tabela th:first-child,.ano-tabela td:first-child{text-align:left}
+.ano-tabela td{color:var(--color-text-primary);font-size:14px;line-height:20px;font-weight:500;text-align:right}
+.ano-mes{font-weight:700;text-transform:lowercase}
+.ano-tabela td.is-zero{color:var(--color-text-ghost)}
+.ano-tabela tr.is-atual td{color:#FF5917}
+.ano-tabela tfoot td{padding-top:12px;border-bottom:0;border-top:1px solid var(--color-text-primary);font-size:16px;line-height:24px;font-weight:700}
+.ano-pct{width:64px}
+
 /* ══════════════════════════════════════════════════════════════
    NAV INFERIOR (mobile)
    ══════════════════════════════════════════════════════════════ */
@@ -661,6 +673,51 @@ function linha({ formulaHTML, label, valor, valorCls = '', status }){
     </div>`;
 }
 
+/* Mês a mês do ano, no formato da planilha: entradas, economia e a razão
+   entre as duas. O rodapé soma o ano — e a % do ano é a razão dos totais,
+   não a média das mensais, que daria outro número. */
+function tabelaDoAno(){
+  const linhas = [];
+  let totEntradas = 0, totEconomia = 0;
+  for (let m = 0; m < 12; m++){
+    const t = totaisDoPeriodo(S.ano, m);
+    totEntradas += t.income;
+    totEconomia += t.savings;
+    linhas.push({ m, entradas: t.income, economia: t.savings,
+                  pct: t.income > 0 ? (t.savings / t.income) * 100 : null });
+  }
+  const pctAno = totEntradas > 0 ? (totEconomia / totEntradas) * 100 : null;
+  const ehAtual = m => S.ano === HOJE.getFullYear() && m === HOJE.getMonth();
+  const cls = v => v === 0 ? ' class="is-zero"' : '';
+
+  return `
+    <section class="tt-section">
+      <h2 class="tt-section-title">mês a mês</h2>
+      <div style="overflow-x:auto">
+        <table class="ano-tabela">
+          <thead><tr><th>mês</th><th>entradas</th><th>economia</th><th class="ano-pct">%</th></tr></thead>
+          <tbody>
+            ${linhas.map(l => `
+              <tr class="${ehAtual(l.m) ? 'is-atual' : ''}">
+                <td class="ano-mes">${MESES[l.m]}</td>
+                <td${cls(l.entradas)}>${fmt(l.entradas)}</td>
+                <td${cls(l.economia)}>${fmt(l.economia)}</td>
+                <td class="ano-pct${l.pct === null ? ' is-zero' : ''}">${l.pct === null ? '—' : Math.round(l.pct) + '%'}</td>
+              </tr>`).join('')}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="ano-mes">${S.ano}</td>
+              <td>${fmt(totEntradas)}</td>
+              <td>${fmt(totEconomia)}</td>
+              <td class="ano-pct">${pctAno === null ? '—' : Math.round(pctAno) + '%'}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>`;
+}
+
 function render(){
   const anual = S.escopo === 'ano';
   const t = totaisDoPeriodo(S.ano, anual ? null : S.mes);
@@ -713,6 +770,8 @@ function render(){
         status: t.decorridos ? `${t.diasComDiario} de ${t.decorridos} dias`
                              : (anual ? 'ano ainda não começou' : 'mês ainda não começou') })}
     </section>
+
+    ${anual ? tabelaDoAno() : ''}
 
     <section class="tt-section">
       <h2 class="tt-section-title">movimentações do ${anual ? 'ano' : 'mês'}</h2>
