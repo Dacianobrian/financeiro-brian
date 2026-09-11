@@ -357,7 +357,8 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
           <div class="dh-nav">
             <button class="dh-nav-btn nav-dbl-prev" type="button" aria-label="Ano anterior" data-nav="year-prev"></button>
             <button class="dh-nav-btn nav-prev" type="button" aria-label="Mês anterior" data-nav="month-prev"></button>
-            <button class="dh-range-pill" type="button" data-action="today">
+            <button class="dh-range-pill" type="button" data-action="escopo"
+                    title="Alternar entre mês e ano">
               <span class="dh-range-label" id="rangeLabel">set/2026</span>
               <span class="dh-chevron"></span>
             </button>
@@ -588,32 +589,45 @@ function toMov(r){
 /* ══════════════════════════════════════════════════════════════
    AGREGAÇÃO DO MÊS
    ══════════════════════════════════════════════════════════════ */
-function totaisDoMes(ano, mes){
+/* mes === null agrega o ano inteiro. O resto do cálculo é idêntico — só muda
+   a janela e quantos dias já passaram dentro dela. */
+function totaisDoPeriodo(ano, mes){
   const t = { income:0, expense:0, recurring:0, savings:0, card:0 };
-  let diasComDiario = 0;
   const diasVistos = new Set();
   for (const mv of S.movs){
-    if (mv.data.getFullYear() !== ano || mv.data.getMonth() !== mes) continue;
+    if (mv.data.getFullYear() !== ano) continue;
+    if (mes !== null && mv.data.getMonth() !== mes) continue;
     const kind = classify(mv);
     t[kind] += mv.valor;
-    if (kind === 'recurring' && !diasVistos.has(iso(mv.data))){
-      diasVistos.add(iso(mv.data));
-      diasComDiario++;
-    }
+    if (kind === 'recurring') diasVistos.add(iso(mv.data));
   }
-  /* Dias decorridos: no mês corrente conta até hoje; nos passados, o mês todo;
-     nos futuros, zero — dividir por dias que ainda não aconteceram mentiria na média. */
-  const n = diasNoMes(ano, mes);
-  let decorridos;
-  if (ano === HOJE.getFullYear() && mes === HOJE.getMonth()) decorridos = HOJE.getDate();
-  else if (new Date(ano, mes, 1) < new Date(HOJE.getFullYear(), HOJE.getMonth(), 1)) decorridos = n;
-  else decorridos = 0;
 
-  t.custoDeVida  = t.expense + t.recurring + t.card;
-  t.performance  = t.income - t.custoDeVida - t.savings;
-  t.decorridos   = decorridos;
-  t.diasComDiario= diasComDiario;
-  t.diarioMedio  = decorridos > 0 ? t.recurring / decorridos : 0;
+  /* Dias decorridos: no período corrente conta até hoje; nos passados, o
+     período todo; nos futuros, zero — dividir por dias que ainda não
+     aconteceram mentiria na média. */
+  const bissexto = (ano % 4 === 0 && ano % 100 !== 0) || ano % 400 === 0;
+  const total = mes === null ? (bissexto ? 366 : 365) : diasNoMes(ano, mes);
+  const inicio = mes === null ? new Date(ano, 0, 1) : new Date(ano, mes, 1);
+  const inicioAtual = mes === null
+    ? new Date(HOJE.getFullYear(), 0, 1)
+    : new Date(HOJE.getFullYear(), HOJE.getMonth(), 1);
+
+  let decorridos;
+  if (inicio.getTime() === inicioAtual.getTime()){
+    decorridos = mes === null
+      ? Math.round((HOJE - new Date(ano, 0, 1)) / 86400000) + 1
+      : HOJE.getDate();
+  } else if (inicio < inicioAtual) {
+    decorridos = total;
+  } else {
+    decorridos = 0;
+  }
+
+  t.custoDeVida    = t.expense + t.recurring + t.card;
+  t.performance    = t.income - t.custoDeVida - t.savings;
+  t.decorridos     = decorridos;
+  t.diasComDiario  = diasVistos.size;
+  t.diarioMedio    = decorridos > 0 ? t.recurring / decorridos : 0;
   t.economizadoPct = t.income > 0 ? Math.max(0, Math.min(100, (t.savings / t.income) * 100)) : 0;
   return t;
 }
@@ -648,20 +662,21 @@ function linha({ formulaHTML, label, valor, valorCls = '', status }){
 }
 
 function render(){
-  const t = totaisDoMes(S.ano, S.mes);
+  const anual = S.escopo === 'ano';
+  const t = totaisDoPeriodo(S.ano, anual ? null : S.mes);
 
   const perfCls    = t.performance < 0 ? ' is-neg' : (t.performance > 0 ? ' is-pos' : '');
   const perfStatus = t.performance < 0 ? 'faltou dinheiro'
                    : t.performance > 0 ? 'sobrou dinheiro'
                    : 'fechou no zero';
-  const custoStatus = t.income === 0 ? (t.custoDeVida > 0 ? 'sem renda no mês' : 'sem gastos')
+  const custoStatus = t.income === 0 ? (t.custoDeVida > 0 ? `sem renda no ${anual ? 'ano' : 'mês'}` : 'sem gastos')
                     : t.custoDeVida > t.income ? 'acima da renda' : 'dentro da renda';
   const pct = Math.round(t.economizadoPct);
   const ecoStatus = t.savings === 0 ? 'nada guardado' : `${pct}% da renda guardada`;
 
   document.getElementById('totaisCol').innerHTML = `
     <section class="tt-section">
-      <h2 class="tt-section-title">cálculos do mês</h2>
+      <h2 class="tt-section-title">cálculos do ${anual ? 'ano' : 'mês'}</h2>
 
       ${linha({
         formulaHTML: chip('income') + '<span class="tt-op">−</span>' +
@@ -695,11 +710,12 @@ function render(){
       ${linha({
         formulaHTML: chip('recurring') + `<span class="tt-divisor">/${t.decorridos}</span>`,
         label: 'diário médio', valor: t.diarioMedio,
-        status: t.decorridos ? `${t.diasComDiario} de ${t.decorridos} dias` : 'mês ainda não começou' })}
+        status: t.decorridos ? `${t.diasComDiario} de ${t.decorridos} dias`
+                             : (anual ? 'ano ainda não começou' : 'mês ainda não começou') })}
     </section>
 
     <section class="tt-section">
-      <h2 class="tt-section-title">movimentações do mês</h2>
+      <h2 class="tt-section-title">movimentações do ${anual ? 'ano' : 'mês'}</h2>
       ${linha({ formulaHTML: chip('income'),    label: 'entradas', valor: t.income,  valorCls: t.income  ? ' is-pos' : '' })}
       ${linha({ formulaHTML: chip('expense'),   label: 'saídas',   valor: t.expense })}
       ${linha({ formulaHTML: chip('recurring'), label: 'diários',  valor: t.recurring })}
@@ -715,11 +731,15 @@ function render(){
 
   paintHorizon(buildYear(HOJE.getFullYear()));
 
-  document.getElementById('rangeLabel').textContent      = `${MESES[S.mes]}/${S.ano}`;
-  document.getElementById('mobileMonthLabel').textContent= `${MESES_CAP[S.mes]}/${S.ano}`;
+  const rotulo = anual ? String(S.ano) : `${MESES[S.mes]}/${S.ano}`;
+  document.getElementById('rangeLabel').textContent       = rotulo;
+  document.getElementById('mobileMonthLabel').textContent = anual ? String(S.ano) : `${MESES_CAP[S.mes]}/${S.ano}`;
+  /* No ano inteiro não há mês para avançar. */
+  document.querySelectorAll('[data-nav="month-prev"],[data-nav="month-next"]')
+    .forEach(b => { b.disabled = anual; b.style.opacity = anual ? '.35' : ''; });
   document.getElementById('sidebarTodayNum').textContent = HOJE.getDate();
   document.getElementById('mobileTodayNum').textContent  = HOJE.getDate();
-  document.title = `totais · ${MESES[S.mes]}/${S.ano}`;
+  document.title = `totais · ${rotulo}`;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -744,7 +764,16 @@ document.addEventListener('click', e => {
 
   const act = e.target.closest('[data-action]');
   if (act){
-    if (act.dataset.action === 'today')   irPara(HOJE.getMonth(), HOJE.getFullYear());
+    if (act.dataset.action === 'escopo'){
+      S.escopo = S.escopo === 'ano' ? 'mes' : 'ano';
+      ls.set('brian-totais-escopo', S.escopo);
+      render();
+    }
+    if (act.dataset.action === 'today'){
+      S.escopo = 'mes';
+      ls.set('brian-totais-escopo', 'mes');
+      irPara(HOJE.getMonth(), HOJE.getFullYear());
+    }
     if (act.dataset.action === 'horizon') location.href = 'horizonte.html';
     /* O lançamento vive na tela de saldos; mandar para o app antigo tirava
        o usuário do sistema novo no meio da tarefa. */
