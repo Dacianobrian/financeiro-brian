@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="google" content="notranslate">
 <meta name="theme-color" content="#FFFFFF">
-<title>cartões</title>
+<title>fatura</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
@@ -290,15 +290,8 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 .cc-importar{height:40px;padding:0 14px;border:1px solid var(--color-border-subtle);border-radius:10px;background:transparent;color:var(--color-text-primary);font:inherit;font-size:14px;line-height:20px;font-weight:700;text-transform:lowercase;cursor:pointer}
 
 .cc-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
-/* O cartão inteiro abre a fatura, então o editor precisa de um alvo próprio.
-   Botão dentro de botão não é HTML válido: os dois ficam lado a lado num
-   invólucro, com o de editar por cima. */
-.cc-slot{position:relative;display:flex}
-.cc-card{position:relative;width:100%;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;padding:16px;border:0;border-radius:14px;color:#fff;font:inherit;text-align:left;cursor:pointer;overflow:hidden}
+.cc-card{position:relative;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;padding:16px;border:0;border-radius:14px;color:#fff;font:inherit;text-align:left;cursor:pointer;overflow:hidden}
 .cc-card:focus-visible{outline:2px solid var(--color-border-focus);outline-offset:2px}
-.cc-editar{position:absolute;top:12px;right:12px;z-index:1;height:28px;padding:0 10px;border:0;border-radius:999px;background:rgba(0,0,0,.28);color:#fff;font:inherit;font-size:12px;line-height:18px;font-weight:700;text-transform:lowercase;cursor:pointer}
-.cc-editar:hover{background:rgba(0,0,0,.44)}
-.cc-editar:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .cc-nome{font-size:16px;line-height:24px;font-weight:700}
 .cc-num{font-size:18px;line-height:26px;font-weight:700;letter-spacing:.14em;font-variant-numeric:tabular-nums}
 .cc-rodape{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
@@ -306,6 +299,64 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 .cc-datas{font-size:12px;line-height:18px;text-align:right;opacity:.9}
 .cc-fatura{font-size:14px;line-height:20px;font-weight:700;font-variant-numeric:tabular-nums}
 .cc-vazio{padding:32px 0;color:var(--color-text-muted);font-size:16px;line-height:24px;text-align:center}
+
+/* ══════════════════════════════════════════════════════════════
+   FATURA
+   ══════════════════════════════════════════════════════════════ */
+.ft-voltar{display:inline-flex;align-items:center;gap:6px;height:36px;margin-bottom:4px;padding:0 12px 0 8px;border:0;border-radius:999px;background:transparent;color:var(--color-text-primary);font:inherit;font-size:14px;line-height:20px;font-weight:700;cursor:pointer}
+.ft-voltar:hover{background:var(--color-bg-subtle)}
+.ft-voltar::before{content:"";width:20px;height:20px;background-color:currentColor;-webkit-mask-image:var(--ic-chevron-left);mask-image:var(--ic-chevron-left);-webkit-mask-size:20px 20px;mask-size:20px 20px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+
+.ft-topo{display:flex;align-items:stretch;gap:16px;padding:4px 0 12px}
+/* Em tela estreita o cartão vira uma faixa acima do valor: lado a lado, os
+   dois ficariam com menos da metade da largura e o valor quebraria linha. */
+@media(max-width:479px){.ft-topo{flex-direction:column;gap:12px}}
+.ft-cartao{flex:0 0 240px;min-height:132px;display:flex;flex-direction:column;justify-content:space-between;padding:14px;border-radius:14px;color:#fff}
+@media(max-width:479px){.ft-cartao{flex:none}}
+.ft-cc-nome{font-size:15px;line-height:22px;font-weight:700}
+.ft-cc-num{font-size:17px;line-height:24px;font-weight:700;letter-spacing:.14em;font-variant-numeric:tabular-nums}
+.ft-cc-rodape{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;font-size:12px;line-height:18px;opacity:.9}
+.ft-cc-titular{font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+
+.ft-hero{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.ft-rot{color:var(--color-text-muted);font-size:14px;line-height:20px;font-weight:700;text-transform:lowercase}
+.ft-valor{color:var(--color-text-primary);font-size:32px;line-height:40px;font-weight:700;font-variant-numeric:tabular-nums}
+.ft-valor.is-pos{color:var(--color-feedback-success)}
+.ft-periodo{color:var(--color-text-muted);font-size:16px;line-height:24px}
+.ft-selo{align-self:flex-start;margin-top:6px;height:24px;display:inline-flex;align-items:center;padding:0 10px;border-radius:999px;font-size:12px;line-height:18px;font-weight:700;text-transform:lowercase}
+.ft-selo.is-aberta {background:var(--color-bg-subtle);color:var(--color-text-primary)}
+.ft-selo.is-fechada{background:#FF5917;color:#fff}
+.ft-selo.is-vencida{background:var(--color-feedback-error);color:#fff}
+
+.ft-medidor-wrap{padding:8px 0 4px}
+.ft-medidor{position:relative;height:14px;border-radius:7px;background:var(--color-bg-subtle);overflow:hidden}
+.ft-medidor-fill{height:100%;width:0;border-radius:7px;background:#7C3AED;transition:width 320ms ease}
+.ft-medidor-fill.is-estourado{background:var(--color-feedback-error)}
+@media(prefers-reduced-motion:reduce){.ft-medidor-fill{transition:none}}
+.ft-medidor-legenda{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:4px;color:var(--color-text-muted);font-size:14px;line-height:20px;font-variant-numeric:tabular-nums}
+
+.ft-secao{margin-top:24px}
+.ft-secao-titulo{color:var(--color-text-muted);font-size:14px;line-height:20px;font-weight:700;text-transform:lowercase;padding:0 0 4px}
+
+.ft-mov{width:100%;display:flex;align-items:center;gap:12px;min-height:52px;padding:8px 0;border:0;border-bottom:1px solid var(--border-hairline);background:transparent;font:inherit;text-align:left;cursor:pointer}
+.ft-mov:last-child{border-bottom:0}
+.ft-mov:hover{background:var(--color-bg-subtle)}
+.ft-mov:focus-visible{outline:2px solid var(--color-border-focus);outline-offset:-2px}
+.ft-mov-dia{flex-shrink:0;width:44px;color:var(--color-text-muted);font-size:14px;line-height:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.ft-mov-desc{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--color-text-primary);font-size:16px;line-height:24px;font-weight:500}
+.ft-mov-valor{flex-shrink:0;color:var(--color-text-primary);font-size:16px;line-height:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.ft-mov-valor.is-estorno{color:var(--color-feedback-success)}
+.ft-vazio{padding:24px 0;color:var(--color-text-muted);font-size:16px;line-height:24px;text-align:center}
+
+.ano-tabela{width:100%;border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
+.ano-tabela th,.ano-tabela td{padding:8px 0;border-bottom:1px solid var(--border-hairline);white-space:nowrap}
+.ano-tabela th{color:var(--color-text-muted);font-size:14px;line-height:20px;font-weight:700;text-transform:lowercase;text-align:right}
+.ano-tabela th:first-child,.ano-tabela td:first-child{text-align:left}
+.ano-tabela td{color:var(--color-text-primary);font-size:14px;line-height:20px;font-weight:500;text-align:right}
+.ano-mes{font-weight:700;text-transform:lowercase}
+.ano-tabela td.is-zero{color:var(--color-text-ghost)}
+.ano-tabela tr.is-atual td{color:#FF5917}
+.ano-tabela tfoot td{padding-top:12px;border-bottom:0;border-top:1px solid var(--color-text-primary);font-size:16px;line-height:24px;font-weight:700}
 
 /* ══════════════════════════════════════════════════════════════
    NAV INFERIOR (mobile)
@@ -333,6 +384,8 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 <div id="root">
 <main class="app-main">
   <section class="app-shell">
+
+    <!-- ══════════ SIDEBAR (desktop) ══════════ -->
     <div class="sidebar-wrap">
       <nav class="sidebar" id="sidebar" aria-label="Navegação principal">
         <button class="sidebar-logo" type="button" title="Início" onclick="location.href='saldos.html'">
@@ -378,15 +431,15 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
     <div class="content-col">
       <div class="desktop-header-wrap">
         <header class="desktop-header">
-          <div class="dh-title-wrap"><h1 class="dh-title">cartões de crédito</h1></div>
+          <div class="dh-title-wrap"><h1 class="dh-title" id="titulo">fatura</h1></div>
           <div class="dh-nav">
             <button class="dh-nav-btn nav-dbl-prev" type="button" aria-label="Ano anterior" data-nav="year-prev"></button>
-            <button class="dh-nav-btn nav-prev" type="button" aria-label="Mês anterior" data-nav="month-prev"></button>
+            <button class="dh-nav-btn nav-prev" type="button" aria-label="Fatura anterior" data-nav="month-prev"></button>
             <button class="dh-range-pill" type="button" data-action="today">
               <span class="dh-range-label" id="rangeLabel">set/2026</span>
               <span class="dh-chevron"></span>
             </button>
-            <button class="dh-nav-btn nav-next" type="button" aria-label="Próximo mês" data-nav="month-next"></button>
+            <button class="dh-nav-btn nav-next" type="button" aria-label="Próxima fatura" data-nav="month-next"></button>
             <button class="dh-nav-btn nav-dbl-next" type="button" aria-label="Próximo ano" data-nav="year-next"></button>
           </div>
         </header>
@@ -398,21 +451,15 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
           <span class="mh-today-num" id="mobileTodayNum">9</span>
         </button>
         <div class="mh-center">
-          <button class="mh-arrow nav-prev" type="button" aria-label="Mês anterior" data-nav="month-prev"></button>
-          <span class="mh-month" id="mobileMonthLabel">cartões</span>
-          <button class="mh-arrow nav-next" type="button" aria-label="Próximo mês" data-nav="month-next"></button>
+          <button class="mh-arrow nav-prev" type="button" aria-label="Fatura anterior" data-nav="month-prev"></button>
+          <span class="mh-month" id="mobileMonthLabel">Set/2026</span>
+          <button class="mh-arrow nav-next" type="button" aria-label="Próxima fatura" data-nav="month-next"></button>
         </div>
         <span style="width:32px"></span>
       </header>
 
       <div class="cc-viewport">
-        <div class="cc-col">
-          <div class="cc-barra">
-            <button class="cc-importar" type="button" id="btnImportar" hidden>importar do navegador</button>
-            <button class="cc-novo" type="button" data-cc="novo">novo cartão</button>
-          </div>
-          <div class="cc-grade" id="ccGrade"></div>
-        </div>
+        <div class="cc-col" id="ftCol"></div>
       </div>
     </div>
   </section>
@@ -433,17 +480,6 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
     </button>
   </nav>
 </main>
-</div>
-
-<div class="sheet-backdrop" id="sheet" hidden>
-  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitulo">
-    <div class="sheet-head">
-      <h2 class="sheet-title" id="sheetTitulo">tag</h2>
-      <button class="sheet-close" type="button" data-tag="fechar" aria-label="Fechar">&times;</button>
-    </div>
-    <div class="sheet-body" id="sheetCorpo"></div>
-    <div class="sheet-foot" id="sheetRodape"></div>
-  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -562,207 +598,164 @@ function toMov(r){
   };
 }
 
-
-
-
-
-
-
-
 /* ══════════════════════════════════════════════════════════════
-   CARTÕES
+   FATURA
    ══════════════════════════════════════════════════════════════ */
 S.mes = HOJE.getMonth();
 S.cartoes = [];
-const E = { editando:null };
+
+/* O recorte vem de quem chamou, quando vier: abrir a fatura a partir de agosto
+   na tela de cartões tem que cair em agosto, não no mês de hoje. */
+(function recorteDaURL(){
+  const q = new URLSearchParams(location.search);
+  const ano = parseInt(q.get('ano'), 10);
+  const mes = parseInt(q.get('mes'), 10);
+  if (Number.isFinite(ano) && ano >= 1900 && ano <= 3000) S.ano = ano;
+  if (Number.isFinite(mes) && mes >= 0 && mes <= 11)      S.mes = mes;
+})();
 
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
+/* Dia e mês: o ciclo atravessa a virada do mês, então só o dia seria ambíguo
+   — "13" no começo da fatura e "12" no fim são meses diferentes. */
+function dm(d){ return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0'); }
+
+/* Sem o parâmetro, abre o primeiro cartão: quem chega em fatura.html direto
+   quer ver alguma fatura. Com parâmetro que não casa, não inventa outro
+   cartão — mostrar a fatura errada é pior que dizer que sumiu. */
+function cartaoAtual(){
+  const q = new URLSearchParams(location.search).get('cartao');
+  if (!q) return S.cartoes[0] || null;
+  return S.cartoes.find(c => String(c.id) === String(q)) || null;
+}
+
+const SELO = {
+  aberta:  'aberta',
+  fechada: 'fechada',
+  vencida: 'vencida',
+};
+
+/* Quantos dias faltam (ou passaram) para a data que importa nesta situação. */
+function prazo(sit, ciclo){
+  const alvo = sit === 'aberta' ? ciclo.fim : ciclo.vence;
+  if (!alvo) return '';
+  const hoje = new Date(HOJE.getFullYear(), HOJE.getMonth(), HOJE.getDate());
+  const dia  = new Date(alvo.getFullYear(), alvo.getMonth(), alvo.getDate());
+  const dias = Math.round((dia - hoje) / 86400000);
+  const verbo = sit === 'aberta' ? 'fecha' : 'vence';
+  if (dias === 0) return `${verbo} hoje`;
+  if (dias  >  0) return `${verbo} em ${dias} ${dias === 1 ? 'dia' : 'dias'}`;
+  return `venceu há ${-dias} ${dias === -1 ? 'dia' : 'dias'}`;
+}
 
 function render(){
-  const g = document.getElementById('ccGrade');
-  g.innerHTML = S.cartoes.length ? S.cartoes.map(c => {
-    const c1 = c.cor1 || '#3B82F6', c2 = c.cor2 || '#1E3A8A';
-    return `
-      <div class="cc-slot">
-        <button class="cc-card" type="button" data-cc="fatura" data-id="${esc(c.id)}"
-                style="background:linear-gradient(135deg,${esc(c1)},${esc(c2)})">
-          <span class="cc-nome">${esc(c.nome)}</span>
-          <span class="cc-num">•••• ${esc(c.num || '••••')}</span>
-          <span class="cc-rodape">
-            <span class="cc-titular">${esc(c.titular || '')}</span>
-            <span class="cc-datas">
-              ${c.dia_fechamento ? `fecha dia ${c.dia_fechamento}<br>` : ''}
-              ${c.dia_vencimento ? `vence dia ${c.dia_vencimento}<br>` : ''}
-              <span class="cc-fatura">${fmt(Fatura.total(c, S.movs, S.ano, S.mes))}</span>
-            </span>
-          </span>
-        </button>
-        <button class="cc-editar" type="button" data-cc="editar" data-id="${esc(c.id)}"
-                aria-label="Editar ${esc(c.nome)}">editar</button>
-      </div>`;
-  }).join('') : `<p class="cc-vazio">nenhum cartão cadastrado</p>`;
-
   document.getElementById('rangeLabel').textContent       = `${MESES[S.mes]}/${S.ano}`;
   document.getElementById('mobileMonthLabel').textContent = `${MESES_CAP[S.mes]}/${S.ano}`;
   document.getElementById('sidebarTodayNum').textContent  = HOJE.getDate();
   document.getElementById('mobileTodayNum').textContent   = HOJE.getDate();
-}
 
-function fecharFolha(){ E.editando = null; document.getElementById('sheet').hidden = true; }
+  const col = document.getElementById('ftCol');
+  const voltar = `<button class="ft-voltar" type="button" onclick="location.href='cartoes.html'">cartões</button>`;
+  const c = cartaoAtual();
 
-function abrirEditor(id){
-  const c = id != null ? S.cartoes.find(x => String(x.id) === String(id)) : null;
-  E.editando = c ? c.id : null;
-  const v = (campo, alt='') => c && c[campo] != null ? esc(c[campo]) : alt;
-
-  document.getElementById('sheetTitulo').textContent = c ? 'editar cartão' : 'novo cartão';
-  document.getElementById('sheetCorpo').innerHTML = `
-    <div class="campo"><label class="campo-rot" for="fNome">nome</label>
-      <input id="fNome" type="text" maxlength="40" placeholder="Nubank" value="${v('nome')}"></div>
-    <div class="campo"><label class="campo-rot" for="fNum">últimos 4 dígitos</label>
-      <input id="fNum" type="text" inputmode="numeric" maxlength="4" placeholder="0000" value="${v('num')}"></div>
-    <div class="campo"><label class="campo-rot" for="fTitular">titular</label>
-      <input id="fTitular" type="text" maxlength="40" placeholder="NOME NO CARTÃO" value="${v('titular')}"></div>
-    <div class="campo"><label class="campo-rot" for="fFecha">dia de fechamento</label>
-      <input id="fFecha" type="number" min="1" max="31" placeholder="1 a 31" value="${v('dia_fechamento')}"></div>
-    <div class="campo"><label class="campo-rot" for="fVence">dia de vencimento</label>
-      <input id="fVence" type="number" min="1" max="31" placeholder="1 a 31" value="${v('dia_vencimento')}"></div>
-    <div class="campo"><label class="campo-rot" for="fLimite">limite</label>
-      <input id="fLimite" type="number" step="0.01" min="0" placeholder="0,00" value="${v('limite')}"></div>
-    <div class="campo"><label class="campo-rot" for="fCor1">cores</label>
-      <div style="display:flex;gap:8px">
-        <input id="fCor1" type="color" value="${v('cor1','#8A05BE')}" style="height:44px;flex:1;padding:4px">
-        <input id="fCor2" type="color" value="${v('cor2','#5E038C')}" style="height:44px;flex:1;padding:4px">
-      </div></div>
-    <div class="sheet-erro" id="fErro"></div>`;
-  document.getElementById('sheetRodape').innerHTML = `
-    ${c ? '<button class="btn btn-apagar" type="button" data-cc="apagar">apagar</button>' : ''}
-    <button class="btn btn-salvar" type="button" data-cc="salvar">salvar</button>`;
-  document.getElementById('sheet').hidden = false;
-  setTimeout(() => document.getElementById('fNome').focus(), 30);
-}
-
-function inteiroOuNulo(id, min, max){
-  const n = parseInt(document.getElementById(id).value, 10);
-  return Number.isFinite(n) && n >= min && n <= max ? n : null;
-}
-
-async function salvarCartao(){
-  const erro = document.getElementById('fErro');
-  const btn  = document.querySelector('[data-cc="salvar"]');
-  const nome = document.getElementById('fNome').value.trim();
-  if (!nome){ erro.textContent = 'Dê um nome ao cartão.'; return; }
-
-  const limite = parseFloat(document.getElementById('fLimite').value);
-  const linha = {
-    nome,
-    num:            document.getElementById('fNum').value.trim() || null,
-    titular:        document.getElementById('fTitular').value.trim() || null,
-    dia_fechamento: inteiroOuNulo('fFecha', 1, 31),
-    dia_vencimento: inteiroOuNulo('fVence', 1, 31),
-    limite:         Number.isFinite(limite) ? limite : null,
-    cor1:           document.getElementById('fCor1').value,
-    cor2:           document.getElementById('fCor2').value,
-  };
-
-  erro.textContent = '';
-  btn.disabled = true;
-  try {
-    if (!SB) throw new Error('sem conexão');
-    if (E.editando != null){
-      const { error } = await SB.from('cartoes').update(linha).eq('id', E.editando);
-      if (error) throw error;
-      const i = S.cartoes.findIndex(x => String(x.id) === String(E.editando));
-      if (i !== -1) S.cartoes[i] = { ...S.cartoes[i], ...linha };
-    } else {
-      const { data, error } = await SB.from('cartoes').insert({ ...linha, user_id: USER_ID }).select();
-      if (error) throw error;
-      S.cartoes.push(data[0]);
-    }
-  } catch (e) {
-    erro.textContent = 'Não deu para salvar. ' + (e.message || '');
-    btn.disabled = false;
+  if (!c){
+    document.getElementById('titulo').textContent = 'fatura';
+    document.title = 'fatura';
+    col.innerHTML = voltar + `<p class="ft-vazio">${
+      S.cartoes.length ? 'esse cartão não está mais cadastrado.' : 'nenhum cartão cadastrado.'
+    }</p>`;
     return;
   }
-  fecharFolha();
-  render();
-}
 
-async function apagarCartao(){
-  if (E.editando == null) return;
-  const erro = document.getElementById('fErro');
-  const btn  = document.querySelector('[data-cc="apagar"]');
-  const usados = S.movs.filter(mv => String(mv.cartao_id || '') === String(E.editando)).length;
-  /* O banco solta o vínculo (on delete set null) em vez de apagar o gasto,
-     mas o usuário precisa saber que os lançamentos ficam sem cartão. */
-  if (usados && !btn.dataset.confirmado){
-    erro.textContent = `${usados} lançamento(s) ficam sem cartão (não serão apagados). Toque de novo para confirmar.`;
-    btn.dataset.confirmado = '1';
-    btn.textContent = 'apagar mesmo assim';
-    return;
-  }
-  btn.disabled = true;
-  try {
-    if (!SB) throw new Error('sem conexão');
-    const { error } = await SB.from('cartoes').delete().eq('id', E.editando);
-    if (error) throw error;
-    S.cartoes = S.cartoes.filter(x => String(x.id) !== String(E.editando));
-    S.movs.forEach(mv => { if (String(mv.cartao_id || '') === String(E.editando)) mv.cartao_id = null; });
-  } catch (e) {
-    erro.textContent = 'Não deu para apagar. ' + (e.message || '');
-    btn.disabled = false;
-    return;
-  }
-  fecharFolha();
-  render();
-}
+  const cic   = Fatura.ciclo(c, S.ano, S.mes);
+  const movs  = Fatura.lancamentos(c, S.movs, S.ano, S.mes);
+  const total = Fatura.total(c, S.movs, S.ano, S.mes);
+  const sit   = Fatura.situacao(c, S.ano, S.mes, HOJE);
+  const c1 = c.cor1 || '#3B82F6', c2 = c.cor2 || '#1E3A8A';
 
-/* Traz os cartões que viviam só no localStorage para o banco. */
-async function importarDoNavegador(){
-  const btn = document.getElementById('btnImportar');
-  const locais = ls.json('brian-cartoes-vis', []);
-  if (!Array.isArray(locais) || !locais.length) return;
-  btn.disabled = true;
-  btn.textContent = 'importando…';
-  try {
-    const linhas = locais.map(c => ({
-      nome: c.nome || 'cartão', num: c.num || null, titular: c.titular || null,
-      limite: Number.isFinite(+c.limite) ? +c.limite : null,
-      cor1: c.cor1 || null, cor2: c.cor2 || null, user_id: USER_ID,
-    }));
-    const { data, error } = await SB.from('cartoes').insert(linhas).select();
-    if (error) throw error;
-    S.cartoes.push(...data);
-    btn.hidden = true;
-    render();
-  } catch (e) {
-    btn.disabled = false;
-    btn.textContent = 'importar do navegador';
-    alert('Não deu para importar: ' + (e.message || ''));
-  }
+  /* Estorno maior que os gastos deixa a fatura negativa: é crédito a favor,
+     não dívida, e o verde diz isso sem precisar de legenda. */
+  const limite = Number(c.limite) > 0 ? Number(c.limite) : null;
+  const pct = limite ? Math.max(0, total) / limite * 100 : 0;
+
+  const serie = Array.from({length:12}, (_, m) => ({ m, v: Fatura.total(c, S.movs, S.ano, m) }));
+  const totalAno = serie.reduce((a, x) => a + x.v, 0);
+
+  document.getElementById('titulo').textContent = `fatura · ${c.nome}`;
+  document.title = `fatura ${c.nome} · ${MESES[S.mes]}/${S.ano}`;
+
+  col.innerHTML = `
+    ${voltar}
+
+    <div class="ft-topo">
+      <div class="ft-cartao" style="background:linear-gradient(135deg,${esc(c1)},${esc(c2)})">
+        <span class="ft-cc-nome">${esc(c.nome)}</span>
+        <span class="ft-cc-num">•••• ${esc(c.num || '••••')}</span>
+        <span class="ft-cc-rodape">
+          <span class="ft-cc-titular">${esc(c.titular || '')}</span>
+          <span>${c.dia_fechamento ? `fecha dia ${c.dia_fechamento}` : 'sem fechamento'}</span>
+        </span>
+      </div>
+
+      <div class="ft-hero">
+        <span class="ft-rot">fatura de ${MESES[S.mes]}/${S.ano}</span>
+        <span class="ft-valor${total < 0 ? ' is-pos' : ''}">${esc(fmt(total))}</span>
+        <span class="ft-periodo">de ${dm(cic.ini)} a ${dm(cic.fim)}${
+          cic.vence ? ` · vence ${dm(cic.vence)}` : ''}</span>
+        <span class="ft-selo is-${sit}">${SELO[sit]}${(p => p ? ' · ' + p : '')(prazo(sit, cic))}</span>
+      </div>
+    </div>
+
+    ${limite ? `
+      <div class="ft-medidor-wrap">
+        <div class="ft-medidor">
+          <div class="ft-medidor-fill${pct > 100 ? ' is-estourado' : ''}" style="width:${Math.min(pct, 100)}%"></div>
+        </div>
+        <div class="ft-medidor-legenda">
+          <span>${Math.round(pct)}% do limite nesta fatura</span>
+          <span>${esc(fmt(limite))}</span>
+        </div>
+      </div>` : ''}
+
+    <section class="ft-secao">
+      <h2 class="ft-secao-titulo">lançamentos do ciclo</h2>
+      ${movs.length ? movs.map(mv => `
+        <button class="ft-mov" type="button" data-dia="${iso(mv.data)}">
+          <span class="ft-mov-dia">${dm(mv.data)}</span>
+          <span class="ft-mov-desc">${esc(mv.desc || (mv.tipo === 'entrada' ? 'estorno' : 'gasto'))}</span>
+          <span class="ft-mov-valor${mv.tipo === 'entrada' ? ' is-estorno' : ''}">${
+            esc(fmt(mv.tipo === 'entrada' ? -mv.valor : mv.valor))}</span>
+        </button>`).join('')
+      : `<p class="ft-vazio">nenhum lançamento neste ciclo</p>`}
+    </section>
+
+    <section class="ft-secao">
+      <h2 class="ft-secao-titulo">faturas de ${S.ano}</h2>
+      <div style="overflow-x:auto">
+        <table class="ano-tabela">
+          <thead><tr><th>mês</th><th>fatura</th></tr></thead>
+          <tbody>
+            ${serie.map(x => `
+              <tr data-mes="${x.m}" class="${x.m === S.mes ? 'is-atual' : ''}">
+                <td class="ano-mes">${MESES[x.m]}</td>
+                <td${x.v === 0 ? ' class="is-zero"' : ''}>${esc(fmt(x.v))}</td>
+              </tr>`).join('')}
+          </tbody>
+          <tfoot><tr><td class="ano-mes">${S.ano}</td><td>${esc(fmt(totalAno))}</td></tr></tfoot>
+        </table>
+      </div>
+    </section>`;
 }
 
 /* ══════════════════════════════════════════════════════════════
    EVENTOS
    ══════════════════════════════════════════════════════════════ */
-document.getElementById('btnImportar').addEventListener('click', importarDoNavegador);
-
 document.addEventListener('click', e => {
-  const cc = e.target.closest('[data-cc]');
-  if (cc){
-    const q = cc.dataset.cc;
-    if (q === 'novo')   abrirEditor(null);
-    if (q === 'editar') abrirEditor(cc.dataset.id);
-    /* Leva o mês que está na tela: quem abre a fatura de agosto quer ver a de
-       agosto, não a de hoje. */
-    if (q === 'fatura') location.href =
-      `fatura.html?cartao=${encodeURIComponent(cc.dataset.id)}&ano=${S.ano}&mes=${S.mes}`;
-    if (q === 'salvar') salvarCartao();
-    if (q === 'apagar') apagarCartao();
-    return;
-  }
-  if (e.target.closest('[data-tag="fechar"]') || e.target.id === 'sheet'){ fecharFolha(); return; }
+  const mov = e.target.closest('[data-dia]');
+  if (mov){ location.href = 'saldos.html#' + mov.dataset.dia; return; }
+
+  const linha = e.target.closest('tr[data-mes]');
+  if (linha){ S.mes = +linha.dataset.mes; render(); return; }
 
   const navBtn = e.target.closest('[data-nav]');
   if (navBtn){
@@ -787,13 +780,8 @@ document.addEventListener('click', e => {
   if (collapseBtn){ document.getElementById('sidebar').classList.toggle('is-collapsed'); }
 });
 
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && !document.getElementById('sheet').hidden) fecharFolha();
-});
-
 
 let SB = null;
-let USER_ID = null;
 
 async function boot(){
   let semSessao = false;
@@ -801,7 +789,6 @@ async function boot(){
     SB = window.supabase.createClient(SB_URL, SB_KEY);
     const { data: { session } } = await SB.auth.getSession();
     if (session){
-      USER_ID = session.user.id;
       const [mv, cc] = await Promise.all([
         SB.from('movimentos').select('*').order('data', { ascending: true }),
         SB.from('cartoes').select('*').order('created_at', { ascending: true }),
@@ -816,14 +803,6 @@ async function boot(){
   }
   const naWeb = location.protocol === 'http:' || location.protocol === 'https:';
   if (semSessao && naWeb){ location.replace('entrar.html'); return; }
-
-  /* Só oferece a importação quando há cartões no navegador e nenhum no banco. */
-  const locais = ls.json('brian-cartoes-vis', []);
-  if (SB && USER_ID && !S.cartoes.length && Array.isArray(locais) && locais.length){
-    const b = document.getElementById('btnImportar');
-    b.hidden = false;
-    b.textContent = `importar ${locais.length} do navegador`;
-  }
   render();
 }
 
