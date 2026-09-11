@@ -428,6 +428,38 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 .lanc-vazio{color:var(--color-text-muted);font-size:14px;line-height:20px;padding:8px 0}
 .sheet-erro{color:var(--color-feedback-error);font-size:14px;line-height:20px;min-height:20px}
 
+/* ── faixa de métricas (só celular) ──────────────────────────── */
+.metric-strip{display:none}
+@media(max-width:479px){
+  .metric-strip{display:flex;gap:8px;flex-shrink:0;padding:12px 16px;overflow-x:auto;overscroll-behavior-x:contain;
+    scroll-snap-type:x proximity;scrollbar-width:none;border-bottom:1px solid var(--border-hairline);
+    background:var(--color-bg-surface)}
+  .metric-strip::-webkit-scrollbar{display:none}
+}
+.ms-chip{scroll-snap-align:center;display:inline-flex;align-items:center;gap:6px;height:36px;flex-shrink:0;
+  padding:0 14px;border:2px solid var(--table-grid-line);border-radius:64px;background:var(--color-bg-surface);
+  color:var(--color-text-primary);font:inherit;font-size:16px;line-height:24px;font-weight:700;
+  text-transform:lowercase;white-space:nowrap;cursor:pointer}
+.ms-chip:focus-visible{outline:2px solid var(--color-border-focus);outline-offset:2px}
+/* A cor fica numa variável: a classe mi-* traria mask-image e recortaria o texto. */
+.ms-chip.c-income{--ms-cor:#529952}
+.ms-chip.c-expense{--ms-cor:#E62D2D}
+.ms-chip.c-recurring{--ms-cor:#EC4899}
+.ms-chip.c-savings{--ms-cor:#84CC16}
+.ms-chip.c-card{--ms-cor:#7C3AED}
+.ms-chip.is-on{border-color:var(--ms-cor);color:var(--ms-cor)}
+.ms-chip .metric-icon{opacity:1}
+.ms-chip.is-on .metric-icon{background-color:var(--ms-cor)}
+
+/* O rótulo do seletor vinha antes do chevron na disputa por espaço: em tela
+   estreita ele era cortado e sobrava só o ícone. */
+@media(max-width:479px){
+  .metric-pill{gap:6px;padding:0 8px}
+  .metric-pill-label{flex:1 1 auto;min-width:0}
+  .metric-pill-chevron{width:20px;height:20px;-webkit-mask-size:20px 20px;mask-size:20px 20px}
+}
+@media(max-width:359px){.metric-pill-chevron{display:none}}
+
 /* ══════════════════════════════════════════════════════════════
    NAV INFERIOR (mobile)
    ══════════════════════════════════════════════════════════════ */
@@ -543,6 +575,9 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
           <span class="hm-neutral"></span><span class="hm-neutral"></span><span class="hm-neutral"></span>
         </button>
       </header>
+
+      <!-- Faixa de métricas (celular) -->
+      <div class="metric-strip" id="metricStrip" role="tablist" aria-label="Coluna exibida"></div>
 
       <!-- Viewport dos meses -->
       <div class="months-viewport">
@@ -828,7 +863,30 @@ function render(){
   applyLayout();
   wireBodies();
   paintHorizon(meses);
+  renderStrip();
   updateMobileMonthLabel();
+}
+
+/* Faixa de métricas do celular. O deslize horizontal da tabela é dos meses,
+   então a troca de coluna ganha faixa própria em vez de disputar o gesto. */
+function renderStrip(){
+  const strip = document.getElementById('metricStrip');
+  strip.innerHTML = METRICS.map(mt => `
+    <button class="ms-chip c-${mt.key}${mt.key === S.metric ? ' is-on' : ''}" type="button"
+            role="tab" aria-selected="${mt.key === S.metric}" data-metric="${mt.key}">
+      <span class="metric-icon ${mt.icon}${mt.key === S.metric ? ' has-value' : ''}"></span>${esc(mt.label)}
+    </button>`).join('');
+  const ativo = strip.querySelector('.ms-chip.is-on');
+  if (ativo) ativo.scrollIntoView({ inline: 'center', block: 'nearest' });
+}
+
+function trocarMetrica(k){
+  if (!k || k === S.metric) return;
+  S.metric = k;
+  ls.set('brian-saldos-metric', k);
+  const mes = mesVisivel;
+  render();
+  scrollToMonth(mes, 'auto');
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1352,6 +1410,9 @@ document.addEventListener('click', e => {
   }
   /* clicar fora da folha fecha */
   if (e.target.id === 'sheet'){ fecharFolha(); return; }
+
+  const chip = e.target.closest('[data-metric]');
+  if (chip){ trocarMetrica(chip.dataset.metric); return; }
 
   const celula = e.target.closest('[data-role="cell"],[data-role="add"]');
   if (celula){
