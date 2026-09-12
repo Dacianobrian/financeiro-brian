@@ -1113,7 +1113,16 @@ const REPETICOES = [
   { valor:'anual',   label:'repete o mesmo valor anualmente' },
 ];
 
-const F = { aberta:false, data:null, coluna:'expense', editando:null, alcance:null, acaoPendente:null };
+const F = { aberta:false, data:null, coluna:'expense', editando:null, alcance:null,
+            acaoPendente:null, confirmouColuna:false };
+
+/* Perguntar o alcance da série reescreve o rodapé, então o botão que começou a
+   ação já não existe quando a resposta chega. Mexer nele direto estourava a
+   gravação inteira — e em silêncio, porque o erro ia para o console. */
+function ocupar(seletor, sim){
+  const b = document.querySelector(seletor);
+  if (b) b.disabled = sim;
+}
 
 function movsDoDia(dataKey, coluna){
   return S.movs.filter(mv => iso(mv.data) === dataKey && classify(mv) === coluna);
@@ -1124,6 +1133,7 @@ function fecharFolha(){
   F.editando = null;
   F.alcance = null;
   F.acaoPendente = null;
+  F.confirmouColuna = false;
   document.getElementById('sheet').hidden = true;
 }
 
@@ -1149,6 +1159,7 @@ function abrirLista(dataKey, coluna){
 
 function abrirEditor(dataKey, coluna, id){
   F.aberta = true; F.data = dataKey; F.coluna = coluna; F.editando = id;
+  F.alcance = null; F.acaoPendente = null; F.confirmouColuna = false;
   /* Sem id não há como identificar a linha: procurar por String(undefined)
      casaria com qualquer outra que também não tenha id. */
   const mv = (id != null && id !== 'null') ? S.movs.find(x => x.id != null && x.id === String(id)) : null;
@@ -1252,7 +1263,6 @@ async function gravarVinculos(movId, idsTags){
 
 async function salvarLancamento(){
   const erro  = document.getElementById('fErro');
-  const btn   = document.querySelector('[data-sheet="salvar"]');
   const valor = parseFloat(document.getElementById('fValor').value);
   const desc  = document.getElementById('fDesc').value.trim();
   const dataStr = document.getElementById('fData').value;
@@ -1277,11 +1287,11 @@ async function salvarLancamento(){
   const colunaFinal = classify({ tipo: linha.tipo, conta: linha.conta, tag: linha.tag });
   if (colunaFinal !== coluna){
     erro.textContent = `A tag "${linha.tag}" move este lançamento para a coluna ${metricInfo(colunaFinal).label}. Toque em salvar de novo para confirmar.`;
-    if (!btn.dataset.confirmado){ btn.dataset.confirmado = '1'; return; }
+    if (!F.confirmouColuna){ F.confirmouColuna = true; return; }
   }
 
   erro.textContent = '';
-  btn.disabled = true;
+  ocupar('[data-sheet="salvar"]', true);
   try {
     if (!SB) throw new Error('sem conexão');
 
@@ -1290,7 +1300,7 @@ async function salvarLancamento(){
       const serie = atual && atual.serie_id;
       /* Numa série, editar sem perguntar mexeria em ocorrências que o usuário
          não está vendo. F.alcance guarda a resposta dele. */
-      if (serie && !F.alcance){ pedirAlcance('editar'); btn.disabled = false; return; }
+      if (serie && !F.alcance){ pedirAlcance('editar'); return; }
 
       if (serie && F.alcance === 'daqui'){
         const { error } = await SB.from('movimentos')
@@ -1332,7 +1342,9 @@ async function salvarLancamento(){
     }
   } catch (e) {
     erro.textContent = 'Não deu para salvar. ' + (e.message || '');
-    btn.disabled = false;
+    ocupar('[data-sheet="salvar"]', false);
+    ocupar('[data-sheet="alcance-daqui"]', false);
+    ocupar('[data-sheet="alcance-so-este"]', false);
     return;
   }
   fecharFolha();
@@ -1342,12 +1354,11 @@ async function salvarLancamento(){
 async function apagarLancamento(){
   if (F.editando == null) return;
   const erro = document.getElementById('fErro');
-  const btn  = document.querySelector('[data-sheet="apagar"]');
   const atual = S.movs.find(x => x.id === String(F.editando));
   const serie = atual && atual.serie_id;
   if (serie && !F.alcance){ pedirAlcance('apagar'); return; }
 
-  btn.disabled = true;
+  ocupar('[data-sheet="apagar"]', true);
   try {
     if (!SB) throw new Error('sem conexão');
     if (serie && F.alcance === 'daqui'){
@@ -1362,7 +1373,9 @@ async function apagarLancamento(){
     }
   } catch (e) {
     erro.textContent = 'Não deu para apagar. ' + (e.message || '');
-    btn.disabled = false;
+    ocupar('[data-sheet="apagar"]', false);
+    ocupar('[data-sheet="alcance-daqui"]', false);
+    ocupar('[data-sheet="alcance-so-este"]', false);
     return;
   }
   const dia = F.data;
