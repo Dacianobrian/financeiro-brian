@@ -10,10 +10,22 @@ from flask import Flask, render_template, request, jsonify, send_file, session, 
 import database as db
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'brian-financeiro-2026-local')
 
 # ── Autenticação simples ──────────────────────────────────────────────────────
-APP_PASSWORD = os.environ.get('APP_PASSWORD', 'brian2026')
+# Sem valor embutido: este repositório é público, e um padrão no código é uma
+# senha publicada. Faltando a variável de ambiente, o app não sobe — falhar na
+# largada é melhor que subir aberto com uma senha que todo mundo pode ler.
+SECRET_KEY   = os.environ.get('SECRET_KEY')
+APP_PASSWORD = os.environ.get('APP_PASSWORD')
+
+_faltando = [n for n, v in (('SECRET_KEY', SECRET_KEY), ('APP_PASSWORD', APP_PASSWORD)) if not v]
+if _faltando:
+    raise RuntimeError(
+        'Defina ' + ' e '.join(_faltando) + ' no ambiente antes de subir o app. '
+        'Elas não têm valor padrão de propósito.'
+    )
+
+app.secret_key = SECRET_KEY
 
 def login_required(f):
     @wraps(f)
