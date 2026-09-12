@@ -684,7 +684,10 @@ function metricInfo(key){ return METRICS.find(m => m.key === key) || METRICS[4];
 function classify(mv){
   if (mv.tipo === 'entrada')                       return 'income';
   if (mv.conta === 'cartao')                       return 'card';
-  if (mv.conta === 'itau' || mv.tag === 'invest')  return 'savings';
+  /* 'itau' era o apelido interno deste bolso, herdado do app de referência.
+     Segue aceito porque o index.html antigo ainda grava assim. */
+  if (mv.conta === 'economias' || mv.conta === 'itau' ||
+      mv.tag === 'invest')                           return 'savings';
   if (mv.tag === 'diário' || mv.tag === 'diario')  return 'recurring';
   return 'expense';
 }
@@ -1096,7 +1099,7 @@ const CAMPOS_POR_COLUNA = {
   income:    { tipo:'entrada', conta:'nubank', tag:null },
   expense:   { tipo:'saida',   conta:'nubank', tag:null },
   recurring: { tipo:'saida',   conta:'nubank', tag:'diário' },
-  savings:   { tipo:'saida',   conta:'itau',   tag:null },
+  savings:   { tipo:'saida',   conta:'economias', tag:null },
   card:      { tipo:'saida',   conta:'cartao', tag:null },
 };
 
