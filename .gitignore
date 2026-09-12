@@ -22,3 +22,7 @@ pip-wheel-metadata/
 .DS_Store
 *.log
 *.tmp
+
+# Backups de lançamentos: são dados financeiros reais.
+# Este repositório é público — backup vai para fora dele.
+backups/
