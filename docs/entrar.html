@@ -206,7 +206,7 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
         </label>
         <label class="auth-campo">
           <span class="auth-campo-txt">
-            <span class="auth-rot">senha</span>
+            <span class="auth-rot" id="rotSenha">senha</span>
             <input class="auth-input" id="fSenha" type="password"
                    autocomplete="current-password" placeholder="sua senha" required>
           </span>
@@ -279,6 +279,16 @@ function setModo(novo){
     $('btnEsqueci').textContent = 'esqueci minha senha';
     senha.hidden = false;
     $('fSenha').setAttribute('autocomplete','new-password');
+  } else if (modo === 'nova-senha'){
+    $('titulo').textContent = 'definir nova senha';
+    $('desc').textContent   = 'escolha a senha que vai usar a partir de agora';
+    $('btnEntrar').textContent = 'salvar senha';
+    $('btnCriar').hidden = true;
+    $('btnEsqueci').hidden = true;
+    senha.hidden = false;
+    $('fEmail').closest('.auth-campo').hidden = true;
+    $('fSenha').setAttribute('autocomplete','new-password');
+    $('rotSenha').textContent = 'nova senha';
   } else {
     $('titulo').textContent = 'recuperar senha';
     $('desc').textContent   = 'enviamos um link para o seu e-mail';
@@ -293,7 +303,12 @@ function setModo(novo){
     $('verSenha').classList.add('is-off');
     $('verSenha').setAttribute('aria-pressed','false');
   }
-  if (modo !== 'recuperar') $('btnEsqueci').hidden = false;
+  if (modo !== 'recuperar' && modo !== 'nova-senha'){
+    $('btnEsqueci').hidden = false;
+    $('btnCriar').hidden = false;
+    $('fEmail').closest('.auth-campo').hidden = false;
+    $('rotSenha').textContent = 'senha';
+  }
 }
 
 /* Mensagens do Supabase vêm em inglês e cruas; traduz as que o usuário
@@ -314,6 +329,27 @@ async function enviar(e){
   const btn   = $('btnEntrar');
   const email = $('fEmail').value.trim();
   const senha = $('fSenha').value;
+
+  if (modo === 'nova-senha'){
+    if (senha.length < 6){ erro().textContent = 'A senha precisa ter ao menos 6 caracteres.'; return; }
+    btn.disabled = true;
+    const rot = btn.textContent;
+    btn.textContent = 'aguarde…';
+    try {
+      const { error } = await SB.auth.updateUser({ password: senha });
+      if (error) throw error;
+      /* Tira o token da barra de endereços: ele continua válido por um tempo
+         e fica no histórico do navegador. */
+      history.replaceState(null, '', location.pathname);
+      location.replace('saldos.html');
+      return;
+    } catch (err) {
+      erro().textContent = traduzir(err.message);
+    }
+    btn.disabled = false;
+    btn.textContent = rot;
+    return;
+  }
 
   if (!email){ erro().textContent = 'Informe o e-mail.'; $('fEmail').focus(); return; }
   if (modo !== 'recuperar' && !senha){ erro().textContent = 'Informe a senha.'; $('fSenha').focus(); return; }
@@ -366,9 +402,19 @@ $('verSenha').addEventListener('click', () => {
 async function boot(){
   try {
     SB = window.supabase.createClient(SB_URL, SB_KEY);
+    /* O link de recuperação chega com o token no # e cria sessão. Se o
+       redirecionamento abaixo rodasse antes, ele mandaria direto para os
+       saldos e a troca de senha nunca aconteceria. */
+    const hash = location.hash || '';
+    const recuperando = hash.includes('type=recovery') || hash.includes('access_token');
+
     const { data: { session } } = await SB.auth.getSession();
-    /* Já autenticado não tem o que fazer aqui. */
-    if (session){ location.replace('saldos.html'); return; }
+    if (session && !recuperando){ location.replace('saldos.html'); return; }
+    if (recuperando){
+      setModo('nova-senha');
+      $('fSenha').focus();
+      return;
+    }
   } catch (err) {
     erro().textContent = 'Não deu para falar com o servidor.';
   }
