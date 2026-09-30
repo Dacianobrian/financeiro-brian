@@ -444,6 +444,14 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
 }
 @media(max-width:359px){.metric-pill-chevron{display:none}}
 
+/* ── aviso de falha de carregamento ──────────────────────────── */
+.aviso-erro{position:fixed;left:16px;right:16px;bottom:16px;z-index:70;display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border:1px solid var(--color-border-error,#F5ABAB);border-radius:12px;background:var(--color-bg-surface);box-shadow:0 8px 32px var(--shadow-soft);color:var(--color-text-primary);font-size:14px;line-height:20px}
+.aviso-erro[hidden]{display:none!important}
+.aviso-erro b{color:var(--color-feedback-error)}
+.aviso-erro-txt{flex:1;min-width:0}
+.aviso-erro button{flex-shrink:0;height:32px;padding:0 12px;border:1px solid var(--color-border-subtle);border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+@media(max-width:479px){.aviso-erro{bottom:calc(88px + env(safe-area-inset-bottom))}}
+
 /* ══════════════════════════════════════════════════════════════
    NAV INFERIOR (mobile)
    ══════════════════════════════════════════════════════════════ */
@@ -602,6 +610,11 @@ h1,h2,h3,h4,h5,h6,p{margin:0}
     <div class="sheet-body" id="sheetCorpo"></div>
     <div class="sheet-foot" id="sheetRodape"></div>
   </div>
+</div>
+
+<div class="aviso-erro" id="avisoErro" role="alert" hidden>
+  <span class="aviso-erro-txt"><b>Não deu para carregar seus lançamentos.</b> <span id="avisoDetalhe"></span></span>
+  <button type="button" onclick="location.reload()">tentar de novo</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -1609,6 +1622,7 @@ let USER_ID = null;
 async function boot(){
   let semSessao = false;
   let autenticado = false;
+  const falhas = [];
   try {
     const sb = window.supabase.createClient(SB_URL, SB_KEY);
     SB = sb;
@@ -1621,10 +1635,17 @@ async function boot(){
         sb.from('tags').select('*').order('created_at', { ascending: true }),
         sb.from('cartoes').select('*').order('created_at', { ascending: true }),
       ]);
+      /* Falha de carregamento desenhava a tabela vazia, idêntica a "não há
+         lançamentos" — o usuário não tinha como saber que os dados existem e
+         não chegaram. Agora o erro aparece na tela. */
+      if (mv.error) falhas.push('lançamentos: ' + mv.error.message);
+      if (tg.error) falhas.push('tags: ' + tg.error.message);
+      if (cc.error) falhas.push('cartões: ' + cc.error.message);
       if (!mv.error && mv.data) S.movs = mv.data.map(toMov);
       if (!tg.error && tg.data) S.tags = tg.data;
       if (!cc.error && cc.data) S.cartoes = cc.data;
       const vl = await sb.from('movimento_tags').select('movimento_id,tag_id');
+      if (vl.error) falhas.push('tags dos lançamentos: ' + vl.error.message);
       if (!vl.error && vl.data){
         S.vinculos = {};
         vl.data.forEach(v => {
@@ -1636,7 +1657,8 @@ async function boot(){
       semSessao = true;
     }
   } catch (err) {
-    console.warn('Supabase indisponível, usando dados de demonstração.', err);
+    falhas.push(err.message || String(err));
+    console.warn('Supabase indisponível.', err);
   }
   /* Sem sessão vai pro login: mostrar números de demonstração para quem está
      deslogado engana. Só vale quando a página é servida pela web de verdade —
@@ -1651,6 +1673,11 @@ async function boot(){
      não há sessão nenhuma (arquivo aberto direto, para conferir layout).
      Inventar número para quem está autenticado é mentir sobre dinheiro. */
   if (!autenticado && !S.movs.length) S.movs = DEMO.map((r, i) => toMov({ ...r, id: 'demo-' + (i + 1) }));
+  if (falhas.length){
+    document.getElementById('avisoDetalhe').textContent = falhas.join(' · ');
+    document.getElementById('avisoErro').hidden = false;
+  }
+
   render();
   const entrada = (location.hash || '').slice(1);
   if (entrada === 'novo'){
